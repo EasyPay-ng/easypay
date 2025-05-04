@@ -2,46 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    window.login = function () {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          // Check if the logged-in user is Victoromubo
-          if (user.email === "victoromubo@gmail.com") {
-            alert("Welcome Admin!");
-            window.location.href = 'admin.html';  // Redirect to admin page
-          } else {
-            alert("Successfully logged in!");
-            window.location.href = 'dashboard.html';  // Regular user dashboard
-          }
-        })
-        .catch((error) => {
-          alert("Login failed: " + error.message);
-        });
-    }
-  </script>
   <style>
     body {
       margin: 0;
@@ -77,6 +39,7 @@
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
+      font-size: 1rem;
     }
     .btn {
       width: 100%;
@@ -87,6 +50,7 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
+      transition: background 0.2s;
     }
     .btn:hover {
       background-color: #0d8f0d;
@@ -102,20 +66,72 @@
   </style>
 </head>
 <body>
+
   <div class="login-container">
     <h2>User Login</h2>
     <div class="form-group">
       <label for="email">Email</label>
-      <input type="email" id="email" required>
+      <input type="email" id="email" placeholder="you@example.com" required>
     </div>
     <div class="form-group">
       <label for="password">Password</label>
-      <input type="password" id="password" required>
+      <input type="password" id="password" placeholder="••••••••" required>
     </div>
-    <button class="btn" onclick="login()">Login</button>
+    <button id="loginBtn" class="btn">Login</button>
     <div class="footer-text">
       <p>Don't have an account? <a href="register.html">Register now!</a></p>
     </div>
   </div>
+
+  <!-- Move the module import to the end of the body -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Grab references to DOM elements
+    const loginBtn = document.getElementById('loginBtn');
+    const emailInput = document.getElementById('email');
+    const passInput  = document.getElementById('password');
+
+    loginBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passInput.value;
+
+      if (!email || !password) {
+        return alert("Please enter both email and password.");
+      }
+
+      try {
+        const { user } = await signInWithEmailAndPassword(auth, email, password);
+
+        // Admin check
+        if (user.email.toLowerCase() === "victoromubo@gmail.com") {
+          alert("Welcome Admin!");
+          window.location.href = 'admin.html';
+        } else {
+          alert("Successfully logged in!");
+          window.location.href = 'dashboard.html';
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        alert("Login failed: " + err.message);
+      }
+    });
+  </script>
+
 </body>
 </html>
+
