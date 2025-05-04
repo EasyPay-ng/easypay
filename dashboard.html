@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
@@ -138,34 +138,43 @@
     let referralLinkText = "";
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return (window.location.href = 'login.html');
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("usernameDisplay").innerText = data.username;
-        document.getElementById("profileUsername").innerText = data.username;
-        document.getElementById("profileEmail").innerText = data.email;
-        document.getElementById("balance").innerText = data.balance || 0;
-        document.getElementById("referrals").innerText = data.referrals || 0;
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      // Pull user document
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
 
-        // Set the referral code to only display the user's username
-        document.getElementById("referralCode").innerText = data.username;
+      if (!snap.exists()) {
+        console.error("No user document!");
+        return;
+      }
 
-        referralLinkText = '${data.username}`;
+      const data = snap.data();
+      // Populate fields
+      document.getElementById("usernameDisplay").innerText = data.username || "";
+      document.getElementById("profileUsername").innerText = data.username || "";
+      document.getElementById("profileEmail").innerText = data.email || "";
+      document.getElementById("balance").innerText = data.balance ?? 0;
+      document.getElementById("referrals").innerText = data.referrals ?? 0;
+      document.getElementById("referralCode").innerText = data.username || "";
 
-        const claimButton = document.getElementById("claimBtn");
-        if (claimButton) {
-          claimButton.onclick = () => claimNaira(user, data);
-          updateCountdown(data.lastClaim || 0);
-        }
+      // Build a full referral link:
+      referralLinkText = `${window.location.origin}/register.html?ref=${encodeURIComponent(data.username)}`;
+
+      // Setup claim button
+      const claimBtn = document.getElementById("claimBtn");
+      if (claimBtn) {
+        claimBtn.onclick = () => claimNaira(user.uid, data);
+        updateCountdown(data.lastClaim || 0);
       }
     });
 
     window.copyReferral = () => {
-      navigator.clipboard.writeText(referralLinkText).then(() => {
-        alert("Referral Link Copied!");
-      });
+      navigator.clipboard.writeText(referralLinkText)
+        .then(() => alert("Referral Link Copied!"))
+        .catch(console.error);
     };
 
     window.logout = () => signOut(auth);
@@ -174,48 +183,42 @@
       document.getElementById("profileInfo").classList.toggle("show");
     };
 
-    function showClaimSuccess() {
-      alert("Claimed Successfully!");
-    }
-
-    function updateCountdown(timestamp) {
-      const countdown = document.getElementById("countdown");
-      const interval = setInterval(() => {
+    function updateCountdown(lastClaimTs) {
+      const countdownEl = document.getElementById("countdown");
+      const tick = () => {
         const now = Date.now();
-        const remaining = timestamp + 86400000 - now;
-
-        if (remaining <= 0) {
-          countdown.innerText = "You can now claim!";
-          clearInterval(interval);
+        const nextAvailable = lastClaimTs + 86400000;
+        const diff = nextAvailable - now;
+        if (diff <= 0) {
+          countdownEl.innerText = "You can now claim!";
+          clearInterval(intervalId);
         } else {
-          const hrs = Math.floor(remaining / 3600000);
-          const mins = Math.floor((remaining % 3600000) / 60000);
-          const secs = Math.floor((remaining % 60000) / 1000);
-          countdown.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
+          const hrs = Math.floor(diff / 3600000);
+          const mins = Math.floor((diff % 3600000) / 60000);
+          const secs = Math.floor((diff % 60000) / 1000);
+          countdownEl.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
         }
-      }, 1000);
+      };
+      tick();
+      const intervalId = setInterval(tick, 1000);
     }
 
-    async function claimNaira(user, userData) {
+    async function claimNaira(uid, oldData) {
       const now = Date.now();
-      const lastClaim = userData.lastClaim || 0;
-      if (now - lastClaim >= 86400000) {
-        const newBalance = (userData.balance || 0) + 1;
-        await setDoc(doc(db, "users", user.uid), {
-          ...userData,
-          balance: newBalance,
-          lastClaim: now
-        });
-        document.getElementById("balance").innerText = newBalance;
-        showClaimSuccess();
-        updateCountdown(now);
-      } else {
+      if (now - (oldData.lastClaim || 0) < 86400000) {
         alert("You have to wait 24 hours before claiming again.");
-        updateCountdown(lastClaim);
+        return;
       }
+      const newBalance = (oldData.balance || 0) + 1;
+      // Merge only balance and lastClaim
+      await setDoc(doc(db, "users", uid), {
+        balance: newBalance,
+        lastClaim: now
+      }, { merge: true });
+      document.getElementById("balance").innerText = newBalance;
+      alert("Claimed Successfully!");
+      updateCountdown(now);
     }
   </script>
 </body>
 </html>
-
-
