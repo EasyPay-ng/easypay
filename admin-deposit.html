@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Manage Deposits</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { color: #2f7a2f; }
+    .search-bar { margin-bottom: 15px; }
+    .search-bar input { padding: 8px; width: 200px; border: 1px solid #ccc; border-radius: 4px; }
+    .search-bar button { padding: 8px 12px; margin-left: 5px; border:none; background:#2f7a2f; color:white; border-radius:4px; cursor:pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #2f7a2f; color: #fff; }
+    button.action { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
+    .approve { background: #28a745; }
+    .reject  { background: #dc3545; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Admin — Deposit Requests</h2>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by Ref ID…" />
+      <button id="searchBtn">Search</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Amount</th>
+          <th>Sender</th>
+          <th>Username</th> <!-- Added Username column -->
+          <th>Ref ID</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="adminTable"></tbody>
+    </table>
+  </div>
+
+  <!-- Firebase v8 SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <script>
+    // Initialize Firebase
+    const cfg = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(cfg);
+    const db = firebase.firestore();
+
+    // Utility to format Firestore Timestamp or numeric date
+    function formatDate(ts) {
+      if (!ts) return '';
+      if (ts.toDate) return ts.toDate().toLocaleString();
+      if (ts.seconds) return new Date(ts.seconds * 1000).toLocaleString();
+      return new Date(ts).toLocaleString();
+    }
+
+    // Fetch and display deposits, optionally filtered by refId
+    async function loadAdmin(refIdFilter = '') {
+      const tbody = document.getElementById('adminTable');
+      tbody.innerHTML = '';
+
+      try {
+        let docs;
+        if (refIdFilter) {
+          // Simple where query (no orderBy to avoid index requirement)
+          const snap = await db.collection('deposits')
+                                .where('refId', '==', refIdFilter)
+                                .get();
+          docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          // Sort in-memory by date desc
+          docs.sort((a, b) => {
+            const aMs = a.date.seconds ? a.date.seconds * 1000 : a.date;
+            const bMs = b.date.seconds ? b.date.seconds * 1000 : b.date;
+            return bMs - aMs;
+          });
+        } else {
+          // Unfiltered query with date ordering
+          const snap = await db.collection('deposits')
+                                .orderBy('date', 'desc')
+                                .get();
+          docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+
+        // Render
+        docs.forEach(d => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>₦${d.amount}</td>
+            <td>${d.senderName}</td>
+            <td>${d.username}</td> <!-- Display username -->
+            <td>${d.refId}</td>
+            <td>${formatDate(d.date)}</td>
+            <td>${d.status}</td>
+            <td>
+              <button class="action approve">Approve</button>
+              <button class="action reject">Reject</button>
+            </td>
+          `;
+          tr.querySelector('.approve').onclick = () => updateStatus(d.id, d.amount, d.username, 'approved');
+          tr.querySelector('.reject').onclick  = () => updateStatus(d.id, 0, d.username, 'rejected');
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Error loading deposits:", err);
+      }
+    }
+
+    // Approve/Reject logic
+    async function updateStatus(depositId, creditAmt, username, newStatus) {
+      try {
+        const depoRef = db.collection('deposits').doc(depositId);
+        await depoRef.update({ status: newStatus });
+
+        if (newStatus === 'approved') {
+          // Fetch the user by username
+          const userRef = db.collection('users').doc(username); // Assuming 'users' collection
+          const userSnap = await userRef.get();
+
+          if (userSnap.exists) {
+            const userData = userSnap.data();
+            const currentBalance = userData.balance || 0;
+
+            // Update the user's balance
+            await userRef.update({ balance: currentBalance + creditAmt });
+
+            console.log(`Balance for ${username} updated to: ₦${currentBalance + creditAmt}`);
+          } else {
+            console.error(`User ${username} not found!`);
+          }
+        }
+
+        // Reload the deposit table
+        const currentFilter = document.getElementById('searchInput').value.trim();
+        loadAdmin(currentFilter);
+      } catch (err) {
+        console.error("Error updating status:", err);
+      }
+    }
+
+    // Event bindings
+    document.getElementById('searchBtn').onclick = () => {
+      const term = document.getElementById('searchInput').value.trim();
+      loadAdmin(term);
+    };
+    document.getElementById('resetBtn').onclick = () => {
+      document.getElementById('searchInput').value = '';
+      loadAdmin();
+    };
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', () => loadAdmin());
+  </script>
+</body>
+</html>

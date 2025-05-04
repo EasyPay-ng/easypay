@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyPay Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5fdf7;
+      color: #333;
+    }
+    header {
+      background-color: #009f4d;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .profile {
+      position: relative;
+      cursor: pointer;
+    }
+    .profile-info {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background: white;
+      color: black;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      width: 200px;
+      padding: 10px;
+      z-index: 1;
+    }
+    .profile-info.show {
+      display: block;
+    }
+    .container {
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h3 {
+      margin-top: 0;
+    }
+    .copy-btn {
+      background: #009f4d;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #009f4d;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    .nav a {
+      color: white;
+      text-decoration: none;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Welcome back, <span id="usernameDisplay"></span></h2>
+    <div class="profile" onclick="toggleProfile()">
+      <i class="fas fa-user-circle fa-2x"></i>
+      <div id="profileInfo" class="profile-info">
+        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h3>Balance: ₦<span id="balance">0</span></h3>
+    </div>
+    <div class="card">
+      <h3>Total Referrals: <span id="referrals">0</span></h3>
+    </div>
+    <div class="card">
+      <h3>Referral Code:</h3>
+      <p id="referralCode"></p>
+      <button class="copy-btn" onclick="copyReferral()">Copy Referral Link</button>
+    </div>
+    <div class="card">
+      <h3>Daily Bonus</h3>
+      <p id="countdown">Loading...</p>
+      <button class="copy-btn" id="claimBtn">Claim ₦1</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a href="Menu.html"><i class="fas fa-home"></i><br />Menu</a>
+    <a href="advertise.html"><i class="fas fa-bullhorn"></i><br />Advertise</a>
+    <a href="earn.html"><i class="fas fa-coins"></i><br />Earn</a>
+    <a href="leaderboard.html"><i class="fas fa-trophy"></i><br />Leaderboard</a>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    let referralLinkText = "";
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return (window.location.href = 'login.html');
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("usernameDisplay").innerText = data.username;
+        document.getElementById("profileUsername").innerText = data.username;
+        document.getElementById("profileEmail").innerText = data.email;
+        document.getElementById("balance").innerText = data.balance || 0;
+        document.getElementById("referrals").innerText = data.referrals || 0;
+
+        // Set the referral code to only display the user's username
+        document.getElementById("referralCode").innerText = data.username;
+
+        referralLinkText = `https://easypayz.github.io/Easypay-site/${data.username}`;
+
+        const claimButton = document.getElementById("claimBtn");
+        if (claimButton) {
+          claimButton.onclick = () => claimNaira(user, data);
+          updateCountdown(data.lastClaim || 0);
+        }
+      }
+    });
+
+    window.copyReferral = () => {
+      navigator.clipboard.writeText(referralLinkText).then(() => {
+        alert("Referral Link Copied!");
+      });
+    };
+
+    window.logout = () => signOut(auth);
+
+    window.toggleProfile = () => {
+      document.getElementById("profileInfo").classList.toggle("show");
+    };
+
+    function showClaimSuccess() {
+      alert("Claimed Successfully!");
+    }
+
+    function updateCountdown(timestamp) {
+      const countdown = document.getElementById("countdown");
+      const interval = setInterval(() => {
+        const now = Date.now();
+        const remaining = timestamp + 86400000 - now;
+
+        if (remaining <= 0) {
+          countdown.innerText = "You can now claim!";
+          clearInterval(interval);
+        } else {
+          const hrs = Math.floor(remaining / 3600000);
+          const mins = Math.floor((remaining % 3600000) / 60000);
+          const secs = Math.floor((remaining % 60000) / 1000);
+          countdown.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
+        }
+      }, 1000);
+    }
+
+    async function claimNaira(user, userData) {
+      const now = Date.now();
+      const lastClaim = userData.lastClaim || 0;
+      if (now - lastClaim >= 86400000) {
+        const newBalance = (userData.balance || 0) + 1;
+        await setDoc(doc(db, "users", user.uid), {
+          ...userData,
+          balance: newBalance,
+          lastClaim: now
+        });
+        document.getElementById("balance").innerText = newBalance;
+        showClaimSuccess();
+        updateCountdown(now);
+      } else {
+        alert("You have to wait 24 hours before claiming again.");
+        updateCountdown(lastClaim);
+      }
+    }
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Available Tasks</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8fff8;
+      padding: 20px;
+      margin: 0;
+    }
+    header {
+      text-align: center;
+      color: #006400;
+      margin-bottom: 20px;
+    }
+    #loginDiv {
+      max-width: 400px;
+      margin: 50px auto;
+      text-align: center;
+    }
+    #loginDiv input {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    #loginDiv button {
+      padding: 8px 16px;
+      background: #006400;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #app {
+      display: none;
+    }
+    #app header {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+    .task {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,100,0,0.1);
+      position: relative;
+    }
+    .task h2 {
+      margin: 0 0 10px;
+      color: #006400;
+    }
+    .task p {
+      margin: 5px 0;
+    }
+    .task button {
+      padding: 6px 12px;
+      background: #006400;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .proof {
+      margin-top: 10px;
+    }
+    .proof input, .proof textarea {
+      width: 100%;
+      margin: 4px 0;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .submit-btn {
+      background: #007700;
+      color: white;
+      font-weight: bold;
+    }
+    .progress-container {
+      background: #eee;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 10px;
+      height: 16px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #28a745;
+      width: 0%;
+      transition: width 0.4s ease-in-out;
+    }
+    .progress-label {
+      font-size: 12px;
+      text-align: right;
+      margin-top: 4px;
+      color: #004400;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Form -->
+  <div id="loginDiv">
+    <h2>Please Sign In to Continue</h2>
+    <input type="email" id="email" placeholder="Email" /><br />
+    <input type="password" id="password" placeholder="Password" /><br />
+    <button id="loginBtn">Sign In</button>
+    <p id="loginError" style="color:red;"></p>
+  </div>
+
+  <!-- App Content -->
+  <div id="app">
+    <header>Available Tasks</header>
+    <button style="float:right; margin-bottom:10px;" id="logoutBtn">Sign Out</button>
+    <div id="taskContainer"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // --- Initialize Firebase ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth(), db = firebase.firestore();
+
+    // DOM refs
+    const loginDiv       = document.getElementById("loginDiv");
+    const appDiv         = document.getElementById("app");
+    const taskContainer  = document.getElementById("taskContainer");
+    const loginBtn       = document.getElementById("loginBtn");
+    const logoutBtn      = document.getElementById("logoutBtn");
+    const loginError     = document.getElementById("loginError");
+    const emailInput     = document.getElementById("email");
+    const passInput      = document.getElementById("password");
+
+    // Sign in / out
+    loginBtn.onclick = () => {
+      loginError.textContent = "";
+      auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
+        .catch(e => loginError.textContent = e.message);
+    };
+    logoutBtn.onclick = () => auth.signOut();
+
+    // Auth state listener
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loginDiv.style.display = "none";
+        appDiv.style.display   = "block";
+        startTaskListener();
+      } else {
+        appDiv.style.display   = "none";
+        loginDiv.style.display = "block";
+        taskContainer.innerHTML = "";
+      }
+    });
+
+    // Real-time listener for tasks
+    function startTaskListener() {
+      db.collection("tasks")
+        .where("status", "==", "approved")
+        .onSnapshot(snapshot => {
+          taskContainer.innerHTML = "";
+          snapshot.forEach(doc => renderTask(doc));
+        });
+    }
+
+    // Render one task, set up its submission listener
+    function renderTask(doc) {
+      const data = doc.data();
+      const id   = doc.id;
+      const pricePerUser = data.costPerUser || (data.totalBudget / data.workersNeeded);
+      const userPay = Math.floor(pricePerUser * 0.7);
+
+      // Create task box
+      const div = document.createElement("div");
+      div.className = "task";
+      div.id = `task-${id}`;
+      div.innerHTML = `
+        <h2>${data.taskTitle} — ${data.category}</h2>
+        <p><strong>Description:</strong> ${data.description || ''}</p>
+        <p><strong>Earn:</strong> ₦${userPay}</p>
+        <div class="progress-container">
+          <div class="progress-bar" id="bar-${id}"></div>
+        </div>
+        <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
+        <button onclick="window.open('${data.link}','_blank')">Start Task</button>
+        <div class="proof">
+          <label>Text Proof:</label>
+          <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
+          <label>Image Proof URL:</label>
+          <input type="text" id="image-${id}" placeholder="Paste image proof URL..." />
+          <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
+        </div>
+      `;
+      taskContainer.appendChild(div);
+
+      // Listen for approved submissions to update progress
+      db.collection("task_submissions")
+        .where("taskId", "==", id)
+        .onSnapshot(snap => {
+          let approvedCount = 0;
+          snap.forEach(sdoc => {
+            if (sdoc.data().status === "approved") approvedCount++;
+          });
+          const needed = data.workersNeeded;
+          const pct = Math.min(100, Math.round(approvedCount / needed * 100));
+          document.getElementById(`bar-${id}`).style.width = pct + "%";
+          document.getElementById(`label-${id}`).textContent =
+            `${approvedCount} / ${needed} completed`;
+
+          // Auto‑complete task when done
+          if (approvedCount >= needed) {
+            // Remove from UI
+            document.getElementById(`task-${id}`).remove();
+            // Mark task completed in DB
+            db.collection("tasks").doc(id).update({ status: "completed" });
+          }
+        });
+    }
+
+    // Submit proof
+    async function submitProof(taskId, payout) {
+      const user = auth.currentUser;
+      if (!user) return alert("Sign in to submit");
+      const text  = document.getElementById(`text-${taskId}`).value.trim();
+      const image = document.getElementById(`image-${taskId}`).value.trim();
+      if (!text || !image) return alert("Fill both proof fields");
+
+      await db.collection("task_submissions").add({
+        taskId: taskId,
+        userId: user.uid,
+        textProof: text,
+        imageProof: image,
+        payout: payout,
+        status: "pending",
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      alert("Proof submitted!");
+      document.getElementById(`text-${taskId}`).value = "";
+      document.getElementById(`image-${taskId}`).value = "";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EasyPay Admin Dashboard</title>
+  <style>
+    /* Global */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8fff8;
+      color: #003300;
+    }
+    header {
+      background: #006400;
+      color: #fff;
+      padding: 16px;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    /* Login Form */
+    #loginDiv {
+      max-width: 360px;
+      margin: 80px auto;
+      padding: 24px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,100,0,0.1);
+      text-align: center;
+    }
+    #loginDiv input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #loginDiv button {
+      width: 100%;
+      padding: 10px;
+      background: #006400;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    #loginError {
+      color: #cc0000;
+      margin-top: 8px;
+    }
+    /* Admin Dashboard */
+    #adminDiv {
+      padding: 20px;
+    }
+    #logoutBtn {
+      float: right;
+      background: #cc0000;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    h2.section-title {
+      margin-top: 0;
+      color: #006400;
+    }
+    /* Table Styles */
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,100,0,0.1);
+      margin-bottom: 40px;
+    }
+    .task-table th, .task-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+    }
+    .task-table th {
+      background: #e6f4e6;
+      color: #004400;
+    }
+    .task-table tr:hover {
+      background: #f0fff0;
+    }
+    /* Buttons */
+    .approve-btn {
+      background: #009900;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+    .reject-btn {
+      background: #cc0000;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    /* Responsive */
+    @media (max-width: 600px) {
+      .task-table th, .task-table td {
+        padding: 8px 10px;
+      }
+      header {
+        font-size: 1.2em;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>EasyPay Admin Dashboard</header>
+
+  <!-- Login Form -->
+  <div id="loginDiv">
+    <h2>Admin Sign In</h2>
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Sign In</button>
+    <p id="loginError"></p>
+  </div>
+
+  <!-- Admin Content -->
+  <div id="adminDiv" style="display:none;">
+    <button id="logoutBtn" onclick="logout()">Sign Out</button>
+    <h2 class="section-title">All Task Submissions</h2>
+    <div id="tasksContainer"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    // SIGN IN / OUT
+    function login() {
+      document.getElementById("loginError").textContent = "";
+      auth.signInWithEmailAndPassword(
+        document.getElementById("email").value,
+        document.getElementById("password").value
+      ).catch(e => {
+        document.getElementById("loginError").textContent = e.message;
+      });
+    }
+    function logout() {
+      auth.signOut();
+    }
+
+    // AUTH STATE HANDLER
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("loginDiv").style.display = "none";
+        document.getElementById("adminDiv").style.display = "block";
+        startRealtimeListener();
+      } else {
+        document.getElementById("adminDiv").style.display = "none";
+        document.getElementById("loginDiv").style.display = "block";
+      }
+    });
+
+    // REAL-TIME LISTENER
+    async function startRealtimeListener() {
+      // Preload tasks
+      const tasksData = {};
+      const tasksSnap = await db.collection("tasks").get();
+      tasksSnap.forEach(doc => tasksData[doc.id] = doc.data());
+
+      // Preload users
+      const usersData = {};
+      const usersSnap = await db.collection("users").get();
+      usersSnap.forEach(uDoc => {
+        const u = uDoc.data();
+        usersData[uDoc.id] = u.username || uDoc.id;
+      });
+
+      // Listen to submissions
+      db.collection("task_submissions")
+        .orderBy("submittedAt", "desc")
+        .onSnapshot(snapshot => {
+          const grouped = {};
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            if (!grouped[d.taskId]) grouped[d.taskId] = [];
+            grouped[d.taskId].push({ id: doc.id, data: d });
+          });
+          renderSubmissions(grouped, tasksData, usersData);
+        });
+    }
+
+    // RENDERING FUNCTION
+    function renderSubmissions(grouped, tasksData, usersData) {
+      const container = document.getElementById("tasksContainer");
+      container.innerHTML = "";
+
+      Object.entries(grouped).forEach(([taskId, subs]) => {
+        const task = tasksData[taskId];
+        if (!task) return;
+
+        // Task Header
+        const header = document.createElement("h3");
+        const payout = task.costPerUser
+          ? `₦${task.costPerUser}`
+          : `₦${Math.floor(task.totalBudget / task.workersNeeded)}`;
+        header.textContent = `${task.taskTitle} — ${task.category} | ${payout}`;
+        container.appendChild(header);
+
+        // Table
+        const tbl = document.createElement("table");
+        tbl.className = "task-table";
+        tbl.innerHTML = `
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Date Submitted</th>
+              <th>Text Proof</th>
+              <th>Image Proof</th>
+              <th>Status</th>
+              <th>Approve</th>
+              <th>Reject</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+        const tbody = tbl.querySelector("tbody");
+
+        subs.forEach(sub => {
+          const d = sub.data;
+          const tr = document.createElement("tr");
+
+          // Username
+          const uname = usersData[d.userId] || d.userId;
+          tr.innerHTML += `<td>${uname}</td>`;
+
+          // Date
+          const dateStr = d.submittedAt?.toDate?.().toLocaleString() || "";
+          tr.innerHTML += `<td>${dateStr}</td>`;
+
+          // Text proof
+          tr.innerHTML += `<td>${d.textProof || ""}</td>`;
+
+          // Image proof
+          const imgTd = document.createElement("td");
+          if (d.imageProof) {
+            const a = document.createElement("a");
+            a.href       = d.imageProof;
+            a.target     = "_blank";
+            a.textContent = "View";
+            imgTd.appendChild(a);
+          }
+          tr.appendChild(imgTd);
+
+          // Status
+          tr.innerHTML += `<td>${d.status}</td>`;
+
+          // Approve button
+          const apTd = document.createElement("td");
+          const apBtn = document.createElement("button");
+          apBtn.className = "approve-btn";
+          apBtn.textContent = "Approve";
+          apBtn.onclick   = () => handleApprove(taskId, sub.id, d.userId);
+          apTd.appendChild(apBtn);
+          tr.appendChild(apTd);
+
+          // Reject button
+          const rjTd = document.createElement("td");
+          const rjBtn = document.createElement("button");
+          rjBtn.className = "reject-btn";
+          rjBtn.textContent = "Reject";
+          rjBtn.onclick   = () => handleReject(sub.id);
+          rjTd.appendChild(rjBtn);
+          tr.appendChild(rjTd);
+
+          tbody.appendChild(tr);
+        });
+
+        container.appendChild(tbl);
+      });
+    }
+
+    // APPROVE / REJECT LOGIC
+    function handleApprove(taskId, submissionId, userId) {
+      const subRef = db.collection("task_submissions").doc(submissionId);
+      subRef.update({ status: "approved" })
+        .then(() => db.collection("tasks").doc(taskId).get())
+        .then(taskDoc => {
+          const t = taskDoc.data();
+          let reward = t.costPerUser
+            ? t.costPerUser * 0.7
+            : (t.totalBudget / t.workersNeeded) * 0.7;
+          reward = Math.floor(reward);
+          return db.collection("users")
+            .doc(userId)
+            .update({ balance: firebase.firestore.FieldValue.increment(reward) });
+        })
+        .catch(console.error);
+    }
+
+    function handleReject(submissionId) {
+      db.collection("task_submissions").doc(submissionId)
+        .update({ status: "rejected" })
+        .catch(console.error);
+    }
+  </script>
+</body>
+</html>

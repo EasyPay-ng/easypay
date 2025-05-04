@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Withdrawal Panel</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, collectionGroup, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadWithdrawals() {
+      const withdrawalQuery = collectionGroup(db, "withdrawals");
+      const snapshot = await getDocs(withdrawalQuery);
+      const tbody = document.getElementById("withdrawalTable").querySelector("tbody");
+      tbody.innerHTML = "";
+
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const docPath = docSnap.ref.path;
+        const date = new Date(data.timestamp.seconds * 1000).toLocaleString();
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td>₦${data.amount}</td>
+          <td>${data.bank}</td>
+          <td>${data.accNumber}</td>
+          <td>${data.accName}</td>
+          <td>
+            <select data-path="${docPath}" onchange="updateStatus(this)">
+              <option value="Pending" ${data.status === "Pending" ? "selected" : ""}>Pending</option>
+              <option value="Successful" ${data.status === "Successful" ? "selected" : ""}>Successful</option>
+              <option value="Rejected" ${data.status === "Rejected" ? "selected" : ""}>Rejected</option>
+            </select>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.updateStatus = async function (selectEl) {
+      const path = selectEl.getAttribute("data-path");
+      const newStatus = selectEl.value;
+      const ref = doc(db, path);
+      await updateDoc(ref, { status: newStatus });
+      alert("Status updated to " + newStatus);
+    }
+
+    loadWithdrawals();
+  </script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+      background-color: #f9fff9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #d5fdd5;
+    }
+    select {
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Admin Withdrawal Records</h2>
+  <table id="withdrawalTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Amount</th>
+        <th>Bank</th>
+        <th>Account Number</th>
+        <th>Account Name</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="6">Loading...</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

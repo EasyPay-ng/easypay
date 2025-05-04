@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay | Shortlink Task</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e6f7ed, #ffffff);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 128, 0, 0.15);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #007f3b;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+    }
+
+    .reward {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #1c943b;
+    }
+
+    #startBtn {
+      margin-top: 1.5rem;
+      background-color: #28a745;
+      color: white;
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    #startBtn:hover {
+      background-color: #218838;
+    }
+
+    .loading {
+      margin-top: 1rem;
+      color: #888;
+      font-size: 0.95rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Shortlink Task</h2>
+    <p>Click the button to earn:</p>
+    <div class="reward">₦5</div>
+    <button id="startBtn">Start Task</button>
+    <div class="loading" id="loadingText">Crediting ₦5 and redirecting...</div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const btn = document.getElementById('startBtn');
+    const loadingText = document.getElementById('loadingText');
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return (window.location.href = "/login.html");
+
+      btn.onclick = async () => {
+        btn.disabled = true;
+        loadingText.style.display = "block";
+
+        const uid = user.uid;
+        const userRef = db.collection("users").doc(uid);
+        const today = new Date().toISOString().split("T")[0];
+
+        const doc = await userRef.get();
+        const data = doc.exists ? doc.data() : {};
+        const task = data.shortlinkTask || {};
+
+        if (task.date === today && task.completed) {
+          alert("You’ve already completed this task today.");
+          btn.disabled = false;
+          loadingText.style.display = "none";
+          return;
+        }
+
+        await userRef.update({
+          shortlinkTask: { completed: true, date: today },
+          balance: firebase.firestore.FieldValue.increment(5),
+          transactions: firebase.firestore.FieldValue.arrayUnion({
+            source: "Shortlink",
+            amount: "₦5",
+            date: new Date().toLocaleString()
+          })
+        });
+
+        setTimeout(() => {
+          window.location.href = "https://shrinkme.ink/L38j1XJ";
+        }, 1500);
+      };
+    });
+  </script>
+</body>
+</html>
+
+
+

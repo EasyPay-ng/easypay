@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Task Review</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0fff0;
+      padding: 20px;
+    }
+    h1 {
+      color: #006400;
+      text-align: center;
+    }
+    .task {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,100,0,0.1);
+      position: relative;
+    }
+    .task p {
+      margin: 6px 0;
+    }
+    .task button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .approve { background-color: #006400; color: white; }
+    .reject  { background-color: #ff4c4c; color: white; }
+    .takedown { background-color: #f39c12; color: white; }
+    .disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .progress-container {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #004400;
+    }
+    .progress-bar-bg {
+      background: #eee;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 12px;
+      margin-top: 4px;
+    }
+    .progress-bar-fg {
+      background: #28a745;
+      height: 100%;
+      width: 0%;
+      transition: width 0.4s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pending Tasks for Approval</h1>
+  <div id="taskList"></div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Initialize
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const taskList = document.getElementById('taskList');
+
+    // Load tasks and set up submission listeners
+    function loadTasks() {
+      db.collection("tasks")
+        .where("status", "in", ["pending","approved"])
+        .onSnapshot(snapshot => {
+          taskList.innerHTML = '';
+          snapshot.forEach(doc => renderTask(doc));
+        });
+    }
+
+    // Render one task card
+    function renderTask(doc) {
+      const data   = doc.data();
+      const taskId = doc.id;
+
+      // Build card
+      const div = document.createElement("div");
+      div.className = "task";
+      div.id = `task-${taskId}`;
+      div.innerHTML = `
+        <p><strong>Title:</strong> ${data.taskTitle}</p>
+        <p><strong>Platform:</strong> ${data.category} - ${data.subCategory}</p>
+        <p><strong>Workers Needed:</strong> ${data.workersNeeded}</p>
+        <p><strong>Budget:</strong> ₦${data.totalBudget}</p>
+        <p><strong>Description:</strong> ${data.description||''}</p>
+        <p><strong>Link:</strong> 
+          <a href="${data.link}" target="_blank">${data.link}</a>
+        </p>
+        <div class="progress-container">
+          <span id="label-${taskId}">0 / ${data.workersNeeded} approved</span>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fg" id="bar-${taskId}"></div>
+          </div>
+        </div>
+        <button class="approve" onclick="approveTask('${taskId}')"
+          ${data.status!=="pending"?'disabled':''}>
+          Approve Task
+        </button>
+        <button class="reject" onclick="rejectTask('${taskId}')"
+          ${data.status!=="pending"?'disabled':''}>
+          Reject Task
+        </button>
+        <button class="takedown" onclick="takeDownTask('${taskId}')">
+          Take Down
+        </button>
+      `;
+      taskList.appendChild(div);
+
+      // Listen approved submissions
+      db.collection("task_submissions")
+        .where("taskId","==",taskId)
+        .where("status","==","approved")
+        .onSnapshot(snap => {
+          const count = snap.size;
+          const needed = data.workersNeeded;
+          const pct = Math.min(100, Math.round(count/needed*100));
+          document.getElementById(`bar-${taskId}`).style.width = pct + '%';
+          document.getElementById(`label-${taskId}`).textContent = 
+            `${count} / ${needed} approved`;
+
+          // Auto-disable Approve/Reject when complete
+          if (count>=needed) {
+            const card = document.getElementById(`task-${taskId}`);
+            card.querySelector('.approve').disabled = true;
+            card.querySelector('.reject').disabled  = true;
+          }
+        });
+    }
+
+    // Approve / Reject / Take Down
+    function approveTask(taskId) {
+      db.collection("tasks").doc(taskId).update({ status:"approved" });
+    }
+    function rejectTask(taskId) {
+      db.collection("tasks").doc(taskId).update({ status:"rejected" });
+    }
+    function takeDownTask(taskId) {
+      // mark as taken down and remove from UI
+      db.collection("tasks").doc(taskId).update({ status:"taken down" });
+      const card = document.getElementById(`task-${taskId}`);
+      if (card) card.remove();
+    }
+
+    // Init
+    loadTasks();
+  </script>
+</body>
+</html>
+

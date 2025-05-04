@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Withdrawal Page</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        alert("Please log in.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        alert("User not found in Firestore.");
+        return;
+      }
+
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.addEventListener("click", () => submitWithdrawal(user.uid));
+
+      loadWithdrawals(user.uid);
+    });
+
+    async function submitWithdrawal(uid) {
+      const amount = parseFloat(document.getElementById("amount").value);
+      const bank = document.getElementById("bank").value;
+      const accName = document.getElementById("accName").value;
+      const accNumber = document.getElementById("accNumber").value;
+
+      if (isNaN(amount) || amount < 200 || !bank || !accName || !accNumber) {
+        alert("Please fill all fields correctly. Minimum is ₦200.");
+        return;
+      }
+
+      const userRef = doc(db, "users", uid);
+      const userDoc = await getDoc(userRef);
+      const balance = userDoc.data().balance || 0;
+
+      if (amount > balance) {
+        alert("Insufficient balance.");
+        return;
+      }
+
+      await updateDoc(userRef, { balance: balance - amount });
+
+      const withdrawal = {
+        timestamp: new Date(),
+        amount,
+        bank,
+        accName,
+        accNumber,
+        status: "Pending"
+      };
+
+      const withdrawalRef = collection(userRef, "withdrawals");
+      await addDoc(withdrawalRef, withdrawal);
+      alert("Withdrawal submitted successfully.");
+
+      document.getElementById("amount").value = "";
+      document.getElementById("bank").value = "";
+      document.getElementById("accName").value = "";
+      document.getElementById("accNumber").value = "";
+
+      loadWithdrawals(uid);
+    }
+
+    async function loadWithdrawals(uid) {
+      const tbody = document.getElementById("withdrawalTable").querySelector("tbody");
+      tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
+      const withdrawalRef = collection(doc(db, "users", uid), "withdrawals");
+      const q = query(withdrawalRef, orderBy("timestamp", "desc"), limit(20));
+      const snapshot = await getDocs(q);
+
+      tbody.innerHTML = "";
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const date = new Date(d.timestamp.seconds * 1000).toLocaleString();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td>₦${d.amount}</td>
+          <td>${d.bank}</td>
+          <td>${d.accNumber}</td>
+          <td>${d.status}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5fff5;
+      color: #222;
+      margin: 0;
+      padding: 1rem;
+    }
+    .form-box, .table-box {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 1rem;
+      margin-bottom: 2rem;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: green;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #e0ffe0;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-box">
+    <h2>Make a Withdrawal</h2>
+    <input type="number" id="amount" placeholder="Amount (min ₦200)" />
+    <select id="bank">
+      <option value="">Select Bank</option>
+      <option value="Access Bank">Access Bank</option>
+      <option value="Kuda">Kuda</option>
+      <option value="PalmPay">PalmPay</option>
+      <option value="Moniepoint">Moniepoint</option>
+      <option value="Opay">Opay</option>
+      <option value="GTBank">GTBank</option>
+      <option value="First Bank">First Bank</option>
+      <option value="UBA">UBA</option>
+      <option value="Zenith Bank">Zenith Bank</option>
+      <option value="Wema Bank">Wema Bank</option>
+    </select>
+    <input type="text" id="accName" placeholder="Account Name" />
+    <input type="number" id="accNumber" placeholder="Account Number" />
+    <button id="submitBtn">Submit Withdrawal</button>
+  </div>
+
+  <div class="table-box">
+    <h3>Recent Withdrawals</h3>
+    <table id="withdrawalTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Bank</th>
+          <th>Account</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

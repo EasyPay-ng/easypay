@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard</title>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+  <h1 class="text-2xl font-bold text-center mb-6">Top 10 Users Leaderboard</h1>
+  <div id="leaderboard" class="max-w-xl mx-auto bg-white p-4 rounded-xl shadow-md space-y-4"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const leaderboardContainer = document.getElementById('leaderboard');
+
+    async function loadLeaderboard() {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, orderBy('balance', 'desc'), limit(10));
+      const querySnapshot = await getDocs(q);
+
+      let rank = 1;
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        const avatarUrl = data.avatar || `https://ui-avatars.com/api/?name=${data.username || 'User'}&background=random`;
+
+        const userItem = document.createElement('div');
+        userItem.className = 'flex items-center space-x-4 p-4 bg-gray-50 rounded-lg shadow-sm';
+
+        userItem.innerHTML = `
+          <img src="${avatarUrl}" alt="avatar" class="w-12 h-12 rounded-full border border-gray-300">
+          <div>
+            <p class="font-semibold">${rank}. ${data.username || 'User'}</p>
+            <p class="text-sm text-gray-600">₦${data.balance?.toFixed(2) || '0.00'}</p>
+          </div>
+        `;
+
+        leaderboardContainer.appendChild(userItem);
+        rank++;
+      });
+    }
+
+    loadLeaderboard();
+  </script>
+</body>
+</html>
