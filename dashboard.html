@@ -110,7 +110,7 @@
   </div>
 
   <div class="nav">
-    <a href="Menu.html"><i class="fas fa-home"></i><br />Menu</a>
+    <a href="menu.html"><i class="fas fa-home"></i><br />Menu</a>
     <a href="advertise.html"><i class="fas fa-bullhorn"></i><br />Advertise</a>
     <a href="earn.html"><i class="fas fa-coins"></i><br />Earn</a>
     <a href="leaderboard.html"><i class="fas fa-trophy"></i><br />Leaderboard</a>
@@ -152,7 +152,7 @@
         // Set the referral code to only display the user's username
         document.getElementById("referralCode").innerText = data.username;
 
-        referralLinkText = `https://easypayz.github.io/Easypay-site/${data.username}`;
+        referralLinkText = '${data.username}`;
 
         const claimButton = document.getElementById("claimBtn");
         if (claimButton) {
