@@ -147,7 +147,7 @@
       }
     });
 
-    // Load tasks + submissions
+    // Load tasks + submissions, sorted newest-first
     async function loadOwnerTasks(uid) {
       tasksContainer.innerHTML = "";
 
@@ -158,25 +158,35 @@
         usersData[u.id] = d.username || d.email || u.id;
       });
 
-      // Query tasks
-      const taskSnap = await db.collection("tasks")
-        .where("createdBy","==",uid).get();
+      // Fetch tasks created by this user
+      const snap = await db.collection("tasks")
+        .where("createdBy","==",uid)
+        .get();
 
-      if (taskSnap.empty) {
+      // Collect and sort by createdAt descending
+      const tasks = [];
+      snap.forEach(doc => {
+        const data = doc.data();
+        tasks.push({
+          id: doc.id,
+          createdAt: data.createdAt ? data.createdAt.toMillis() : 0,
+          content: data
+        });
+      });
+      tasks.sort((a,b) => b.createdAt - a.createdAt);
+
+      if (tasks.length === 0) {
         tasksContainer.innerHTML = "<p>No tasks posted.</p>";
         return;
       }
 
-      taskSnap.forEach(doc=> {
-        const task = doc.data(), taskId = doc.id;
-
-        // Header
+      // Render each task in order
+      for (const {id: taskId, content: task} of tasks) {
         const h2 = document.createElement("h2");
         h2.className   = "task-title";
         h2.textContent = `${task.taskTitle} — ${task.category}`;
         tasksContainer.appendChild(h2);
 
-        // Table
         const table = document.createElement("table");
         table.className = "sub-table";
         table.innerHTML = `
@@ -190,82 +200,71 @@
         tasksContainer.appendChild(table);
         const tbody = document.getElementById(`tb-${taskId}`);
 
-        // Listen submissions (no orderBy)
+        // Listen submissions
         db.collection("task_submissions")
           .where("taskId","==",taskId)
-          .onSnapshot(snap=> {
-            // Collect then sort by timestamp desc
+          .onSnapshot(snap => {
             const subs = snap.docs.map(d=>({ id:d.id, data:d.data() }));
-            subs.sort((a,b)=> {
+            subs.sort((a,b) => {
               const ta = a.data.submittedAt?.toMillis()||0;
               const tb = b.data.submittedAt?.toMillis()||0;
               return tb - ta;
             });
-            // Render
             tbody.innerHTML = "";
-            subs.forEach(({id, data:d})=>{
+            subs.forEach(({id, data:d}) => {
               const tr = document.createElement("tr");
-              // Username
               const uname = usersData[d.userId] || d.userId;
-              tr.innerHTML += `<td>${uname}</td>`;
-              // Date
-              const dateStr = d.submittedAt?.toDate?.().toLocaleString()||"";
-              tr.innerHTML += `<td>${dateStr}</td>`;
-              // Proof
-              tr.innerHTML += `<td>${d.textProof||""}</td>`;
-              // Image
-              let imgCell = `<td>`;
-              if(d.imageProof){
-                imgCell += `<a href="${d.imageProof}" target="_blank">View</a>`;
-              }
-              imgCell += `</td>`;
-              tr.innerHTML += imgCell;
-              // Status
-              tr.innerHTML += `<td>${d.status}</td>`;
-              // Approve
+              const dateStr = d.submittedAt?.toDate()?.toLocaleString()||"";
+              const proofImg = d.imageProof
+                ? `<a href="${d.imageProof}" target="_blank">View</a>`
+                : "";
+
+              tr.innerHTML = `
+                <td>${uname}</td>
+                <td>${dateStr}</td>
+                <td>${d.textProof||""}</td>
+                <td>${proofImg}</td>
+                <td>${d.status}</td>`;
+              // Approve button
+              const apTd = document.createElement("td");
               const apBtn = document.createElement("button");
               apBtn.className   = "approve-btn";
               apBtn.textContent = "Approve";
-              apBtn.onclick     = ()=>handleDecision(taskId,id,true);
-              const apTd = document.createElement("td");
+              apBtn.onclick     = () => handleDecision(taskId, id, true);
               apTd.appendChild(apBtn);
               tr.appendChild(apTd);
-              // Reject
+              // Reject button
+              const rjTd = document.createElement("td");
               const rjBtn = document.createElement("button");
               rjBtn.className   = "reject-btn";
               rjBtn.textContent = "Reject";
-              rjBtn.onclick     = ()=>handleDecision(taskId,id,false);
-              const rjTd = document.createElement("td");
+              rjBtn.onclick     = () => handleDecision(taskId, id, false);
               rjTd.appendChild(rjBtn);
               tr.appendChild(rjTd);
 
               tbody.appendChild(tr);
             });
           });
-      });
+      }
     }
 
     // Approve/Reject & credit
     async function handleDecision(taskId, subId, approve) {
       const subRef = db.collection("task_submissions").doc(subId);
-      await subRef.update({ status:approve?"approved":"rejected" });
-      if(approve){
-        const t = (await db.collection("tasks").doc(taskId).get()).data();
+      await subRef.update({ status: approve ? "approved" : "rejected" });
+      if (approve) {
+        const taskDoc = await db.collection("tasks").doc(taskId).get();
+        const t = taskDoc.data();
         let reward = t.costPerUser
-          ?t.costPerUser*0.7
-          : (t.totalBudget/t.workersNeeded)*0.7;
+          ? t.costPerUser * 0.7
+          : (t.totalBudget / t.workersNeeded) * 0.7;
         reward = Math.floor(reward);
-        const userId = (await subRef.get()).data().userId;
+        const subSnap = await subRef.get();
+        const userId = subSnap.data().userId;
         await db.collection("users").doc(userId)
-          .update({ balance:firebase.firestore.FieldValue.increment(reward) });
+          .update({ balance: firebase.firestore.FieldValue.increment(reward) });
       }
     }
   </script>
 </body>
 </html>
-
-
-
-
-
-
