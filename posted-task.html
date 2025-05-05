@@ -101,7 +101,6 @@
     // Load tasks + submissions, sorted newest-first
     async function loadOwnerTasks(uid) {
       tasksContainer.innerHTML = "";
-
       // Preload users -> map uid => username||email||uid
       const usersData = {};
       (await db.collection("users").get()).forEach(u => {
@@ -124,7 +123,7 @@
       });
       tasks.sort((a,b) => b.createdAt - a.createdAt);
 
-      if (tasks.length === 0) {
+      if (!tasks.length) {
         tasksContainer.innerHTML = "<p>No tasks posted.</p>";
         return;
       }
@@ -165,7 +164,7 @@
             subs.forEach(({id, data:d}) => {
               const tr = document.createElement("tr");
               const uname   = usersData[d.userId] || d.userId;
-              const dateStr = d.submittedAt?.toDate()?.toLocaleString()||"";
+              const dateStr = d.submittedAt?.toDate?.().toLocaleString()||"";
 
               // Base cells
               tr.innerHTML = `
@@ -187,22 +186,34 @@
               }
               tr.replaceChild(imgTd, tr.children[3]);
 
-              // Approve
-              const apTd = document.createElement("td");
+              // Approve/Reject buttons
               const apBtn = document.createElement("button");
+              const rjBtn = document.createElement("button");
+              // Approve
               apBtn.className   = "approve-btn";
               apBtn.textContent = "Approve";
-              apBtn.onclick     = () => handleDecision(taskId, id, true);
-              apTd.appendChild(apBtn);
-              tr.appendChild(apTd);
-
               // Reject
-              const rjTd = document.createElement("td");
-              const rjBtn = document.createElement("button");
               rjBtn.className   = "reject-btn";
               rjBtn.textContent = "Reject";
-              rjBtn.onclick     = () => handleDecision(taskId, id, false);
+
+              // Async handler that disables both buttons
+              apBtn.onclick = async () => {
+                apBtn.disabled = true;
+                rjBtn.disabled = true;
+                await handleDecision(taskId, id, true);
+              };
+              rjBtn.onclick = async () => {
+                apBtn.disabled = true;
+                rjBtn.disabled = true;
+                await handleDecision(taskId, id, false);
+              };
+
+              // Attach them
+              const apTd = document.createElement("td");
+              apTd.appendChild(apBtn);
+              const rjTd = document.createElement("td");
               rjTd.appendChild(rjBtn);
+              tr.appendChild(apTd);
               tr.appendChild(rjTd);
 
               tbody.appendChild(tr);
