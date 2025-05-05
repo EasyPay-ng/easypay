@@ -75,6 +75,10 @@
       background: #cc0000; color: #fff;
       padding: 6px 12px;
     }
+    .view-btn {
+      background: #0066cc; color: #fff;
+      padding: 6px 12px;
+    }
     @media (max-width:600px) {
       .sub-table th, .sub-table td { padding: 8px 10px; }
       header { font-size:1.2em; padding:12px; }
@@ -82,7 +86,7 @@
   </style>
 </head>
 <body>
-  <header>My Tasks & Submissions</header>
+  <header>My Tasks &amp; Submissions</header>
 
   <!-- Login Form -->
   <div id="loginDiv">
@@ -153,7 +157,7 @@
 
       // Preload users -> map uid => username||email||uid
       const usersData = {};
-      (await db.collection("users").get()).forEach(u=> {
+      (await db.collection("users").get()).forEach(u => {
         const d = u.data();
         usersData[u.id] = d.username || d.email || u.id;
       });
@@ -203,7 +207,7 @@
         db.collection("task_submissions")
           .where("taskId","==",taskId)
           .onSnapshot(snap => {
-            const subs = snap.docs.map(d=>({ id:d.id, data:d.data() }));
+            const subs = snap.docs.map(d => ({ id:d.id, data:d.data() }));
             subs.sort((a,b) => {
               const ta = a.data.submittedAt?.toMillis()||0;
               const tb = b.data.submittedAt?.toMillis()||0;
@@ -215,16 +219,26 @@
               const tr = document.createElement("tr");
               const uname   = usersData[d.userId] || d.userId;
               const dateStr = d.submittedAt?.toDate()?.toLocaleString()||"";
-              const proof   = d.imageProof
-                ? `<a href="${d.imageProof}" target="_blank" rel="noopener noreferrer">View</a>`
-                : "";
 
+              // Base cells
               tr.innerHTML = `
                 <td>${uname}</td>
                 <td>${dateStr}</td>
                 <td>${d.textProof||""}</td>
-                <td>${proof}</td>
+                <td></td>  <!-- placeholder for view button -->
                 <td>${d.status}</td>`;
+
+              // Image proof button
+              const imgTd = document.createElement("td");
+              if (d.imageProof) {
+                const viewBtn = document.createElement("button");
+                viewBtn.className   = "view-btn";
+                viewBtn.textContent = "View";
+                viewBtn.onclick     = () => window.open(d.imageProof, "_blank", "noopener");
+                imgTd.appendChild(viewBtn);
+              }
+              // Replace 4th cell
+              tr.replaceChild(imgTd, tr.children[3]);
 
               // Approve
               const apTd = document.createElement("td");
