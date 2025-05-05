@@ -6,79 +6,26 @@
   <title>My Tasks & Submissions</title>
   <style>
     /* Global */
-    body {
-      margin: 0; padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f8fff8;
-      color: #003300;
-    }
-    header {
-      background: #006400;
-      color: #fff;
-      padding: 16px;
-      text-align: center;
-      font-size: 1.5em;
-      font-weight: bold;
-    }
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-    }
+    body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: #f8fff8; color: #003300; }
+    header { background: #006400; color: #fff; padding: 16px; text-align: center; font-size: 1.5em; font-weight: bold; }
+    button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; }
     /* Login */
-    #loginDiv {
-      max-width: 360px; margin: 80px auto;
-      padding: 24px; background: #fff;
-      border-radius: 8px; box-shadow: 0 2px 8px rgba(0,100,0,0.1);
-      text-align: center;
-    }
-    #loginDiv input, #loginDiv button {
-      width: 100%; margin: 8px 0; padding: 10px;
-    }
+    #loginDiv { max-width: 360px; margin: 80px auto; padding: 24px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,100,0,0.1); text-align: center; }
+    #loginDiv input, #loginDiv button { width: 100%; margin: 8px 0; padding: 10px; }
     #loginDiv button { background: #006400; color: #fff; }
     #loginError { color: #cc0000; }
     /* Dashboard */
-    #dashboard {
-      display: none; padding: 20px;
-    }
-    #logoutBtn {
-      float: right; background: #cc0000;
-      color: #fff; padding: 8px 12px;
-      margin-bottom: 12px; border-radius: 6px;
-    }
-    h2.task-title {
-      margin: 24px 0 8px; color: #006400;
-    }
+    #dashboard { display: none; padding: 20px; }
+    #logoutBtn { float: right; background: #cc0000; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-radius: 6px; }
+    h2.task-title { margin: 24px 0 8px; color: #006400; }
     /* Table */
-    .sub-table {
-      width: 100%; border-collapse: collapse;
-      background: #fff; border-radius: 8px; overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,100,0,0.1);
-      margin-bottom: 40px;
-    }
-    .sub-table th, .sub-table td {
-      padding: 12px 16px; border-bottom: 1px solid #e0e0e0;
-      text-align: left;
-    }
-    .sub-table th {
-      background: #e6f4e6; color: #004400;
-    }
-    .sub-table tr:hover {
-      background: #f0fff0;
-    }
-    .approve-btn {
-      background: #009900; color: #fff;
-      padding: 6px 12px; margin-right: 4px;
-    }
-    .reject-btn {
-      background: #cc0000; color: #fff;
-      padding: 6px 12px;
-    }
-    .view-btn {
-      background: #0066cc; color: #fff;
-      padding: 6px 12px;
-    }
+    .sub-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,100,0,0.1); margin-bottom: 40px; }
+    .sub-table th, .sub-table td { padding: 12px 16px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+    .sub-table th { background: #e6f4e6; color: #004400; }
+    .sub-table tr:hover { background: #f0fff0; }
+    .approve-btn { background: #009900; color: #fff; padding: 6px 12px; margin-right: 4px; }
+    .reject-btn  { background: #cc0000; color: #fff; padding: 6px 12px; }
+    .view-btn    { background: #0066cc; color: #fff; padding: 6px 12px; }
     @media (max-width:600px) {
       .sub-table th, .sub-table td { padding: 8px 10px; }
       header { font-size:1.2em; padding:12px; }
@@ -218,7 +165,7 @@
             subs.forEach(({id, data:d}) => {
               const tr = document.createElement("tr");
               const uname   = usersData[d.userId] || d.userId;
-              const dateStr = d.submittedAt?.toDate?.().toLocaleString()||"";
+              const dateStr = d.submittedAt?.toDate()?.toLocaleString()||"";
 
               // Base cells
               tr.innerHTML = `
@@ -234,11 +181,8 @@
                 const viewBtn = document.createElement("button");
                 viewBtn.className   = "view-btn";
                 viewBtn.textContent = "View";
-                viewBtn.onclick     = () => {
-                  const win = window.open("", "_blank", "noopener,noreferrer");
-                  win.opener = null;
-                  win.location = d.imageProof;
-                };
+                viewBtn.onclick     = () =>
+                  window.open(d.imageProof, "_blank", "noopener,noreferrer");
                 imgTd.appendChild(viewBtn);
               }
               tr.replaceChild(imgTd, tr.children[3]);
