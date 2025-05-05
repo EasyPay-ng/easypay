@@ -75,25 +75,33 @@
 
     // DOM refs
     const usernameIn = document.getElementById('username');
-    const amtIn   = document.getElementById('amount');
-    const senderIn= document.getElementById('senderName');
-    const refIn   = document.getElementById('refId');
-    const btn     = document.getElementById('submitBtn');
-    const msg     = document.getElementById('msg');
-    const load    = document.getElementById('loading');
-    const hist    = document.getElementById('history');
+    const amtIn      = document.getElementById('amount');
+    const senderIn   = document.getElementById('senderName');
+    const refIn      = document.getElementById('refId');
+    const btn        = document.getElementById('submitBtn');
+    const msg        = document.getElementById('msg');
+    const load       = document.getElementById('loading');
+    const hist       = document.getElementById('history');
 
     // Helpers
-    const genRef   = () => Math.random().toString(36).substr(2,9);
-    refIn.value = genRef();
+    const genRef = () => Math.random().toString(36).substr(2,9);
+    refIn.value   = genRef();
 
-    // Load ALL deposits
+    // Load deposits for this user only
     async function loadHistory() {
       hist.innerHTML = '';
+      const user = usernameIn.value.trim();
+      if (!user) {
+        // no username entered yet
+        return;
+      }
+
       try {
         const snap = await db.collection('deposits')
-          .orderBy('date','desc')
+          .where('username', '==', user)
+          .orderBy('date', 'desc')
           .get();
+
         snap.forEach(doc => {
           const d = doc.data();
           const tr = document.createElement('tr');
@@ -115,16 +123,17 @@
     // Submit handler
     btn.addEventListener('click', async () => {
       const username = usernameIn.value.trim();
-      const amount = parseFloat(amtIn.value);
-      const sender = senderIn.value.trim();
-      const refId  = refIn.value;
+      const amount   = parseFloat(amtIn.value);
+      const sender   = senderIn.value.trim();
+      const refId    = refIn.value;
       if (!username || !amount || !sender) {
         alert('Please enter username, amount, and sender name.');
         return;
       }
-      btn.disabled = true;
+
+      btn.disabled       = true;
       load.style.display = 'block';
-      msg.textContent = '';
+      msg.textContent    = '';
 
       try {
         await db.collection('deposits').add({
@@ -137,21 +146,22 @@
         });
         msg.style.color = 'green';
         msg.textContent = '✅ Deposit request sent!';
-        amtIn.value = '';
-        senderIn.value = '';
-        usernameIn.value = '';
-        refIn.value = genRef();
-        await loadHistory();
+        amtIn.value     = '';
+        senderIn.value  = '';
+        // keep username so history still shows
+        refIn.value     = genRef();
+        await loadHistory();  // reload only this user's records
       } catch(e) {
         console.error('Submission error:', e);
         msg.style.color = 'red';
         msg.textContent = '❌ Submission failed.';
       } finally {
-        btn.disabled = false;
+        btn.disabled       = false;
         load.style.display = 'none';
       }
     });
 
+    // On page load, try to show history if a username is pre-filled
     document.addEventListener('DOMContentLoaded', loadHistory);
   </script>
 </body>
