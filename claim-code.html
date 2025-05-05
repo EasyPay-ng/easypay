@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Claim Code</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5fdf7;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+    h2 {
+      color: #009f4d;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0;
+      width: 90%;
+      max-width: 400px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background-color: #009f4d;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #007c3a;
+    }
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Enter Claim Code</h2>
+  <input type="text" id="claimCode" placeholder="Enter your code" />
+  <br />
+  <button onclick="submitCode()">Claim</button>
+  <div class="message" id="message"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, setDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    const FIXED_CODE = "G1LKZ2A";
+    const MAX_CLAIMS = 20;
+    const REWARD = 5;
+    const DAYS_COOLDOWN = 7;
+
+    let currentUser;
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return window.location.href = 'login.html';
+      currentUser = user;
+    });
+
+    async function submitCode() {
+      const codeInput = document.getElementById("claimCode");
+      const messageDiv = document.getElementById("message");
+      const enteredCode = codeInput.value.trim().toUpperCase();
+
+      if (enteredCode !== FIXED_CODE) {
+        return messageDiv.textContent = "Invalid claim code.";
+      }
+
+      const codeRef = doc(db, "claimControl", FIXED_CODE);
+      let codeSnap = await getDoc(codeRef);
+
+      let claimedUsers = [];
+      let countdownStart = null;
+
+      if (codeSnap.exists()) {
+        const data = codeSnap.data();
+        claimedUsers = data.claimedUsers || [];
+        countdownStart = data.countdownStart || null;
+
+        if (countdownStart) {
+          const startTime = new Date(countdownStart.seconds * 1000);
+          const now = new Date();
+          const diff = Math.floor((now - startTime) / (1000 * 60 * 60 * 24));
+          if (diff < DAYS_COOLDOWN) {
+            return messageDiv.textContent = `Code exhausted. Next code available in ${DAYS_COOLDOWN - diff} day(s).`;
+          }
+        }
+
+        if (claimedUsers.includes(currentUser.uid)) {
+          return messageDiv.textContent = "You have already claimed this code.";
+        }
+
+        if (claimedUsers.length >= MAX_CLAIMS) {
+          await updateDoc(codeRef, {
+            countdownStart: serverTimestamp()
+          });
+          return messageDiv.textContent = "Code limit reached. Try again after 7 days.";
+        }
+      } else {
+        await setDoc(codeRef, {
+          claimedUsers: [],
+          countdownStart: null
+        });
+      }
+
+      // Proceed to reward
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.data();
+      const newBalance = (userData.balance || 0) + REWARD;
+
+      await updateDoc(userRef, { balance: newBalance });
+
+      await updateDoc(codeRef, {
+        claimedUsers: arrayUnion(currentUser.uid)
+      });
+
+      const txRef = doc(db, "users", currentUser.uid, "transactions", Date.now().toString());
+      await setDoc(txRef, {
+        source: "Claim Code",
+        amount: REWARD,
+        date: new Date().toLocaleString()
+      });
+
+      messageDiv.textContent = `Success! ₦${REWARD} credited.`;
+      codeInput.value = "";
+    }
+  </script>
+</body>
+</html>

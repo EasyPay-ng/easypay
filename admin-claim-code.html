@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Claim Code Admin Panel</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background-color: #f5fdf7;
+      padding: 20px;
+      color: #333;
+    }
+    h2 {
+      color: #009f4d;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #009f4d;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #007a3a;
+    }
+    .user-list {
+      margin-top: 20px;
+    }
+    .user-item {
+      border-bottom: 1px solid #ddd;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Claim Code Admin Panel</h2>
+  
+  <label>Current Claim Code:</label>
+  <input type="text" id="codeInput" placeholder="Enter or update claim code"/>
+  <button onclick="updateClaimCode()">Set Code</button>
+
+  <p id="statusMsg"></p>
+
+  <h3>Claimed Users (<span id="count">0</span>)</h3>
+  <div class="user-list" id="userList">Loading...</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const claimCodeDoc = "G1LKZ2A"; // default; can be updated
+
+    async function loadClaimData() {
+      const ref = doc(db, "claimControl", claimCodeDoc);
+      const snap = await getDoc(ref);
+      const userList = document.getElementById("userList");
+      const countDisplay = document.getElementById("count");
+      userList.innerHTML = "";
+
+      if (!snap.exists()) {
+        userList.innerHTML = "No claim data yet.";
+        return;
+      }
+
+      const data = snap.data();
+      const users = data.claimedUsers || [];
+      countDisplay.innerText = users.length;
+
+      if (users.length === 0) {
+        userList.innerHTML = "No users have claimed the code yet.";
+        return;
+      }
+
+      for (let uid of users) {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+        const username = userSnap.exists() ? userSnap.data().username : "Unknown User";
+
+        const div = document.createElement("div");
+        div.className = "user-item";
+        div.innerText = `Username: ${username} | UID: ${uid}`;
+        userList.appendChild(div);
+      }
+    }
+
+    async function updateClaimCode() {
+      const newCode = document.getElementById("codeInput").value.trim().toUpperCase();
+      if (!newCode) return alert("Please enter a valid code.");
+
+      const ref = doc(db, "claimControl", newCode);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          claimedUsers: [],
+          countdownStart: null
+        });
+      }
+
+      document.getElementById("statusMsg").innerText = `Code "${newCode}" is now active.`;
+    }
+
+    loadClaimData();
+  </script>
+</body>
+</html>
