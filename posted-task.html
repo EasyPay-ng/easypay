@@ -218,14 +218,14 @@
             subs.forEach(({id, data:d}) => {
               const tr = document.createElement("tr");
               const uname   = usersData[d.userId] || d.userId;
-              const dateStr = d.submittedAt?.toDate()?.toLocaleString()||"";
+              const dateStr = d.submittedAt?.toDate?.().toLocaleString()||"";
 
               // Base cells
               tr.innerHTML = `
                 <td>${uname}</td>
                 <td>${dateStr}</td>
                 <td>${d.textProof||""}</td>
-                <td></td>  <!-- placeholder for view button -->
+                <td></td>
                 <td>${d.status}</td>`;
 
               // Image proof button
@@ -234,10 +234,13 @@
                 const viewBtn = document.createElement("button");
                 viewBtn.className   = "view-btn";
                 viewBtn.textContent = "View";
-                viewBtn.onclick     = () => window.open(d.imageProof, "_blank", "noopener");
+                viewBtn.onclick     = () => {
+                  const win = window.open("", "_blank", "noopener,noreferrer");
+                  win.opener = null;
+                  win.location = d.imageProof;
+                };
                 imgTd.appendChild(viewBtn);
               }
-              // Replace 4th cell
               tr.replaceChild(imgTd, tr.children[3]);
 
               // Approve
