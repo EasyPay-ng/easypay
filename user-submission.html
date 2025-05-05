@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>My Submissions</title>
+  <style>
+    /* Global */
+    body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: #f8fff8; color: #003300; }
+    header { background: #006400; color: #fff; padding: 16px; text-align: center; font-size: 1.5em; font-weight: bold; position: relative; }
+    #logoutBtn { position: absolute; right: 16px; top: 16px; background: #cc0000; color: #fff; border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+    .container { max-width: 900px; margin: 80px auto 40px; padding: 0 16px; }
+    h2 { margin-bottom: 16px; color: #006400; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,100,0,0.1); }
+    th, td { padding: 12px 16px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+    th { background: #e6f4e6; color: #004400; }
+    tr:hover td { background: #f0fff0; }
+    .view-btn { background: #0066cc; color: #fff; padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; }
+    @media (max-width:600px) {
+      th, td { padding: 8px 10px; }
+      header { font-size:1.2em; }
+      #logoutBtn { top: 12px; right: 12px; padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    My Submissions
+    <button id="logoutBtn">Sign Out</button>
+  </header>
+
+  <div class="container">
+    <h2>Your Task History</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th>Date Submitted</th>
+          <th>Proof Text</th>
+          <th>Proof Image</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="subsBody">
+        <!-- rows will be injected here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // 1. Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    // 2. DOM references
+    const subsBody    = document.getElementById('subsBody');
+    const logoutBtn   = document.getElementById('logoutBtn');
+    logoutBtn.onclick = () => auth.signOut();
+
+    // 3. Require login
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      await loadUserSubmissions(user.uid);
+    });
+
+    // 4. Load this user's submissions
+    async function loadUserSubmissions(uid) {
+      subsBody.innerHTML = '';
+
+      // Pre‑load all tasks to map taskId→taskTitle
+      const tasksSnap = await db.collection('tasks').get();
+      const titles = {};
+      tasksSnap.forEach(doc => {
+        const d = doc.data();
+        titles[doc.id] = d.taskTitle || 'Untitled';
+      });
+
+      // Query submissions by this user
+      const subSnap = await db.collection('task_submissions')
+                             .where('userId','==', uid)
+                             .get();
+
+      // Collect and sort desc by submittedAt
+      const subs = [];
+      subSnap.forEach(doc => {
+        const d = doc.data();
+        subs.push({
+          d,
+          ts: d.submittedAt?.toMillis() || 0
+        });
+      });
+      subs.sort((a,b) => b.ts - a.ts);
+
+      // Render rows
+      subs.forEach(({d}) => {
+        const tr = document.createElement('tr');
+        const taskName = titles[d.taskId] || d.taskId;
+        const dateStr  = d.submittedAt?.toDate().toLocaleString() || '';
+        const proofText= d.textProof || '';
+        let imgCell    = '';
+        if (d.imageProof) {
+          imgCell = `<button class="view-btn"
+                      onclick="window.open('${d.imageProof}', '_blank','noopener,noreferrer')">
+                      View
+                    </button>`;
+        }
+        tr.innerHTML = `
+          <td>${taskName}</td>
+          <td>${dateStr}</td>
+          <td>${proofText}</td>
+          <td>${imgCell}</td>
+          <td>${d.status}</td>
+        `;
+        subsBody.appendChild(tr);
+      });
+
+      // If none, show placeholder
+      if (!subs.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5" style="text-align:center; padding:16px">
+                          You haven't submitted any tasks yet.
+                        </td>`;
+        subsBody.appendChild(tr);
+      }
+    }
+  </script>
+</body>
+</html>
+
