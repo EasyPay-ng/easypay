@@ -93,9 +93,7 @@
       min-width: 160px;
       box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
       z-index: 1;
-    }
-    .dropdown:hover .dropdown-content {
-      display: block;
+      border-radius: 5px;
     }
     .dropdown-content a {
       color: black;
@@ -112,16 +110,17 @@
   <header>
     <h1>Admin Panel</h1>
     <div class="dropdown">
-      <button class="top-button">Menu</button>
-      <div class="dropdown-content">
+      <button class="top-button" onclick="toggleDropdown()">Menu</button>
+      <div class="dropdown-content" id="dropdownMenu">
         <a href="admin-withdraw.html">Withdrawals</a>
         <a href="admin-deposit.html">Deposits</a>
         <a href="admin-advertise.html">Adverts</a>
         <a href="admin-task.html">Submissions</a>
-        <a href="admin-claim-code.html">Claims</a> <!-- Added link -->
+        <a href="admin-claim-code.html">Claims</a>
       </div>
     </div>
   </header>
+
   <div class="container">
     <input type="text" id="searchInput" placeholder="Search by Username..." oninput="searchUsers()" style="padding: 0.5rem; width: 100%; max-width: 300px;">
     <table>
@@ -234,6 +233,19 @@
     });
 
     loadUsers();
+  </script>
+
+  <script>
+    function toggleDropdown() {
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    }
+
+    window.addEventListener("click", function (e) {
+      if (!e.target.closest(".dropdown")) {
+        document.getElementById("dropdownMenu").style.display = "none";
+      }
+    });
   </script>
 </body>
 </html>
