@@ -158,12 +158,10 @@
         usersData[u.id] = d.username || d.email || u.id;
       });
 
-      // Fetch tasks created by this user
+      // Fetch and sort tasks by createdAt desc
       const snap = await db.collection("tasks")
         .where("createdBy","==",uid)
         .get();
-
-      // Collect and sort by createdAt descending
       const tasks = [];
       snap.forEach(doc => {
         const data = doc.data();
@@ -180,13 +178,14 @@
         return;
       }
 
-      // Render each task in order
       for (const {id: taskId, content: task} of tasks) {
+        // Task header
         const h2 = document.createElement("h2");
         h2.className   = "task-title";
         h2.textContent = `${task.taskTitle} — ${task.category}`;
         tasksContainer.appendChild(h2);
 
+        // Submissions table
         const table = document.createElement("table");
         table.className = "sub-table";
         table.innerHTML = `
@@ -211,21 +210,23 @@
               return tb - ta;
             });
             tbody.innerHTML = "";
+
             subs.forEach(({id, data:d}) => {
               const tr = document.createElement("tr");
-              const uname = usersData[d.userId] || d.userId;
+              const uname   = usersData[d.userId] || d.userId;
               const dateStr = d.submittedAt?.toDate()?.toLocaleString()||"";
-              const proofImg = d.imageProof
-                ? `<a href="${d.imageProof}" target="_blank">View</a>`
+              const proof   = d.imageProof
+                ? `<a href="${d.imageProof}" target="_blank" rel="noopener noreferrer">View</a>`
                 : "";
 
               tr.innerHTML = `
                 <td>${uname}</td>
                 <td>${dateStr}</td>
                 <td>${d.textProof||""}</td>
-                <td>${proofImg}</td>
+                <td>${proof}</td>
                 <td>${d.status}</td>`;
-              // Approve button
+
+              // Approve
               const apTd = document.createElement("td");
               const apBtn = document.createElement("button");
               apBtn.className   = "approve-btn";
@@ -233,7 +234,8 @@
               apBtn.onclick     = () => handleDecision(taskId, id, true);
               apTd.appendChild(apBtn);
               tr.appendChild(apTd);
-              // Reject button
+
+              // Reject
               const rjTd = document.createElement("td");
               const rjBtn = document.createElement("button");
               rjBtn.className   = "reject-btn";
@@ -260,7 +262,7 @@
           : (t.totalBudget / t.workersNeeded) * 0.7;
         reward = Math.floor(reward);
         const subSnap = await subRef.get();
-        const userId = subSnap.data().userId;
+        const userId  = subSnap.data().userId;
         await db.collection("users").doc(userId)
           .update({ balance: firebase.firestore.FieldValue.increment(reward) });
       }
