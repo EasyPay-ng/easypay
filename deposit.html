@@ -91,19 +91,20 @@
     async function loadHistory() {
       hist.innerHTML = '';
       const user = usernameIn.value.trim();
-      if (!user) {
-        // no username entered yet
-        return;
-      }
+      if (!user) return;  // no username entered yet
 
       try {
         const snap = await db.collection('deposits')
-          .where('username', '==', user)
-          .orderBy('date', 'desc')
-          .get();
+                            .where('username', '==', user)
+                            .get();  // no orderBy
 
-        snap.forEach(doc => {
-          const d = doc.data();
+        // gather & sort
+        const docs = [];
+        snap.forEach(doc => docs.push(doc.data()));
+        docs.sort((a,b) => b.date - a.date);
+
+        // render
+        docs.forEach(d => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>₦${d.amount}</td>
@@ -148,7 +149,6 @@
         msg.textContent = '✅ Deposit request sent!';
         amtIn.value     = '';
         senderIn.value  = '';
-        // keep username so history still shows
         refIn.value     = genRef();
         await loadHistory();  // reload only this user's records
       } catch(e) {
@@ -161,7 +161,10 @@
       }
     });
 
-    // On page load, try to show history if a username is pre-filled
+    // Re‑load whenever you finish typing your username
+    usernameIn.addEventListener('blur', loadHistory);
+
+    // (Optional) on page load, if username pre‑filled
     document.addEventListener('DOMContentLoaded', loadHistory);
   </script>
 </body>
