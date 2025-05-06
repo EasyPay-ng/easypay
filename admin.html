@@ -3,210 +3,269 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Activation Requests Admin</title>
+  <title>EasyPay Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    :root {
-      --green: #2e7d32;
-      --light-green: #e8f5e9;
-      --white: #ffffff;
-      --shadow: 0 4px 12px rgba(0,0,0,0.08);
-      --radius: 12px;
-    }
-    * { box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--light-green);
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5fdf7;
       color: #333;
     }
     header {
-      background-color: var(--green);
-      color: var(--white);
-      padding: 1.2rem 2rem;
-      box-shadow: var(--shadow);
+      background-color: #009f4d;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    header h1 {
-      margin: 0;
-      font-size: 1.8rem;
+    .profile {
+      position: relative;
+      cursor: pointer;
+    }
+    .profile-info {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background: white;
+      color: black;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      width: 200px;
+      padding: 10px;
+      z-index: 1;
+    }
+    .profile-info.show {
+      display: block;
     }
     .container {
-      padding: 2rem;
-      max-width: 1000px;
-      margin: auto;
+      padding: 20px;
     }
-    .request-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      gap: 1.2rem;
-      align-items: flex-start;
-      transition: transform 0.2s;
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
     }
-    .request-card:hover {
-      transform: scale(1.01);
+    .card h3 {
+      margin-top: 0;
     }
-    .request-info {
-      flex: 1;
-    }
-    .request-info p {
-      margin: 0.4rem 0;
-    }
-    .status {
-      font-weight: bold;
-    }
-    .proof-img {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-    .btns {
-      display: flex;
-      gap: 0.6rem;
-      margin-top: 1rem;
-    }
-    .btn {
-      padding: 0.5rem 1.2rem;
+    .copy-btn {
+      background: #009f4d;
+      color: white;
       border: none;
-      border-radius: var(--radius);
+      padding: 6px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
-      font-size: 0.9rem;
-      transition: background 0.2s, opacity 0.2s;
     }
-    .approve {
-      background: var(--green);
-      color: var(--white);
+    .nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #009f4d;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
     }
-    .approve:hover { background: #276c28; }
-    .reject {
-      background: #c62828;
-      color: var(--white);
+    .nav a {
+      color: white;
+      text-decoration: none;
+      text-align: center;
     }
-    .reject:hover { background: #9a0000; }
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+
+    /* Popup */
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .popup {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 90%;
+      width: 300px;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .popup button {
+      background: #009f4d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .popup .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 18px;
+      color: #888;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-
   <header>
-    <h1>Activation Requests Admin</h1>
+    <h2>Welcome back, <span id="usernameDisplay"></span></h2>
+    <div class="profile" onclick="toggleProfile()">
+      <i class="fas fa-user-circle fa-2x"></i>
+      <div id="profileInfo" class="profile-info">
+        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </div>
   </header>
 
-  <div class="container" id="requestsContainer">
-    Loading requests…
+  <div class="container">
+    <div class="card">
+      <h3>Balance: ₦<span id="balance">0</span></h3>
+    </div>
+    <div class="card">
+      <h3>Total Referrals: <span id="referrals">0</span></h3>
+    </div>
+    <div class="card">
+      <h3>Referral Code:</h3>
+      <p id="referralCode"></p>
+      <button class="copy-btn" onclick="copyReferral()">Copy Referral Link</button>
+    </div>
+    <div class="card">
+      <h3>Daily Bonus</h3>
+      <p id="countdown">Loading...</p>
+      <button class="copy-btn" id="claimBtn">Claim ₦1</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a href="menu.html"><i class="fas fa-home"></i><br />Menu</a>
+    <a href="advertise.html"><i class="fas fa-bullhorn"></i><br />Advertise</a>
+    <a href="earn.html"><i class="fas fa-coins"></i><br />Earn</a>
+    <a href="leaderboard.html"><i class="fas fa-trophy"></i><br />Leaderboard</a>
+  </div>
+
+  <div id="activationPopup" class="popup-overlay" style="display: none;">
+    <div class="popup">
+      <span class="close" onclick="document.getElementById('activationPopup').style.display='none'">&times;</span>
+      <h3>Activate Your Account</h3>
+      <p>Your account is not yet activated. Please activate to start earning.</p>
+      <button onclick="window.location.href='activate.html'">Okay</button>
+    </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import {
-      getFirestore,
-      collection,
-      query,
-      orderBy,
-      getDocs,
-      doc,
-      updateDoc
-    } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "...",
-      authDomain: "...",
-      projectId: "...",
-      storageBucket: "...",
-      messagingSenderId: "...",
-      appId: "..."
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
-    const container = document.getElementById('requestsContainer');
 
-    onAuthStateChanged(auth, user => {
+    let referralLinkText = "";
+
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        const r = encodeURIComponent('admin-activate.html');
-        window.location.href = `login.html?redirect=${r}`;
-      } else {
-        loadActivationRequests();
-      }
-    });
-
-    async function loadActivationRequests() {
-      container.innerHTML = 'Loading requests…';
-      const q = query(collection(db, 'activations'), orderBy('requested', 'desc'));
-      const snap = await getDocs(q);
-      container.innerHTML = '';
-
-      if (snap.empty) {
-        container.innerHTML = '<p>No requests found.</p>';
+        window.location.href = 'login.html';
         return;
       }
 
-      snap.forEach(docSnap => {
-        const d = docSnap.data();
-        const id = docSnap.id;
-        const status = d.status || 'pending';
-        const time = d.requested.toDate().toLocaleString();
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
 
-        const card = document.createElement('div');
-        card.className = 'request-card';
+      if (!snap.exists()) {
+        console.error("User document not found.");
+        return;
+      }
 
-        const link = document.createElement('a');
-        link.href = d.proofURL;
-        link.target = '_blank';
-        link.rel = 'noopener';
+      const data = snap.data();
 
-        const img = document.createElement('img');
-        img.src = d.proofURL;
-        img.alt = 'Proof';
-        img.className = 'proof-img';
-        link.appendChild(img);
+      document.getElementById("usernameDisplay").innerText = data.username || "";
+      document.getElementById("profileUsername").innerText = data.username || "";
+      document.getElementById("profileEmail").innerText = data.email || "";
+      document.getElementById("balance").innerText = data.balance ?? 0;
+      document.getElementById("referrals").innerText = data.referrals ?? 0;
+      document.getElementById("referralCode").innerText = data.username || "";
 
-        const info = document.createElement('div');
-        info.className = 'request-info';
-        info.innerHTML = `
-          <p><strong>Username:</strong> ${d.username}</p>
-          <p><strong>Submitted:</strong> ${time}</p>
-          <p class="status">Status: ${status}</p>
-        `;
-        const statusEl = info.querySelector('.status');
+      referralLinkText = `${window.location.origin}/register.html?ref=${encodeURIComponent(data.username)}`;
 
-        const btns = document.createElement('div');
-        btns.className = 'btns';
+      if (!data.activated) {
+        document.getElementById("activationPopup").style.display = "flex";
+      }
 
-        const approveBtn = document.createElement('button');
-        approveBtn.textContent = 'Approve';
-        approveBtn.className = 'btn approve';
-        approveBtn.disabled = status !== 'pending';
-        approveBtn.onclick = () => handle(id, 'approved', approveBtn, rejectBtn, statusEl);
+      const claimBtn = document.getElementById("claimBtn");
+      if (claimBtn) {
+        claimBtn.onclick = () => claimNaira(user.uid, data);
+        updateCountdown(data.lastClaim || 0);
+      }
+    });
 
-        const rejectBtn = document.createElement('button');
-        rejectBtn.textContent = 'Reject';
-        rejectBtn.className = 'btn reject';
-        rejectBtn.disabled = status !== 'pending';
-        rejectBtn.onclick = () => handle(id, 'rejected', approveBtn, rejectBtn, statusEl);
+    window.copyReferral = () => {
+      navigator.clipboard.writeText(referralLinkText)
+        .then(() => alert("Referral Link Copied!"))
+        .catch(console.error);
+    };
 
-        btns.append(approveBtn, rejectBtn);
-        info.appendChild(btns);
-        card.append(link, info);
-        container.appendChild(card);
-      });
+    window.logout = () => signOut(auth);
+    window.toggleProfile = () => {
+      document.getElementById("profileInfo").classList.toggle("show");
+    };
+
+    function updateCountdown(lastClaimTs) {
+      const countdownEl = document.getElementById("countdown");
+      const tick = () => {
+        const now = Date.now();
+        const nextAvailable = lastClaimTs + 86400000;
+        const diff = nextAvailable - now;
+        if (diff <= 0) {
+          countdownEl.innerText = "You can now claim!";
+          clearInterval(intervalId);
+        } else {
+          const hrs = Math.floor(diff / 3600000);
+          const mins = Math.floor((diff % 3600000) / 60000);
+          const secs = Math.floor((diff % 60000) / 1000);
+          countdownEl.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
+        }
+      };
+      tick();
+      const intervalId = setInterval(tick, 1000);
     }
 
-    async function handle(id, newStatus, okBtn, noBtn, statusEl) {
-      okBtn.disabled = noBtn.disabled = true;
-      statusEl.textContent = `Status: ${newStatus}`;
-      await updateDoc(doc(db, 'activations', id), { status: newStatus });
+    async function claimNaira(uid, oldData) {
+      const now = Date.now();
+      if (now - (oldData.lastClaim || 0) < 86400000) {
+        alert("You have to wait 24 hours before claiming again.");
+        return;
+      }
+      const newBalance = (oldData.balance || 0) + 1;
+      await setDoc(doc(db, "users", uid), {
+        balance: newBalance,
+        lastClaim: now
+      }, { merge: true });
+      document.getElementById("balance").innerText = newBalance;
+      alert("Claimed Successfully!");
+      updateCountdown(now);
     }
   </script>
 </body>
