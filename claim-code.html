@@ -1,149 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Claim Code</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
-      padding: 20px;
-      text-align: center;
-      color: #333;
-    }
-    h2 {
-      color: #009f4d;
-    }
-    input, button {
-      padding: 10px;
-      font-size: 16px;
-      margin: 10px 0;
-      width: 90%;
-      max-width: 400px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      background-color: #009f4d;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #007c3a;
-    }
-    .message {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Claim Code</title>
+  <style>
+    :root {
+      --green: #2e7d32;
+      --light-green: #e8f5e9;
+      --white: #ffffff;
+      --gray-bg: #f5fdf7;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      --radius: 10px;
+      --transition: 0.2s ease-in-out;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--gray-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background-color: var(--white);
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    h2 {
+      margin-top: 0;
+      color: var(--green);
+      font-size: 1.75rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      border: 1px solid #ccc;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      transition: border-color var(--transition);
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--white);
+      background-color: var(--green);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background-color var(--transition), opacity var(--transition);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background-color: #276c28;
+    }
+    .message {
+      margin-top: 1rem;
+      font-weight: 600;
+      min-height: 1.2em;
+      color: #333;
+    }
+    .message.success {
+      color: #2e7d32;
+    }
+    .message.error {
+      color: #c62828;
+    }
+  </style>
 </head>
 <body>
-  <h2>Enter Claim Code</h2>
-  <input type="text" id="claimCode" placeholder="Enter your code" />
-  <br />
-  <button onclick="submitCode()">Claim</button>
-  <div class="message" id="message"></div>
+  <div class="card">
+    <h2>Enter Claim Code</h2>
+    <input type="text" id="claimCode" placeholder="Enter your code" autocomplete="off" />
+    <button id="claimBtn" onclick="submitCode()">Claim</button>
+    <div class="message" id="message"></div>
+  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, setDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      setDoc,
+      arrayUnion,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
 
-    const FIXED_CODE = "G1LKZ2A";
-    const MAX_CLAIMS = 20;
-    const REWARD = 5;
-    const DAYS_COOLDOWN = 7;
+    const FIXED_CODE = "G1LKZ2A";
+    const MAX_CLAIMS = 20;
+    const REWARD = 5;
+    const DAYS_COOLDOWN = 7;
 
-    let currentUser;
+    let currentUser;
 
-    onAuthStateChanged(auth, user => {
-      if (!user) return window.location.href = 'login.html';
-      currentUser = user;
-    });
+    onAuthStateChanged(auth, user => {
+      if (!user) return window.location.href = 'login.html';
+      currentUser = user;
+    });
 
-    async function submitCode() {
-      const codeInput = document.getElementById("claimCode");
-      const messageDiv = document.getElementById("message");
-      const enteredCode = codeInput.value.trim().toUpperCase();
+    async function submitCode() {
+      const codeInput = document.getElementById("claimCode");
+      const btn = document.getElementById("claimBtn");
+      const msg = document.getElementById("message");
+      const entered = codeInput.value.trim().toUpperCase();
+      msg.textContent = "";
+      msg.className = "message";
 
-      if (enteredCode !== FIXED_CODE) {
-        return messageDiv.textContent = "Invalid claim code.";
-      }
+      if (!entered) {
+        msg.textContent = "Please enter a code.";
+        msg.classList.add("error");
+        return;
+      }
+      if (entered !== FIXED_CODE) {
+        msg.textContent = "Invalid claim code.";
+        msg.classList.add("error");
+        return;
+      }
 
-      const codeRef = doc(db, "claimControl", FIXED_CODE);
-      let codeSnap = await getDoc(codeRef);
+      btn.disabled = true;
+      btn.textContent = "Checking…";
 
-      let claimedUsers = [];
-      let countdownStart = null;
+      const codeRef = doc(db, "claimControl", FIXED_CODE);
+      let snap = await getDoc(codeRef);
+      let users = [], startTime = null;
 
-      if (codeSnap.exists()) {
-        const data = codeSnap.data();
-        claimedUsers = data.claimedUsers || [];
-        countdownStart = data.countdownStart || null;
+      if (snap.exists()) {
+        const data = snap.data();
+        users = data.claimedUsers || [];
+        startTime = data.countdownStart || null;
 
-        if (countdownStart) {
-          const startTime = new Date(countdownStart.seconds * 1000);
-          const now = new Date();
-          const diff = Math.floor((now - startTime) / (1000 * 60 * 60 * 24));
-          if (diff < DAYS_COOLDOWN) {
-            return messageDiv.textContent = `Code exhausted. Next code available in ${DAYS_COOLDOWN - diff} day(s).`;
-          }
-        }
+        if (startTime) {
+          const diffDays = Math.floor((Date.now() - startTime.toMillis()) / (1000*60*60*24));
+          if (diffDays < DAYS_COOLDOWN) {
+            msg.textContent = `Code exhausted. Try again in ${DAYS_COOLDOWN - diffDays} day(s).`;
+            msg.classList.add("error");
+            btn.disabled = false;
+            btn.textContent = "Claim";
+            return;
+          }
+        }
+        if (users.includes(currentUser.uid)) {
+          msg.textContent = "You’ve already claimed.";
+          msg.classList.add("error");
+          btn.disabled = false;
+          btn.textContent = "Claim";
+          return;
+        }
+        if (users.length >= MAX_CLAIMS) {
+          await updateDoc(codeRef, { countdownStart: serverTimestamp() });
+          msg.textContent = "Limit reached. Next code in 7 days.";
+          msg.classList.add("error");
+          btn.disabled = false;
+          btn.textContent = "Claim";
+          return;
+        }
+      } else {
+        await setDoc(codeRef, { claimedUsers: [], countdownStart: null });
+      }
 
-        if (claimedUsers.includes(currentUser.uid)) {
-          return messageDiv.textContent = "You have already claimed this code.";
-        }
+      // Reward user
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      const newBal = (userSnap.data().balance || 0) + REWARD;
 
-        if (claimedUsers.length >= MAX_CLAIMS) {
-          await updateDoc(codeRef, {
-            countdownStart: serverTimestamp()
-          });
-          return messageDiv.textContent = "Code limit reached. Try again after 7 days.";
-        }
-      } else {
-        await setDoc(codeRef, {
-          claimedUsers: [],
-          countdownStart: null
-        });
-      }
+      await updateDoc(userRef, { balance: newBal });
+      await updateDoc(codeRef, { claimedUsers: arrayUnion(currentUser.uid) });
 
-      // Proceed to reward
-      const userRef = doc(db, "users", currentUser.uid);
-      const userSnap = await getDoc(userRef);
-      const userData = userSnap.data();
-      const newBalance = (userData.balance || 0) + REWARD;
+      const txRef = doc(db, "users", currentUser.uid, "transactions", Date.now().toString());
+      await setDoc(txRef, {
+        source: "Claim Code",
+        amount: REWARD,
+        date: new Date().toLocaleString()
+      });
 
-      await updateDoc(userRef, { balance: newBalance });
-
-      await updateDoc(codeRef, {
-        claimedUsers: arrayUnion(currentUser.uid)
-      });
-
-      const txRef = doc(db, "users", currentUser.uid, "transactions", Date.now().toString());
-      await setDoc(txRef, {
-        source: "Claim Code",
-        amount: REWARD,
-        date: new Date().toLocaleString()
-      });
-
-      messageDiv.textContent = `Success! ₦${REWARD} credited.`;
-      codeInput.value = "";
-    }
-  </script>
+      msg.textContent = `Success! ₦${REWARD} credited.`;
+      msg.classList.add("success");
+      codeInput.value = "";
+      btn.disabled = false;
+      btn.textContent = "Claim";
+    }
+  </script>
 </body>
 </html>
