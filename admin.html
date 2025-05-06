@@ -3,171 +3,203 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay Dashboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <title>Admin Panel</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
+    :root {
+      --green: #2e7d32;
+      --light-green: #e8f5e9;
+      --white: #ffffff;
+      --gray: #f9f9f9;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--gray);
+      margin: 0;
+      padding: 0;
+    }
+
     header {
-      background-color: #009f4d;
-      color: white;
-      padding: 15px 20px;
+      background-color: var(--green);
+      color: var(--white);
+      padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-    .profile {
-      position: relative;
-      cursor: pointer;
-    }
-    .profile-info {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 40px;
-      background: white;
-      color: black;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      border-radius: 8px;
-      width: 200px;
-      padding: 10px;
-      z-index: 1;
-    }
-    .profile-info.show {
-      display: block;
-    }
-    .container {
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .card h3 {
-      margin-top: 0;
-    }
-    .copy-btn {
-      background: #009f4d;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #009f4d;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-    }
-    .nav a {
-      color: white;
-      text-decoration: none;
-      text-align: center;
+      box-shadow: var(--shadow);
     }
 
-    /* Popup */
-    .popup-overlay {
+    h1 {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    .top-button {
+      background-color: var(--white);
+      color: var(--green);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: var(--white);
+      min-width: 180px;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .dropdown-content a {
+      padding: 12px 16px;
+      display: block;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .dropdown-content a:hover {
+      background-color: var(--light-green);
+    }
+
+    .container {
+      padding: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.5rem;
+      background-color: var(--white);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background-color: var(--light-green);
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .edit-btn {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .delete-btn {
+      background-color: #f44336;
+      color: white;
+    }
+
+    input[type="text"] {
+      padding: 0.5rem;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal {
+      display: none;
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: flex;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
       justify-content: center;
       align-items: center;
-      z-index: 9999;
+      z-index: 2000;
     }
-    .popup {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      max-width: 90%;
-      width: 300px;
-      text-align: center;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      position: relative;
+
+    .modal-content {
+      background-color: var(--white);
+      padding: 2rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
     }
-    .popup button {
-      background: #009f4d;
-      color: white;
-      border: none;
-      padding: 8px 16px;
+
+    .modal input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
       border-radius: 6px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-    .popup .close {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 18px;
-      color: #888;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
+
   <header>
-    <h2>Welcome back, <span id="usernameDisplay"></span></h2>
-    <div class="profile" onclick="toggleProfile()">
-      <i class="fas fa-user-circle fa-2x"></i>
-      <div id="profileInfo" class="profile-info">
-        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-        <button onclick="logout()">Logout</button>
+    <h1>Admin Panel</h1>
+    <div class="dropdown">
+      <button class="top-button" onclick="toggleDropdown()">Menu</button>
+      <div class="dropdown-content" id="dropdownMenu">
+        <a href="admin-withdraw.html">Withdrawals</a>
+        <a href="admin-deposit.html">Deposits</a>
+        <a href="admin-advertise.html">Adverts</a>
+        <a href="admin-task.html">Submissions</a>
+        <a href="admin-claim-code.html">Claims</a>
       </div>
     </div>
   </header>
 
   <div class="container">
-    <div class="card">
-      <h3>Balance: ₦<span id="balance">0</span></h3>
-    </div>
-    <div class="card">
-      <h3>Total Referrals: <span id="referrals">0</span></h3>
-    </div>
-    <div class="card">
-      <h3>Referral Code:</h3>
-      <p id="referralCode"></p>
-      <button class="copy-btn" onclick="copyReferral()">Copy Referral Link</button>
-    </div>
-    <div class="card">
-      <h3>Daily Bonus</h3>
-      <p id="countdown">Loading...</p>
-      <button class="copy-btn" id="claimBtn">Claim ₦1</button>
-    </div>
+    <input type="text" id="searchInput" placeholder="Search by Username..." oninput="searchUsers()">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Balance</th>
+          <th>Referrals</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody"></tbody>
+    </table>
   </div>
 
-  <div class="nav">
-    <a href="menu.html"><i class="fas fa-home"></i><br />Menu</a>
-    <a href="advertise.html"><i class="fas fa-bullhorn"></i><br />Advertise</a>
-    <a href="earn.html"><i class="fas fa-coins"></i><br />Earn</a>
-    <a href="leaderboard.html"><i class="fas fa-trophy"></i><br />Leaderboard</a>
-  </div>
-
-  <div id="activationPopup" class="popup-overlay" style="display: none;">
-    <div class="popup">
-      <span class="close" onclick="document.getElementById('activationPopup').style.display='none'">&times;</span>
-      <h3>Activate Your Account</h3>
-      <p>Your account is not yet activated. Please activate to start earning.</p>
-      <button onclick="window.location.href='activate.html'">Okay</button>
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3>Edit User</h3>
+      <input type="text" id="editUsername" placeholder="Username">
+      <input type="number" id="editBalance" placeholder="Balance">
+      <input type="number" id="editReferrals" placeholder="Referrals">
+      <button class="btn edit-btn" onclick="saveChanges()">Save Changes</button>
     </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -181,92 +213,86 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth();
 
-    let referralLinkText = "";
+    let selectedUserId = null;
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
+    async function loadUsers() {
+      const userTableBody = document.getElementById("userTableBody");
+      userTableBody.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "users"));
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${data.username}</td>
+          <td>₦${data.balance || 0}</td>
+          <td>${data.referrals || 0}</td>
+          <td>
+            <button class="btn edit-btn" onclick="openModal('${docSnap.id}', '${data.username}', ${data.balance || 0}, ${data.referrals || 0})">Edit</button>
+            <button class="btn delete-btn" onclick="deleteUser('${docSnap.id}')">Delete</button>
+          </td>
+        `;
+        userTableBody.appendChild(row);
+      });
+    }
+
+    window.openModal = function(id, username, balance, referrals) {
+      selectedUserId = id;
+      document.getElementById("editUsername").value = username;
+      document.getElementById("editBalance").value = balance;
+      document.getElementById("editReferrals").value = referrals;
+      document.getElementById("editModal").style.display = "flex";
+    };
+
+    window.saveChanges = async function () {
+      const username = document.getElementById("editUsername").value;
+      const balance = parseFloat(document.getElementById("editBalance").value);
+      const referrals = parseInt(document.getElementById("editReferrals").value);
+      if (selectedUserId) {
+        await updateDoc(doc(db, "users", selectedUserId), {
+          username, balance, referrals
+        });
+        document.getElementById("editModal").style.display = "none";
+        loadUsers();
       }
+    };
 
-      const userRef = doc(db, "users", user.uid);
-      const snap = await getDoc(userRef);
-
-      if (!snap.exists()) {
-        console.error("User document not found.");
-        return;
+    window.deleteUser = async function(id) {
+      if (confirm("Are you sure you want to delete this user?")) {
+        await deleteDoc(doc(db, "users", id));
+        loadUsers();
       }
+    };
 
-      const data = snap.data();
+    window.searchUsers = function () {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const rows = document.querySelectorAll("#userTableBody tr");
+      rows.forEach(row => {
+        const username = row.children[0].innerText.toLowerCase();
+        row.style.display = username.includes(input) ? "" : "none";
+      });
+    };
 
-      document.getElementById("usernameDisplay").innerText = data.username || "";
-      document.getElementById("profileUsername").innerText = data.username || "";
-      document.getElementById("profileEmail").innerText = data.email || "";
-      document.getElementById("balance").innerText = data.balance ?? 0;
-      document.getElementById("referrals").innerText = data.referrals ?? 0;
-      document.getElementById("referralCode").innerText = data.username || "";
-
-      referralLinkText = `${window.location.origin}/register.html?ref=${encodeURIComponent(data.username)}`;
-
-      if (!data.activated) {
-        document.getElementById("activationPopup").style.display = "flex";
-      }
-
-      const claimBtn = document.getElementById("claimBtn");
-      if (claimBtn) {
-        claimBtn.onclick = () => claimNaira(user.uid, data);
-        updateCountdown(data.lastClaim || 0);
+    window.addEventListener("click", function(e) {
+      if (e.target.classList.contains("modal")) {
+        document.getElementById("editModal").style.display = "none";
       }
     });
 
-    window.copyReferral = () => {
-      navigator.clipboard.writeText(referralLinkText)
-        .then(() => alert("Referral Link Copied!"))
-        .catch(console.error);
-    };
+    loadUsers();
+  </script>
 
-    window.logout = () => signOut(auth);
-    window.toggleProfile = () => {
-      document.getElementById("profileInfo").classList.toggle("show");
-    };
-
-    function updateCountdown(lastClaimTs) {
-      const countdownEl = document.getElementById("countdown");
-      const tick = () => {
-        const now = Date.now();
-        const nextAvailable = lastClaimTs + 86400000;
-        const diff = nextAvailable - now;
-        if (diff <= 0) {
-          countdownEl.innerText = "You can now claim!";
-          clearInterval(intervalId);
-        } else {
-          const hrs = Math.floor(diff / 3600000);
-          const mins = Math.floor((diff % 3600000) / 60000);
-          const secs = Math.floor((diff % 60000) / 1000);
-          countdownEl.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
-        }
-      };
-      tick();
-      const intervalId = setInterval(tick, 1000);
+  <script>
+    function toggleDropdown() {
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
     }
 
-    async function claimNaira(uid, oldData) {
-      const now = Date.now();
-      if (now - (oldData.lastClaim || 0) < 86400000) {
-        alert("You have to wait 24 hours before claiming again.");
-        return;
+    window.addEventListener("click", function(e) {
+      if (!e.target.closest(".dropdown")) {
+        document.getElementById("dropdownMenu").style.display = "none";
       }
-      const newBalance = (oldData.balance || 0) + 1;
-      await setDoc(doc(db, "users", uid), {
-        balance: newBalance,
-        lastClaim: now
-      }, { merge: true });
-      document.getElementById("balance").innerText = newBalance;
-      alert("Claimed Successfully!");
-      updateCountdown(now);
-    }
+    });
   </script>
 </body>
 </html>
