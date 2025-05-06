@@ -1,299 +1,324 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel</title>
-  <style>
-    :root {
-      --green: #2e7d32;
-      --light-green: #e8f5e9;
-      --white: #ffffff;
-      --gray: #f9f9f9;
-      --shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel</title>
+  <style>
+    :root {
+      --green: #2e7d32;
+      --light-green: #e8f5e9;
+      --white: #ffffff;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --radius: 8px;
+    }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--gray);
-      margin: 0;
-      padding: 0;
-    }
+    * {
+      box-sizing: border-box;
+    }
 
-    header {
-      background-color: var(--green);
-      color: var(--white);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow);
-    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--white);
+      margin: 0;
+      padding: 0;
+    }
 
-    h1 {
-      font-size: 1.5rem;
-      margin: 0;
-    }
+    header {
+      background-color: var(--green);
+      color: var(--white);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
 
-    .top-button {
-      background-color: var(--white);
-      color: var(--green);
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
 
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
+    .top-button {
+      background-color: var(--white);
+      color: var(--green);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
 
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: var(--white);
-      min-width: 180px;
-      box-shadow: var(--shadow);
-      z-index: 1000;
-      border-radius: 8px;
-      margin-top: 8px;
-    }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
 
-    .dropdown-content a {
-      padding: 12px 16px;
-      display: block;
-      text-decoration: none;
-      color: #333;
-      font-weight: 500;
-    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: var(--white);
+      min-width: 180px;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      border-radius: var(--radius);
+      margin-top: 8px;
+      overflow: hidden;
+    }
 
-    .dropdown-content a:hover {
-      background-color: var(--light-green);
-    }
+    .dropdown-content a {
+      padding: 12px 16px;
+      display: block;
+      text-decoration: none;
+      color: var(--green);
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
 
-    .container {
-      padding: 2rem;
-    }
+    .dropdown-content a:hover {
+      background-color: var(--light-green);
+    }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1.5rem;
-      background-color: var(--white);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
+    .container {
+      padding: 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
 
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
+    input[type="text"] {
+      padding: 0.75rem;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid var(--light-green);
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
 
-    th {
-      background-color: var(--light-green);
-      font-weight: 600;
-    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
 
-    .btn {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--light-green);
+    }
 
-    .edit-btn {
-      background-color: #4caf50;
-      color: white;
-    }
+    th {
+      background-color: var(--light-green);
+      color: var(--green);
+      font-weight: 600;
+    }
 
-    .delete-btn {
-      background-color: #f44336;
-      color: white;
-    }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: opacity 0.2s, background-color 0.2s;
+    }
 
-    input[type="text"] {
-      padding: 0.5rem;
-      width: 100%;
-      max-width: 300px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: var(--shadow);
-    }
+    .edit-btn {
+      background-color: var(--green);
+      color: var(--white);
+    }
 
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.4);
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
+    .delete-btn {
+      background-color: #c62828;
+      color: var(--white);
+    }
 
-    .modal-content {
-      background-color: var(--white);
-      padding: 2rem;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: var(--shadow);
-    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-    .modal input {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-  </style>
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-content {
+      background-color: var(--white);
+      padding: 2rem;
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      color: var(--green);
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--light-green);
+      border-radius: var(--radius);
+    }
+  </style>
 </head>
 <body>
 
-  <header>
-    <h1>Admin Panel</h1>
-    <div class="dropdown">
-      <button class="top-button" onclick="toggleDropdown()">Menu</button>
-      <div class="dropdown-content" id="dropdownMenu">
-        <a href="admin-withdraw.html">Withdrawals</a>
-        <a href="admin-deposit.html">Deposits</a>
-        <a href="admin-advertise.html">Adverts</a>
-        <a href="admin-task.html">Submissions</a>
-        <a href="admin-claim-code.html">Claims</a>
-        <a href="activate.html">Activations</a> <!-- Newly added -->
-      </div>
-    </div>
-  </header>
+  <header>
+    <h1>Admin Panel</h1>
+    <div class="dropdown">
+      <button class="top-button" onclick="toggleDropdown()">Menu</button>
+      <div class="dropdown-content" id="dropdownMenu">
+        <a href="admin-withdraw.html">Withdrawals</a>
+        <a href="admin-deposit.html">Deposits</a>
+        <a href="admin-advertise.html">Adverts</a>
+        <a href="admin-task.html">Submissions</a>
+        <a href="admin-claim-code.html">Claims</a>
+        <a href="admin-activate.html">Activations</a>
+      </div>
+    </div>
+  </header>
 
-  <div class="container">
-    <input type="text" id="searchInput" placeholder="Search by Username..." oninput="searchUsers()">
-    <table>
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>Balance</th>
-          <th>Referrals</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="userTableBody"></tbody>
-    </table>
-  </div>
+  <div class="container">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search by Username..."
+      oninput="searchUsers()"
+    />
 
-  <div class="modal" id="editModal">
-    <div class="modal-content">
-      <h3>Edit User</h3>
-      <input type="text" id="editUsername" placeholder="Username">
-      <input type="number" id="editBalance" placeholder="Balance">
-      <input type="number" id="editReferrals" placeholder="Referrals">
-      <button class="btn edit-btn" onclick="saveChanges()">Save Changes</button>
-    </div>
-  </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Balance</th>
+          <th>Referrals</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody"></tbody>
+    </table>
+  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3>Edit User</h3>
+      <input type="text" id="editUsername" placeholder="Username" />
+      <input type="number" id="editBalance" placeholder="Balance" />
+      <input type="number" id="editReferrals" placeholder="Referrals" />
+      <button class="btn edit-btn" onclick="saveChanges()">Save Changes</button>
+    </div>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      updateDoc,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
 
-    let selectedUserId = null;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let selectedUserId = null;
 
-    async function loadUsers() {
-      const userTableBody = document.getElementById("userTableBody");
-      userTableBody.innerHTML = "";
-      const querySnapshot = await getDocs(collection(db, "users"));
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${data.username}</td>
-          <td>₦${data.balance || 0}</td>
-          <td>${data.referrals || 0}</td>
-          <td>
-            <button class="btn edit-btn" onclick="openModal('${docSnap.id}', '${data.username}', ${data.balance || 0}, ${data.referrals || 0})">Edit</button>
-            <button class="btn delete-btn" onclick="deleteUser('${docSnap.id}')">Delete</button>
-          </td>
-        `;
-        userTableBody.appendChild(row);
-      });
-    }
+    async function loadUsers() {
+      const body = document.getElementById("userTableBody");
+      body.innerHTML = "";
+      const snap = await getDocs(collection(db, "users"));
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.username}</td>
+          <td>₦${d.balance || 0}</td>
+          <td>${d.referrals || 0}</td>
+          <td>
+            <button class="btn edit-btn" onclick="openModal('${docSnap.id}','${d.username}',${d.balance||0},${d.referrals||0})">Edit</button>
+            <button class="btn delete-btn" onclick="deleteUser('${docSnap.id}')">Delete</button>
+          </td>`;
+        body.appendChild(tr);
+      });
+    }
 
-    window.openModal = function(id, username, balance, referrals) {
-      selectedUserId = id;
-      document.getElementById("editUsername").value = username;
-      document.getElementById("editBalance").value = balance;
-      document.getElementById("editReferrals").value = referrals;
-      document.getElementById("editModal").style.display = "flex";
-    };
+    window.openModal = (id, username, balance, referrals) => {
+      selectedUserId = id;
+      document.getElementById("editUsername").value = username;
+      document.getElementById("editBalance").value = balance;
+      document.getElementById("editReferrals").value = referrals;
+      document.getElementById("editModal").style.display = "flex";
+    };
 
-    window.saveChanges = async function () {
-      const username = document.getElementById("editUsername").value;
-      const balance = parseFloat(document.getElementById("editBalance").value);
-      const referrals = parseInt(document.getElementById("editReferrals").value);
-      if (selectedUserId) {
-        await updateDoc(doc(db, "users", selectedUserId), {
-          username, balance, referrals
-        });
-        document.getElementById("editModal").style.display = "none";
-        loadUsers();
-      }
-    };
+    window.saveChanges = async () => {
+      if (!selectedUserId) return;
+      const u = document.getElementById("editUsername").value;
+      const b = parseFloat(document.getElementById("editBalance").value);
+      const r = parseInt(document.getElementById("editReferrals").value);
+      await updateDoc(doc(db, "users", selectedUserId), { username: u, balance: b, referrals: r });
+      document.getElementById("editModal").style.display = "none";
+      loadUsers();
+    };
 
-    window.deleteUser = async function(id) {
-      if (confirm("Are you sure you want to delete this user?")) {
-        await deleteDoc(doc(db, "users", id));
-        loadUsers();
-      }
-    };
+    window.deleteUser = async id => {
+      if (confirm("Are you sure?")) {
+        await deleteDoc(doc(db, "users", id));
+        loadUsers();
+      }
+    };
 
-    window.searchUsers = function () {
-      const input = document.getElementById("searchInput").value.toLowerCase();
-      const rows = document.querySelectorAll("#userTableBody tr");
-      rows.forEach(row => {
-        const username = row.children[0].innerText.toLowerCase();
-        row.style.display = username.includes(input) ? "" : "none";
-      });
-    };
+    window.searchUsers = () => {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      document.querySelectorAll("#userTableBody tr").forEach(tr => {
+        tr.style.display = tr.children[0].innerText.toLowerCase().includes(q) ? "" : "none";
+      });
+    };
 
-    window.addEventListener("click", function(e) {
-      if (e.target.classList.contains("modal")) {
-        document.getElementById("editModal").style.display = "none";
-      }
-    });
+    window.addEventListener("click", e => {
+      if (e.target.classList.contains("modal")) {
+        document.getElementById("editModal").style.display = "none";
+      }
+    });
 
-    loadUsers();
-  </script>
+    loadUsers();
+  </script>
 
-  <script>
-    function toggleDropdown() {
-      const menu = document.getElementById("dropdownMenu");
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
-    }
-
-    window.addEventListener("click", function(e) {
-      if (!e.target.closest(".dropdown")) {
-        document.getElementById("dropdownMenu").style.display = "none";
-      }
-    });
-  </script>
+  <script>
+    function toggleDropdown() {
+      const m = document.getElementById("dropdownMenu");
+      m.style.display = m.style.display === "block" ? "none" : "block";
+    }
+    window.addEventListener("click", e => {
+      if (!e.target.closest(".dropdown")) {
+        document.getElementById("dropdownMenu").style.display = "none";
+      }
+    });
+  </script>
 </body>
 </html>
