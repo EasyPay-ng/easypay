@@ -44,7 +44,7 @@
 <body>
   <h2>Claim Code Admin Panel</h2>
   
-  <label>Current Claim Code:</label>
+  <label for="codeInput">Current Claim Code:</label><br/>
   <input type="text" id="codeInput" placeholder="Enter or update claim code"/>
   <button onclick="updateClaimCode()">Set Code</button>
 
@@ -55,7 +55,13 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -66,20 +72,29 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const claimCodeDoc = "G1LKZ2A"; // default; can be updated
+    // This holds the active claim code doc ID
+    let claimCodeDoc = "G1LKZ2A";
+
+    // When the page loads, show the current code in the input and load users
+    document.getElementById("codeInput").value = claimCodeDoc;
+    loadClaimData();
 
     async function loadClaimData() {
       const ref = doc(db, "claimControl", claimCodeDoc);
       const snap = await getDoc(ref);
       const userList = document.getElementById("userList");
       const countDisplay = document.getElementById("count");
+
+      // Clear out old
       userList.innerHTML = "";
+      countDisplay.innerText = "0";
 
       if (!snap.exists()) {
-        userList.innerHTML = "No claim data yet.";
+        userList.innerText = "No claim data yet.";
         return;
       }
 
@@ -88,10 +103,11 @@
       countDisplay.innerText = users.length;
 
       if (users.length === 0) {
-        userList.innerHTML = "No users have claimed the code yet.";
+        userList.innerText = "No users have claimed the code yet.";
         return;
       }
 
+      // Fetch each user's username
       for (let uid of users) {
         const userRef = doc(db, "users", uid);
         const userSnap = await getDoc(userRef);
@@ -105,12 +121,18 @@
     }
 
     async function updateClaimCode() {
-      const newCode = document.getElementById("codeInput").value.trim().toUpperCase();
-      if (!newCode) return alert("Please enter a valid code.");
+      const input = document.getElementById("codeInput");
+      const newCode = input.value.trim().toUpperCase();
+      const status = document.getElementById("statusMsg");
 
+      if (!newCode) {
+        status.innerText = "Please enter a valid code.";
+        return;
+      }
+
+      // Make sure the Firestore doc exists
       const ref = doc(db, "claimControl", newCode);
       const snap = await getDoc(ref);
-
       if (!snap.exists()) {
         await setDoc(ref, {
           claimedUsers: [],
@@ -118,10 +140,14 @@
         });
       }
 
-      document.getElementById("statusMsg").innerText = `Code "${newCode}" is now active.`;
-    }
+      // Update our global and reload UI
+      claimCodeDoc = newCode;
+      status.innerText = `Code "${newCode}" is now active.`;
+      status.style.color = "#2e7d32";
 
-    loadClaimData();
+      // Refresh the claimed-users list under the new code
+      loadClaimData();
+    }
   </script>
 </body>
 </html>
