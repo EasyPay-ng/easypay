@@ -75,47 +75,6 @@
       text-decoration: none;
       text-align: center;
     }
-    .popup-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-    }
-    .popup {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      width: 300px;
-      position: relative;
-      text-align: center;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    }
-    .popup h3 {
-      margin-top: 0;
-      color: #009f4d;
-    }
-    .popup button {
-      background: #009f4d;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      margin-top: 15px;
-      cursor: pointer;
-    }
-    .popup .close {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      background: transparent;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -179,44 +138,38 @@
     let referralLinkText = "";
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return (window.location.href = 'login.html');
-
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      // Pull user document
       const userRef = doc(db, "users", user.uid);
       const snap = await getDoc(userRef);
-      if (!snap.exists()) return;
+
+      if (!snap.exists()) {
+        console.error("No user document!");
+        return;
+      }
 
       const data = snap.data();
-
+      // Populate fields
       document.getElementById("usernameDisplay").innerText = data.username || "";
       document.getElementById("profileUsername").innerText = data.username || "";
       document.getElementById("profileEmail").innerText = data.email || "";
       document.getElementById("balance").innerText = data.balance ?? 0;
       document.getElementById("referrals").innerText = data.referrals ?? 0;
       document.getElementById("referralCode").innerText = data.username || "";
+
+      // Build a full referral link:
       referralLinkText = `${window.location.origin}/register.html?ref=${encodeURIComponent(data.username)}`;
 
+      // Setup claim button
       const claimBtn = document.getElementById("claimBtn");
       if (claimBtn) {
         claimBtn.onclick = () => claimNaira(user.uid, data);
         updateCountdown(data.lastClaim || 0);
       }
-
-      // Show popup if not activated
-      if (!data.activated) showActivationPopup();
     });
-
-    function showActivationPopup() {
-      const popup = document.createElement("div");
-      popup.className = "popup-overlay";
-      popup.innerHTML = `
-        <div class="popup">
-          <button class="close" onclick="this.parentElement.parentElement.remove()">×</button>
-          <h3>Account Not Activated</h3>
-          <p>Please activate your account to continue enjoying EasyPay.</p>
-          <button onclick="window.location.href='activate.html'">Okay</button>
-        </div>`;
-      document.body.appendChild(popup);
-    }
 
     window.copyReferral = () => {
       navigator.clipboard.writeText(referralLinkText)
@@ -257,6 +210,7 @@
         return;
       }
       const newBalance = (oldData.balance || 0) + 1;
+      // Merge only balance and lastClaim
       await setDoc(doc(db, "users", uid), {
         balance: newBalance,
         lastClaim: now
