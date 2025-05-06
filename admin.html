@@ -1,324 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel</title>
-  <style>
-    :root {
-      --green: #2e7d32;
-      --light-green: #e8f5e9;
-      --white: #ffffff;
-      --shadow: 0 4px 12px rgba(0,0,0,0.05);
-      --radius: 8px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--white);
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      background-color: var(--green);
-      color: var(--white);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow);
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-
-    .top-button {
-      background-color: var(--white);
-      color: var(--green);
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius);
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-    }
-
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: var(--white);
-      min-width: 180px;
-      box-shadow: var(--shadow);
-      z-index: 1000;
-      border-radius: var(--radius);
-      margin-top: 8px;
-      overflow: hidden;
-    }
-
-    .dropdown-content a {
-      padding: 12px 16px;
-      display: block;
-      text-decoration: none;
-      color: var(--green);
-      font-weight: 500;
-      transition: background-color 0.2s;
-    }
-
-    .dropdown-content a:hover {
-      background-color: var(--light-green);
-    }
-
-    .container {
-      padding: 2rem;
-      max-width: 960px;
-      margin: 0 auto;
-    }
-
-    input[type="text"] {
-      padding: 0.75rem;
-      width: 100%;
-      max-width: 300px;
-      border: 1px solid var(--light-green);
-      border-radius: var(--radius);
-      margin-bottom: 1rem;
-      box-shadow: var(--shadow);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: var(--white);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--light-green);
-    }
-
-    th {
-      background-color: var(--light-green);
-      color: var(--green);
-      font-weight: 600;
-    }
-
-    .btn {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: var(--radius);
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      transition: opacity 0.2s, background-color 0.2s;
-    }
-
-    .edit-btn {
-      background-color: var(--green);
-      color: var(--white);
-    }
-
-    .delete-btn {
-      background-color: #c62828;
-      color: var(--white);
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.4);
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    .modal-content {
-      background-color: var(--white);
-      padding: 2rem;
-      border-radius: var(--radius);
-      width: 90%;
-      max-width: 400px;
-      box-shadow: var(--shadow);
-    }
-
-    .modal-content h3 {
-      margin-top: 0;
-      color: var(--green);
-    }
-
-    .modal-content input {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      border: 1px solid var(--light-green);
-      border-radius: var(--radius);
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Activation Requests Admin</title>
+  <style>
+    :root {
+      --green: #2e7d32;
+      --light-green: #e8f5e9;
+      --white: #ffffff;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--white);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: var(--green);
+      color: var(--white);
+      padding: 1rem 2rem;
+      box-shadow: var(--shadow);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .container {
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .request-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .request-info {
+      flex: 1;
+    }
+    .request-info p {
+      margin: 0.25rem 0;
+    }
+    .request-info .status {
+      font-weight: bold;
+    }
+    .proof-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .btns {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .approve {
+      background: var(--green);
+      color: var(--white);
+    }
+    .approve:hover { background: #276c28; }
+    .reject {
+      background: #c62828;
+      color: var(--white);
+    }
+    .reject:hover { background: #9a0000; }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
 
-  <header>
-    <h1>Admin Panel</h1>
-    <div class="dropdown">
-      <button class="top-button" onclick="toggleDropdown()">Menu</button>
-      <div class="dropdown-content" id="dropdownMenu">
-        <a href="admin-withdraw.html">Withdrawals</a>
-        <a href="admin-deposit.html">Deposits</a>
-        <a href="admin-advertise.html">Adverts</a>
-        <a href="admin-task.html">Submissions</a>
-        <a href="admin-claim-code.html">Claims</a>
-        <a href="admin-activate.html">Activations</a>
-      </div>
-    </div>
-  </header>
+  <header>
+    <h1>Activation Requests Admin</h1>
+  </header>
 
-  <div class="container">
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search by Username..."
-      oninput="searchUsers()"
-    />
+  <div class="container" id="requestsContainer">
+    Loading requests…
+  </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>Balance</th>
-          <th>Referrals</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="userTableBody"></tbody>
-    </table>
-  </div>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import {
+      getFirestore,
+      collection,
+      query,
+      orderBy,
+      getDocs,
+      doc,
+      updateDoc
+    } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 
-  <div class="modal" id="editModal">
-    <div class="modal-content">
-      <h3>Edit User</h3>
-      <input type="text" id="editUsername" placeholder="Username" />
-      <input type="number" id="editBalance" placeholder="Balance" />
-      <input type="number" id="editReferrals" placeholder="Referrals" />
-      <button class="btn edit-btn" onclick="saveChanges()">Save Changes</button>
-    </div>
-  </div>
+    // — your firebaseConfig here —
+    const firebaseConfig = {
+      apiKey: "...",
+      authDomain: "...",
+      projectId: "...",
+      storageBucket: "...",
+      messagingSenderId: "...",
+      appId: "..."
+    };
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      updateDoc,
-      deleteDoc
-    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+    const container = document.getElementById('requestsContainer');
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
+    // — guard with redirect —
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        // not signed in → send to login, back here on success
+        const r = encodeURIComponent('admin-activate.html');
+        window.location.href = `login.html?redirect=${r}`;
+      } else {
+        loadActivationRequests();
+      }
+    });
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    let selectedUserId = null;
+    async function loadActivationRequests() {
+      container.innerHTML = 'Loading requests…';
+      const q = query(
+        collection(db, 'activations'),
+        orderBy('requested', 'desc')
+      );
+      const snap = await getDocs(q);
+      container.innerHTML = '';
 
-    async function loadUsers() {
-      const body = document.getElementById("userTableBody");
-      body.innerHTML = "";
-      const snap = await getDocs(collection(db, "users"));
-      snap.forEach(docSnap => {
-        const d = docSnap.data();
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${d.username}</td>
-          <td>₦${d.balance || 0}</td>
-          <td>${d.referrals || 0}</td>
-          <td>
-            <button class="btn edit-btn" onclick="openModal('${docSnap.id}','${d.username}',${d.balance||0},${d.referrals||0})">Edit</button>
-            <button class="btn delete-btn" onclick="deleteUser('${docSnap.id}')">Delete</button>
-          </td>`;
-        body.appendChild(tr);
-      });
-    }
+      if (snap.empty) {
+        container.innerHTML = '<p>No requests found.</p>';
+        return;
+      }
 
-    window.openModal = (id, username, balance, referrals) => {
-      selectedUserId = id;
-      document.getElementById("editUsername").value = username;
-      document.getElementById("editBalance").value = balance;
-      document.getElementById("editReferrals").value = referrals;
-      document.getElementById("editModal").style.display = "flex";
-    };
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        const status = d.status || 'pending';
+        const time = d.requested.toDate().toLocaleString();
 
-    window.saveChanges = async () => {
-      if (!selectedUserId) return;
-      const u = document.getElementById("editUsername").value;
-      const b = parseFloat(document.getElementById("editBalance").value);
-      const r = parseInt(document.getElementById("editReferrals").value);
-      await updateDoc(doc(db, "users", selectedUserId), { username: u, balance: b, referrals: r });
-      document.getElementById("editModal").style.display = "none";
-      loadUsers();
-    };
+        const card = document.createElement('div');
+        card.className = 'request-card';
 
-    window.deleteUser = async id => {
-      if (confirm("Are you sure?")) {
-        await deleteDoc(doc(db, "users", id));
-        loadUsers();
-      }
-    };
+        // wrap image in link
+        const link = document.createElement('a');
+        link.href = d.proofURL;
+        link.target = '_blank';
+        link.rel = 'noopener';
 
-    window.searchUsers = () => {
-      const q = document.getElementById("searchInput").value.toLowerCase();
-      document.querySelectorAll("#userTableBody tr").forEach(tr => {
-        tr.style.display = tr.children[0].innerText.toLowerCase().includes(q) ? "" : "none";
-      });
-    };
+        const img = document.createElement('img');
+        img.src = d.proofURL;
+        img.alt = 'Proof';
+        img.className = 'proof-img';
+        link.appendChild(img);
 
-    window.addEventListener("click", e => {
-      if (e.target.classList.contains("modal")) {
-        document.getElementById("editModal").style.display = "none";
-      }
-    });
+        const info = document.createElement('div');
+        info.className = 'request-info';
+        info.innerHTML = `
+          <p><strong>Username:</strong> ${d.username}</p>
+          <p><strong>Submitted:</strong> ${time}</p>
+          <p class="status">Status: ${status}</p>
+        `;
+        const statusEl = info.querySelector('.status');
 
-    loadUsers();
-  </script>
+        const btns = document.createElement('div');
+        btns.className = 'btns';
 
-  <script>
-    function toggleDropdown() {
-      const m = document.getElementById("dropdownMenu");
-      m.style.display = m.style.display === "block" ? "none" : "block";
-    }
-    window.addEventListener("click", e => {
-      if (!e.target.closest(".dropdown")) {
-        document.getElementById("dropdownMenu").style.display = "none";
-      }
-    });
-  </script>
+        const approveBtn = document.createElement('button');
+        approveBtn.textContent = 'Approve';
+        approveBtn.className = 'btn approve';
+        approveBtn.disabled = status !== 'pending';
+        approveBtn.onclick = () => handle(id, 'approved', approveBtn, rejectBtn, statusEl);
+
+        const rejectBtn = document.createElement('button');
+        rejectBtn.textContent = 'Reject';
+        rejectBtn.className = 'btn reject';
+        rejectBtn.disabled = status !== 'pending';
+        rejectBtn.onclick = () => handle(id, 'rejected', approveBtn, rejectBtn, statusEl);
+
+        btns.append(approveBtn, rejectBtn);
+        info.appendChild(btns);
+        card.append(link, info);
+        container.appendChild(card);
+      });
+    }
+
+    async function handle(id, newStatus, okBtn, noBtn, statusEl) {
+      okBtn.disabled = noBtn.disabled = true;
+      statusEl.textContent = `Status: ${newStatus}`;
+      await updateDoc(doc(db, 'activations', id), { status: newStatus });
+    }
+  </script>
 </body>
 </html>
