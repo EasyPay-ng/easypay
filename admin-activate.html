@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Activation Requests Admin</title>
+  <style>
+    :root {
+      --green: #2e7d32;
+      --light-green: #e8f5e9;
+      --white: #ffffff;
+      --gray-bg: #f5f5f5;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --radius: 8px;
+      --transition: 0.2s;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--gray-bg);
+      min-height: 100vh;
+    }
+    header {
+      background: var(--green);
+      color: var(--white);
+      padding: 1rem 2rem;
+      box-shadow: var(--shadow);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .container {
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .request-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .request-info {
+      flex: 1;
+    }
+    .request-info p {
+      margin: 0.25rem 0;
+    }
+    .request-info .status {
+      font-weight: bold;
+    }
+    .request-info .status.pending { color: #f5a623; }
+    .request-info .status.approved { color: #2e7d32; }
+    .request-info .status.rejected { color: #c62828; }
+    .proof-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .btns {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: bold;
+      transition: background var(--transition), opacity var(--transition);
+    }
+    .approve { background: var(--green); color: var(--white); }
+    .approve:hover { background: #276c28; }
+    .reject { background: #c62828; color: var(--white); }
+    .reject:hover { background: #9a0000; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Activation Requests Admin</h1>
+  </header>
+
+  <div class="container" id="requestsContainer">
+    Loading requests…
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import {
+      getFirestore,
+      collection,
+      query,
+      orderBy,
+      getDocs,
+      doc,
+      updateDoc
+    } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+
+    // --- Your Firebase config here ---
+    const firebaseConfig = {
+      apiKey: "...",
+      authDomain: "...",
+      projectId: "...",
+      storageBucket: "...",
+      messagingSenderId: "...",
+      appId: "..."
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    const container = document.getElementById('requestsContainer');
+
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      } else {
+        loadRequests();
+      }
+    });
+
+    async function loadRequests() {
+      container.innerHTML = 'Loading requests…';
+      const q = query(
+        collection(db, 'activations'),
+        orderBy('requested', 'desc')
+      );
+      const snap = await getDocs(q);
+      container.innerHTML = '';
+
+      if (snap.empty) {
+        container.innerHTML = '<p>No activation requests found.</p>';
+        return;
+      }
+
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const status = data.status || 'pending';
+        const time = data.requested?.toDate().toLocaleString() || '—';
+
+        const card = document.createElement('div');
+        card.className = 'request-card';
+
+        // Proof image wrapped in a link to open in new tab
+        const link = document.createElement('a');
+        link.href = data.proofURL;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        const img = document.createElement('img');
+        img.src = data.proofURL;
+        img.alt = 'Proof';
+        img.className = 'proof-img';
+        link.appendChild(img);
+
+        const info = document.createElement('div');
+        info.className = 'request-info';
+        info.innerHTML = `
+          <p><strong>Username:</strong> ${data.username}</p>
+          <p><strong>Submitted:</strong> ${time}</p>
+          <p class="status ${status}">Status: ${status}</p>
+        `;
+
+        const btns = document.createElement('div');
+        btns.className = 'btns';
+
+        const approveBtn = document.createElement('button');
+        approveBtn.textContent = 'Approve';
+        approveBtn.className = 'btn approve';
+        approveBtn.disabled = status !== 'pending';
+        const rejectBtn = document.createElement('button');
+        rejectBtn.textContent = 'Reject';
+        rejectBtn.className = 'btn reject';
+        rejectBtn.disabled = status !== 'pending';
+        const statusEl = info.querySelector('.status');
+
+        approveBtn.onclick = () => handleAction(docSnap.id, 'approved', approveBtn, rejectBtn, statusEl);
+        rejectBtn.onclick = () => handleAction(docSnap.id, 'rejected', approveBtn, rejectBtn, statusEl);
+
+        btns.append(approveBtn, rejectBtn);
+        info.appendChild(btns);
+        card.append(link, info);
+        container.appendChild(card);
+      });
+    }
+
+    async function handleAction(id, newStatus, approveBtn, rejectBtn, statusEl) {
+      approveBtn.disabled = rejectBtn.disabled = true;
+      statusEl.textContent = `Status: ${newStatus}`;
+      statusEl.className = `status ${newStatus}`;
+
+      await updateDoc(doc(db, 'activations', id), { status: newStatus });
+    }
+  </script>
+</body>
+</html>
