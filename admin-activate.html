@@ -3,33 +3,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel — User Management</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <title>Admin Panel — User Records</title>
   <style>
+    :root {
+      --green: #2e7d32;
+      --light-green: #e8f5e9;
+      --white: #ffffff;
+      --gray-bg: #f9f9f9;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--gray-bg);
       color: #333;
     }
     header {
-      background-color: #009f4d;
-      color: white;
-      padding: 15px 20px;
+      background-color: var(--green);
+      color: var(--white);
+      padding: 1rem 2rem;
+      box-shadow: var(--shadow);
       font-size: 1.25rem;
     }
     .container {
-      padding: 20px;
+      padding: 2rem;
       max-width: 1000px;
       margin: 0 auto;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      border-radius: 12px;
+      background: var(--white);
+      border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: var(--shadow);
     }
     th, td {
       padding: 12px;
@@ -37,20 +46,17 @@
       text-align: left;
     }
     th {
-      background-color: #009f4d;
-      color: white;
+      background-color: var(--green);
+      color: var(--white);
     }
     .btn {
-      background: #009f4d;
-      color: white;
+      background: var(--green);
+      color: var(--white);
       border: none;
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: var(--radius);
       cursor: pointer;
       margin-right: 4px;
-    }
-    .btn.reset {
-      background: #f39c12;
     }
     .modal {
       display: none;
@@ -63,17 +69,17 @@
       z-index: 1000;
     }
     .modal-content {
-      background: white;
+      background: var(--white);
       padding: 20px;
       width: 90%;
       max-width: 400px;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       position: relative;
     }
     .modal-content h3 {
       margin-top: 0;
-      color: #009f4d;
+      color: var(--green);
     }
     .modal-content label {
       display: block;
@@ -84,25 +90,23 @@
       width: 100%;
       padding: 8px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: var(--radius);
       font-size: 1rem;
+      margin-bottom: 8px;
     }
     .modal-content input[readonly] {
       background: #eee;
     }
     .modal-content .actions {
-      margin-top: 16px;
       text-align: right;
-    }
-    .modal-content .actions button {
-      margin-left: 8px;
+      margin-top: 12px;
     }
     .close-btn {
       position: absolute;
       top: 10px; right: 14px;
-      font-size: 20px;
       background: none;
       border: none;
+      font-size: 20px;
       color: #888;
       cursor: pointer;
     }
@@ -110,40 +114,48 @@
 </head>
 <body>
 
-  <header>Admin Panel — User Management</header>
+  <header>Admin Panel — User Records</header>
   <div class="container">
     <table>
       <thead>
         <tr>
           <th>Email</th>
-          <th>Referral Code</th>
+          <th>Referral</th>
           <th>Username</th>
+          <th>Password</th>
           <th>Balance</th>
           <th>Referrals</th>
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="userTable"></tbody>
+      <tbody id="userTableBody"></tbody>
     </table>
   </div>
 
-  <!-- Edit Modal -->
   <div class="modal" id="editModal">
     <div class="modal-content">
       <button class="close-btn" onclick="closeModal()">×</button>
       <h3>Edit User</h3>
-      <label>Email</label>
+
+      <label for="modalEmail">Email</label>
       <input type="text" id="modalEmail" readonly>
-      <label>Referral Code</label>
+
+      <label for="modalReferral">Referral Code</label>
       <input type="text" id="modalReferral" readonly>
-      <label>Username</label>
+
+      <label for="modalUsername">Username</label>
       <input type="text" id="modalUsername">
-      <label>Balance</label>
+
+      <label for="modalPassword">Password</label>
+      <input type="text" id="modalPassword">
+
+      <label for="modalBalance">Balance</label>
       <input type="number" id="modalBalance">
-      <label>Referrals</label>
+
+      <label for="modalReferrals">Referrals</label>
       <input type="number" id="modalReferrals">
+
       <div class="actions">
-        <button class="btn reset" id="resetPassBtn">Reset Password</button>
         <button class="btn" id="saveBtn">Save</button>
       </div>
     </div>
@@ -160,8 +172,7 @@
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     import {
       getAuth,
-      onAuthStateChanged,
-      sendPasswordResetEmail
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -181,29 +192,28 @@
     let users = [];
     let selectedUser = null;
 
-    // Only allow access if logged in
     onAuthStateChanged(auth, user => {
-      if (!user) return window.location.href = 'login.html';
+      if (!user) return location.href = 'login.html';
       loadUsers();
     });
 
     async function loadUsers() {
-      const tbody = document.getElementById('userTable');
-      tbody.innerHTML = '';
+      users = [];
+      const body = document.getElementById('userTableBody');
+      body.innerHTML = '';
       const snap = await getDocs(collection(db, 'users'));
       snap.forEach(docSnap => {
         const d = docSnap.data();
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${d.email || ''}</td>
-          <td>${d.username || ''}</td>
-          <td>${d.username || ''}</td>
-          <td>₦${d.balance ?? 0}</td>
-          <td>${d.referrals ?? 0}</td>
-          <td>
-            <button class="btn" onclick="openModal('${docSnap.id}')">Edit</button>
-          </td>`;
-        tbody.appendChild(tr);
+          <td>${d.email||''}</td>
+          <td>${d.username||''}</td>
+          <td>${d.username||''}</td>
+          <td>${d.password||''}</td>
+          <td>₦${d.balance||0}</td>
+          <td>${d.referrals||0}</td>
+          <td><button class="btn" onclick="openModal('${docSnap.id}')">Edit</button></td>`;
+        body.appendChild(tr);
         users.push({ id: docSnap.id, ...d });
       });
     }
@@ -214,6 +224,7 @@
       document.getElementById('modalEmail').value = selectedUser.email;
       document.getElementById('modalReferral').value = selectedUser.username;
       document.getElementById('modalUsername').value = selectedUser.username;
+      document.getElementById('modalPassword').value = selectedUser.password || '';
       document.getElementById('modalBalance').value = selectedUser.balance || 0;
       document.getElementById('modalReferrals').value = selectedUser.referrals || 0;
       document.getElementById('editModal').style.display = 'flex';
@@ -228,20 +239,13 @@
       if (!selectedUser) return;
       const updates = {
         username: document.getElementById('modalUsername').value.trim(),
+        password: document.getElementById('modalPassword').value,
         balance: parseFloat(document.getElementById('modalBalance').value),
         referrals: parseInt(document.getElementById('modalReferrals').value, 10)
       };
       await updateDoc(doc(db, 'users', selectedUser.id), updates);
       closeModal();
-      users = [];
       loadUsers();
-    };
-
-    document.getElementById('resetPassBtn').onclick = () => {
-      if (!selectedUser) return;
-      sendPasswordResetEmail(auth, selectedUser.email)
-        .then(() => alert('Password reset email sent.'))
-        .catch(err => alert('Error: ' + err.message));
     };
   </script>
 </body>
