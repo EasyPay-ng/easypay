@@ -117,12 +117,6 @@
       color: white;
     }
 
-    .copy-btn {
-      background-color: #2196f3;
-      color: white;
-      margin-left: 0.5rem;
-    }
-
     input[type="text"] {
       padding: 0.5rem;
       width: 100%;
@@ -173,7 +167,7 @@
         <a href="admin-deposit.html">Deposits</a>
         <a href="admin-advertise.html">Adverts</a>
         <a href="admin-task.html">Submissions</a>
-        <a href="admin-activate.html">User Records</a>
+        <a href="admin-activate.html">User Records</a> <!-- Changed -->
       </div>
     </div>
   </header>
@@ -219,6 +213,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
     let selectedUserId = null;
 
     async function loadUsers() {
@@ -229,10 +224,7 @@
         const data = docSnap.data();
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>
-            ${data.username}
-            <button class="btn copy-btn" onclick="copyToClipboard('${data.username}', this)">Copy</button>
-          </td>
+          <td>${data.username}</td>
           <td>₦${data.balance || 0}</td>
           <td>${data.referrals || 0}</td>
           <td>
@@ -243,14 +235,6 @@
         userTableBody.appendChild(row);
       });
     }
-
-    window.copyToClipboard = function(username, btn) {
-      navigator.clipboard.writeText(username).then(() => {
-        const original = btn.textContent;
-        btn.textContent = "Copied!";
-        setTimeout(() => btn.textContent = original, 1200);
-      });
-    };
 
     window.openModal = function(id, username, balance, referrals) {
       selectedUserId = id;
