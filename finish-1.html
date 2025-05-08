@@ -22,7 +22,7 @@
       text-align: center;
     }
     .message h2 { color: #007f3b; margin-bottom: 1rem; }
-    .message p { margin: 0.5rem 0; }
+    .message p { margin: 0.5rem 0; font-size: 1.1rem; }
     .message a {
       display: inline-block;
       margin-top: 1rem;
@@ -37,58 +37,81 @@
 <body>
   <div class="message">
     <h2>Processing your reward…</h2>
-    <p id="status">Please wait.</p>
+    <p id="status">Loading reward…</p>
     <a href="dashboard.html">Return to Dashboard</a>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      arrayUnion,
+      increment
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    // your Firebase config
-    const firebaseConfig = { /* …same config… */ };
+    // ← your Firebase config here
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
-    // parse task ID from URL: finish.html?task=27001
+    // get taskId from URL ?task=27001
     const params = new URLSearchParams(window.location.search);
     const taskId = params.get("task");
     const statusEl = document.getElementById("status");
 
-    onAuthStateChanged(auth, async user => {
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         statusEl.innerText = "Not signed in. Redirecting…";
         return setTimeout(() => location.href = "login.html", 1500);
       }
 
+      // wait 5s to simulate loading
+      await new Promise(res => setTimeout(res, 5000));
+
       try {
         const uid = user.uid;
         const userRef = doc(db, "users", uid);
+        const snap = await getDoc(userRef);
+        const data = snap.exists() ? snap.data() : {};
 
-        // mark task done and credit only once per day
         const today = new Date().toISOString().split("T")[0];
-        const snap = await userRef.get();
-        const data = snap.exists ? snap.data() : {};
-        const done = data.shortlinkTasks?.[taskId]?.date === today;
+        const taskRecord = data.shortlinkTasks?.[taskId];
 
-        if (done) {
-          statusEl.innerText = `Task ${taskId} already credited today.`;
+        if (taskRecord?.date === today) {
+          statusEl.innerText = `Reward already claimed for Task ${taskId} today.`;
         } else {
           await updateDoc(userRef, {
-            [`shortlinkTasks.${taskId}`]: { completed: true, date: today },
+            // mark it claimed today
+            [`shortlinkTasks.${taskId}`]: { date: today },
+            // credit balance
             balance: increment(5),
+            // log transaction
             transactions: arrayUnion({
               source: `Shortlink ${taskId}`,
               amount: 5,
               date: new Date().toLocaleString()
             })
           });
-          statusEl.innerText = `₹5 credited for Task ${taskId}!`;
+          statusEl.innerText = `Congratulations! You have earned ₦5.`;
         }
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        console.error(error);
         statusEl.innerText = "Error processing reward.";
       }
     });
