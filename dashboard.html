@@ -100,7 +100,7 @@
     <div class="card">
       <h3>Referral Code:</h3>
       <p id="referralCode"></p>
-      <button class="copy-btn" onclick="copyReferral()">Copy Referral Link</button>
+      <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
     </div>
     <div class="card">
       <h3>Daily Bonus</h3>
@@ -135,24 +135,16 @@
     const db = getFirestore(app);
     const auth = getAuth();
 
-    let referralLinkText = "";
-
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = 'login.html';
         return;
       }
-      // Pull user document
       const userRef = doc(db, "users", user.uid);
       const snap = await getDoc(userRef);
-
-      if (!snap.exists()) {
-        console.error("No user document!");
-        return;
-      }
+      if (!snap.exists()) return;
 
       const data = snap.data();
-      // Populate fields
       document.getElementById("usernameDisplay").innerText = data.username || "";
       document.getElementById("profileUsername").innerText = data.username || "";
       document.getElementById("profileEmail").innerText = data.email || "";
@@ -160,10 +152,7 @@
       document.getElementById("referrals").innerText = data.referrals ?? 0;
       document.getElementById("referralCode").innerText = data.username || "";
 
-      // Build a full referral link:
-      referralLinkText = `${window.location.origin}/register.html?ref=${encodeURIComponent(data.username)}`;
-
-      // Setup claim button
+      // Daily bonus countdown & claim setup
       const claimBtn = document.getElementById("claimBtn");
       if (claimBtn) {
         claimBtn.onclick = () => claimNaira(user.uid, data);
@@ -172,8 +161,9 @@
     });
 
     window.copyReferral = () => {
-      navigator.clipboard.writeText(referralLinkText)
-        .then(() => alert("Referral Link Copied!"))
+      const code = document.getElementById("referralCode").innerText;
+      navigator.clipboard.writeText(code)
+        .then(() => alert("Referral code copied: " + code))
         .catch(console.error);
     };
 
@@ -210,7 +200,6 @@
         return;
       }
       const newBalance = (oldData.balance || 0) + 1;
-      // Merge only balance and lastClaim
       await setDoc(doc(db, "users", uid), {
         balance: newBalance,
         lastClaim: now
