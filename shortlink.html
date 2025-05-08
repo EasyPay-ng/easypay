@@ -4,60 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay | Shortlink Tasks</title>
-  <!-- Firebase (namespaced) -->
+  <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      margin: 0; font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #e6f7ed, #ffffff);
       padding: 20px;
     }
     .tasks-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      max-width: 480px;
-      margin: 0 auto;
+      display: flex; flex-direction: column;
+      gap: 20px; max-width: 480px; margin: 0 auto;
     }
     .card {
-      background-color: #fff;
-      padding: 1.5rem;
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0, 128, 0, 0.15);
+      background-color: #fff; padding: 1.5rem;
+      border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0,128,0,0.15);
       text-align: center;
     }
     .card h2 {
-      color: #007f3b;
-      margin: 0 0 0.5rem;
-      font-size: 1.25rem;
+      color: #007f3b; margin-bottom: 0.5rem; font-size: 1.25rem;
     }
-    .card .reward {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #1c943b;
+    .reward {
+      font-size: 1.3rem; font-weight: bold; color: #1c943b;
       margin: 0.5rem 0;
-    }
-    .card p {
-      margin: 0.5rem 0;
-      font-size: 1rem;
     }
     .startBtn {
       margin-top: 1rem;
-      background-color: #28a745;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
+      background-color: #28a745; color: white;
+      padding: 0.75rem 1.5rem; font-size: 1rem;
+      border: none; border-radius: 0.5rem;
+      cursor: pointer; transition: background 0.3s ease;
     }
     .startBtn:disabled {
-      opacity: 0.6;
-      cursor: default;
+      background-color: #999; cursor: default;
     }
     .startBtn:hover:not(:disabled) {
       background-color: #218838;
@@ -82,46 +63,18 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // --- Credit & Redirect Logic ---
-    async function creditAndRedirect(taskId, btn) {
-      btn.disabled = true;
-      const user = auth.currentUser;
-      if (!user) {
-        return window.location.href = 'login.html';
-      }
+    // Your ShrinkMe URLs per task:
+    const shrinkLinks = {
+      27001: 'https://shrinkme.ink/Wg0c',
+      // 27002: 'https://shrinkme.ink/your2',
+      // ...
+      // 27010: 'https://shrinkme.ink/your10'
+    };
 
-      const uid = user.uid;
-      const userRef = db.collection("users").doc(uid);
-      const snap = await userRef.get();
-      const data = snap.exists ? snap.data() : {};
-
-      const today = new Date().toISOString().split("T")[0];
-      const tasksDone = data.shortlinkTasks || {};
-      const record = tasksDone[taskId];
-
-      if (record?.date === today && record.completed) {
-        alert("You’ve already completed Task " + taskId + " today.");
-        btn.disabled = false;
-        return;
-      }
-
-      // Update Firestore: balance, transaction log, mark task done
-      await userRef.update({
-        [`shortlinkTasks.${taskId}`]: { completed: true, date: today },
-        balance: firebase.firestore.FieldValue.increment(5),
-        transactions: firebase.firestore.FieldValue.arrayUnion({
-          source: `Shortlink ${taskId}`,
-          amount: 5,
-          date: new Date().toLocaleString()
-        })
-      });
-
-      // Redirect
-      window.location.href = "https://google.com";
-    }
-
-    // --- Build 10 Task Cards ---
+    // Create 10 cards and track buttons
     const container = document.getElementById("tasksContainer");
+    const buttons = {}; // map taskId -> button
+
     for (let id = 27001; id <= 27010; id++) {
       const card = document.createElement("div");
       card.className = "card";
@@ -129,11 +82,84 @@
         <h2>Shortlink Task</h2>
         <p>Task ID: <strong>${id}</strong></p>
         <div class="reward">₦5</div>
-        <button class="startBtn" onclick="creditAndRedirect(${id}, this)">
+        <button class="startBtn" id="btn-${id}">
           Start Task
         </button>
       `;
       container.appendChild(card);
+      buttons[id] = document.getElementById(`btn-${id}`);
+    }
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) return window.location.href = 'login.html';
+      const uid = user.uid;
+      const userRef = db.collection('users').doc(uid);
+      const snap = await userRef.get();
+      const data = snap.exists ? snap.data() : {};
+
+      // For each task, set up click & initial state
+      for (let id = 27001; id <= 27010; id++) {
+        const btn = buttons[id];
+        const link = shrinkLinks[id] || `https://google.com`;
+        const record = data.shortlinkTasks?.[id];
+        let nextAvailable = 0;
+
+        // If done today, compute remaining
+        if (record?.date) {
+          const last = new Date(record.date).getTime();
+          const diff = Date.now() - last;
+          if (diff < 86400000) {
+            nextAvailable = last + 86400000;
+            disableWithCountdown(btn, nextAvailable);
+          }
+        }
+
+        btn.onclick = async () => {
+          btn.disabled = true;
+          // Double-check cooldown
+          const now = Date.now();
+          if (nextAvailable && now < nextAvailable) {
+            // still cooling
+            return;
+          }
+          // Credit & log
+          await userRef.update({
+            [`shortlinkTasks.${id}`]: { completed: true, date: new Date().toISOString() },
+            balance: firebase.firestore.FieldValue.increment(5),
+            transactions: firebase.firestore.FieldValue.arrayUnion({
+              source: `Shortlink ${id}`,
+              amount: 5,
+              date: new Date().toLocaleString()
+            })
+          });
+          // Start cooldown
+          nextAvailable = Date.now() + 86400000;
+          disableWithCountdown(btn, nextAvailable);
+          // Redirect after tiny delay
+          setTimeout(() => window.open(link, '_blank'), 300);
+        };
+      }
+    });
+
+    // disables button and shows live countdown until availableTime (ms)
+    function disableWithCountdown(btn, availableTime) {
+      btn.disabled = true;
+      const update = () => {
+        const now = Date.now();
+        const diff = availableTime - now;
+        if (diff <= 0) {
+          btn.disabled = false;
+          btn.textContent = 'Start Task';
+          clearInterval(interval);
+        } else {
+          const h = Math.floor(diff/3600000);
+          const m = Math.floor((diff%3600000)/60000);
+          const s = Math.floor((diff%60000)/1000);
+          btn.textContent = `Wait ${h}h ${m}m ${s}s`;
+        }
+      };
+      update();
+      const interval = setInterval(update, 1000);
     }
   </script>
 </body>
