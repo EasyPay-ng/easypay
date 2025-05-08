@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay | Shortlink Tasks</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <!-- Firebase (namespaced) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
     body {
       margin: 0;
@@ -54,32 +55,86 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-    .startBtn:hover {
+    .startBtn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .startBtn:hover:not(:disabled) {
       background-color: #218838;
     }
   </style>
 </head>
 <body>
-  <div class="tasks-container">
-    <!-- Generate 10 cards -->
-    <!-- IDs from 27001 to 27010 -->
-    <script>
-      // We'll inject the 10 cards here
-      const container = document.currentScript.parentElement;
-      for (let i = 27001; i <= 27010; i++) {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <h2>Shortlink Task</h2>
-          <p>Task ID: <strong>${i}</strong></p>
-          <div class="reward">₦5</div>
-          <button class="startBtn" onclick="window.location.href='https://google.com'">
-            Start Task
-          </button>
-        `;
-        container.appendChild(card);
+  <div class="tasks-container" id="tasksContainer"></div>
+
+  <script>
+    // --- Firebase init ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // --- Credit & Redirect Logic ---
+    async function creditAndRedirect(taskId, btn) {
+      btn.disabled = true;
+      const user = auth.currentUser;
+      if (!user) {
+        return window.location.href = 'login.html';
       }
-    </script>
-  </div>
+
+      const uid = user.uid;
+      const userRef = db.collection("users").doc(uid);
+      const snap = await userRef.get();
+      const data = snap.exists ? snap.data() : {};
+
+      const today = new Date().toISOString().split("T")[0];
+      const tasksDone = data.shortlinkTasks || {};
+      const record = tasksDone[taskId];
+
+      if (record?.date === today && record.completed) {
+        alert("You’ve already completed Task " + taskId + " today.");
+        btn.disabled = false;
+        return;
+      }
+
+      // Update Firestore: balance, transaction log, mark task done
+      await userRef.update({
+        [`shortlinkTasks.${taskId}`]: { completed: true, date: today },
+        balance: firebase.firestore.FieldValue.increment(5),
+        transactions: firebase.firestore.FieldValue.arrayUnion({
+          source: `Shortlink ${taskId}`,
+          amount: 5,
+          date: new Date().toLocaleString()
+        })
+      });
+
+      // Redirect
+      window.location.href = "https://google.com";
+    }
+
+    // --- Build 10 Task Cards ---
+    const container = document.getElementById("tasksContainer");
+    for (let id = 27001; id <= 27010; id++) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h2>Shortlink Task</h2>
+        <p>Task ID: <strong>${id}</strong></p>
+        <div class="reward">₦5</div>
+        <button class="startBtn" onclick="creditAndRedirect(${id}, this)">
+          Start Task
+        </button>
+      `;
+      container.appendChild(card);
+    }
+  </script>
 </body>
 </html>
