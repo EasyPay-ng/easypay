@@ -3,206 +3,246 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Activation Requests Admin</title>
+  <title>Admin Panel — User Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    :root {
-      --green: #2e7d32;
-      --light-green: #e8f5e9;
-      --white: #ffffff;
-      --gray-bg: #f5f5f5;
-      --shadow: 0 4px 12px rgba(0,0,0,0.05);
-      --radius: 8px;
-      --transition: 0.2s;
-    }
-    * { box-sizing: border-box; }
     body {
-      margin: 0; padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--gray-bg);
-      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5fdf7;
+      color: #333;
     }
     header {
-      background: var(--green);
-      color: var(--white);
-      padding: 1rem 2rem;
-      box-shadow: var(--shadow);
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.5rem;
+      background-color: #009f4d;
+      color: white;
+      padding: 15px 20px;
+      font-size: 1.25rem;
     }
     .container {
-      padding: 2rem;
-      max-width: 900px;
+      padding: 20px;
+      max-width: 1000px;
       margin: 0 auto;
     }
-    .request-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    .request-info {
-      flex: 1;
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
     }
-    .request-info p {
-      margin: 0.25rem 0;
-    }
-    .request-info .status {
-      font-weight: bold;
-    }
-    .request-info .status.pending { color: #f5a623; }
-    .request-info .status.approved { color: #2e7d32; }
-    .request-info .status.rejected { color: #c62828; }
-    .proof-img {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-    .btns {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
+    th {
+      background-color: #009f4d;
+      color: white;
     }
     .btn {
-      padding: 0.5rem 1rem;
+      background: #009f4d;
+      color: white;
       border: none;
-      border-radius: var(--radius);
+      padding: 6px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
-      transition: background var(--transition), opacity var(--transition);
+      margin-right: 4px;
     }
-    .approve { background: var(--green); color: var(--white); }
-    .approve:hover { background: #276c28; }
-    .reject { background: #c62828; color: var(--white); }
-    .reject:hover { background: #9a0000; }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn.reset {
+      background: #f39c12;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .modal-content h3 {
+      margin-top: 0;
+      color: #009f4d;
+    }
+    .modal-content label {
+      display: block;
+      margin: 10px 0 4px;
+      font-weight: 600;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .modal-content input[readonly] {
+      background: #eee;
+    }
+    .modal-content .actions {
+      margin-top: 16px;
+      text-align: right;
+    }
+    .modal-content .actions button {
+      margin-left: 8px;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px; right: 14px;
+      font-size: 20px;
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Activation Requests Admin</h1>
-  </header>
+  <header>Admin Panel — User Management</header>
+  <div class="container">
+    <table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Referral Code</th>
+          <th>Username</th>
+          <th>Balance</th>
+          <th>Referrals</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="userTable"></tbody>
+    </table>
+  </div>
 
-  <div class="container" id="requestsContainer">
-    Loading requests…
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">×</button>
+      <h3>Edit User</h3>
+      <label>Email</label>
+      <input type="text" id="modalEmail" readonly>
+      <label>Referral Code</label>
+      <input type="text" id="modalReferral" readonly>
+      <label>Username</label>
+      <input type="text" id="modalUsername">
+      <label>Balance</label>
+      <input type="number" id="modalBalance">
+      <label>Referrals</label>
+      <input type="number" id="modalReferrals">
+      <div class="actions">
+        <button class="btn reset" id="resetPassBtn">Reset Password</button>
+        <button class="btn" id="saveBtn">Save</button>
+      </div>
+    </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import {
       getFirestore,
       collection,
-      query,
-      orderBy,
       getDocs,
       doc,
       updateDoc
-    } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-    // --- Your Firebase config here ---
     const firebaseConfig = {
-      apiKey: "...",
-      authDomain: "...",
-      projectId: "...",
-      storageBucket: "...",
-      messagingSenderId: "...",
-      appId: "..."
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
-    const container = document.getElementById('requestsContainer');
+    let users = [];
+    let selectedUser = null;
 
+    // Only allow access if logged in
     onAuthStateChanged(auth, user => {
-      if (!user) {
-        window.location.href = 'login.html';
-      } else {
-        loadRequests();
-      }
+      if (!user) return window.location.href = 'login.html';
+      loadUsers();
     });
 
-    async function loadRequests() {
-      container.innerHTML = 'Loading requests…';
-      const q = query(
-        collection(db, 'activations'),
-        orderBy('requested', 'desc')
-      );
-      const snap = await getDocs(q);
-      container.innerHTML = '';
-
-      if (snap.empty) {
-        container.innerHTML = '<p>No activation requests found.</p>';
-        return;
-      }
-
+    async function loadUsers() {
+      const tbody = document.getElementById('userTable');
+      tbody.innerHTML = '';
+      const snap = await getDocs(collection(db, 'users'));
       snap.forEach(docSnap => {
-        const data = docSnap.data();
-        const status = data.status || 'pending';
-        const time = data.requested?.toDate().toLocaleString() || '—';
-
-        const card = document.createElement('div');
-        card.className = 'request-card';
-
-        // Proof image wrapped in a link to open in new tab
-        const link = document.createElement('a');
-        link.href = data.proofURL;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        const img = document.createElement('img');
-        img.src = data.proofURL;
-        img.alt = 'Proof';
-        img.className = 'proof-img';
-        link.appendChild(img);
-
-        const info = document.createElement('div');
-        info.className = 'request-info';
-        info.innerHTML = `
-          <p><strong>Username:</strong> ${data.username}</p>
-          <p><strong>Submitted:</strong> ${time}</p>
-          <p class="status ${status}">Status: ${status}</p>
-        `;
-
-        const btns = document.createElement('div');
-        btns.className = 'btns';
-
-        const approveBtn = document.createElement('button');
-        approveBtn.textContent = 'Approve';
-        approveBtn.className = 'btn approve';
-        approveBtn.disabled = status !== 'pending';
-        const rejectBtn = document.createElement('button');
-        rejectBtn.textContent = 'Reject';
-        rejectBtn.className = 'btn reject';
-        rejectBtn.disabled = status !== 'pending';
-        const statusEl = info.querySelector('.status');
-
-        approveBtn.onclick = () => handleAction(docSnap.id, 'approved', approveBtn, rejectBtn, statusEl);
-        rejectBtn.onclick = () => handleAction(docSnap.id, 'rejected', approveBtn, rejectBtn, statusEl);
-
-        btns.append(approveBtn, rejectBtn);
-        info.appendChild(btns);
-        card.append(link, info);
-        container.appendChild(card);
+        const d = docSnap.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${d.email || ''}</td>
+          <td>${d.username || ''}</td>
+          <td>${d.username || ''}</td>
+          <td>₦${d.balance ?? 0}</td>
+          <td>${d.referrals ?? 0}</td>
+          <td>
+            <button class="btn" onclick="openModal('${docSnap.id}')">Edit</button>
+          </td>`;
+        tbody.appendChild(tr);
+        users.push({ id: docSnap.id, ...d });
       });
     }
 
-    async function handleAction(id, newStatus, approveBtn, rejectBtn, statusEl) {
-      approveBtn.disabled = rejectBtn.disabled = true;
-      statusEl.textContent = `Status: ${newStatus}`;
-      statusEl.className = `status ${newStatus}`;
-
-      await updateDoc(doc(db, 'activations', id), { status: newStatus });
+    function openModal(uid) {
+      selectedUser = users.find(u => u.id === uid);
+      if (!selectedUser) return;
+      document.getElementById('modalEmail').value = selectedUser.email;
+      document.getElementById('modalReferral').value = selectedUser.username;
+      document.getElementById('modalUsername').value = selectedUser.username;
+      document.getElementById('modalBalance').value = selectedUser.balance || 0;
+      document.getElementById('modalReferrals').value = selectedUser.referrals || 0;
+      document.getElementById('editModal').style.display = 'flex';
     }
+
+    function closeModal() {
+      document.getElementById('editModal').style.display = 'none';
+      selectedUser = null;
+    }
+
+    document.getElementById('saveBtn').onclick = async () => {
+      if (!selectedUser) return;
+      const updates = {
+        username: document.getElementById('modalUsername').value.trim(),
+        balance: parseFloat(document.getElementById('modalBalance').value),
+        referrals: parseInt(document.getElementById('modalReferrals').value, 10)
+      };
+      await updateDoc(doc(db, 'users', selectedUser.id), updates);
+      closeModal();
+      users = [];
+      loadUsers();
+    };
+
+    document.getElementById('resetPassBtn').onclick = () => {
+      if (!selectedUser) return;
+      sendPasswordResetEmail(auth, selectedUser.email)
+        .then(() => alert('Password reset email sent.'))
+        .catch(err => alert('Error: ' + err.message));
+    };
   </script>
 </body>
 </html>
