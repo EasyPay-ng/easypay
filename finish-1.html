@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay | Task Complete</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: #e6f7ed; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      height: 100vh; 
+      margin: 0; 
+    }
+    .message {
+      background: white; 
+      padding: 2rem; 
+      border-radius: 1rem; 
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+      text-align: center;
+    }
+    .message h2 { color: #007f3b; margin-bottom: 1rem; }
+    .message p { margin: 0.5rem 0; }
+    .message a {
+      display: inline-block;
+      margin-top: 1rem;
+      background: #28a745;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="message">
+    <h2>Processing your reward…</h2>
+    <p id="status">Please wait.</p>
+    <a href="dashboard.html">Return to Dashboard</a>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, doc, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    // your Firebase config
+    const firebaseConfig = { /* …same config… */ };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    // parse task ID from URL: finish.html?task=27001
+    const params = new URLSearchParams(window.location.search);
+    const taskId = params.get("task");
+    const statusEl = document.getElementById("status");
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        statusEl.innerText = "Not signed in. Redirecting…";
+        return setTimeout(() => location.href = "login.html", 1500);
+      }
+
+      try {
+        const uid = user.uid;
+        const userRef = doc(db, "users", uid);
+
+        // mark task done and credit only once per day
+        const today = new Date().toISOString().split("T")[0];
+        const snap = await userRef.get();
+        const data = snap.exists ? snap.data() : {};
+        const done = data.shortlinkTasks?.[taskId]?.date === today;
+
+        if (done) {
+          statusEl.innerText = `Task ${taskId} already credited today.`;
+        } else {
+          await updateDoc(userRef, {
+            [`shortlinkTasks.${taskId}`]: { completed: true, date: today },
+            balance: increment(5),
+            transactions: arrayUnion({
+              source: `Shortlink ${taskId}`,
+              amount: 5,
+              date: new Date().toLocaleString()
+            })
+          });
+          statusEl.innerText = `₹5 credited for Task ${taskId}!`;
+        }
+      } catch (e) {
+        console.error(e);
+        statusEl.innerText = "Error processing reward.";
+      }
+    });
+  </script>
+</body>
+</html>
