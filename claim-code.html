@@ -3,110 +3,113 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Claim Code</title>
+  <title>Profile Settings</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    :root {
-      --green: #2e7d32;
-      --light-green: #e8f5e9;
-      --white: #ffffff;
-      --gray-bg: #f5fdf7;
-      --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      --radius: 10px;
-      --transition: 0.2s ease-in-out;
-    }
-    * {
-      box-sizing: border-box;
-    }
     body {
       margin: 0;
-      padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--gray-bg);
+      background-color: #f5fdf7;
+      color: #333;
       display: flex;
-      align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      padding: 40px 0;
     }
-    .card {
-      background-color: var(--white);
-      padding: 2rem;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      max-width: 400px;
+    .settings-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 30px;
       width: 100%;
-      text-align: center;
+      max-width: 400px;
     }
     h2 {
       margin-top: 0;
-      color: var(--green);
-      font-size: 1.75rem;
+      color: #009f4d;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
     }
     input {
       width: 100%;
-      padding: 0.75rem 1rem;
-      margin: 1rem 0;
+      padding: 10px;
       border: 1px solid #ccc;
-      border-radius: var(--radius);
+      border-radius: 6px;
       font-size: 1rem;
-      transition: border-color var(--transition);
     }
-    input:focus {
-      outline: none;
-      border-color: var(--green);
+    input[readonly] {
+      background-color: #eee;
     }
     button {
       width: 100%;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      font-weight: bold;
-      color: var(--white);
-      background-color: var(--green);
+      padding: 12px;
+      background: #009f4d;
+      color: white;
       border: none;
-      border-radius: var(--radius);
+      border-radius: 6px;
+      font-size: 1rem;
       cursor: pointer;
-      transition: background-color var(--transition), opacity var(--transition);
+      transition: background 0.2s;
     }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    button:hover:not(:disabled) {
-      background-color: #276c28;
+    button:hover {
+      background: #007a3a;
     }
     .message {
-      margin-top: 1rem;
+      margin-top: 10px;
       font-weight: 600;
-      min-height: 1.2em;
-      color: #333;
+      text-align: center;
     }
-    .message.success {
-      color: #2e7d32;
-    }
-    .message.error {
-      color: #c62828;
-    }
+    .message.error { color: #c62828; }
+    .message.success { color: #2e7d32; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Enter Claim Code</h2>
-    <input type="text" id="claimCode" placeholder="Enter your code" autocomplete="off" />
-    <button id="claimBtn" onclick="submitCode()">Claim</button>
-    <div class="message" id="message"></div>
+  <div class="settings-card">
+    <h2>Profile Settings</h2>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="text" id="email" readonly>
+    </div>
+    <div class="form-group">
+      <label for="referral">Referral Code</label>
+      <input type="text" id="referral" readonly>
+    </div>
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username">
+    </div>
+    <hr />
+    <div class="form-group">
+      <label for="newPassword">New Password</label>
+      <input type="password" id="newPassword" placeholder="Leave blank to keep current">
+    </div>
+    <div class="form-group">
+      <label for="confirmPassword">Confirm New Password</label>
+      <input type="password" id="confirmPassword">
+    </div>
+    <button id="saveBtn">Save Changes</button>
+    <div id="msg" class="message"></div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import {
+      getAuth,
+      onAuthStateChanged,
+      updatePassword
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import {
       getFirestore,
       doc,
       getDoc,
-      updateDoc,
-      setDoc,
-      arrayUnion,
-      serverTimestamp
+      updateDoc
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -114,106 +117,86 @@
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
     };
 
+    // Initialize
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
-    const auth = getAuth();
 
-    const FIXED_CODE = "G1LKZ2A";
-    const MAX_CLAIMS = 20;
-    const REWARD = 5;
-    const DAYS_COOLDOWN = 7;
+    // Elements
+    const emailEl = document.getElementById('email');
+    const referralEl = document.getElementById('referral');
+    const usernameEl = document.getElementById('username');
+    const newPassEl = document.getElementById('newPassword');
+    const confirmEl = document.getElementById('confirmPassword');
+    const saveBtn = document.getElementById('saveBtn');
+    const msgEl = document.getElementById('msg');
 
-    let currentUser;
+    let currentUser, userDocRef;
 
-    onAuthStateChanged(auth, user => {
-      if (!user) return window.location.href = 'login.html';
+    // Auth listener
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
       currentUser = user;
-    });
-
-    async function submitCode() {
-      const codeInput = document.getElementById("claimCode");
-      const btn = document.getElementById("claimBtn");
-      const msg = document.getElementById("message");
-      const entered = codeInput.value.trim().toUpperCase();
-      msg.textContent = "";
-      msg.className = "message";
-
-      if (!entered) {
-        msg.textContent = "Please enter a code.";
-        msg.classList.add("error");
-        return;
-      }
-      if (entered !== FIXED_CODE) {
-        msg.textContent = "Invalid claim code.";
-        msg.classList.add("error");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "Checking…";
-
-      const codeRef = doc(db, "claimControl", FIXED_CODE);
-      let snap = await getDoc(codeRef);
-      let users = [], startTime = null;
-
+      // populate email
+      emailEl.value = user.email;
+      // Firestore reference
+      userDocRef = doc(db, 'users', user.uid);
+      const snap = await getDoc(userDocRef);
       if (snap.exists()) {
         const data = snap.data();
-        users = data.claimedUsers || [];
-        startTime = data.countdownStart || null;
+        referralEl.value = data.username;         // assuming username is referral code
+        usernameEl.value = data.username;
+      }
+    });
 
-        if (startTime) {
-          const diffDays = Math.floor((Date.now() - startTime.toMillis()) / (1000*60*60*24));
-          if (diffDays < DAYS_COOLDOWN) {
-            msg.textContent = `Code exhausted. Try again in ${DAYS_COOLDOWN - diffDays} day(s).`;
-            msg.classList.add("error");
-            btn.disabled = false;
-            btn.textContent = "Claim";
-            return;
-          }
-        }
-        if (users.includes(currentUser.uid)) {
-          msg.textContent = "You’ve already claimed.";
-          msg.classList.add("error");
-          btn.disabled = false;
-          btn.textContent = "Claim";
+    saveBtn.addEventListener('click', async () => {
+      msgEl.textContent = '';
+      const newUsername = usernameEl.value.trim();
+      const newPass = newPassEl.value;
+      const confirmPass = confirmEl.value;
+
+      // Validate password fields if filled
+      if (newPass) {
+        if (newPass !== confirmPass) {
+          msgEl.textContent = 'Passwords do not match.';
+          msgEl.className = 'message error';
           return;
         }
-        if (users.length >= MAX_CLAIMS) {
-          await updateDoc(codeRef, { countdownStart: serverTimestamp() });
-          msg.textContent = "Limit reached. Next code in 7 days.";
-          msg.classList.add("error");
-          btn.disabled = false;
-          btn.textContent = "Claim";
-          return;
-        }
-      } else {
-        await setDoc(codeRef, { claimedUsers: [], countdownStart: null });
       }
 
-      // Reward user
-      const userRef = doc(db, "users", currentUser.uid);
-      const userSnap = await getDoc(userRef);
-      const newBal = (userSnap.data().balance || 0) + REWARD;
+      // Update Firestore username
+      try {
+        await updateDoc(userDocRef, { username: newUsername });
+      } catch (e) {
+        msgEl.textContent = 'Failed to update username.';
+        msgEl.className = 'message error';
+        return;
+      }
 
-      await updateDoc(userRef, { balance: newBal });
-      await updateDoc(codeRef, { claimedUsers: arrayUnion(currentUser.uid) });
+      // Update password if provided
+      if (newPass) {
+        try {
+          await updatePassword(currentUser, newPass);
+        } catch (e) {
+          msgEl.textContent = 'Failed to update password. Please re-login and try again.';
+          msgEl.className = 'message error';
+          return;
+        }
+      }
 
-      const txRef = doc(db, "users", currentUser.uid, "transactions", Date.now().toString());
-      await setDoc(txRef, {
-        source: "Claim Code",
-        amount: REWARD,
-        date: new Date().toLocaleString()
-      });
-
-      msg.textContent = `Success! ₦${REWARD} credited.`;
-      msg.classList.add("success");
-      codeInput.value = "";
-      btn.disabled = false;
-      btn.textContent = "Claim";
-    }
+      msgEl.textContent = 'Profile updated successfully!';
+      msgEl.className = 'message success';
+      // clear password fields
+      newPassEl.value = '';
+      confirmEl.value = '';
+    });
   </script>
 </body>
 </html>
