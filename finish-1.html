@@ -1,120 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay | Task Complete</title>
-  <style>
-    body { 
-      font-family: 'Segoe UI', sans-serif; 
-      background: #e6f7ed; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      height: 100vh; 
-      margin: 0; 
-    }
-    .message {
-      background: white; 
-      padding: 2rem; 
-      border-radius: 1rem; 
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-      text-align: center;
-    }
-    .message h2 { color: #007f3b; margin-bottom: 1rem; }
-    .message p { margin: 0.5rem 0; font-size: 1.1rem; }
-    .message a {
-      display: inline-block;
-      margin-top: 1rem;
-      background: #28a745;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      text-decoration: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congratulations!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            padding: 50px;
+        }
+
+        .emoji {
+            font-size: 100px;
+        }
+
+        h1 {
+            color: #4CAF50;
+            font-size: 2.5em;
+        }
+
+        .reward {
+            font-size: 1.5em;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .task-id {
+            font-size: 1.2em;
+            color: #888;
+        }
+
+        .info {
+            font-size: 1.2em;
+            color: #555;
+            margin-top: 20px;
+        }
+
+        .button {
+            margin: 20px 10px 0;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: none;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 1em;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
-  <div class="message">
-    <h2>Processing your reward…</h2>
-    <p id="status">Loading reward…</p>
-    <a href="dashboard.html">Return to Dashboard</a>
-  </div>
+    <div class="container">
+        <div class="emoji">✅</div>
+        <h1>Congratulations!</h1>
+        <p id="rewardText" class="reward">Loading reward…</p>
+        <p id="taskIdText" class="task-id"></p>
+        <p class="info">Please screenshot this page for your reference purpose.</p>
+        
+        <a id="dashboardButton" href="dashboard.html" class="button">
+            Go back to Dashboard
+        </a>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      updateDoc,
-      arrayUnion,
-      increment
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import {
-      getAuth,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+        <div class="footer">
+            <p>Thank you for your hard work!</p>
+        </div>
+    </div>
 
-    // ← your Firebase config here
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged
+      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        updateDoc,
+        increment,
+        arrayUnion
+      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    // get taskId from URL ?task=27001
-    const params = new URLSearchParams(window.location.search);
-    const taskId = params.get("task");
-    const statusEl = document.getElementById("status");
+      // your Firebase config
+      const firebaseConfig = {
+        apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+        authDomain: "easypay-6bce8.firebaseapp.com",
+        projectId: "easypay-6bce8",
+        storageBucket: "easypay-6bce8.appspot.com",
+        messagingSenderId: "862671358267",
+        appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+        measurementId: "G-2FZKDQ47FZ"
+      };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        statusEl.innerText = "Not signed in. Redirecting…";
-        return setTimeout(() => location.href = "login.html", 1500);
-      }
+      const rewardText = document.getElementById('rewardText');
+      const dashboardButton = document.getElementById('dashboardButton');
+      const taskIdText = document.getElementById('taskIdText');
 
-      // wait 5s to simulate loading
-      await new Promise(res => setTimeout(res, 5000));
+      // Extract task ID from URL (?task=27001)
+      const params = new URLSearchParams(window.location.search);
+      const taskId = params.get('task') || '—';
+      taskIdText.textContent = `ID: ${taskId}`;
 
-      try {
-        const uid = user.uid;
-        const userRef = doc(db, "users", uid);
-        const snap = await getDoc(userRef);
-        const data = snap.exists() ? snap.data() : {};
-
-        const today = new Date().toISOString().split("T")[0];
-        const taskRecord = data.shortlinkTasks?.[taskId];
-
-        if (taskRecord?.date === today) {
-          statusEl.innerText = `Reward already claimed for Task ${taskId} today.`;
-        } else {
-          await updateDoc(userRef, {
-            // mark it claimed today
-            [`shortlinkTasks.${taskId}`]: { date: today },
-            // credit balance
-            balance: increment(5),
-            // log transaction
-            transactions: arrayUnion({
-              source: `Shortlink ${taskId}`,
-              amount: 5,
-              date: new Date().toLocaleString()
-            })
-          });
-          statusEl.innerText = `Congratulations! You have earned ₦5.`;
+      onAuthStateChanged(auth, async user => {
+        if (!user) {
+          rewardText.textContent = 'Not signed in. Redirecting…';
+          setTimeout(() => location.href = 'login.html', 1500);
+          return;
         }
-      } catch (error) {
-        console.error(error);
-        statusEl.innerText = "Error processing reward.";
-      }
-    });
-  </script>
+
+        // simulate loading delay
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        try {
+          const uid = user.uid;
+          const userRef = doc(db, 'users', uid);
+          const snap = await getDoc(userRef);
+          const data = snap.exists() ? snap.data() : {};
+
+          const today = new Date().toISOString().split('T')[0];
+          const record = data.shortlinkTasks?.[taskId];
+
+          if (record?.date === today) {
+            rewardText.textContent = `Reward already claimed for Task ${taskId} today.`;
+          } else {
+            await updateDoc(userRef, {
+              [`shortlinkTasks.${taskId}`]: { date: today },
+              balance: increment(5),
+              transactions: arrayUnion({
+                source: `Shortlink ${taskId}`,
+                amount: 5,
+                date: new Date().toLocaleString()
+              })
+            });
+            rewardText.textContent = `You have earned ₦5 for completing the shortlink!`;
+          }
+        } catch (err) {
+          console.error(err);
+          rewardText.textContent = 'Error processing reward.';
+        } finally {
+          // show dashboard button after processing
+          dashboardButton.style.display = 'inline-block';
+        }
+      });
+    </script>
 </body>
 </html>
