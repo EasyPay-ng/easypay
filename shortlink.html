@@ -63,24 +63,17 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // ShrinkMe URLs per task
+    // ShrinkMe URLs for only the first 3 tasks
     const shrinkLinks = {
       27001: 'https://tpi.li/yXUwlkTj',
       27002: 'https://tpi.li/m1nrYT3TOis',
-      27003: 'https://tpi.li/eQahfcZv',
-      27004: 'https://shrinkme.ink/PLACEHOLDER4',
-      27005: 'https://shrinkme.ink/PLACEHOLDER5',
-      27006: 'https://shrinkme.ink/PLACEHOLDER6',
-      27007: 'https://shrinkme.ink/PLACEHOLDER7',
-      27008: 'https://shrinkme.ink/PLACEHOLDER8',
-      27009: 'https://shrinkme.ink/PLACEHOLDER9',
-      27010: 'https://shrinkme.ink/PLACEHOLDER'
+      27003: 'https://tpi.li/eQahfcZv'
     };
 
-    // Build the 10 cards & keep refs to their buttons
+    // Build the 3 cards & keep refs to their buttons
     const container = document.getElementById("tasksContainer");
     const buttons = {};
-    for (let id = 27001; id <= 27010; id++) {
+    for (let id = 27001; id <= 27003; id++) {
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
@@ -100,7 +93,7 @@
       const snap = await userRef.get();
       const data = snap.exists ? snap.data() : {};
 
-      for (let id = 27001; id <= 27010; id++) {
+      for (let id = 27001; id <= 27003; id++) {
         const btn = buttons[id];
         const link = shrinkLinks[id];
         const record = data.shortlinkTasks?.[id];
