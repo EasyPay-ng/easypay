@@ -91,7 +91,9 @@
     </select>
 
     <label>Subcategory</label>
-    <select id="subcategory" required></select>
+    <select id="subcategory" required>
+      <option value="">Select Subcategory</option>
+    </select>
 
     <label>Number of Workers</label>
     <input type="number" id="workers" min="1" value="1" required />
@@ -104,7 +106,7 @@
     <label>Task Link</label>
     <input type="url" id="taskLink" required />
 
-    <button id="submitBtn" onclick="submitTask()">Submit Task</button>
+    <button id="submitBtn" onclick="submitTask()" disabled>Submit Task</button>
   </div>
 
   <!-- Proof section -->
@@ -119,9 +121,7 @@
           <th>Action</th>
         </tr>
       </thead>
-      <tbody id="proofTableBody">
-        <!-- Filled dynamically -->
-      </tbody>
+      <tbody id="proofTableBody"></tbody>
     </table>
   </div>
 
@@ -131,7 +131,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Firebase config (replace with yours)
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -146,15 +146,52 @@
     const auth = firebase.auth();
 
     const subcategoryData = {
-      "WhatsApp": { /* ... */ },
-      "Facebook": { /* ... */ },
-      "Instagram": { /* ... */ },
-      "Telegram": { /* ... */ },
-      "TikTok": { /* ... */ },
-      "Website": { /* ... */ },
-      "App": { /* ... */ },
-      "Twitter": { /* ... */ },
-      "YouTube": { /* ... */ }
+      "WhatsApp": {
+        "WhatsApp Group Join": 15,
+        "WhatsApp channel follow": 20,
+        "WhatsApp Community Join": 35,
+        "WhatsApp status post": 25
+      },
+      "Facebook": {
+        "Facebook add friend": 9,
+        "Facebook comment": 9,
+        "Facebook follow": 5,
+        "Facebook like": 5,
+        "Facebook Group Join": 15
+      },
+      "Instagram": {
+        "Comment": 9,
+        "Follow": 5,
+        "Like": 5
+      },
+      "Telegram": {
+        "Telegram Group Join": 25,
+        "Telegram bot": 25,
+        "Telegram web app": 65
+      },
+      "TikTok": {
+        "Follow": 12,
+        "Like": 7
+      },
+      "Website": {
+        "Simple sign up": 25,
+        "Complex sign up": 60,
+        "Online voting": 20
+      },
+      "App": {
+        "Download and register": 50,
+        "Complex download": 85
+      },
+      "Twitter": {
+        "Comment": 9,
+        "Like": 5,
+        "Follow": 5
+      },
+      "YouTube": {
+        "Subscribe": 20,
+        "View": 3,
+        "Like": 4
+      }
     };
 
     const platformSelect = document.getElementById("platform");
@@ -165,29 +202,27 @@
 
     let currentUnitCost = 0;
 
-    // Populate subcategories and update cost
-    platformSelect.addEventListener("change", updateSubcategories);
-    subcategorySelect.addEventListener("change", () => {
-      currentUnitCost = parseFloat(subcategorySelect.selectedOptions[0]?.dataset.price || 0);
-      updateCost();
-    });
-    workersInput.addEventListener("input", updateCost);
-
-    function updateSubcategories() {
-      const selected = platformSelect.value;
+    platformSelect.addEventListener("change", () => {
       subcategorySelect.innerHTML = "<option value=''>Select Subcategory</option>";
-      if (subcategoryData[selected]) {
-        Object.entries(subcategoryData[selected]).forEach(([name, price]) => {
-          const opt = document.createElement("option");
-          opt.value = name;
-          opt.textContent = `${name} (₦${price})`;
-          opt.dataset.price = price;
-          subcategorySelect.appendChild(opt);
-        });
-      }
+      const options = subcategoryData[platformSelect.value] || {};
+      Object.entries(options).forEach(([name, price]) => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = `${name} (₦${price})`;
+        opt.dataset.price = price;
+        subcategorySelect.appendChild(opt);
+      });
       currentUnitCost = 0;
       updateCost();
-    }
+    });
+
+    subcategorySelect.addEventListener("change", () => {
+      const selected = subcategorySelect.selectedOptions[0];
+      currentUnitCost = selected ? parseFloat(selected.dataset.price) : 0;
+      updateCost();
+    });
+
+    workersInput.addEventListener("input", updateCost);
 
     function updateCost() {
       const workers = parseInt(workersInput.value) || 0;
@@ -211,10 +246,10 @@
       if (!areFieldsValid()) {
         return alert("Please complete all fields before submitting.");
       }
-      // ... rest of original submitTask code unchanged ...
+      // original submitTask logic here...
     }
 
-    // Proof loading / approval code unchanged
+    // Proof loading and approve functions unchanged
   </script>
 
 </body>
