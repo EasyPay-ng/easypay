@@ -5,17 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Advertise Task</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background-color: #f9fff9; color: #222; padding: 20px; }
-    h1 { color: #006400; }
-    .container { max-width: 500px; margin: auto; padding: 20px; border-radius: 12px; background-color: #fff; box-shadow: 0 0 12px rgba(0, 100, 0, 0.1); }
-    label { display: block; margin-top: 12px; font-weight: 600; }
-    input, select, textarea { width: 100%; padding: 10px; margin-top: 6px; border-radius: 6px; border: 1px solid #ccc; }
-    button { margin-top: 20px; background-color: #006400; color: white; padding: 12px; border: none; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; }
-    button:disabled { background-color: #999; cursor: not-allowed; }
-    #totalCost { font-weight: bold; margin-top: 10px; color: #006400; }
-    .proof-table { width: 100%; margin-top: 40px; border-collapse: collapse; }
-    .proof-table th, .proof-table td { padding: 10px; border: 1px solid #ddd; text-align: center; }
-    .proof-table th { background-color: #e6ffe6; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9fff9;
+      color: #222;
+      padding: 20px;
+    }
+    h1 {
+      color: #006400;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 12px;
+      background-color: #fff;
+      box-shadow: 0 0 12px rgba(0, 100, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 20px;
+      background-color: #006400;
+      color: white;
+      padding: 12px;
+      border: none;
+      width: 100%;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    #totalCost {
+      font-weight: bold;
+      margin-top: 10px;
+      color: #006400;
+    }
+    .proof-table {
+      width: 100%;
+      margin-top: 40px;
+      border-collapse: collapse;
+    }
+    .proof-table th, .proof-table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    .proof-table th {
+      background-color: #e6ffe6;
+    }
   </style>
 </head>
 <body>
@@ -40,12 +86,10 @@
     </select>
 
     <label>Subcategory</label>
-    <select id="subcategory" required>
-      <option value="">Select Subcategory</option>
-    </select>
+    <select id="subcategory" required></select>
 
     <label>Number of Workers</label>
-    <input type="number" id="workers" min="1" value="1" required />
+    <input type="number" id="workers" min="1" value="1" />
 
     <div id="totalCost">Total Cost: ₦0</div>
 
@@ -55,78 +99,217 @@
     <label>Task Link</label>
     <input type="url" id="taskLink" required />
 
-    <button id="submitBtn" onclick="submitTask()" disabled>Submit Task</button>
+    <button onclick="submitTask()">Submit Task</button>
   </div>
 
+  <!-- Proof section -->
   <div class="container" id="proofSection" style="display: none;">
     <h2>Task Completion Proofs</h2>
     <table class="proof-table">
       <thead>
-        <tr><th>User</th><th>Proof</th><th>Date</th><th>Action</th></tr>
+        <tr>
+          <th>User</th>
+          <th>Proof</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
       </thead>
-      <tbody id="proofTableBody"></tbody>
+      <tbody id="proofTableBody">
+        <!-- Filled dynamically -->
+      </tbody>
     </table>
   </div>
 
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c8f1e" };
+    // Firebase config (replace with yours)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(), auth = firebase.auth();
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    const subcategoryData = { /* same data as before */ };
+    const subcategoryData = {
+      "WhatsApp": {
+        "WhatsApp Group Join": 15,
+        "WhatsApp channel follow": 20,
+        "WhatsApp Community Join": 35,
+        "WhatsApp status post": 25
+      },
+      "Facebook": {
+        "Facebook add friend": 9,
+        "Facebook comment": 9,
+        "Facebook follow": 5,
+        "Facebook like": 5,
+        "Facebook Group Join": 15
+      },
+      "Instagram": {
+        "Comment": 9,
+        "Follow": 5,
+        "Like": 5
+      },
+      "Telegram": {
+        "Telegram Group Join": 25,
+        "Telegram bot": 25,
+        "Telegram web app": 65
+      },
+      "TikTok": {
+        "Follow": 12,
+        "Like": 7
+      },
+      "Website": {
+        "Simple sign up": 25,
+        "Complex sign up": 60,
+        "Online voting": 20
+      },
+      "App": {
+        "Download and register": 50,
+        "Complex download": 85
+      },
+      "Twitter": {
+        "Comment": 9,
+        "Like": 5,
+        "Follow": 5
+      },
+      "YouTube": {
+        "Subscribe": 20,
+        "View": 3,
+        "Like": 4
+      }
+    };
 
-    const titleInput = document.getElementById("taskTitle");
     const platformSelect = document.getElementById("platform");
     const subcategorySelect = document.getElementById("subcategory");
     const workersInput = document.getElementById("workers");
-    const descriptionInput = document.getElementById("description");
-    const taskLinkInput = document.getElementById("taskLink");
     const totalCostDiv = document.getElementById("totalCost");
-    const submitBtn = document.getElementById("submitBtn");
 
     let currentUnitCost = 0;
 
-    // Attach input listeners to all fields
-    [titleInput, platformSelect, workersInput, descriptionInput, taskLinkInput].forEach(el => el.addEventListener("input", updateCost));
     platformSelect.addEventListener("change", () => {
-      subcategorySelect.innerHTML = "<option value=''>Select Subcategory</option>";
-      (subcategoryData[platformSelect.value] || {}).forEach?.(() => {});
-      Object.entries(subcategoryData[platformSelect.value] || {}).forEach(([name, price]) => {
-        const opt = document.createElement("option"); opt.value = name;
-        opt.textContent = `${name} (₦${price})`;
-        opt.dataset.price = price;
-        subcategorySelect.appendChild(opt);
-      });
-      currentUnitCost = 0; updateCost();
+      const selected = platformSelect.value;
+      subcategorySelect.innerHTML = "<option value=''>Select Subcategory</option>";  // Reset options
+      if (subcategoryData[selected]) {
+        Object.entries(subcategoryData[selected]).forEach(([name, price]) => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = `${name} (₦${price})`;
+          opt.dataset.price = price;
+          subcategorySelect.appendChild(opt);
+        });
+      }
+      updateCost();  // Update the cost whenever platform is changed
     });
 
     subcategorySelect.addEventListener("change", () => {
-      const sel = subcategorySelect.selectedOptions[0];
-      currentUnitCost = sel ? +sel.dataset.price : 0;
-      updateCost();
+      const selected = subcategorySelect.options[subcategorySelect.selectedIndex];
+      currentUnitCost = selected ? parseFloat(selected.dataset.price) : 0;
+      updateCost();  // Update cost when subcategory is selected
     });
 
-    function updateCost() {
-      const workers = +workersInput.value || 0;
-      totalCostDiv.textContent = `Total Cost: ₦${currentUnitCost * workers}`;
-      submitBtn.disabled = !areFieldsValid();
-    }
+    workersInput.addEventListener("input", updateCost);  // Update when workers number changes
 
-    function areFieldsValid() {
-      return titleInput.value.trim() && platformSelect.value && subcategorySelect.value
-        && +workersInput.value > 0 && descriptionInput.value.trim()
-        && taskLinkInput.value.trim();
+    function updateCost() {
+      const workers = parseInt(workersInput.value) || 0;
+      const total = currentUnitCost * workers;
+      totalCostDiv.textContent = `Total Cost: ₦${total}`;
     }
 
     async function submitTask() {
-      if (!areFieldsValid()) return alert("Please complete all fields before submitting.");
-      // ...original submitTask logic...
+      const title = document.getElementById("taskTitle").value.trim();
+      const platform = platformSelect.value;
+      const subcategory = subcategorySelect.value;
+      const workers = parseInt(workersInput.value);
+      const description = document.getElementById("description").value.trim();
+      const taskLink = document.getElementById("taskLink").value.trim();
+      const totalCost = currentUnitCost * workers;
+
+      const user = firebase.auth().currentUser;
+      if (!user) return alert("Please log in first.");
+
+      const userRef = db.collection("users").doc(user.uid);
+      const userDoc = await userRef.get();
+      const balance = userDoc.data()?.balance || 0;
+      if (balance < totalCost) {
+        alert("Insufficient balance to post this task.");
+        return;
+      }
+
+      // Save task to Firestore
+      const taskId = `${Date.now()}-${user.uid}`;
+      await db.collection("tasks").doc(taskId).set({
+        taskTitle: title,
+        category: platform,
+        subCategory: subcategory,
+        subCategoryPrice: currentUnitCost,
+        workersNeeded: workers,
+        totalBudget: totalCost,
+        description: description,
+        link: taskLink,
+        createdBy: user.uid,
+        createdAt: new Date(),
+        status: "pending",
+        taskId: taskId
+      });
+
+      // Deduct balance from user
+      await userRef.update({
+        balance: balance - totalCost
+      });
+
+      // Log the transaction
+      await db.collection("transactions").add({
+        userId: user.uid,
+        type: "debit",
+        source: "Task Post",
+        amount: totalCost,
+        date: new Date()
+      });
+
+      alert("Task submitted for approval!");
+      loadProofs(taskId); // Load proofs for the task
+    }
+
+    async function loadProofs(taskId) {
+      const proofSection = document.getElementById("proofSection");
+      const proofTableBody = document.getElementById("proofTableBody");
+      proofSection.style.display = "block";
+      proofTableBody.innerHTML = "";
+
+      const proofsSnapshot = await db.collection("proofs").where("taskId", "==", taskId).get();
+      proofsSnapshot.forEach((doc) => {
+        const proof = doc.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${proof.userId}</td>
+          <td><a href="${proof.proofLink}" target="_blank">View Proof</a></td>
+          <td>${proof.date.toDate()}</td>
+          <td><button onclick="approveProof('${doc.id}')">Approve</button></td>
+        `;
+        proofTableBody.appendChild(row);
+      });
+    }
+
+    async function approveProof(proofId) {
+      await db.collection("proofs").doc(proofId).update({
+        status: "approved"
+      });
+      alert("Proof approved!");
     }
   </script>
 
 </body>
 </html>
+
+
+
