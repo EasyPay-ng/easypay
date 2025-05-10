@@ -14,6 +14,13 @@
       background: linear-gradient(to right, #e6f7ed, #ffffff);
       padding: 20px;
     }
+    .info-banner {
+      background: #fff8e1; color: #856404;
+      border: 1px solid #ffeeba; padding: 15px;
+      border-radius: 10px; max-width: 480px;
+      margin: 0 auto 20px; text-align: center;
+      font-size: 0.9rem;
+    }
     .tasks-container {
       display: flex; flex-direction: column;
       gap: 20px; max-width: 480px; margin: 0 auto;
@@ -46,6 +53,10 @@
   </style>
 </head>
 <body>
+  <div class="info-banner">
+    <strong>Important!</strong> Your browser must have JavaScript enabled, your ad blocker must be disabled, you must stay on the final page for about 10 seconds, and you must have cookies enabled.
+  </div>
+
   <div class="tasks-container" id="tasksContainer"></div>
 
   <script>
@@ -63,14 +74,13 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // ShrinkMe URLs for only the first 3 tasks
+    // ShrinkMe URLs
     const shrinkLinks = {
       27001: 'https://tpi.li/yXUwlkTj',
       27002: 'https://tpi.li/m1nrYT3TOis',
       27003: 'https://tpi.li/eQahfcZv'
     };
 
-    // Build the 3 cards & keep refs to their buttons
     const container = document.getElementById("tasksContainer");
     const buttons = {};
     for (let id = 27001; id <= 27003; id++) {
@@ -96,57 +106,47 @@
       for (let id = 27001; id <= 27003; id++) {
         const btn = buttons[id];
         const link = shrinkLinks[id];
-        const record = data.shortlinkTasks?.[id];
-        let nextAvailable = 0;
+        const localKey = `shortlink_${uid}_${id}`;
+        let nextAvailable = parseInt(localStorage.getItem(localKey)) || 0;
 
-        // Compute last-click timestamp properly
-        let last = 0;
-        if (record?.date) {
-          if (/^\d{4}-\d{2}-\d{2}$/.test(record.date)) {
-            last = Date.now();
-          } else {
-            last = new Date(record.date).getTime();
-          }
-        }
-        const diff = Date.now() - last;
-        if (diff < 86400000) {
+        const record = data.shortlinkTasks?.[id];
+        if (!nextAvailable && record?.date) {
+          const last = new Date(record.date).getTime();
           nextAvailable = last + 86400000;
+          localStorage.setItem(localKey, nextAvailable);
+        }
+
+        if (Date.now() < nextAvailable) {
           disableWithCountdown(btn, nextAvailable);
         }
 
         btn.onclick = async () => {
-          btn.disabled = true;
           const now = Date.now();
-          if (nextAvailable && now < nextAvailable) return;
+          if (now < nextAvailable) return;
 
-          // Only record the click timestamp for cooldown
+          const expire = now + 86400000;
           await userRef.update({
             [`shortlinkTasks.${id}`]: { date: new Date().toISOString() }
           });
-
-          nextAvailable = Date.now() + 86400000;
-          disableWithCountdown(btn, nextAvailable);
-
-          // Open the ShrinkMe link
+          localStorage.setItem(localKey, expire);
+          disableWithCountdown(btn, expire);
           window.open(link, '_blank');
         };
       }
     });
 
-    // Disable a button and show live countdown until availableTime (ms)
     function disableWithCountdown(btn, availableTime) {
       btn.disabled = true;
       const update = () => {
-        const now = Date.now();
-        const diff = availableTime - now;
+        const diff = availableTime - Date.now();
         if (diff <= 0) {
           btn.disabled = false;
           btn.textContent = 'Start Task';
           clearInterval(interval);
         } else {
-          const h = Math.floor(diff/3600000);
-          const m = Math.floor((diff%3600000)/60000);
-          const s = Math.floor((diff%60000)/1000);
+          const h = Math.floor(diff / 3600000);
+          const m = Math.floor((diff % 3600000) / 60000);
+          const s = Math.floor((diff % 60000) / 1000);
           btn.textContent = `Wait ${h}h ${m}m ${s}s`;
         }
       };
