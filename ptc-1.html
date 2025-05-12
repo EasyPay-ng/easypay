@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay - The World of Sports</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background-color: #f5fff7;
+      color: #222;
+    }
+    header {
+      background-color: #2e7d32;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 24px;
+      position: relative;
+    }
+    .timer {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 16px;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 10px;
+      border-radius: 5px;
+    }
+    .container {
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h2 {
+      color: #2e7d32;
+      margin-top: 1.5rem;
+    }
+    img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: cover;
+      margin: 10px 0;
+      border-radius: 10px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    EasyPay Blog
+    <div class="timer" id="timer">00:00</div>
+  </header>
+
+  <div class="container">
+    <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph</h2>
+    <img src="images/sports-banner.jpg" alt="Sports banner"/>
+    <p>
+      Sports have been an integral part of human culture for centuries, bringing people together, fostering community, and inspiring greatness. From the thrill of competition to the joy of recreation, sports play a significant role in our lives, shaping our personalities, building our character, and creating lifelong memories.
+    </p>
+
+    <h2>The Benefits of Sports</h2>
+    <img src="images/benefits.jpg" alt="Health benefits of sports"/>
+    <p>
+      Engaging in sports offers numerous benefits, including improved physical health, enhanced mental well-being, and increased social connections. Regular physical activity can reduce the risk of chronic diseases, such as heart disease, diabetes, and obesity, while also boosting mood and energy levels. Sports also provide opportunities for socialization, teamwork, and leadership development.
+    </p>
+
+    <h2>Popular Sports Around the World</h2>
+    <ul>
+      <li><strong>Football (Soccer):</strong> The world's most popular sport, played and loved by millions.</li>
+      <li><strong>Basketball:</strong> A fast-paced, high-flying sport, famous for its NBA league.</li>
+      <li><strong>Tennis:</strong> A game of endurance and skill, with iconic Grand Slam events.</li>
+      <li><strong>Cricket:</strong> Hugely followed in countries like India and Australia.</li>
+      <li><strong>Volleyball:</strong> Played both indoors and on beaches globally.</li>
+    </ul>
+    <!-- Your uploaded image: tennis action shot -->
+    <img src="images/1000237367.jpg" alt="Tennis player lunging for a shot on clay court"/>
+
+    <h2>The Impact of Sports on Society</h2>
+    <p>
+      Sports have a profound impact on society, promoting social cohesion, cultural exchange, and economic growth. Major sporting events like the Olympics, World Cups, and marathons bring people together. They also promote inclusivity, diversity, and empowerment across all groups of people.
+    </p>
+    <img src="images/community-sports.jpg" alt="Community impact of sports"/>
+
+    <h2>The Future of Sports</h2>
+    <p>
+      As technology evolves, sports are becoming more innovative and accessible. Analytics, VR, and social media have transformed how we experience games. The rise of esports, fantasy sports, and online engagement is creating new opportunities across the board.
+    </p>
+
+    <h2>Conclusion</h2>
+    <p>
+      Sports are a universal language. Whether you’re an athlete, fan, or casual player, sports enrich lives and create unforgettable moments. Stay active and enjoy the journey!
+    </p>
+  </div>
+
+  <script>
+    let seconds = 0;
+    function updateTimer() {
+      seconds++;
+      const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const secs = String(seconds % 60).padStart(2, '0');
+      document.getElementById('timer').textContent = `${mins}:${secs}`;
+    }
+    setInterval(updateTimer, 1000);
+  </script>
+
+</body>
+  </html>
+  
