@@ -3,110 +3,179 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay - The World of Sports</title>
+  <title>EasyPay PTC Task #1</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4fdf7;
+      color: #333;
       margin: 0; padding: 0;
-      background-color: #f5fff7;
-      color: #222;
     }
     header {
-      background-color: #2e7d32;
-      color: white;
-      padding: 15px;
+      background-color: #0f9d58;
+      color: #fff;
+      padding: 1rem;
       text-align: center;
-      font-size: 24px;
+      font-size: 1.5rem;
+      font-weight: bold;
       position: relative;
     }
     .timer {
       position: absolute;
-      top: 15px;
-      right: 20px;
-      font-size: 16px;
+      top: 50%;
+      right: 1rem;
+      transform: translateY(-50%);
+      font-size: 1.25rem;
       background: rgba(255,255,255,0.2);
-      padding: 4px 10px;
-      border-radius: 5px;
+      padding: 0.25rem 0.75rem;
+      border-radius: 6px;
     }
-    .container {
-      padding: 20px;
-      line-height: 1.6;
+    .notice {
+      background: #e6fff0;
+      border-left: 4px solid #0f9d58;
+      padding: 1rem;
+      margin: 1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
     }
-    h2 {
-      color: #2e7d32;
-      margin-top: 1.5rem;
+    .content {
+      max-width: 800px;
+      margin: 1.5rem auto;
+      text-align: center;
     }
-    img {
+    iframe, .fallback {
       width: 100%;
-      max-height: 250px;
-      object-fit: cover;
-      margin: 10px 0;
-      border-radius: 10px;
+      height: 450px;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    ul {
-      padding-left: 20px;
+    .fallback {
+      display: none;
+      padding: 1rem;
+      background: #fff;
+      text-align: left;
     }
   </style>
 </head>
 <body>
 
   <header>
-    EasyPay Blog
-    <div class="timer" id="timer">00:00</div>
+    EasyPay PTC Task #1
+    <div class="timer" id="timer">20s</div>
   </header>
 
-  <div class="container">
-    <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph</h2>
-    <img src="images/sports-banner.jpg" alt="Sports banner"/>
-    <p>
-      Sports have been an integral part of human culture for centuries, bringing people together, fostering community, and inspiring greatness. From the thrill of competition to the joy of recreation, sports play a significant role in our lives, shaping our personalities, building our character, and creating lifelong memories.
-    </p>
-
-    <h2>The Benefits of Sports</h2>
-    <img src="images/benefits.jpg" alt="Health benefits of sports"/>
-    <p>
-      Engaging in sports offers numerous benefits, including improved physical health, enhanced mental well-being, and increased social connections. Regular physical activity can reduce the risk of chronic diseases, such as heart disease, diabetes, and obesity, while also boosting mood and energy levels. Sports also provide opportunities for socialization, teamwork, and leadership development.
-    </p>
-
-    <h2>Popular Sports Around the World</h2>
-    <ul>
-      <li><strong>Football (Soccer):</strong> The world's most popular sport, played and loved by millions.</li>
-      <li><strong>Basketball:</strong> A fast-paced, high-flying sport, famous for its NBA league.</li>
-      <li><strong>Tennis:</strong> A game of endurance and skill, with iconic Grand Slam events.</li>
-      <li><strong>Cricket:</strong> Hugely followed in countries like India and Australia.</li>
-      <li><strong>Volleyball:</strong> Played both indoors and on beaches globally.</li>
-    </ul>
-    <!-- Your uploaded image: tennis action shot -->
-    <img src="images/1000237367.jpg" alt="Tennis player lunging for a shot on clay court"/>
-
-    <h2>The Impact of Sports on Society</h2>
-    <p>
-      Sports have a profound impact on society, promoting social cohesion, cultural exchange, and economic growth. Major sporting events like the Olympics, World Cups, and marathons bring people together. They also promote inclusivity, diversity, and empowerment across all groups of people.
-    </p>
-    <img src="images/community-sports.jpg" alt="Community impact of sports"/>
-
-    <h2>The Future of Sports</h2>
-    <p>
-      As technology evolves, sports are becoming more innovative and accessible. Analytics, VR, and social media have transformed how we experience games. The rise of esports, fantasy sports, and online engagement is creating new opportunities across the board.
-    </p>
-
-    <h2>Conclusion</h2>
-    <p>
-      Sports are a universal language. Whether you’re an athlete, fan, or casual player, sports enrich lives and create unforgettable moments. Stay active and enjoy the journey!
-    </p>
+  <div class="notice">
+    <strong>Important!</strong> JS & cookies enabled, ad-block off, no VPN, stay here for 20 seconds.
   </div>
 
-  <script>
-    let seconds = 0;
-    function updateTimer() {
-      seconds++;
-      const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
-      const secs = String(seconds % 60).padStart(2, '0');
-      document.getElementById('timer').textContent = `${mins}:${secs}`;
-    }
-    setInterval(updateTimer, 1000);
-  </script>
+  <div class="content">
+    <iframe id="randomContent" src="" allowfullscreen></iframe>
+    <div class="fallback" id="fallback">
+      <p>Unable to load content. Check your API key or network.</p>
+    </div>
+  </div>
 
+  <!-- Firebase + (optional) Google Custom Search libraries -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+
+    // ─── Firebase config ───────────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+    const app   = initializeApp(firebaseConfig);
+    const auth  = getAuth(app);
+    const db    = getFirestore(app);
+
+    // ─── Task / reward config ───────────────────────────────────────────────
+    const PTC_ID    = "ptc1";                           // update for each page
+    const LAST_KEY  = `lastClaim_${PTC_ID}`;
+    const BAL_KEY   = "balance";
+    const REWARD    = 1;
+    const COOLDOWN  = 24 * 60 * 60 * 1000;              // 24 hrs in ms
+
+    let userDocRef = null;
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        alert("Please log in to claim rewards.");
+      } else {
+        userDocRef = doc(db, "users", user.uid);
+      }
+    });
+
+    // ─── (Optional) Google Custom Search to load dynamic content ────────────
+    // ...or simply point iframe.src to a static URL if you prefer.
+    const GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY";
+    const CSE_ID         = "YOUR_CSE_ID";
+    async function loadRandomContent() {
+      try {
+        const res = await fetch(
+          `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}` +
+          `&cx=${CSE_ID}&q=blog+OR+video&num=10`
+        );
+        const data = await res.json();
+        const items = data.items || [];
+        if (!items.length) throw new Error("No results");
+        const link = items[Math.floor(Math.random()*items.length)].link;
+        // embed YouTube if appropriate
+        if (/youtube\.com\/watch\?v=/.test(link)) {
+          const vid = new URL(link).searchParams.get("v");
+          document.getElementById("randomContent").src =
+            `https://www.youtube.com/embed/${vid}?autoplay=1`;
+        } else {
+          document.getElementById("randomContent").src = link;
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("randomContent").style.display = "none";
+        document.getElementById("fallback").style.display      = "block";
+      }
+    }
+    loadRandomContent();
+
+    // ─── 20s countdown & auto-claim ─────────────────────────────────────────
+    let seconds = 20;
+    const timerEl = document.getElementById("timer");
+
+    const countdown = setInterval(async () => {
+      if (seconds > 0) {
+        timerEl.textContent = `${--seconds}s`;
+      } else {
+        clearInterval(countdown);
+        timerEl.textContent = "0s";
+        await autoClaimReward();
+      }
+    }, 1000);
+
+    // ─── Auto-claim function ────────────────────────────────────────────────
+    async function autoClaimReward() {
+      if (!userDocRef) return;
+      const now = Date.now();
+      const snap = await getDoc(userDocRef);
+      let last = 0, bal = 0;
+      if (snap.exists()) {
+        const data = snap.data();
+        last = data[LAST_KEY] || 0;
+        bal  = data[BAL_KEY]  || 0;
+      }
+      if (now - last < COOLDOWN) {
+        alert("You’ve already claimed this task in the last 24 hours.");
+        return;
+      }
+      const updates = { [LAST_KEY]: now, [BAL_KEY]: bal + REWARD };
+      snap.exists() ? await updateDoc(userDocRef, updates)
+                    : await setDoc(userDocRef, updates);
+      alert(`🎉 Success! ₦${REWARD} credited to your account.`);
+    }
+  </script>
 </body>
-  </html>
-  
+</html>
