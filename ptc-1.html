@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay PTC Task #1</title>
+  <title>EasyPay PTC Task</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f4fdf7;
-      color: #333;
+      color: #222;
       margin: 0; padding: 0;
+      line-height: 1.6;
     }
     header {
       background-color: #0f9d58;
@@ -17,7 +18,6 @@
       padding: 1rem;
       text-align: center;
       font-size: 1.5rem;
-      font-weight: bold;
       position: relative;
     }
     .timer {
@@ -38,45 +38,80 @@
       border-radius: 8px;
       font-size: 0.95rem;
     }
-    .content {
+    .container {
       max-width: 800px;
-      margin: 1.5rem auto;
-      text-align: center;
+      margin: 0 auto 2rem;
+      padding: 0 1rem;
     }
-    iframe, .fallback {
+    h2 {
+      color: #0f9d58;
+      margin-top: 1.5rem;
+    }
+    img {
       width: 100%;
-      height: 450px;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-height: 250px;
+      object-fit: cover;
+      margin: 10px 0;
+      border-radius: 10px;
     }
-    .fallback {
-      display: none;
-      padding: 1rem;
-      background: #fff;
-      text-align: left;
+    ul {
+      padding-left: 1.2rem;
     }
   </style>
 </head>
 <body>
 
   <header>
-    EasyPay PTC Task #1
+    EasyPay PTC Task
     <div class="timer" id="timer">20s</div>
   </header>
 
   <div class="notice">
-    <strong>Important!</strong> JS & cookies enabled, ad-block off, no VPN, stay here for 20 seconds.
+    <strong>Important!</strong> JavaScript & cookies must be enabled, ad-blocker off, no VPN, and stay on this page until the timer reaches zero.
   </div>
 
-  <div class="content">
-    <iframe id="randomContent" src="" allowfullscreen></iframe>
-    <div class="fallback" id="fallback">
-      <p>Unable to load content. Check your API key or network.</p>
-    </div>
+  <div class="container">
+    <!-- Blog Content -->
+    <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph 🏆</h2>
+    <img src="images/sports-banner.jpg" alt="Sports banner"/>
+    <p>
+      Sports have been an integral part of human culture for centuries, bringing people together, fostering community, and inspiring greatness. From the thrill of competition to the joy of recreation, sports play a significant role in our lives, shaping our personalities, building our character, and creating lifelong memories. 🌟
+    </p>
+
+    <h2>The Benefits of Sports 🌈</h2>
+    <img src="images/benefits.jpg" alt="Health benefits of sports"/>
+    <p>
+      Engaging in sports offers numerous benefits, including improved physical health, enhanced mental well-being, and increased social connections. Regular physical activity can reduce the risk of chronic diseases, such as heart disease, diabetes, and obesity, while also boosting mood and energy levels. 🏋️‍♀️ Sports also provide opportunities for socialization, teamwork, and leadership development, essential skills for personal and professional growth.
+    </p>
+
+    <h2>Popular Sports Around the World 🌎</h2>
+    <ul>
+      <li><strong>Football (Soccer):</strong> The world's most popular sport, with top leagues like the English Premier League, La Liga, and the Champions League. ⚽️</li>
+      <li><strong>Basketball:</strong> A fast-paced, high-flying sport, with the NBA being one of the most prestigious leagues globally. 🏀</li>
+      <li><strong>Tennis:</strong> A sport of skill, strategy, and physical endurance, with Grand Slam tournaments like Wimbledon, the US Open, and the Australian Open. 🎾</li>
+      <li><strong>Cricket:</strong> A bat-and-ball game with a massive following in countries like India, Australia, and the UK, with international competitions like the World Cup. 🏏</li>
+      <li><strong>Volleyball:</strong> A popular team sport, played indoors and on beaches, with international competitions like the Olympics and World Championships. 🏐</li>
+    </ul>
+    <img src="images/1000237367.jpg" alt="Tennis player lunging for a shot on clay court"/>
+
+    <h2>The Impact of Sports on Society 🌟</h2>
+    <p>
+      Sports have a profound impact on society, promoting social cohesion, cultural exchange, and economic growth. Major sporting events like the Olympics, World Cups, and marathons bring people together, fostering a sense of community and national pride. 🏆 Sports also provide opportunities for women, minorities, and individuals with disabilities to participate and excel, promoting inclusivity and diversity.
+    </p>
+    <img src="images/community-sports.jpg" alt="Community impact of sports"/>
+
+    <h2>The Future of Sports 🔮</h2>
+    <p>
+      As technology continues to evolve, sports are becoming more innovative, engaging, and accessible. Advances in sports analytics, virtual reality, and social media are changing the way we experience and interact with sports. 🌐 The rise of esports, fantasy sports, and sports betting is also transforming the sports landscape, offering new opportunities for fans, athletes, and entrepreneurs.
+    </p>
+
+    <h2>Conclusion 🌈</h2>
+    <p>
+      Sports are a universal language, bringing people together and inspiring greatness. Whether you're a professional athlete, a recreational player, or a passionate fan, sports have the power to enrich your life, challenge your limits, and create lifelong memories. 🌟 So, get involved, stay active, and enjoy the thrill of sports! 🎉
+    </p>
   </div>
 
-  <!-- Firebase + (optional) Google Custom Search libraries -->
+  <!-- Firebase + auto-claim script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-auth.js";
@@ -97,85 +132,51 @@
     const db    = getFirestore(app);
 
     // ─── Task / reward config ───────────────────────────────────────────────
-    const PTC_ID    = "ptc1";                           // update for each page
+    const PTC_ID    = "ptc_generic";                     // change per page if duplicating
     const LAST_KEY  = `lastClaim_${PTC_ID}`;
     const BAL_KEY   = "balance";
     const REWARD    = 1;
-    const COOLDOWN  = 24 * 60 * 60 * 1000;              // 24 hrs in ms
+    const COOLDOWN  = 24 * 60 * 60 * 1000;                // 24hrs in ms
 
     let userDocRef = null;
     onAuthStateChanged(auth, user => {
       if (!user) {
-        alert("Please log in to claim rewards.");
+        alert("Please log in to receive your reward.");
       } else {
         userDocRef = doc(db, "users", user.uid);
       }
     });
 
-    // ─── (Optional) Google Custom Search to load dynamic content ────────────
-    // ...or simply point iframe.src to a static URL if you prefer.
-    const GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY";
-    const CSE_ID         = "YOUR_CSE_ID";
-    async function loadRandomContent() {
-      try {
-        const res = await fetch(
-          `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}` +
-          `&cx=${CSE_ID}&q=blog+OR+video&num=10`
-        );
-        const data = await res.json();
-        const items = data.items || [];
-        if (!items.length) throw new Error("No results");
-        const link = items[Math.floor(Math.random()*items.length)].link;
-        // embed YouTube if appropriate
-        if (/youtube\.com\/watch\?v=/.test(link)) {
-          const vid = new URL(link).searchParams.get("v");
-          document.getElementById("randomContent").src =
-            `https://www.youtube.com/embed/${vid}?autoplay=1`;
-        } else {
-          document.getElementById("randomContent").src = link;
-        }
-      } catch (err) {
-        console.error(err);
-        document.getElementById("randomContent").style.display = "none";
-        document.getElementById("fallback").style.display      = "block";
-      }
-    }
-    loadRandomContent();
-
-    // ─── 20s countdown & auto-claim ─────────────────────────────────────────
-    let seconds = 20;
+    // ─── Countdown & auto-claim ─────────────────────────────────────────────
+    let secs = 20;
     const timerEl = document.getElementById("timer");
-
     const countdown = setInterval(async () => {
-      if (seconds > 0) {
-        timerEl.textContent = `${--seconds}s`;
+      if (secs > 0) {
+        timerEl.textContent = `${--secs}s`;
       } else {
         clearInterval(countdown);
-        timerEl.textContent = "0s";
-        await autoClaimReward();
+        timerEl.textContent = `0s`;
+        // once timer hits zero, credit the user
+        if (!userDocRef) return;
+        const now  = Date.now();
+        const snap = await getDoc(userDocRef);
+        let last = 0, bal = 0;
+        if (snap.exists()) {
+          const data = snap.data();
+          last = data[LAST_KEY] || 0;
+          bal  = data[BAL_KEY] || 0;
+        }
+        if (now - last < COOLDOWN) {
+          alert("You’ve already claimed this task in the last 24 hours.");
+          return;
+        }
+        const updates = { [LAST_KEY]: now, [BAL_KEY]: bal + REWARD };
+        snap.exists()
+          ? await updateDoc(userDocRef, updates)
+          : await setDoc(userDocRef, updates);
+        alert(`🎉 Success! ₦${REWARD} has been credited.`);
       }
     }, 1000);
-
-    // ─── Auto-claim function ────────────────────────────────────────────────
-    async function autoClaimReward() {
-      if (!userDocRef) return;
-      const now = Date.now();
-      const snap = await getDoc(userDocRef);
-      let last = 0, bal = 0;
-      if (snap.exists()) {
-        const data = snap.data();
-        last = data[LAST_KEY] || 0;
-        bal  = data[BAL_KEY]  || 0;
-      }
-      if (now - last < COOLDOWN) {
-        alert("You’ve already claimed this task in the last 24 hours.");
-        return;
-      }
-      const updates = { [LAST_KEY]: now, [BAL_KEY]: bal + REWARD };
-      snap.exists() ? await updateDoc(userDocRef, updates)
-                    : await setDoc(userDocRef, updates);
-      alert(`🎉 Success! ₦${REWARD} credited to your account.`);
-    }
   </script>
 </body>
 </html>
