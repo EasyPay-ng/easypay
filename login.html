@@ -83,10 +83,10 @@
     </div>
   </div>
 
-  <!-- Move the module import to the end of the body -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     // Initialize Firebase
     const firebaseConfig = {
@@ -100,14 +100,15 @@
     };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     // Grab references to DOM elements
-    const loginBtn = document.getElementById('loginBtn');
+    const loginBtn  = document.getElementById('loginBtn');
     const emailInput = document.getElementById('email');
     const passInput  = document.getElementById('password');
 
     loginBtn.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
+      const email    = emailInput.value.trim();
       const password = passInput.value;
 
       if (!email || !password) {
@@ -117,7 +118,19 @@
       try {
         const { user } = await signInWithEmailAndPassword(auth, email, password);
 
-        // Admin check
+        // Fetch this user's Firestore doc to check suspension
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap   = await getDoc(userDocRef);
+        const userData   = userSnap.exists() ? userSnap.data() : {};
+
+        if (userData.suspended) {
+          // Immediately sign out and block access
+          await signOut(auth);
+          alert("Your account has been suspended. Please contact support.");
+          return;
+        }
+
+        // Admin vs. regular user routing
         if (user.email.toLowerCase() === "victoromubo@gmail.com") {
           alert("Welcome Admin!");
           window.location.href = 'admin.html';
@@ -134,4 +147,3 @@
 
 </body>
 </html>
-
