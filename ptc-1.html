@@ -5,280 +5,235 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay PTC Task</title>
   <style>
-    /* Reset & base */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #eef9f1;
+      background: #f4fff8;
       color: #222;
-      line-height: 1.6;
     }
-
-    /* Header */
     header {
+      background: #0f9d58;
+      color: #fff;
+      padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 2rem;
-      background: #0f9d58;
-      color: #fff;
     }
     header h1 {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
     }
     .timer {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: bold;
       background: rgba(255,255,255,0.2);
-      padding: 0.25rem 0.75rem;
-      border-radius: 6px;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
     }
-
-    /* Notice */
     .notice {
       max-width: 800px;
-      margin: 1.5rem auto;
-      background: #e6fff0;
-      border-left: 4px solid #0f9d58;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
+      margin: 1.2rem auto;
+      background: #e0ffe9;
+      border-left: 5px solid #0f9d58;
+      padding: 1rem;
       font-size: 0.95rem;
+      border-radius: 6px;
     }
-
-    /* Content container */
     .container {
       max-width: 800px;
-      margin: 2rem auto 3rem;
+      margin: 2rem auto;
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      padding: 1.5rem;
     }
     .section {
-      padding: 1.5rem 2rem;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .section:last-child {
-      border-bottom: none;
+      margin-bottom: 2rem;
     }
     .section h2 {
       color: #0f9d58;
-      margin-bottom: 0.75rem;
-      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
     }
-    .section p {
-      margin-bottom: 1rem;
+    .section p, .section ul {
+      margin: 0.5rem 0;
+      line-height: 1.6;
     }
     .section img {
       width: 100%;
-      max-height: 300px;
+      border-radius: 8px;
+      margin: 1rem 0;
+      max-height: 280px;
       object-fit: cover;
-      border-radius: 6px;
-      margin: 1rem 0;
     }
-    .section ul {
-      list-style: disc inside;
-      margin: 1rem 0;
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: #888;
     }
-
-    /* Toast notification */
     .toast {
-      position: fixed; bottom: 20px; left: 50%;
-      transform: translateX(-50%); background: #0f9d58;
-      color: #fff; padding: 0.75rem 1.5rem;
-      border-radius: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      opacity: 0; pointer-events: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f9d58;
+      color: #fff;
+      padding: 0.8rem 1.5rem;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
       transition: opacity 0.3s ease-in-out;
-      font-weight: bold; z-index: 1000;
+      z-index: 999;
     }
     .toast.show {
-      opacity: 1; pointer-events: auto;
-    }
-
-    /* Start-overlay */
-    #startOverlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000;
-    }
-    #startOverlay .box {
-      background: #fff; padding: 2rem; text-align: center;
-      border-radius: 8px; max-width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    #startOverlay .box h2 {
-      margin-bottom: 1rem; color: #0f9d58;
-    }
-    #startOverlay .box button {
-      background: #0f9d58; color: #fff;
-      border: none; padding: 0.75rem 1.5rem;
-      font-size: 1rem; border-radius: 6px;
-      cursor: pointer;
+      opacity: 1;
+      pointer-events: auto;
     }
   </style>
 </head>
 <body>
 
-  <!-- Start Overlay -->
-  <div id="startOverlay">
-    <div class="box">
-      <h2>Ready to Earn ₦1?</h2>
-      <p>Click below to start the 20-second countdown.</p>
-      <button id="startBtn">Start Timer</button>
-    </div>
-  </div>
-
-  <!-- Page Header -->
   <header>
     <h1>EasyPay PTC Task</h1>
     <div class="timer" id="timer">20s</div>
   </header>
 
-  <!-- Notice -->
   <div class="notice">
-    JavaScript & cookies must be enabled, ad-block off, no VPN, and stay on this page until the timer reaches zero.
+    Please keep this page open for 20 seconds to earn ₦1. You can only earn once every 24 hours.
   </div>
 
-  <!-- Blog Content -->
   <div class="container">
-    <section class="section">
-      <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph 🏆</h2>
-      <p>
-        Sports have been an integral part of human culture for centuries, bringing people together, fostering community, and inspiring greatness. From the thrill of competition to the joy of recreation, sports play a significant role in our lives, shaping our personalities, building our character, and creating lifelong memories. 🌟
-      </p>
+    <div class="section">
+      <h2>The World of Sports</h2>
+      <p>Sports have been part of our culture for generations. From the thrill of competition to the joy of community, sports inspire passion, drive, and triumph.</p>
       <img src="images/sports-banner.jpg" alt="Sports banner"/>
-    </section>
-
-    <section class="section">
-      <h2>The Benefits of Sports 🌈</h2>
-      <p>
-        Engaging in sports offers numerous benefits, including improved physical health, enhanced mental well-being, and increased social connections. Regular physical activity can reduce the risk of chronic diseases, such as heart disease, diabetes, and obesity, while also boosting mood and energy levels. 🏋️‍♀️ Sports also provide opportunities for socialization, teamwork, and leadership development, essential skills for personal and professional growth.
-      </p>
-      <img src="images/benefits.jpg" alt="Health benefits of sports"/>
-    </section>
-
-    <section class="section">
-      <h2>Popular Sports Around the World 🌎</h2>
+    </div>
+    <div class="section">
+      <h2>Benefits of Sports</h2>
       <ul>
-        <li><strong>Football (Soccer):</strong> The world's most popular sport, with top leagues like the English Premier League, La Liga, and the Champions League. ⚽️</li>
-        <li><strong>Basketball:</strong> A fast-paced, high-flying sport, with the NBA being one of the most prestigious leagues globally. 🏀</li>
-        <li><strong>Tennis:</strong> A sport of skill, strategy, and physical endurance, with Grand Slam tournaments like Wimbledon, the US Open, and the Australian Open. 🎾</li>
-        <li><strong>Cricket:</strong> A bat-and-ball game with a massive following in countries like India, Australia, and the UK, with international competitions like the World Cup. 🏏</li>
-        <li><strong>Volleyball:</strong> A popular team sport, played indoors and on beaches, with international competitions like the Olympics and World Championships. 🏐</li>
+        <li>Boosts physical and mental health</li>
+        <li>Encourages discipline and focus</li>
+        <li>Fosters teamwork and leadership</li>
       </ul>
-      <img src="images/tennis-player.jpg" alt="Tennis player lunging for a shot on clay court"/>
-    </section>
-
-    <section class="section">
-      <h2>The Impact of Sports on Society 🌟</h2>
-      <p>
-        Sports have a profound impact on society, promoting social cohesion, cultural exchange, and economic growth. Major sporting events like the Olympics, World Cups, and marathons bring people together, fostering a sense of community and national pride. 🏆 Sports also provide opportunities for women, minorities, and individuals with disabilities to participate and excel, promoting inclusivity and diversity.
-      </p>
-      <img src="images/community-sports.jpg" alt="Community impact of sports"/>
-    </section>
-
-    <section class="section">
-      <h2>The Future of Sports 🔮</h2>
-      <p>
-        As technology continues to evolve, sports are becoming more innovative, engaging, and accessible. Advances in sports analytics, virtual reality, and social media are changing the way we experience and interact with sports. 🌐 The rise of esports, fantasy sports, and sports betting is also transforming the sports landscape, offering new opportunities for fans, athletes, and entrepreneurs.
-      </p>
-    </section>
-
-    <section class="section">
-      <h2>Conclusion 🌈</h2>
-      <p>
-        Sports are a universal language, bringing people together and inspiring greatness. Whether you're a professional athlete, a recreational player, or a passionate fan, sports have the power to enrich your life, challenge your limits, and create lifelong memories. 🌟 So, get involved, stay active, and enjoy the thrill of sports! 🎉
-      </p>
-    </section>
+      <img src="images/benefits.jpg" alt="Health benefits"/>
+    </div>
+    <div class="section">
+      <h2>Popular Global Sports</h2>
+      <ul>
+        <li>Football (Soccer)</li>
+        <li>Basketball</li>
+        <li>Tennis</li>
+        <li>Cricket</li>
+        <li>Volleyball</li>
+      </ul>
+    </div>
+    <div class="section">
+      <h2>Impact on Society</h2>
+      <p>Sports bring unity, promote inclusiveness, and drive national pride. From Olympic heroes to local teams, sports connect us all.</p>
+      <img src="images/community-sports.jpg" alt="Community sports"/>
+    </div>
+    <div class="section">
+      <h2>Conclusion</h2>
+      <p>Whether you're an athlete or a fan, sports have the power to uplift, unite, and create lifelong memories.</p>
+    </div>
   </div>
 
-  <footer>© 2025 EasyPay. All rights reserved.</footer>
+  <footer>
+    &copy; 2025 EasyPay. All rights reserved.
+  </footer>
+
   <div id="toast" class="toast"></div>
 
-  <!-- Firebase + Countdown + Auto-Claim -->
+  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.firebasestorage.app",
+      storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db   = getFirestore(app);
 
-    const PTC_ID   = "ptc_generic";                // change per page if duplicating
-    const LAST_KEY = `lastClaim_${PTC_ID}`;
-    const BAL_KEY  = "balance";
-    const REWARD   = 1;
-    const COOLDOWN = 24 * 60 * 60 * 1000;          // 24 hrs in ms
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
     let userDocRef = null;
-    onAuthStateChanged(auth, user => {
-      if (!user) return showToast("Please log in to receive your reward.");
-      userDocRef = doc(db, "users", user.uid);
-    });
+    const LAST_KEY = "lastClaim_ptc";
+    const BAL_KEY = "balance";
+    const REWARD = 1;
+    const COOLDOWN = 24 * 60 * 60 * 1000;
+
+    const toast = document.getElementById("toast");
+    const timerEl = document.getElementById("timer");
 
     function showToast(msg) {
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 3000);
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
     }
 
-    // Wait for user to click "Start"
-    document.getElementById("startBtn").addEventListener("click", () => {
-      document.getElementById("startOverlay").style.display = "none";
-      startCountdown();
-    });
-
     function startCountdown() {
-      let secs = 20;
-      const timerEl = document.getElementById("timer");
-      timerEl.textContent = `${secs}s`;
+      let seconds = 20;
+      timerEl.textContent = `${seconds}s`;
 
-      const interval = setInterval(async () => {
-        secs--;
-        timerEl.textContent = `${secs}s`;
+      const interval = setInterval(() => {
+        seconds--;
+        timerEl.textContent = `${seconds}s`;
 
-        if (secs <= 0) {
+        if (seconds <= 0) {
           clearInterval(interval);
-          timerEl.textContent = `0s`;
-          // Auto-claim logic
-          if (!userDocRef) return;
-          try {
-            const now  = Date.now();
-            const snap = await getDoc(userDocRef);
-            let last = 0, bal = 0;
-            if (snap.exists()) {
-              const data = snap.data();
-              last = data[LAST_KEY] || 0;
-              bal  = data[BAL_KEY]   || 0;
-            }
-            if (now - last < COOLDOWN) {
-              return showToast("You can only claim once every 24 hours.");
-            }
-            const updates = { [LAST_KEY]: now, [BAL_KEY]: bal + REWARD };
-            snap.exists()
-              ? await updateDoc(userDocRef, updates)
-              : await setDoc(userDocRef, updates);
-
-            showToast(`🎉 ₦${REWARD} has been credited!`);
-          } catch (e) {
-            console.error(e);
-            showToast("Error crediting—please try again later.");
-          }
+          claimReward();
         }
       }, 1000);
     }
+
+    async function claimReward() {
+      if (!userDocRef) return showToast("You must be logged in.");
+
+      try {
+        const now = Date.now();
+        const snap = await getDoc(userDocRef);
+        let last = 0, bal = 0;
+
+        if (snap.exists()) {
+          const data = snap.data();
+          last = data[LAST_KEY] || 0;
+          bal = data[BAL_KEY] || 0;
+        }
+
+        if (now - last < COOLDOWN) {
+          return showToast("Reward already claimed. Try again in 24 hrs.");
+        }
+
+        const updates = {
+          [LAST_KEY]: now,
+          [BAL_KEY]: bal + REWARD
+        };
+
+        snap.exists() ? await updateDoc(userDocRef, updates) : await setDoc(userDocRef, updates);
+        showToast(`₦${REWARD} credited successfully!`);
+
+      } catch (err) {
+        console.error(err);
+        showToast("Error claiming reward. Try again later.");
+      }
+    }
+
+    // Auth check
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        showToast("Please log in to access this task.");
+        return;
+      }
+      userDocRef = doc(db, "users", user.uid);
+      startCountdown();
+    });
   </script>
 </body>
 </html>
