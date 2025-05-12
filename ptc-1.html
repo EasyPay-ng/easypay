@@ -1,15 +1,161 @@
 <!DOCTYPE html>
-<html>
-  <body>
-    <div id="timer" style="font-size: 2rem; margin: 2rem;">20s</div>
-    <script>
-      let secs = 20;
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay PTC Task</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box }
+    body { font-family:'Segoe UI',sans-serif; background:#f4fff8; color:#222; line-height:1.6 }
+    header {
+      background:#0f9d58; color:#fff; padding:1rem 2rem;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    header h1 { font-size:1.5rem }
+    .timer {
+      font-size:1.3rem; font-weight:bold;
+      background:rgba(255,255,255,0.2);
+      padding:0.4rem 1rem; border-radius:8px;
+    }
+    .notice {
+      max-width:800px; margin:1rem auto;
+      background:#e0ffe9; border-left:5px solid #0f9d58;
+      padding:1rem; font-size:0.95rem; border-radius:6px;
+    }
+    .container {
+      max-width:800px; margin:2rem auto;
+      background:#fff; border-radius:8px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.05);
+      padding:1.5rem;
+    }
+    .section + .section { margin-top:2rem }
+    .section h2 { color:#0f9d58; margin-bottom:0.5rem }
+    .section p, .section ul { margin-bottom:1rem }
+    .section img {
+      width:100%; border-radius:8px;
+      margin:1rem 0; max-height:280px;
+      object-fit:cover;
+    }
+    footer {
+      text-align:center; padding:1rem;
+      font-size:0.85rem; color:#888;
+    }
+    .toast {
+      position:fixed; bottom:20px; left:50%;
+      transform:translateX(-50%);
+      background:#0f9d58; color:#fff;
+      padding:0.8rem 1.5rem; border-radius:5px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.2);
+      opacity:0; pointer-events:none;
+      transition:opacity 0.3s;
+      z-index:999;
+    }
+    .toast.show { opacity:1; pointer-events:auto }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>EasyPay PTC Task</h1>
+    <div class="timer" id="timer">20s</div>
+  </header>
+
+  <div class="notice">
+    <strong>Important!</strong> Your browser must have JavaScript enabled, your ad blocker must be disabled, you must stay on the final page for about 20 seconds, you must have cookies enabled, and you must not use VPN.
+  </div>
+
+  <div class="container">
+    <!-- Your full blog sections -->
+    <div class="section">
+      <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph 🏆</h2>
+      <p>Sports have been an integral part … creating lifelong memories. 🌟</p>
+      <img src="images/sports-banner.jpg" alt="Sports banner">
+    </div>
+    <!-- etc. -- rest of sections unchanged -->
+  </div>
+
+  <footer>&copy; 2025 EasyPay. All rights reserved.</footer>
+  <div id="toast" class="toast"></div>
+
+  <script type="module">
+    import { initializeApp }            from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
+    import { getAuth }                  from "https://www.gstatic.com/firebasejs/9.24.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc }
+                                         from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+
+    // ─── Firebase config ─────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // ─── Task config ───────────────────────────────────────────────
+    const PTC_ID   = "ptc";
+    const LAST_KEY = `lastClaim_${PTC_ID}`;
+    const BAL_KEY  = "balance";
+    const REWARD   = 1;
+    const COOLDOWN = 24 * 60 * 60 * 1000;
+
+    const toast   = document.getElementById("toast");
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    // Called when countdown hits zero
+    async function onCountdownComplete() {
+      const user = auth.currentUser;
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      const userRef = doc(db, "users", user.uid);
+      try {
+        const now  = Date.now();
+        const snap = await getDoc(userRef);
+        let last = 0, bal = 0;
+        if (snap.exists()) {
+          const data = snap.data();
+          last = data[LAST_KEY] || 0;
+          bal  = data[BAL_KEY]   || 0;
+        }
+        if (now - last < COOLDOWN) {
+          return showToast("You can only claim once every 24 hours.");
+        }
+        const updates = { [LAST_KEY]: now, [BAL_KEY]: bal + REWARD };
+        snap.exists() ? await updateDoc(userRef, updates)
+                      : await setDoc(userRef, updates);
+        showToast(`🎉 ₦${REWARD} has been credited!`);
+      } catch (e) {
+        console.error(e);
+        showToast("Error processing reward. Try again later.");
+      }
+    }
+
+    // Set up and start countdown after DOM is ready
+    window.addEventListener("DOMContentLoaded", () => {
       const timerEl = document.getElementById("timer");
+      let seconds = 20;
+      timerEl.textContent = `${seconds}s`;
       const interval = setInterval(() => {
-        secs--;
-        timerEl.textContent = secs + "s";
-        if (secs <= 0) clearInterval(interval);
+        seconds--;
+        timerEl.textContent = `${seconds}s`;
+        if (seconds <= 0) {
+          clearInterval(interval);
+          timerEl.textContent = "0s";
+          onCountdownComplete();
+        }
       }, 1000);
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
