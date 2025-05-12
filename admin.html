@@ -105,6 +105,7 @@
       border-radius: 5px;
       font-weight: bold;
       cursor: pointer;
+      margin-right: 0.5rem;
     }
 
     .edit-btn {
@@ -114,6 +115,11 @@
 
     .delete-btn {
       background-color: #f44336;
+      color: white;
+    }
+
+    .suspend-btn {
+      background-color: #ff9800;
       color: white;
     }
 
@@ -167,7 +173,7 @@
         <a href="admin-deposit.html">Deposits</a>
         <a href="admin-advertise.html">Adverts</a>
         <a href="admin-task.html">Submissions</a>
-        <a href="admin-activate.html">User Records</a> <!-- Changed -->
+        <a href="admin-activate.html">User Records</a>
       </div>
     </div>
   </header>
@@ -180,6 +186,7 @@
           <th>Username</th>
           <th>Balance</th>
           <th>Referrals</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -213,30 +220,35 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     let selectedUserId = null;
 
     async function loadUsers() {
-      const userTableBody = document.getElementById("userTableBody");
-      userTableBody.innerHTML = "";
-      const querySnapshot = await getDocs(collection(db, "users"));
-      querySnapshot.forEach((docSnap) => {
+      const tbody = document.getElementById("userTableBody");
+      tbody.innerHTML = "";
+      const snapshot = await getDocs(collection(db, "users"));
+
+      snapshot.forEach(docSnap => {
         const data = docSnap.data();
+        const isSusp = data.suspended || false;
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${data.username}</td>
           <td>₦${data.balance || 0}</td>
           <td>${data.referrals || 0}</td>
+          <td>${isSusp ? "Suspended" : "Active"}</td>
           <td>
             <button class="btn edit-btn" onclick="openModal('${docSnap.id}', '${data.username}', ${data.balance || 0}, ${data.referrals || 0})">Edit</button>
             <button class="btn delete-btn" onclick="deleteUser('${docSnap.id}')">Delete</button>
+            <button class="btn suspend-btn" onclick="toggleSuspend('${docSnap.id}', ${isSusp})">
+              ${isSusp ? 'Unsuspend' : 'Suspend'}
+            </button>
           </td>
         `;
-        userTableBody.appendChild(row);
+        tbody.appendChild(row);
       });
     }
 
-    window.openModal = function(id, username, balance, referrals) {
+    window.openModal = (id, username, balance, referrals) => {
       selectedUserId = id;
       document.getElementById("editUsername").value = username;
       document.getElementById("editBalance").value = balance;
@@ -244,36 +256,41 @@
       document.getElementById("editModal").style.display = "flex";
     };
 
-    window.saveChanges = async function () {
+    window.saveChanges = async () => {
       const username = document.getElementById("editUsername").value;
-      const balance = parseFloat(document.getElementById("editBalance").value);
+      const balance  = parseFloat(document.getElementById("editBalance").value);
       const referrals = parseInt(document.getElementById("editReferrals").value);
       if (selectedUserId) {
-        await updateDoc(doc(db, "users", selectedUserId), {
-          username, balance, referrals
-        });
+        await updateDoc(doc(db, "users", selectedUserId), { username, balance, referrals });
         document.getElementById("editModal").style.display = "none";
         loadUsers();
       }
     };
 
-    window.deleteUser = async function(id) {
+    window.deleteUser = async id => {
       if (confirm("Are you sure you want to delete this user?")) {
         await deleteDoc(doc(db, "users", id));
         loadUsers();
       }
     };
 
-    window.searchUsers = function () {
-      const input = document.getElementById("searchInput").value.toLowerCase();
-      const rows = document.querySelectorAll("#userTableBody tr");
-      rows.forEach(row => {
-        const username = row.children[0].innerText.toLowerCase();
-        row.style.display = username.includes(input) ? "" : "none";
+    window.toggleSuspend = async (id, currentlySuspended) => {
+      const action = currentlySuspended ? "unsuspend" : "suspend";
+      if (confirm(`Are you sure you want to ${action} this user?`)) {
+        await updateDoc(doc(db, "users", id), { suspended: !currentlySuspended });
+        loadUsers();
+      }
+    };
+
+    window.searchUsers = () => {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      document.querySelectorAll("#userTableBody tr").forEach(row => {
+        const name = row.children[0].innerText.toLowerCase();
+        row.style.display = name.includes(query) ? "" : "none";
       });
     };
 
-    window.addEventListener("click", function(e) {
+    window.addEventListener("click", e => {
       if (e.target.classList.contains("modal")) {
         document.getElementById("editModal").style.display = "none";
       }
@@ -287,8 +304,7 @@
       const menu = document.getElementById("dropdownMenu");
       menu.style.display = menu.style.display === "block" ? "none" : "block";
     }
-
-    window.addEventListener("click", function(e) {
+    window.addEventListener("click", e => {
       if (!e.target.closest(".dropdown")) {
         document.getElementById("dropdownMenu").style.display = "none";
       }
