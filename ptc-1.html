@@ -1,89 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay PTC Task</title>
+  <meta charset="UTF-8">
+  <title>EasyPay - PTC</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box }
-    body { font-family:'Segoe UI',sans-serif; background:#f4fff8; color:#222; line-height:1.6 }
-    header {
-      background:#0f9d58; color:#fff; padding:1rem 2rem;
-      display:flex; justify-content:space-between; align-items:center;
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0fdf4;
+      color: #111;
+      padding: 20px;
     }
-    header h1 { font-size:1.5rem }
-    .timer {
-      font-size:1.3rem; font-weight:bold;
-      background:rgba(255,255,255,0.2);
-      padding:0.4rem 1rem; border-radius:8px;
+    header {
+      background-color: #00c851;
+      color: white;
+      padding: 15px;
+      font-size: 22px;
+      text-align: center;
+      border-radius: 8px;
     }
     .notice {
-      max-width:800px; margin:1rem auto;
-      background:#e0ffe9; border-left:5px solid #0f9d58;
-      padding:1rem; font-size:0.95rem; border-radius:6px;
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-weight: bold;
     }
-    .container {
-      max-width:800px; margin:2rem auto;
-      background:#fff; border-radius:8px;
-      box-shadow:0 4px 10px rgba(0,0,0,0.05);
-      padding:1.5rem;
+    .timer {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00c851;
+      text-align: center;
+      margin: 20px 0;
     }
-    .section + .section { margin-top:2rem }
-    .section h2 { color:#0f9d58; margin-bottom:0.5rem }
-    .section p, .section ul { margin-bottom:1rem }
-    .section img {
-      width:100%; border-radius:8px;
-      margin:1rem 0; max-height:280px;
-      object-fit:cover;
+    .blog {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+      line-height: 1.7;
     }
-    footer {
-      text-align:center; padding:1rem;
-      font-size:0.85rem; color:#888;
+    .blog img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 15px 0;
     }
     .toast {
-      position:fixed; bottom:20px; left:50%;
-      transform:translateX(-50%);
-      background:#0f9d58; color:#fff;
-      padding:0.8rem 1.5rem; border-radius:5px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.2);
-      opacity:0; pointer-events:none;
-      transition:opacity 0.3s;
-      z-index:999;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00c851;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 6px;
+      display: none;
     }
-    .toast.show { opacity:1; pointer-events:auto }
   </style>
 </head>
 <body>
-
-  <header>
-    <h1>EasyPay PTC Task</h1>
-    <div class="timer" id="timer">20s</div>
-  </header>
+  <header>EasyPay - View & Earn</header>
 
   <div class="notice">
-    <strong>Important!</strong> Your browser must have JavaScript enabled, your ad blocker must be disabled, you must stay on the final page for about 20 seconds, you must have cookies enabled, and you must not use VPN.
+    Important! Your browser must have JavaScript enabled, your ad blocker must be disabled, you must stay on the final page for about 20 seconds, you must have cookies enabled, and you must not use VPN.
   </div>
 
-  <div class="container">
-    <!-- Your full blog sections -->
-    <div class="section">
-      <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph 🏆</h2>
-      <p>Sports have been an integral part … creating lifelong memories. 🌟</p>
-      <img src="images/sports-banner.jpg" alt="Sports banner">
-    </div>
-    <!-- etc. -- rest of sections unchanged -->
+  <div class="timer">Time Remaining: <span id="countdown">20</span> seconds</div>
+
+  <div class="blog">
+    <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph</h2>
+    <p>Sports have been an integral part of human culture for centuries, bringing people together, fostering community, and inspiring greatness...</p>
+    <img src="sports_blog_image.jpg" alt="Sports Blog">
+    <h3>The Benefits of Sports</h3>
+    <p>Engaging in sports offers numerous benefits, including improved physical health, enhanced mental well-being, and increased social connections...</p>
+    <h3>Popular Sports Around the World</h3>
+    <ul>
+      <li><b>Football (Soccer)</b>: The world's most popular sport... ⚽️</li>
+      <li><b>Basketball</b>: A fast-paced, high-flying sport... 🏀</li>
+      <li><b>Tennis</b>: A sport of skill, strategy, and physical endurance... 🎾</li>
+      <li><b>Cricket</b>: A bat-and-ball game with a massive following... 🏏</li>
+      <li><b>Volleyball</b>: A popular team sport... 🏐</li>
+    </ul>
+    <h3>The Impact of Sports on Society</h3>
+    <p>Sports have a profound impact on society, promoting social cohesion, cultural exchange, and economic growth...</p>
+    <h3>The Future of Sports</h3>
+    <p>As technology continues to evolve, sports are becoming more innovative, engaging, and accessible...</p>
+    <h3>Conclusion</h3>
+    <p>Sports are a universal language, bringing people together and inspiring greatness...</p>
   </div>
 
-  <footer>&copy; 2025 EasyPay. All rights reserved.</footer>
-  <div id="toast" class="toast"></div>
+  <div class="toast" id="toastMsg"></div>
 
-  <script type="module">
-    import { initializeApp }            from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
-    import { getAuth }                  from "https://www.gstatic.com/firebasejs/9.24.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc }
-                                         from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-    // ─── Firebase config ─────────────────────────────────────────
+  <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -92,70 +108,67 @@
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db   = getFirestore(app);
 
-    // ─── Task config ───────────────────────────────────────────────
-    const PTC_ID   = "ptc";
-    const LAST_KEY = `lastClaim_${PTC_ID}`;
-    const BAL_KEY  = "balance";
-    const REWARD   = 1;
-    const COOLDOWN = 24 * 60 * 60 * 1000;
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    const toast   = document.getElementById("toast");
-
-    function showToast(msg) {
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 3000);
-    }
-
-    // Called when countdown hits zero
-    async function onCountdownComplete() {
-      const user = auth.currentUser;
+    // Redirect if not logged in
+    auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "login.html";
-        return;
+      } else {
+        startCountdown(user);
       }
-      const userRef = doc(db, "users", user.uid);
-      try {
-        const now  = Date.now();
-        const snap = await getDoc(userRef);
-        let last = 0, bal = 0;
-        if (snap.exists()) {
-          const data = snap.data();
-          last = data[LAST_KEY] || 0;
-          bal  = data[BAL_KEY]   || 0;
-        }
-        if (now - last < COOLDOWN) {
-          return showToast("You can only claim once every 24 hours.");
-        }
-        const updates = { [LAST_KEY]: now, [BAL_KEY]: bal + REWARD };
-        snap.exists() ? await updateDoc(userRef, updates)
-                      : await setDoc(userRef, updates);
-        showToast(`🎉 ₦${REWARD} has been credited!`);
-      } catch (e) {
-        console.error(e);
-        showToast("Error processing reward. Try again later.");
-      }
+    });
+
+    function showToast(message) {
+      const toast = document.getElementById("toastMsg");
+      toast.textContent = message;
+      toast.style.display = "block";
+      setTimeout(() => toast.style.display = "none", 4000);
     }
 
-    // Set up and start countdown after DOM is ready
-    window.addEventListener("DOMContentLoaded", () => {
-      const timerEl = document.getElementById("timer");
-      let seconds = 20;
-      timerEl.textContent = `${seconds}s`;
-      const interval = setInterval(() => {
-        seconds--;
-        timerEl.textContent = `${seconds}s`;
-        if (seconds <= 0) {
-          clearInterval(interval);
-          timerEl.textContent = "0s";
-          onCountdownComplete();
+    function startCountdown(user) {
+      let timeLeft = 20;
+      const timerDisplay = document.getElementById("countdown");
+
+      const timer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          creditUser(user);
         }
       }, 1000);
-    });
+    }
+
+    function creditUser(user) {
+      const uid = user.uid;
+      const userRef = db.collection("users").doc(uid);
+      const now = Date.now();
+
+      userRef.get().then(doc => {
+        const data = doc.data();
+        const lastPTC = data.lastPTC1 || 0;
+        const balance = data.balance || 0;
+
+        if (now - lastPTC >= 86400000) {
+          userRef.update({
+            balance: balance + 1,
+            lastPTC1: now,
+            transactions: firebase.firestore.FieldValue.arrayUnion({
+              type: "PTC Earnings",
+              amount: 1,
+              date: new Date().toLocaleString()
+            })
+          });
+          showToast("₦1 credited successfully!");
+        } else {
+          showToast("Already claimed today. Try again after 24hrs.");
+        }
+      });
+    }
   </script>
 </body>
 </html>
