@@ -61,7 +61,7 @@
       font-size: 0.85rem;
       color: #888;
     }
-    /* Centered, larger toast */
+    /* Enlarged, centered toast */
     .toast {
       position: fixed;
       top: 50%;
@@ -69,14 +69,16 @@
       transform: translate(-50%, -50%);
       background: #00c851;
       color: white;
-      padding: 25px 30px;
-      border-radius: 10px;
-      font-size: 18px;
+      padding: 40px;
+      border-radius: 15px;
+      font-size: 26px;
       font-weight: bold;
       text-align: center;
       display: none;
       z-index: 1000;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+      width: 80%;
+      max-width: 500px;
     }
   </style>
 </head>
@@ -159,7 +161,7 @@
       setTimeout(() => toast.style.display = "none", 5000);
     }
 
-    // Kick off when we know auth state
+    // Start countdown when auth state is known
     auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "login.html";
