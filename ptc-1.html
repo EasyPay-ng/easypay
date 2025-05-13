@@ -4,87 +4,53 @@
   <meta charset="UTF-8">
   <title>EasyPay - PTC</title>
   <style>
-    body {
-      margin: 0; font-family: 'Segoe UI', sans-serif;
-      background: #f0fdf4; color: #111; padding: 20px;
-    }
-    header {
-      background-color: #00c851; color: white;
-      padding: 15px; font-size: 22px; text-align: center;
-      border-radius: 8px;
-    }
-    .notice {
-      background: #fff3cd; color: #856404;
-      border: 1px solid #ffeeba; padding: 10px 15px;
-      border-radius: 8px; margin: 15px 0; font-weight: bold;
-      text-align: center;
-    }
-    .timer {
-      font-size: 24px; font-weight: bold;
-      color: #00c851; text-align: center;
-      margin: 20px 0;
-    }
-    .ad-container {
-      text-align: center; margin: 10px 0;
-      background: #fafafa; padding: 10px; border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .blog {
-      background: white; padding: 20px; border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.05); line-height: 1.7;
-      margin-top: 20px;
-    }
-    .blog img {
-      max-width: 100%; border-radius: 8px; margin: 15px 0;
-    }
-    .blog h2, .blog h3 {
-      color: #00c851; margin-top: 1.5rem;
-    }
-    .blog ul { margin-left: 1.5rem; margin-bottom: 1rem; }
-    .toast {
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%); background: #00c851;
-      color: white; padding: 40px; border-radius: 15px;
-      font-size: 26px; font-weight: bold; text-align: center;
-      display: none; z-index: 1000;
-      box-shadow: 0 0 25px rgba(0,0,0,0.25);
-      width: 80%; max-width: 500px;
-    }
-    footer {
-      text-align: center; padding: 1rem;
-      font-size: 0.85rem; color: #888; margin-top: 40px;
-    }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:#f0fdf4; color:#111; padding:20px; }
+    header { background:#00c851; color:#fff; padding:15px; font-size:22px; text-align:center; border-radius:8px; }
+    .notice { background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:10px 15px; border-radius:8px; margin:15px 0; font-weight:bold; text-align:center; }
+    .click-notice { background:#e0f7fa; color:#006064; border:1px solid #4dd0e1; padding:10px; border-radius:8px; margin:15px 0; text-align:center; }
+    .timer { display:none; font-size:24px; font-weight:bold; color:#00c851; text-align:center; margin:20px 0; }
+    .ad-container { text-align:center; margin:10px 0; background:#fafafa; padding:10px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05); cursor:pointer; }
+    .blog { background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 8px rgba(0,0,0,0.05); line-height:1.7; margin-top:20px; }
+    .blog img { max-width:100%; border-radius:8px; margin:15px 0; }
+    .blog h2, .blog h3 { color:#00c851; margin-top:1.5rem; }
+    .blog ul { margin-left:1.5rem; margin-bottom:1rem; }
+    .toast { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#00c851; color:#fff; padding:40px; border-radius:15px; font-size:26px; font-weight:bold; text-align:center; display:none; z-index:1000; box-shadow:0 0 25px rgba(0,0,0,0.25); width:80%; max-width:500px; }
+    footer { text-align:center; padding:1rem; font-size:0.85rem; color:#888; margin-top:40px; }
   </style>
 </head>
 <body>
+
   <header>EasyPay - View & Earn</header>
 
   <div class="notice">
     Important! Your browser must have JavaScript enabled, your ad blocker must be disabled, you must stay on the final page for about 20 seconds, you must have cookies enabled, and you must not use VPN.
   </div>
 
-  <div class="timer">
+  <div class="click-notice" id="clickNotice">
+    Please click on the ads below <strong>4 times</strong> in any combination to unlock the timer.
+  </div>
+
+  <!-- Timer (hidden until ads clicked 4×) -->
+  <div class="timer" id="timer">
     Time Remaining: <span id="countdown">20</span> seconds
   </div>
 
-  <!-- Native Ad here -->
-  <div class="ad-container">
+  <!-- Native Ad (clickable container) -->
+  <div class="ad-container ad-slot">
     <script async data-cfasync="false" src="//pl26610991.profitableratecpm.com/2cdeaef942bed83f6211550579f2accb/invoke.js"></script>
     <div id="container-2cdeaef942bed83f6211550579f2accb"></div>
   </div>
 
-  <!-- Direct Link Ad here -->
-  <div class="ad-container">
+  <!-- Direct Link Ad (clickable container) -->
+  <div class="ad-container ad-slot">
     <script async src="https://www.profitableratecpm.com/bqbfzf660x?key=657708018dbcaca9694b65759c893f86"></script>
   </div>
 
   <div class="blog">
     <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph 🏆</h2>
     <p>Sports have been an integral part of human culture for centuries, bringing people together, fostering community, and inspiring greatness. From the thrill of competition to the joy of recreation, sports play a significant role in our lives, shaping our personalities, building our character, and creating lifelong memories. 🌟</p>
-
     <h3>The Benefits of Sports 🌈</h3>
     <p>Engaging in sports offers numerous benefits, including improved physical health, enhanced mental well-being, and increased social connections. Regular physical activity can reduce the risk of chronic diseases, such as heart disease, diabetes, and obesity, while also boosting mood and energy levels. 🏋️‍♀️ Sports also provide opportunities for socialization, teamwork, and leadership development, essential skills for personal and professional growth.</p>
-
     <h3>Popular Sports Around the World 🌎</h3>
     <ul>
       <li><strong>Football (Soccer):</strong> The world's most popular sport, played and loved by millions, with top leagues like the English Premier League, La Liga, and the Champions League. ⚽️</li>
@@ -94,13 +60,10 @@
       <li><strong>Volleyball:</strong> A popular team sport, played indoors and on beaches, with international competitions like the Olympics and World Championships. 🏐</li>
     </ul>
     <img src="sports_blog_image.jpg" alt="Tennis player lunging for a shot on clay court">
-
     <h3>The Impact of Sports on Society 🌟</h3>
     <p>Sports have a profound impact on society, promoting social cohesion, cultural exchange, and economic growth. Major sporting events like the Olympics, World Cups, and marathons bring people together, fostering a sense of community and national pride. 🏆 Sports also provide opportunities for women, minorities, and individuals with disabilities to participate and excel, promoting inclusivity and diversity.</p>
-
     <h3>The Future of Sports 🔮</h3>
     <p>As technology continues to evolve, sports are becoming more innovative, engaging, and accessible. Advances in sports analytics, virtual reality, and social media are changing the way we experience and interact with sports. 🌐 The rise of esports, fantasy sports, and sports betting is also transforming the sports landscape, offering new opportunities for fans, athletes, and entrepreneurs.</p>
-
     <h3>Conclusion 🌈</h3>
     <p>Sports are a universal language, bringing people together and inspiring greatness. Whether you're a professional athlete, a recreational player, or a passionate fan, sports have the power to enrich your life, challenge your limits, and create lifelong memories. 🌟 So, get involved, stay active, and enjoy the thrill of sports! 🎉</p>
   </div>
@@ -127,27 +90,53 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    function showToast(message, success = true) {
+    let clickCount = 0;
+    const requiredClicks = 4;
+    const clickNotice = document.getElementById("clickNotice");
+    const timerEl     = document.getElementById("timer");
+    const countdownEl = document.getElementById("countdown");
+
+    // Attach click listeners to ad slots
+    document.querySelectorAll('.ad-slot').forEach(slot => {
+      slot.addEventListener('click', () => {
+        clickCount++;
+        if (clickCount >= requiredClicks) {
+          clickNotice.style.display = 'none';
+          timerEl.style.display   = 'block';
+          startAuthenticatedCountdown();
+        } else {
+          clickNotice.textContent = `Please click on the ads below ${requiredClicks - clickCount} more time(s) to unlock the timer.`;
+        }
+      });
+    });
+
+    function showToast(msg, success = true) {
       const toast = document.getElementById("toastMsg");
-      toast.textContent = message;
+      toast.textContent = msg;
       toast.style.background = success ? "#00c851" : "#ff4444";
       toast.style.display = "block";
       setTimeout(() => toast.style.display = "none", 5000);
     }
 
-    auth.onAuthStateChanged(user => {
-      if (!user) window.location.href = "login.html";
-      else startCountdown(user);
-    });
+    // Once clicks done, start countdown after verifying auth
+    function startAuthenticatedCountdown() {
+      auth.onAuthStateChanged(user => {
+        if (!user) {
+          window.location.href = "login.html";
+          return;
+        }
+        startCountdown(user);
+      });
+    }
 
     function startCountdown(user) {
       let timeLeft = 20;
-      document.getElementById("countdown").textContent = timeLeft;
-      const timer = setInterval(() => {
+      countdownEl.textContent = timeLeft;
+      const interval = setInterval(() => {
         timeLeft--;
-        document.getElementById("countdown").textContent = timeLeft;
+        countdownEl.textContent = timeLeft;
         if (timeLeft <= 0) {
-          clearInterval(timer);
+          clearInterval(interval);
           creditUser(user);
         }
       }, 1000);
