@@ -5,94 +5,84 @@
   <title>EasyPay - PTC</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0fdf4;
-      color: #111;
-      padding: 20px;
+      margin: 0; font-family: 'Segoe UI', sans-serif;
+      background: #f0fdf4; color: #111; padding-top: 0;
     }
     header {
-      background-color: #00c851;
-      color: white;
-      padding: 15px;
-      font-size: 22px;
-      text-align: center;
-      border-radius: 8px;
+      background-color: #00c851; color: white;
+      padding: 15px; font-size: 22px; text-align: center;
     }
     .notice {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-      padding: 10px 15px;
-      border-radius: 8px;
-      margin: 15px 0;
-      font-weight: bold;
+      background: #fff3cd; color: #856404;
+      border: 1px solid #ffeeba; padding: 10px 15px;
+      font-weight: bold; text-align: center;
     }
     .timer {
-      font-size: 24px;
-      font-weight: bold;
-      color: #00c851;
-      text-align: center;
+      font-size: 24px; font-weight: bold;
+      color: #00c851; text-align: center;
       margin: 20px 0;
     }
     .blog {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.05);
-      line-height: 1.7;
+      background: white; padding: 20px;
+      border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.05);
+      line-height: 1.7; margin-bottom: 100px;
     }
-    .blog img {
-      max-width: 100%;
-      border-radius: 8px;
-      margin: 15px 0;
+    .blog img { max-width: 100%; border-radius: 8px; margin: 15px 0; }
+    .blog h2, .blog h3 { color: #00c851; margin-top: 1.5rem; }
+    .blog ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+    /* Native ad container under header */
+    .native-ad { text-align: center; background: #fff; padding: 10px; }
+    /* Direct-link overlay */
+    #adOverlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.8); display:flex; align-items:center;
+      justify-content:center; z-index:2000;
     }
-    .blog h2, .blog h3 {
-      color: #00c851;
-      margin-top: 1.5rem;
+    #adOverlay .ad-box {
+      position: relative; width:90%; max-width:600px; height:400px;
+      background: #fff; border-radius:8px; overflow:hidden;
     }
-    .blog ul {
-      margin-left: 1.5rem;
-      margin-bottom: 1rem;
+    #adOverlay .close-btn {
+      position:absolute; top:8px; right:8px;
+      background:#ff4444; color:white; border:none;
+      padding:5px 10px; cursor:pointer; border-radius:4px;
+      font-size:14px;
     }
-    /* Ad container styling - subtle background */
-    .ad-container {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 10px;
-      background: #f9f9f9;
-      border-radius: 8px;
-      text-align: center;
+    /* Toast */
+    .toast {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: #00c851; color: white;
+      padding: 40px; border-radius: 15px;
+      font-size: 26px; font-weight: bold; text-align: center;
+      display: none; z-index: 3000;
+      box-shadow: 0 0 25px rgba(0,0,0,0.25);
+      width: 80%; max-width: 500px;
     }
     footer {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.85rem;
-      color: #888;
-    }
-    /* Enlarged, centered toast */
-    .toast {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #00c851;
-      color: white;
-      padding: 40px;
-      border-radius: 15px;
-      font-size: 26px;
-      font-weight: bold;
-      text-align: center;
-      display: none;
-      z-index: 1000;
-      box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
-      width: 80%;
-      max-width: 500px;
+      text-align: center; padding: 1rem;
+      font-size: 0.85rem; color: #888;
     }
   </style>
 </head>
 <body>
+
+  <!-- Direct-link ad overlay -->
+  <div id="adOverlay">
+    <div class="ad-box">
+      <button class="close-btn" onclick="closeAd()">✕ Close Ad</button>
+      <iframe src="https://www.profitableratecpm.com/bqbfzf660x?key=657708018dbcaca9694b65759c893f86"
+              style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+  </div>
+
   <header>EasyPay - View & Earn</header>
+
+  <!-- Native ad right under header -->
+  <div class="native-ad">
+    <script async data-cfasync="false" src="//pl26610991.profitableratecpm.com/2cdeaef942bed83f6211550579f2accb/invoke.js"></script>
+    <div id="container-2cdeaef942bed83f6211550579f2accb"></div>
+  </div>
 
   <div class="notice">
     Important! Your browser must have JavaScript enabled, your ad blocker must be disabled, you must stay on the final page for about 20 seconds, you must have cookies enabled, and you must not use VPN.
@@ -103,13 +93,11 @@
   </div>
 
   <div class="blog">
-    <!-- Full blog content here -->
+    <!-- full blog content -->
     <h2>The World of Sports: A Journey of Passion, Perseverance, and Triumph 🏆</h2>
     <p>Sports have been an integral part of human culture for centuries, bringing people together, fostering community, and inspiring greatness. From the thrill of competition to the joy of recreation, sports play a significant role in our lives, shaping our personalities, building our character, and creating lifelong memories. 🌟</p>
-
     <h3>The Benefits of Sports 🌈</h3>
     <p>Engaging in sports offers numerous benefits, including improved physical health, enhanced mental well-being, and increased social connections. Regular physical activity can reduce the risk of chronic diseases, such as heart disease, diabetes, and obesity, while also boosting mood and energy levels. 🏋️‍♀️ Sports also provide opportunities for socialization, teamwork, and leadership development, essential skills for personal and professional growth.</p>
-
     <h3>Popular Sports Around the World 🌎</h3>
     <ul>
       <li><strong>Football (Soccer):</strong> The world's most popular sport, played and loved by millions, with top leagues like the English Premier League, La Liga, and the Champions League. ⚽️</li>
@@ -119,21 +107,12 @@
       <li><strong>Volleyball:</strong> A popular team sport, played indoors and on beaches, with international competitions like the Olympics and World Championships. 🏐</li>
     </ul>
     <img src="sports_blog_image.jpg" alt="Tennis player lunging for a shot on clay court">
-
     <h3>The Impact of Sports on Society 🌟</h3>
     <p>Sports have a profound impact on society, promoting social cohesion, cultural exchange, and economic growth. Major sporting events like the Olympics, World Cups, and marathons bring people together, fostering a sense of community and national pride. 🏆 Sports also provide opportunities for women, minorities, and individuals with disabilities to participate and excel, promoting inclusivity and diversity.</p>
-
     <h3>The Future of Sports 🔮</h3>
     <p>As technology continues to evolve, sports are becoming more innovative, engaging, and accessible. Advances in sports analytics, virtual reality, and social media are changing the way we experience and interact with sports. 🌐 The rise of esports, fantasy sports, and sports betting is also transforming the sports landscape, offering new opportunities for fans, athletes, and entrepreneurs.</p>
-
     <h3>Conclusion 🌈</h3>
     <p>Sports are a universal language, bringing people together and inspiring greatness. Whether you're a professional athlete, a recreational player, or a passionate fan, sports have the power to enrich your life, challenge your limits, and create lifelong memories. 🌟 So, get involved, stay active, and enjoy the thrill of sports! 🎉</p>
-  </div>
-
-  <!-- Adsterra Native Banner -->
-  <div class="ad-container">
-    <script async="async" data-cfasync="false" src="//pl26610991.profitableratecpm.com/2cdeaef942bed83f6211550579f2accb/invoke.js"></script>
-    <div id="container-2cdeaef942bed83f6211550579f2accb"></div>
   </div>
 
   <footer>&copy; 2025 EasyPay. All rights reserved.</footer>
@@ -145,6 +124,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
+    // Close the direct-link ad overlay
+    function closeAd() {
+      document.getElementById('adOverlay').style.display = 'none';
+    }
+
     // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -158,7 +142,6 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    // Show centered toast. success=true ➞ green, false ➞ red
     function showToast(message, success = true) {
       const toast = document.getElementById("toastMsg");
       toast.textContent = message;
@@ -167,7 +150,6 @@
       setTimeout(() => toast.style.display = "none", 5000);
     }
 
-    // Start countdown when auth state is known
     auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "login.html";
@@ -177,31 +159,26 @@
     });
 
     function startCountdown(user) {
-      let timeLeft = 20;
-      const display = document.getElementById("countdown");
-      display.textContent = timeLeft;
-
-      const timer = setInterval(() => {
-        timeLeft--;
-        display.textContent = timeLeft;
-        if (timeLeft <= 0) {
-          clearInterval(timer);
+      let t = 20;
+      document.getElementById("countdown").textContent = t;
+      const interval = setInterval(() => {
+        t--;
+        document.getElementById("countdown").textContent = t;
+        if (t <= 0) {
+          clearInterval(interval);
           creditUser(user);
         }
       }, 1000);
     }
 
     function creditUser(user) {
-      const uid = user.uid;
-      const ref = db.collection("users").doc(uid);
+      const ref = db.collection("users").doc(user.uid);
       const now = Date.now();
-
-      ref.get().then(docSnap => {
-        const data    = docSnap.data() || {};
-        const lastPTC = data.lastPTC1 || 0;
-        const bal     = data.balance   || 0;
-
-        if (now - lastPTC >= 86400000) {
+      ref.get().then(snap => {
+        const data = snap.data() || {};
+        const last = data.lastPTC1 || 0;
+        const bal  = data.balance   || 0;
+        if (now - last >= 86400000) {
           ref.update({
             balance: bal + 1,
             lastPTC1: now,
