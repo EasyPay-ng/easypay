@@ -43,6 +43,7 @@
 
   <div class="container">
     <!-- Ten PTC boxes with View Ad buttons -->
+    <!-- Copy/paste this block for each 1–10, adjusting data-ptcid & data-url -->
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 1</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
@@ -116,7 +117,12 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    // Toast helper
+    let currentUser = null;
+    auth.onAuthStateChanged(u => {
+      currentUser = u;
+      console.log('Auth state changed, user:', u ? u.uid : null);
+    });
+
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -124,36 +130,37 @@
       setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    // Attach handlers on DOMContentLoaded so elements exist
     document.addEventListener('DOMContentLoaded', () => {
-      auth.onAuthStateChanged(user => {
-        document.querySelectorAll('.ptc-btn').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            if (!user) {
-              window.location.href = 'login.html';
-              return;
-            }
-            const ptcId = btn.dataset.ptcid;
-            const url   = btn.dataset.url;
-            const now   = Date.now();
-            const DAY   = 24 * 60 * 60 * 1000;
-            const userRef = db.collection('users').doc(user.uid);
-            const snap    = await userRef.get();
-            const data    = snap.exists ? snap.data() : {};
-            const last    = data[`lastClaim_${ptcId}`] || 0;
+      document.querySelectorAll('.ptc-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          console.log('Button clicked:', btn.dataset);
+          if (!currentUser) {
+            console.log('No user, redirecting to login');
+            window.location.href = 'login.html';
+            return;
+          }
+          const ptcId = btn.dataset.ptcid;
+          const url   = btn.dataset.url;
+          const now   = Date.now();
+          const DAY   = 24 * 60 * 60 * 1000;
 
-            if (now - last < DAY) {
-              const hrs = Math.ceil((DAY - (now - last)) / (60*60*1000));
-              showToast(`Please wait ${hrs} hour(s) to view this ad again.`);
-              return;
-            }
+          const userRef = db.collection('users').doc(currentUser.uid);
+          const snap    = await userRef.get();
+          const data    = snap.exists ? snap.data() : {};
+          const last    = data[`lastClaim_${ptcId}`] || 0;
 
-            // Record new timestamp
-            await userRef.set({ [`lastClaim_${ptcId}`]: now }, { merge: true });
+          console.log('Last claim for', ptcId, '=', last);
 
-            // Redirect
-            window.location.href = url;
-          });
+          if (now - last < DAY) {
+            const hrs = Math.ceil((DAY - (now - last)) / (60*60*1000));
+            console.log('Too soon, hrs left:', hrs);
+            showToast(`Wait ${hrs} hour(s) to view this ad again.`);
+            return;
+          }
+
+          console.log('Updating last claim and redirecting to', url);
+          await userRef.set({ [`lastClaim_${ptcId}`]: now }, { merge: true });
+          window.location.href = url;
         });
       });
     });
