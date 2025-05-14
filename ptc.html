@@ -28,11 +28,9 @@
     }
     .ptc-btn:hover { background:#0b7a44; }
     .toast {
-      position:fixed; top:50%; left:50%;
-      transform:translate(-50%,-50%);
-      background:rgba(0,0,0,0.8); color:#fff;
-      padding:20px 30px; border-radius:8px;
-      display:none; z-index:1000; text-align:center;
+      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+      background:rgba(0,0,0,0.8); color:#fff; padding:20px 30px;
+      border-radius:8px; font-size:1rem; text-align:center; display:none; z-index:1000;
     }
   </style>
 </head>
@@ -44,67 +42,57 @@
   </div>
 
   <div class="container">
-
+    <!-- Ten PTC boxes with View Ad buttons -->
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 1</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc1" data-url="ptc-1.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 2</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc2" data-url="ptc-2.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 3</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc3" data-url="ptc-3.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 4</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc4" data-url="ptc-4.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 5</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc5" data-url="ptc-5.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 6</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc6" data-url="ptc-6.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 7</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc7" data-url="ptc-7.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 8</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc8" data-url="ptc-8.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 9</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc9" data-url="ptc-9.html">View Ad</button>
     </div>
-
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 10</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc10" data-url="ptc-10.html">View Ad</button>
     </div>
-
   </div>
 
   <div class="toast" id="toast"></div>
@@ -136,38 +124,39 @@
       setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    // Attach click handlers once we know auth state
-    auth.onAuthStateChanged(user => {
-      document.querySelectorAll('.ptc-btn').forEach(btn => {
-        btn.onclick = async () => {
-          if (!user) {
-            window.location = 'login.html';
-            return;
-          }
-          const ptcId = btn.dataset.ptcid;
-          const url   = btn.dataset.url;
-          const now   = Date.now();
-          const DAY   = 24*60*60*1000;
-          const userRef = db.collection('users').doc(user.uid);
-          const snap    = await userRef.get();
-          const data    = snap.exists ? snap.data() : {};
-          const last    = data[`lastClaim_${ptcId}`] || 0;
+    // Attach handlers on DOMContentLoaded so elements exist
+    document.addEventListener('DOMContentLoaded', () => {
+      auth.onAuthStateChanged(user => {
+        document.querySelectorAll('.ptc-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!user) {
+              window.location.href = 'login.html';
+              return;
+            }
+            const ptcId = btn.dataset.ptcid;
+            const url   = btn.dataset.url;
+            const now   = Date.now();
+            const DAY   = 24 * 60 * 60 * 1000;
+            const userRef = db.collection('users').doc(user.uid);
+            const snap    = await userRef.get();
+            const data    = snap.exists ? snap.data() : {};
+            const last    = data[`lastClaim_${ptcId}`] || 0;
 
-          if (now - last < DAY) {
-            const hrs = Math.ceil((DAY - (now - last)) / (60*60*1000));
-            showToast(`Wait ${hrs}h before viewing Ad ${ptcId.slice(3)} again.`);
-            return;
-          }
+            if (now - last < DAY) {
+              const hrs = Math.ceil((DAY - (now - last)) / (60*60*1000));
+              showToast(`Please wait ${hrs} hour(s) to view this ad again.`);
+              return;
+            }
 
-          // record the claim time
-          await userRef.set({ [`lastClaim_${ptcId}`]: now }, { merge: true });
+            // Record new timestamp
+            await userRef.set({ [`lastClaim_${ptcId}`]: now }, { merge: true });
 
-          // redirect to the PTC page
-          window.location = url;
-        };
+            // Redirect
+            window.location.href = url;
+          });
+        });
       });
     });
   </script>
 </body>
-  </html>
-  
+</html>
