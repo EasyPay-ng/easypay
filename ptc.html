@@ -26,24 +26,20 @@
       background:#0f9d58; color:#fff; border:none; padding:.75rem; border-radius:6px;
       font-size:1rem; cursor:pointer; transition:background .2s;
     }
-    .ptc-btn:hover { background:#0b7a44; }
-    .toast {
-      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:rgba(0,0,0,0.8); color:#fff; padding:20px 30px;
-      border-radius:8px; font-size:1rem; text-align:center; display:none; z-index:1000;
+    .ptc-btn:disabled {
+      background:#aaa; cursor:default;
     }
   </style>
 </head>
 <body>
-
   <header>EasyPay PTC Tasks</header>
   <div class="notice">
-    <strong>Important!</strong> JavaScript & cookies must be enabled, ad-block off, no VPN.
+    <strong>Important!</strong> JS & cookies must be enabled, ad-block off, no VPN.
   </div>
 
   <div class="container">
-    <!-- Ten PTC boxes with View Ad buttons -->
-    <!-- Copy/paste this block for each 1–10, adjusting data-ptcid & data-url -->
+    <!-- 10 boxes, each with a View Ad button -->
+    <!-- Copy/paste this block 10 times, changing data-ptcid and data-url appropriately -->
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 1</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
@@ -54,11 +50,14 @@
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc2" data-url="ptc-2.html">View Ad</button>
     </div>
+    <!-- ... repeat for PTC 3 through PTC 10 ... -->
+    <!-- Example for PTC 3 -->
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 3</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
       <button class="ptc-btn" data-ptcid="ptc3" data-url="ptc-3.html">View Ad</button>
     </div>
+    <!-- Continue up to ptc10 -->
     <div class="ptc-box">
       <div class="ptc-title">PTC Ad 4</div>
       <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
@@ -96,70 +95,44 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
-
   <script>
-    // Initialize Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db   = firebase.firestore();
+    const DAY = 24 * 60 * 60 * 1000;
 
-    let currentUser = null;
-    auth.onAuthStateChanged(u => {
-      currentUser = u;
-      console.log('Auth state changed, user:', u ? u.uid : null);
-    });
-
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.style.display = 'block';
-      setTimeout(() => t.style.display = 'none', 3000);
+    function disableButton(btn, remainingMs) {
+      btn.disabled = true;
+      let hrs = Math.ceil(remainingMs / (60*60*1000));
+      btn.textContent = `Try again in ${hrs}h`;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.ptc-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          console.log('Button clicked:', btn.dataset);
-          if (!currentUser) {
-            console.log('No user, redirecting to login');
-            window.location.href = 'login.html';
-            return;
-          }
-          const ptcId = btn.dataset.ptcid;
-          const url   = btn.dataset.url;
-          const now   = Date.now();
-          const DAY   = 24 * 60 * 60 * 1000;
+        const ptcId = btn.dataset.ptcid;
+        const url   = btn.dataset.url;
+        const last  = parseInt(localStorage.getItem(`last_${ptcId}`), 10) || 0;
+        const now   = Date.now();
 
-          const userRef = db.collection('users').doc(currentUser.uid);
-          const snap    = await userRef.get();
-          const data    = snap.exists ? snap.data() : {};
-          const last    = data[`lastClaim_${ptcId}`] || 0;
+        // On load: disable if clicked within 24h
+        if (now - last < DAY) {
+          disableButton(btn, DAY - (now - last));
+        }
 
-          console.log('Last claim for', ptcId, '=', last);
+        btn.addEventListener('click', () => {
+          const lastClick = parseInt(localStorage.getItem(`last_${ptcId}`), 10) || 0;
+          const nowClick  = Date.now();
 
-          if (now - last < DAY) {
-            const hrs = Math.ceil((DAY - (now - last)) / (60*60*1000));
-            console.log('Too soon, hrs left:', hrs);
-            showToast(`Wait ${hrs} hour(s) to view this ad again.`);
+          if (nowClick - lastClick < DAY) {
+            // still cooling down
+            disableButton(btn, DAY - (nowClick - lastClick));
             return;
           }
 
-          console.log('Updating last claim and redirecting to', url);
-          await userRef.set({ [`lastClaim_${ptcId}`]: now }, { merge: true });
+          // record click
+          localStorage.setItem(`last_${ptcId}`, nowClick.toString());
+
+          // disable immediately
+          disableButton(btn, DAY);
+
+          // redirect
           window.location.href = url;
         });
       });
