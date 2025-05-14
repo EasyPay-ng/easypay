@@ -5,117 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PTC Tasks - EasyPay</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4fdf7;
-      margin: 0; padding: 0;
-      color: #333;
-    }
-    header {
-      background-color: #0f9d58;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1rem;
-      font-weight: bold;
-    }
+    body { font-family:'Segoe UI',sans-serif; background:#f4fdf7; margin:0; padding:0; color:#333 }
+    header { background:#0f9d58; color:#fff; padding:1rem; text-align:center; font-size:1rem; font-weight:bold }
     .notice {
-      background: #e6fff0;
-      border-left: 4px solid #0f9d58;
-      padding: 1rem;
-      margin: 1rem;
-      border-radius: 8px;
-      font-size: 0.95rem;
+      background:#e6fff0; border-left:4px solid #0f9d58;
+      padding:1rem; margin:1rem; border-radius:8px; font-size:0.95rem;
     }
     .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
+      gap:1rem; padding:1rem;
     }
     .ptc-box {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 1.5rem;
-      text-align: center;
-      transition: transform 0.2s;
-      cursor: pointer;
-      position: relative;
+      background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      padding:1.5rem; text-align:center; cursor:pointer; transition:transform .2s;
     }
-    .ptc-box:hover { transform: scale(1.03); }
-    .ptc-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #0f9d58;
-    }
-    .ptc-desc { font-size: 0.9rem; color: #666; }
+    .ptc-box:hover { transform:scale(1.03) }
+    .ptc-title { font-size:1.2rem; font-weight:600; margin-bottom:.5rem; color:#0f9d58 }
+    .ptc-desc { font-size:.9rem; color:#666 }
     .toast {
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.85);
-      color: #fff;
-      padding: 20px 30px;
-      border-radius: 8px;
-      font-size: 1rem;
-      text-align: center;
-      display: none;
-      z-index: 1000;
+      position:fixed; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      background:rgba(0,0,0,0.8); color:#fff;
+      padding:20px 30px; border-radius:8px; font-size:1rem;
+      text-align:center; display:none; z-index:1000;
     }
   </style>
 </head>
 <body>
-
   <header>EasyPay PTC Tasks</header>
-
   <div class="notice">
     <strong>Important!</strong> JS & cookies must be enabled, ad-block off, no VPN.
   </div>
 
   <div class="container">
-    <!-- Each ptc-box now has data-ptcid and data-url -->
-    <div class="ptc-box" data-ptcid="ptc1" data-url="ptc-1.html">
-      <div class="ptc-title">PTC Ad 1</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc2" data-url="ptc-2.html">
-      <div class="ptc-title">PTC Ad 2</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc3" data-url="ptc-3.html">
-      <div class="ptc-title">PTC Ad 3</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc4" data-url="ptc-4.html">
-      <div class="ptc-title">PTC Ad 4</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc5" data-url="ptc-5.html">
-      <div class="ptc-title">PTC Ad 5</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc6" data-url="ptc-6.html">
-      <div class="ptc-title">PTC Ad 6</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc7" data-url="ptc-7.html">
-      <div class="ptc-title">PTC Ad 7</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc8" data-url="ptc-8.html">
-      <div class="ptc-title">PTC Ad 8</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc9" data-url="ptc-9.html">
-      <div class="ptc-title">PTC Ad 9</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
-    <div class="ptc-box" data-ptcid="ptc10" data-url="ptc-10.html">
-      <div class="ptc-title">PTC Ad 10</div>
-      <div class="ptc-desc">Click and view for 20 seconds</div>
-    </div>
+    <!-- generate 10 boxes -->
+    <script>
+      const container = document.currentScript.parentElement;
+      for (let i = 1; i <= 10; i++) {
+        const box = document.createElement('div');
+        box.className = 'ptc-box';
+        box.setAttribute('data-ptcid', `ptc${i}`);
+        box.setAttribute('data-url', `ptc-${i}.html`);
+        box.innerHTML = `
+          <div class="ptc-title">PTC Ad ${i}</div>
+          <div class="ptc-desc">Click and view for 20 seconds</div>
+        `;
+        container.appendChild(box);
+      }
+    </script>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -126,7 +64,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // 1) Initialize Firebase
+    // Init Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -139,44 +77,33 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    // 2) Toast helper
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.style.display = 'block';
-      setTimeout(()=> t.style.display='none', 3000);
+      setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    // 3) Handle clicks
-    document.querySelectorAll('.ptc-box').forEach(box => {
-      box.addEventListener('click', async () => {
-        const ptcId = box.getAttribute('data-ptcid');
-        const url   = box.getAttribute('data-url');
-        const user  = auth.currentUser;
-
-        if (!user) {
-          return window.location.href='login.html';
-        }
-
-        const docRef = db.collection('users').doc(user.uid);
-        const snap   = await docRef.get();
-        const data   = snap.exists ? snap.data() : {};
-        const last   = data[`lastClaim_${ptcId}`] || 0;
-        const now    = Date.now();
-        const DAY    = 24*60*60*1000;
-
-        if (now - last < DAY) {
-          const hrs = Math.ceil((DAY - (now - last)) / (60*60*1000));
-          return showToast(`Wait ${hrs}h to view this ad again.`);
-        }
-
-        // record new claim time
-        await docRef.set({
-          [`lastClaim_${ptcId}`]: now
-        }, { merge: true });
-
-        // finally navigate
-        window.location.href = url;
+    // Attach handler after auth ready
+    auth.onAuthStateChanged(user => {
+      document.querySelectorAll('.ptc-box').forEach(box => {
+        box.onclick = async () => {
+          if (!user) return window.location.href = 'login.html';
+          const ptcId = box.dataset.ptcid;
+          const url   = box.dataset.url;
+          const now   = Date.now(), DAY = 24*60*60*1000;
+          const docRef = db.collection('users').doc(user.uid);
+          const snap   = await docRef.get();
+          const last   = snap.exists && snap.data()[`lastClaim_${ptcId}`] || 0;
+          if (now - last < DAY) {
+            const hours = Math.ceil((DAY - (now - last))/(60*60*1000));
+            return showToast(`Please wait ${hours}h to retry PTC ${ptcId.slice(3)}.`);
+          }
+          // update timestamp
+          await docRef.set({ [`lastClaim_${ptcId}`]: now }, { merge: true });
+          // redirect
+          window.location.href = url;
+        };
       });
     });
   </script>
