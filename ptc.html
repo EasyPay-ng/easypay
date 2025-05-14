@@ -8,8 +8,7 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f4fdf7;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       color: #333;
     }
     header {
@@ -37,76 +36,149 @@
     .ptc-box {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 1.5rem;
       text-align: center;
       transition: transform 0.2s;
       cursor: pointer;
+      position: relative;
     }
-    .ptc-box:hover {
-      transform: scale(1.03);
-    }
+    .ptc-box:hover { transform: scale(1.03); }
     .ptc-title {
       font-size: 1.2rem;
       font-weight: 600;
       margin-bottom: 0.5rem;
       color: #0f9d58;
     }
-    .ptc-desc {
-      font-size: 0.9rem;
-      color: #666;
+    .ptc-desc { font-size: 0.9rem; color: #666; }
+    .toast {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      font-size: 1rem;
+      text-align: center;
+      display: none;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
+
   <header>EasyPay PTC Tasks</header>
 
   <div class="notice">
-    <strong>Important!</strong> Your browser must have JavaScript enabled, your ad blocker must be disabled, you must have cookies enabled, and you must not use VPN.
+    <strong>Important!</strong> JS & cookies must be enabled, ad-block off, no VPN.
   </div>
 
   <div class="container">
-    <div class="ptc-box" onclick="location.href='ptc-1.html'">
+    <!-- Each ptc-box now has data-ptcid and data-url -->
+    <div class="ptc-box" data-ptcid="ptc1" data-url="ptc-1.html">
       <div class="ptc-title">PTC Ad 1</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-2.html'">
+    <div class="ptc-box" data-ptcid="ptc2" data-url="ptc-2.html">
       <div class="ptc-title">PTC Ad 2</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-3.html'">
+    <div class="ptc-box" data-ptcid="ptc3" data-url="ptc-3.html">
       <div class="ptc-title">PTC Ad 3</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-4.html'">
+    <div class="ptc-box" data-ptcid="ptc4" data-url="ptc-4.html">
       <div class="ptc-title">PTC Ad 4</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-5.html'">
+    <div class="ptc-box" data-ptcid="ptc5" data-url="ptc-5.html">
       <div class="ptc-title">PTC Ad 5</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-6.html'">
+    <div class="ptc-box" data-ptcid="ptc6" data-url="ptc-6.html">
       <div class="ptc-title">PTC Ad 6</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-7.html'">
+    <div class="ptc-box" data-ptcid="ptc7" data-url="ptc-7.html">
       <div class="ptc-title">PTC Ad 7</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-8.html'">
+    <div class="ptc-box" data-ptcid="ptc8" data-url="ptc-8.html">
       <div class="ptc-title">PTC Ad 8</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-9.html'">
+    <div class="ptc-box" data-ptcid="ptc9" data-url="ptc-9.html">
       <div class="ptc-title">PTC Ad 9</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
-    <div class="ptc-box" onclick="location.href='ptc-10.html'">
+    <div class="ptc-box" data-ptcid="ptc10" data-url="ptc-10.html">
       <div class="ptc-title">PTC Ad 10</div>
       <div class="ptc-desc">Click and view for 20 seconds</div>
     </div>
   </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 1) Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    // 2) Toast helper
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(()=> t.style.display='none', 3000);
+    }
+
+    // 3) Handle clicks
+    document.querySelectorAll('.ptc-box').forEach(box => {
+      box.addEventListener('click', async () => {
+        const ptcId = box.getAttribute('data-ptcid');
+        const url   = box.getAttribute('data-url');
+        const user  = auth.currentUser;
+
+        if (!user) {
+          return window.location.href='login.html';
+        }
+
+        const docRef = db.collection('users').doc(user.uid);
+        const snap   = await docRef.get();
+        const data   = snap.exists ? snap.data() : {};
+        const last   = data[`lastClaim_${ptcId}`] || 0;
+        const now    = Date.now();
+        const DAY    = 24*60*60*1000;
+
+        if (now - last < DAY) {
+          const hrs = Math.ceil((DAY - (now - last)) / (60*60*1000));
+          return showToast(`Wait ${hrs}h to view this ad again.`);
+        }
+
+        // record new claim time
+        await docRef.set({
+          [`lastClaim_${ptcId}`]: now
+        }, { merge: true });
+
+        // finally navigate
+        window.location.href = url;
+      });
+    });
+  </script>
 </body>
-  </html>
-  
+</html>
