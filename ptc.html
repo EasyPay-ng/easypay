@@ -3,57 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PTC Tasks - EasyPay</title>
+  <title>PTC Tasks – EasyPay</title>
   <style>
-    body { font-family:'Segoe UI',sans-serif; background:#f4fdf7; margin:0; padding:0; color:#333 }
-    header { background:#0f9d58; color:#fff; padding:1rem; text-align:center; font-size:1rem; font-weight:bold }
+    body { font-family:'Segoe UI',sans-serif; background:#f4fdf7; color:#333; margin:0; padding:0 }
+    header { background:#0f9d58; color:#fff; padding:1rem; text-align:center; font-size:1.25rem; }
     .notice {
       background:#e6fff0; border-left:4px solid #0f9d58;
-      padding:1rem; margin:1rem; border-radius:8px; font-size:0.95rem;
+      margin:1rem; padding:1rem; border-radius:8px; font-size:.95rem;
     }
     .container {
       display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
       gap:1rem; padding:1rem;
     }
     .ptc-box {
       background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);
-      padding:1.5rem; text-align:center; cursor:pointer; transition:transform .2s;
+      padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;
     }
-    .ptc-box:hover { transform:scale(1.03) }
-    .ptc-title { font-size:1.2rem; font-weight:600; margin-bottom:.5rem; color:#0f9d58 }
-    .ptc-desc { font-size:.9rem; color:#666 }
+    .ptc-title { font-size:1.2rem; color:#0f9d58; margin-bottom:.5rem; }
+    .ptc-desc { flex:1; color:#666; margin-bottom:1rem; }
+    .ptc-btn {
+      background:#0f9d58; color:#fff; border:none; padding:.75rem; border-radius:6px;
+      font-size:1rem; cursor:pointer; transition:background .2s;
+    }
+    .ptc-btn:hover { background:#0b7a44; }
     .toast {
       position:fixed; top:50%; left:50%;
       transform:translate(-50%,-50%);
       background:rgba(0,0,0,0.8); color:#fff;
-      padding:20px 30px; border-radius:8px; font-size:1rem;
-      text-align:center; display:none; z-index:1000;
+      padding:20px 30px; border-radius:8px;
+      display:none; z-index:1000; text-align:center;
     }
   </style>
 </head>
 <body>
+
   <header>EasyPay PTC Tasks</header>
   <div class="notice">
-    <strong>Important!</strong> JS & cookies must be enabled, ad-block off, no VPN.
+    <strong>Important!</strong> JavaScript & cookies must be enabled, ad-block off, no VPN.
   </div>
 
   <div class="container">
-    <!-- generate 10 boxes -->
-    <script>
-      const container = document.currentScript.parentElement;
-      for (let i = 1; i <= 10; i++) {
-        const box = document.createElement('div');
-        box.className = 'ptc-box';
-        box.setAttribute('data-ptcid', `ptc${i}`);
-        box.setAttribute('data-url', `ptc-${i}.html`);
-        box.innerHTML = `
-          <div class="ptc-title">PTC Ad ${i}</div>
-          <div class="ptc-desc">Click and view for 20 seconds</div>
-        `;
-        container.appendChild(box);
-      }
-    </script>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 1</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc1" data-url="ptc-1.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 2</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc2" data-url="ptc-2.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 3</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc3" data-url="ptc-3.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 4</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc4" data-url="ptc-4.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 5</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc5" data-url="ptc-5.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 6</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc6" data-url="ptc-6.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 7</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc7" data-url="ptc-7.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 8</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc8" data-url="ptc-8.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 9</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc9" data-url="ptc-9.html">View Ad</button>
+    </div>
+
+    <div class="ptc-box">
+      <div class="ptc-title">PTC Ad 10</div>
+      <div class="ptc-desc">Click “View Ad” and stay 20 seconds to earn ₦1.</div>
+      <button class="ptc-btn" data-ptcid="ptc10" data-url="ptc-10.html">View Ad</button>
+    </div>
+
   </div>
 
   <div class="toast" id="toast"></div>
@@ -64,7 +115,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Init Firebase
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -77,6 +128,7 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
+    // Toast helper
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -84,28 +136,38 @@
       setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    // Attach handler after auth ready
+    // Attach click handlers once we know auth state
     auth.onAuthStateChanged(user => {
-      document.querySelectorAll('.ptc-box').forEach(box => {
-        box.onclick = async () => {
-          if (!user) return window.location.href = 'login.html';
-          const ptcId = box.dataset.ptcid;
-          const url   = box.dataset.url;
-          const now   = Date.now(), DAY = 24*60*60*1000;
-          const docRef = db.collection('users').doc(user.uid);
-          const snap   = await docRef.get();
-          const last   = snap.exists && snap.data()[`lastClaim_${ptcId}`] || 0;
-          if (now - last < DAY) {
-            const hours = Math.ceil((DAY - (now - last))/(60*60*1000));
-            return showToast(`Please wait ${hours}h to retry PTC ${ptcId.slice(3)}.`);
+      document.querySelectorAll('.ptc-btn').forEach(btn => {
+        btn.onclick = async () => {
+          if (!user) {
+            window.location = 'login.html';
+            return;
           }
-          // update timestamp
-          await docRef.set({ [`lastClaim_${ptcId}`]: now }, { merge: true });
-          // redirect
-          window.location.href = url;
+          const ptcId = btn.dataset.ptcid;
+          const url   = btn.dataset.url;
+          const now   = Date.now();
+          const DAY   = 24*60*60*1000;
+          const userRef = db.collection('users').doc(user.uid);
+          const snap    = await userRef.get();
+          const data    = snap.exists ? snap.data() : {};
+          const last    = data[`lastClaim_${ptcId}`] || 0;
+
+          if (now - last < DAY) {
+            const hrs = Math.ceil((DAY - (now - last)) / (60*60*1000));
+            showToast(`Wait ${hrs}h before viewing Ad ${ptcId.slice(3)} again.`);
+            return;
+          }
+
+          // record the claim time
+          await userRef.set({ [`lastClaim_${ptcId}`]: now }, { merge: true });
+
+          // redirect to the PTC page
+          window.location = url;
         };
       });
     });
   </script>
 </body>
-</html>
+  </html>
+  
