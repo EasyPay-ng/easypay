@@ -56,12 +56,15 @@
       background-color: #0d8f0d;
     }
     .footer-text {
-      margin-top: 16px;
+      margin-top: 12px;
       text-align: center;
     }
     .footer-text a {
       color: green;
       text-decoration: none;
+    }
+    .footer-text a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -78,6 +81,12 @@
       <input type="password" id="password" placeholder="••••••••" required>
     </div>
     <button id="loginBtn" class="btn">Login</button>
+
+    <!-- Added Forgot Password link -->
+    <div class="footer-text">
+      <p><a href="reset-password.html">Forgot your password?</a></p>
+    </div>
+
     <div class="footer-text">
       <p>Don't have an account? <a href="register.html">Register now!</a></p>
     </div>
