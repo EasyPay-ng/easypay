@@ -14,84 +14,124 @@
       --radius: 8px;
       --transition: 0.2s;
     }
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
     body {
-      margin: 0; padding: 0;
-      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--gray-bg);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       min-height: 100vh;
     }
     .card {
       background: var(--white);
-      padding: 2rem;
+      padding: 2.5rem 2rem 2rem;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       width: 100%;
       max-width: 400px;
       text-align: center;
+      transition: box-shadow 0.3s ease;
+    }
+    .card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
     }
     h1 {
       margin-top: 0;
       color: var(--green);
-      font-size: 1.75rem;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    label {
+      display: block;
+      text-align: left;
+      font-weight: 600;
+      color: var(--green);
+      margin-top: 1.5rem;
+    }
+    input[type="text"], input[type="file"] {
+      margin-top: 0.4rem;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1.5px solid #cbd5d1;
+      font-size: 1rem;
+      outline-offset: 2px;
+      transition: border-color 0.2s ease;
+    }
+    input[type="text"]:focus, input[type="file"]:focus {
+      border-color: var(--green);
     }
     .info {
       text-align: left;
-      margin: 1rem 0;
-      line-height: 1.5;
+      margin-top: 1.5rem;
+      line-height: 1.6;
+      color: #333;
     }
-    .info b { display: inline-block; width: 120px; }
-    input[type="file"], input[type="text"] {
-      margin: 1rem 0;
-      width: 100%;
-      padding: 10px;
-      border-radius: var(--radius);
-      border: 1px solid #ccc;
-      font-size: 1rem;
+    .info b {
+      display: inline-block;
+      width: 130px;
     }
     button {
+      margin-top: 2rem;
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.85rem;
       background: var(--green);
       color: var(--white);
       border: none;
       border-radius: var(--radius);
-      font-size: 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background var(--transition), opacity var(--transition);
+      box-shadow: 0 4px 8px rgba(46,125,50,0.3);
+      transition: background var(--transition), box-shadow var(--transition);
     }
     button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      box-shadow: none;
     }
     button:hover:not(:disabled) {
       background: #276c28;
+      box-shadow: 0 6px 16px rgba(39,108,40,0.5);
     }
     .message {
-      margin-top: 1rem;
-      min-height: 1.2em;
+      margin-top: 1.2rem;
+      min-height: 1.3em;
       font-weight: 600;
+      font-size: 1rem;
     }
-    .message.success { color: var(--green); }
-    .message.error   { color: #c62828; }
+    .message.success {
+      color: var(--green);
+    }
+    .message.error {
+      color: #c62828;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="card" role="main" aria-label="Activate Your Account Form">
     <h1>Activate Your Account</h1>
-    <input type="text" id="usernameInput" placeholder="Enter your username" />
 
-    <div class="info">
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="Enter your username" autocomplete="username" />
+
+    <div class="info" aria-live="polite" aria-atomic="true">
       <p><b>Amount:</b> ₦100</p>
       <p><b>Account Name:</b> VICTOR OMUBO</p>
       <p><b>Bank:</b> MOMO PSB</p>
       <p><b>Account No:</b> 8037402826</p>
     </div>
 
-    <input type="file" id="proofFile" accept="image/*" />
+    <label for="proofFile">Upload Proof of Activation</label>
+    <input type="file" id="proofFile" accept="image/*" aria-describedby="fileHelp" />
+
     <button id="submitBtn" onclick="submitProof()">Submit for Approval</button>
-    <div class="message" id="message"></div>
+    <div class="message" id="message" aria-live="assertive"></div>
   </div>
 
   <script type="module">
