@@ -1,64 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>All Users - EasyPay</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Activation Submissions</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4fff4;
-      color: #1a3d1a;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      background-color: #f3fef3;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
     h1 {
-      color: #2c662d;
-      text-align: center;
+      color: #2e7d32;
+      margin: 2rem 0 1rem;
     }
-    #searchInput {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
+
+    .table-container {
+      width: 95%;
+      max-width: 1000px;
+      overflow-x: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      padding: 1rem;
+      margin-bottom: 2rem;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      background-color: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      min-width: 600px;
     }
+
     th, td {
-      padding: 12px;
-      border: 1px solid #ccc;
+      padding: 14px 16px;
       text-align: left;
+      border-bottom: 1px solid #e0e0e0;
     }
+
     th {
-      background-color: #2c662d;
+      background-color: #2e7d32;
       color: white;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    td {
+      font-size: 0.9rem;
+    }
+
+    td img {
+      max-height: 60px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    td img:hover {
+      transform: scale(1.05);
+    }
+
+    .status {
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .approved {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .rejected {
+      background: #f8d7da;
+      color: #721c24;
     }
   </style>
 </head>
 <body>
-  <h1>All Registered Users</h1>
+  <h1>Activation Submissions</h1>
 
-  <input type="text" id="searchInput" placeholder="Search by username...">
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Proof</th>
+          <th>Status</th>
+          <th>Submitted At</th>
+        </tr>
+      </thead>
+      <tbody id="submissionBody">
+        <tr><td colspan="4">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-  <table id="userTable">
-    <thead>
-      <tr>
-        <th>Username</th>
-        <th>Full Name</th>
-        <th>Email</th>
-        <th>Referral</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -66,49 +119,42 @@
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    const tbody = document.querySelector("#userTable tbody");
-    const searchInput = document.getElementById("searchInput");
-    let allUsers = [];
+    const tbody = document.getElementById("submissionBody");
 
-    async function fetchUsers() {
-      try {
-        const snapshot = await db.collection("users").get();
-        allUsers = snapshot.docs.map(doc => doc.data());
-        renderUsers(allUsers);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    }
+    async function loadSubmissions() {
+      const q = query(collection(db, "activations"), orderBy("requestedAt", "desc"));
+      const querySnapshot = await getDocs(q);
 
-    function renderUsers(users) {
       tbody.innerHTML = "";
-      users.forEach(data => {
+
+      if (querySnapshot.empty) {
+        tbody.innerHTML = "<tr><td colspan='4'>No submissions found.</td></tr>";
+        return;
+      }
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
         const row = document.createElement("tr");
+
+        const submittedAt = data.requestedAt?.toDate?.().toLocaleString() || "N/A";
+        const status = data.status || "pending";
+
         row.innerHTML = `
-          <td>${data.username || 'N/A'}</td>
-          <td>${data.fullName || 'N/A'}</td>
-          <td>${data.email || 'N/A'}</td>
-          <td>${data.referral || 'None'}</td>
+          <td>${data.username || "N/A"}</td>
+          <td><a href="${data.proofURL}" target="_blank"><img src="${data.proofURL}" alt="Proof" /></a></td>
+          <td><span class="status ${status}">${status.toUpperCase()}</span></td>
+          <td>${submittedAt}</td>
         `;
         tbody.appendChild(row);
       });
     }
 
-    searchInput.addEventListener("input", () => {
-      const keyword = searchInput.value.toLowerCase();
-      const filtered = allUsers.filter(user =>
-        user.username && user.username.toLowerCase().includes(keyword)
-      );
-      renderUsers(filtered);
-    });
-
-    fetchUsers();
+    loadSubmissions();
   </script>
 </body>
 </html>
