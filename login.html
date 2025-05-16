@@ -126,8 +126,8 @@
       try {
         const { user } = await signInWithEmailAndPassword(auth, email, password);
 
-        // NEW: block unverified users
-        if (!user.emailVerified) {
+        // NEW: allow admin to skip verification
+        if (user.email.toLowerCase() !== "victoromubo@gmail.com" && !user.emailVerified) {
           alert("Please verify your email before logging in.");
           await signOut(auth);
           return;
