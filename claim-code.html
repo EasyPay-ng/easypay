@@ -83,7 +83,6 @@
       <input type="text" id="referral" readonly>
     </div>
 
-    <!-- Added Registered On field -->
     <div class="form-group">
       <label for="registered">Registered On</label>
       <input type="text" id="registered" readonly>
@@ -164,13 +163,15 @@
       if (snap.exists()) {
         const data = snap.data();
 
-        referralEl.value = data.username;         // assuming username is referral code
+        referralEl.value = data.username;  // assuming username is referral code
         usernameEl.value = data.username;
 
-        // populate registered date if exists
+        // populate registered date or fallback
         if (data.createdAt && data.createdAt.toDate) {
           const dt = data.createdAt.toDate();
           registeredEl.value = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString();
+        } else {
+          registeredEl.value = 'N/A';
         }
       }
     });
