@@ -140,11 +140,21 @@
         window.location.href = 'login.html';
         return;
       }
+
       const userRef = doc(db, "users", user.uid);
       const snap = await getDoc(userRef);
       if (!snap.exists()) return;
 
       const data = snap.data();
+
+      // Check if user is suspended
+      if (data.suspended === true) {
+        alert("Your account has been suspended.");
+        await signOut(auth);
+        window.location.href = 'login.html';
+        return;
+      }
+
       document.getElementById("usernameDisplay").innerText = data.username || "";
       document.getElementById("profileUsername").innerText = data.username || "";
       document.getElementById("profileEmail").innerText = data.email || "";
@@ -152,7 +162,6 @@
       document.getElementById("referrals").innerText = data.referrals ?? 0;
       document.getElementById("referralCode").innerText = data.username || "";
 
-      // Daily bonus countdown & claim setup
       const claimBtn = document.getElementById("claimBtn");
       if (claimBtn) {
         claimBtn.onclick = () => claimNaira(user.uid, data);
@@ -210,4 +219,5 @@
     }
   </script>
 </body>
-</html>
+  </html>
+  
