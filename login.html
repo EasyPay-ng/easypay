@@ -82,7 +82,7 @@
     </div>
     <button id="loginBtn" class="btn">Login</button>
 
-    <!-- Added Forgot Password link -->
+    <!-- Forgot Password link -->
     <div class="footer-text">
       <p><a href="reset-password.html">Forgot your password?</a></p>
     </div>
@@ -111,8 +111,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Grab references to DOM elements
-    const loginBtn  = document.getElementById('loginBtn');
+    const loginBtn   = document.getElementById('loginBtn');
     const emailInput = document.getElementById('email');
     const passInput  = document.getElementById('password');
 
@@ -127,13 +126,19 @@
       try {
         const { user } = await signInWithEmailAndPassword(auth, email, password);
 
+        // NEW: block unverified users
+        if (!user.emailVerified) {
+          alert("Please verify your email before logging in.");
+          await signOut(auth);
+          return;
+        }
+
         // Fetch this user's Firestore doc to check suspension
         const userDocRef = doc(db, "users", user.uid);
         const userSnap   = await getDoc(userDocRef);
         const userData   = userSnap.exists() ? userSnap.data() : {};
 
         if (userData.suspended) {
-          // Immediately sign out and block access
           await signOut(auth);
           alert("Your account has been suspended. Please contact support.");
           return;
