@@ -1,207 +1,216 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Activate Account</title>
-  <style>
-    :root {
-      --green: #2e7d32;
-      --light-green: #e8f5e9;
-      --white: #ffffff;
-      --gray-bg: #f5f5f5;
-      --shadow: 0 4px 12px rgba(0,0,0,0.05);
-      --radius: 8px;
-      --transition: 0.2s;
-    }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--gray-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-    .card {
-      background: var(--white);
-      padding: 2.5rem 2rem 2rem;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      transition: box-shadow 0.3s ease;
-    }
-    .card:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    }
-    h1 {
-      margin-top: 0;
-      color: var(--green);
-      font-size: 2rem;
-      font-weight: 700;
-    }
-    label {
-      display: block;
-      text-align: left;
-      font-weight: 600;
-      color: var(--green);
-      margin-top: 1.5rem;
-    }
-    input[type="text"], input[type="file"] {
-      margin-top: 0.4rem;
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: var(--radius);
-      border: 1.5px solid #cbd5d1;
-      font-size: 1rem;
-      outline-offset: 2px;
-      transition: border-color 0.2s ease;
-    }
-    input[type="text"]:focus, input[type="file"]:focus {
-      border-color: var(--green);
-    }
-    .info {
-      text-align: left;
-      margin-top: 1.5rem;
-      line-height: 1.6;
-      color: #333;
-    }
-    .info b {
-      display: inline-block;
-      width: 130px;
-    }
-    button {
-      margin-top: 2rem;
-      width: 100%;
-      padding: 0.85rem;
-      background: var(--green);
-      color: var(--white);
-      border: none;
-      border-radius: var(--radius);
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(46,125,50,0.3);
-      transition: background var(--transition), box-shadow var(--transition);
-    }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    button:hover:not(:disabled) {
-      background: #276c28;
-      box-shadow: 0 6px 16px rgba(39,108,40,0.5);
-    }
-    .message {
-      margin-top: 1.2rem;
-      min-height: 1.3em;
-      font-weight: 600;
-      font-size: 1rem;
-    }
-    .message.success {
-      color: var(--green);
-    }
-    .message.error {
-      color: #c62828;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Activate Account</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    :root {
+      --green: #2e7d32;
+      --green-dark: #276c28;
+      --white: #fff;
+      --gray-light: #f5f5f5;
+      --shadow-light: rgba(0,0,0,0.1);
+      --radius: 12px;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--gray-light);
+      font-family: 'Poppins', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .container {
+      background: var(--white);
+      width: 400px;
+      max-width: 95vw;
+      padding: 2.5rem 2rem 3rem;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px var(--shadow-light);
+      display: flex;
+      flex-direction: column;
+      gap: 1.6rem;
+    }
+    h1 {
+      margin: 0 0 0.8rem 0;
+      font-weight: 600;
+      font-size: 1.9rem;
+      color: var(--green);
+      text-align: center;
+    }
+    label {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--green-dark);
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 1rem;
+      border: 2px solid #cbd5d1;
+      border-radius: var(--radius);
+      transition: border-color 0.3s ease;
+      outline-offset: 3px;
+    }
+    input[type="text"]:focus,
+    input[type="file"]:focus {
+      border-color: var(--green);
+      outline: none;
+    }
+    .info {
+      background: #e8f5e9;
+      padding: 1rem 1.2rem;
+      border-radius: var(--radius);
+      color: #276c28;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .info p {
+      margin: 0.3rem 0;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 14px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--white);
+      background: var(--green);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(46,125,50,0.4);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:hover:not(:disabled) {
+      background: var(--green-dark);
+      box-shadow: 0 8px 24px rgba(39,108,40,0.5);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .message {
+      margin-top: 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      min-height: 1.2em;
+      text-align: center;
+      user-select: none;
+    }
+    .message.success {
+      color: var(--green-dark);
+    }
+    .message.error {
+      color: #c62828;
+    }
+  </style>
 </head>
 <body>
-  <div class="card" role="main" aria-label="Activate Your Account Form">
-    <h1>Activate Your Account</h1>
+  <main class="container" role="main" aria-label="Account Activation Form">
+    <h1>Activate Your Account</h1>
+    
+    <label for="username">Username</label>
+    <input id="username" type="text" placeholder="Enter your username" autocomplete="username" aria-required="true" />
+    
+    <section class="info" aria-live="polite" aria-atomic="true">
+      <p><strong>Amount:</strong> ₦100</p>
+      <p><strong>Account Name:</strong> VICTOR OMUBO</p>
+      <p><strong>Bank:</strong> MOMO PSB</p>
+      <p><strong>Account No:</strong> 8037402826</p>
+    </section>
+    
+    <label for="proof">Upload Proof of Activation</label>
+    <input id="proof" type="file" accept="image/*" aria-describedby="proofHelp" aria-required="true" />
+    
+    <button id="submitBtn" type="button" aria-live="polite" aria-atomic="true" >Submit for Approval</button>
+    
+    <div id="message" class="message" aria-live="assertive"></div>
+  </main>
 
-    <label for="usernameInput">Username</label>
-    <input type="text" id="usernameInput" placeholder="Enter your username" autocomplete="username" />
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-    <div class="info" aria-live="polite" aria-atomic="true">
-      <p><b>Amount:</b> ₦100</p>
-      <p><b>Account Name:</b> VICTOR OMUBO</p>
-      <p><b>Bank:</b> MOMO PSB</p>
-      <p><b>Account No:</b> 8037402826</p>
-    </div>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+    };
 
-    <label for="proofFile">Upload Proof of Activation</label>
-    <input type="file" id="proofFile" accept="image/*" aria-describedby="fileHelp" />
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    <button id="submitBtn" onclick="submitProof()">Submit for Approval</button>
-    <div class="message" id="message" aria-live="assertive"></div>
-  </div>
+    const usernameInput = document.getElementById('username');
+    const proofInput = document.getElementById('proof');
+    const submitBtn = document.getElementById('submitBtn');
+    const messageDiv = document.getElementById('message');
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
+    submitBtn.addEventListener('click', async () => {
+      messageDiv.textContent = '';
+      messageDiv.className = 'message';
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
+      const username = usernameInput.value.trim();
+      if (!username) {
+        messageDiv.textContent = 'Please enter your username.';
+        messageDiv.classList.add('error');
+        usernameInput.focus();
+        return;
+      }
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+      if (proofInput.files.length === 0) {
+        messageDiv.textContent = 'Please upload proof of activation.';
+        messageDiv.classList.add('error');
+        proofInput.focus();
+        return;
+      }
 
-    async function submitProof() {
-      const username = document.getElementById('usernameInput').value.trim();
-      const fileInput = document.getElementById('proofFile');
-      const btn = document.getElementById('submitBtn');
-      const msg = document.getElementById('message');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Uploading...';
 
-      msg.textContent = '';
-      msg.className = 'message';
+      try {
+        const file = proofInput.files[0];
+        const fileRef = storageRef(storage, `activations/${username}/${Date.now()}_${file.name}`);
+        await uploadBytes(fileRef, file);
+        const downloadURL = await getDownloadURL(fileRef);
 
-      if (!username) {
-        msg.textContent = 'Please enter your username.';
-        msg.classList.add('error');
-        return;
-      }
+        await setDoc(doc(db, 'activations', username), {
+          username,
+          proofURL: downloadURL,
+          status: 'pending',
+          requestedAt: serverTimestamp(),
+        });
 
-      if (!fileInput.files.length) {
-        msg.textContent = 'Please choose an image.';
-        msg.classList.add('error');
-        return;
-      }
+        messageDiv.textContent = 'Submission successful! Await admin approval.';
+        messageDiv.classList.add('success');
 
-      btn.disabled = true;
-      btn.textContent = 'Uploading…';
-
-      try {
-        const imgFile = fileInput.files[0];
-        const imgRef = storageRef(storage, `activations/${username}/${Date.now()}_${imgFile.name}`);
-        const snap = await uploadBytes(imgRef, imgFile);
-        const url = await getDownloadURL(snap.ref);
-
-        await setDoc(doc(db, 'activations', username), {
-          username,
-          proofURL: url,
-          status: 'pending',
-          requested: serverTimestamp()
-        });
-
-        msg.textContent = 'Submitted! Waiting for admin approval.';
-        msg.classList.add('success');
-        fileInput.value = '';
-        document.getElementById('usernameInput').value = '';
-      } catch(err) {
-        console.error(err);
-        msg.textContent = 'Upload failed. Try again.';
-        msg.classList.add('error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Submit for Approval';
-      }
-    }
-  </script>
+        usernameInput.value = '';
+        proofInput.value = '';
+      } catch (error) {
+        console.error(error);
+        messageDiv.textContent = 'Submission failed. Please try again.';
+        messageDiv.classList.add('error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Approval';
+      }
+    });
+  </script>
 </body>
 </html>
