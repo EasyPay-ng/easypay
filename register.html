@@ -159,25 +159,32 @@
           const user = userCredential.user;
           const uid = user.uid;
 
-          const userData = {
-            username,
-            fullname,
-            email,
-            referral,
-            balance: 10,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            transactions: [
-              {
-                amount: 10,
-                type: "Registration Bonus",
-                date: new Date().toLocaleString()
-              }
-            ]
-          };
+          // Send verification email
+          user.sendEmailVerification()
+            .then(() => {
+              // Save user data after sending verification
+              const userData = {
+                username,
+                fullname,
+                email,
+                referral,
+                balance: 10,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                transactions: [
+                  {
+                    amount: 10,
+                    type: "Registration Bonus",
+                    date: new Date().toLocaleString()
+                  }
+                ]
+              };
 
-          db.collection("users").doc(uid).set(userData).then(() => {
-            window.location.href = "login.html";
-          });
+              return db.collection("users").doc(uid).set(userData);
+            })
+            .then(() => {
+              alert("Registration successful! A verification email has been sent. Please verify your email before logging in.");
+              window.location.href = "login.html";
+            });
         })
         .catch((error) => {
           alert(error.message);
@@ -187,4 +194,3 @@
 </body>
 
 </html>
-
