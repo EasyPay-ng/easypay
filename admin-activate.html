@@ -16,6 +16,14 @@
       color: #2c662d;
       text-align: center;
     }
+    #searchInput {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -35,13 +43,16 @@
 </head>
 <body>
   <h1>All Registered Users</h1>
+
+  <input type="text" id="searchInput" placeholder="Search by username...">
+
   <table id="userTable">
     <thead>
       <tr>
         <th>Username</th>
         <th>Full Name</th>
         <th>Email</th>
-        <th>Referral Code</th>
+        <th>Referral</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -62,21 +73,40 @@
     const db = firebase.firestore();
 
     const tbody = document.querySelector("#userTable tbody");
+    const searchInput = document.getElementById("searchInput");
+    let allUsers = [];
 
     async function fetchUsers() {
-      const snapshot = await db.collection("users").get();
-      snapshot.forEach(doc => {
-        const data = doc.data();
+      try {
+        const snapshot = await db.collection("users").get();
+        allUsers = snapshot.docs.map(doc => doc.data());
+        renderUsers(allUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    }
+
+    function renderUsers(users) {
+      tbody.innerHTML = "";
+      users.forEach(data => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${data.username || 'N/A'}</td>
           <td>${data.fullName || 'N/A'}</td>
           <td>${data.email || 'N/A'}</td>
-          <td>${data.referralCode || 'N/A'}</td>
+          <td>${data.referral || 'None'}</td>
         `;
         tbody.appendChild(row);
       });
     }
+
+    searchInput.addEventListener("input", () => {
+      const keyword = searchInput.value.toLowerCase();
+      const filtered = allUsers.filter(user =>
+        user.username && user.username.toLowerCase().includes(keyword)
+      );
+      renderUsers(filtered);
+    });
 
     fetchUsers();
   </script>
