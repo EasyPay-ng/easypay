@@ -137,12 +137,15 @@
             return;
           }
 
-          // Redirect based on email
+          // Redirect with popup
           if (user.email.toLowerCase() === "easypay27.ng@gmail.com") {
+            alert("Welcome Admin!");
             window.location.href = 'admin.html';
           } else {
+            alert("Successfully logged in!");
             window.location.href = 'dashboard.html';
           }
+
         } catch (err) {
           console.error("Login failed:", err);
           alert("Login failed: " + err.message);
