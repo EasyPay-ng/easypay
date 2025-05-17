@@ -1,67 +1,161 @@
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-
-  // Initialize Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-    authDomain: "easypay-6bce8.firebaseapp.com",
-    projectId: "easypay-6bce8",
-    storageBucket: "easypay-6bce8.appspot.com",
-    messagingSenderId: "862671358267",
-    appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-    measurementId: "G-2FZKDQ47FZ"
-  };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  const loginBtn = document.getElementById('loginBtn');
-  const emailInput = document.getElementById('email');
-  const passInput = document.getElementById('password');
-
-  loginBtn.addEventListener('click', async () => {
-    const email = emailInput.value.trim();
-    const password = passInput.value;
-
-    if (!email || !password) {
-      return alert("Please enter both email and password.");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0fff0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-
-    try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-
-      // NEW: allow admin to skip verification
-      if (user.email.toLowerCase() !== "easypay27.ng@gmail.com" && !user.emailVerified) {
-        alert("Please verify your email before logging in.");
-        await signOut(auth);
-        return;
-      }
-
-      // Fetch this user's Firestore doc to check suspension
-      const userDocRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userDocRef);
-      const userData = userSnap.exists() ? userSnap.data() : {};
-
-      if (userData.suspended) {
-        await signOut(auth);
-        alert("Your account has been suspended. Please contact support.");
-        return;
-      }
-
-      // Admin vs. regular user routing
-      if (user.email.toLowerCase() === "easypay27.ng@gmail.com") {
-        alert("Welcome Admin!");
-        window.location.href = 'admin.html';
-      } else {
-        alert("Successfully logged in!");
-        window.location.href = 'dashboard.html';
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      alert("Login failed: " + err.message);
+    .login-container {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
     }
-  });
-          </script>
-          
+    .login-container h2 {
+      margin-top: 0;
+      text-align: center;
+      color: green;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background-color: green;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background-color: #0d8f0d;
+    }
+    .footer-text {
+      margin-top: 12px;
+      text-align: center;
+    }
+    .footer-text a {
+      color: green;
+      text-decoration: none;
+    }
+    .footer-text a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>User Login</h2>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@example.com" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••" required>
+    </div>
+    <button id="loginBtn" class="btn">Login</button>
+
+    <div class="footer-text">
+      <p><a href="reset-password.html">Forgot your password?</a></p>
+    </div>
+    <div class="footer-text">
+      <p>Don't have an account? <a href="register.html">Register now!</a></p>
+    </div>
+  </div>
+
+  <script type="module">
+    // guard against top‐level load errors
+    import("https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js")
+      .then(({ initializeApp }) => {
+        import("https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js")
+          .then(({ getAuth, signInWithEmailAndPassword, signOut }) => {
+            import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js")
+              .then(({ getFirestore, doc, getDoc }) => {
+                document.addEventListener('DOMContentLoaded', () => {
+                  const firebaseConfig = {
+                    apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+                    authDomain: "easypay-6bce8.firebaseapp.com",
+                    projectId: "easypay-6bce8",
+                    storageBucket: "easypay-6bce8.firebasestorage.app",  // <-- original value restored
+                    messagingSenderId: "862671358267",
+                    appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+                    measurementId: "G-2FZKDQ47FZ"
+                  };
+                  const app = initializeApp(firebaseConfig);
+                  const auth = getAuth(app);
+                  const db = getFirestore(app);
+
+                  const loginBtn   = document.getElementById('loginBtn');
+                  const emailInput = document.getElementById('email');
+                  const passInput  = document.getElementById('password');
+
+                  loginBtn.addEventListener('click', async () => {
+                    const email    = emailInput.value.trim();
+                    const password = passInput.value;
+                    if (!email || !password) {
+                      return alert("Please enter both email and password.");
+                    }
+                    try {
+                      const { user } = await signInWithEmailAndPassword(auth, email, password);
+                      if (user.email.toLowerCase() !== "easypay27.ng@gmail.com" && !user.emailVerified) {
+                        alert("Please verify your email before logging in.");
+                        await signOut(auth);
+                        return;
+                      }
+                      const userSnap = await getDoc(doc(db, "users", user.uid));
+                      const userData = userSnap.exists() ? userSnap.data() : {};
+                      if (userData.suspended) {
+                        await signOut(auth);
+                        alert("Your account has been suspended. Please contact support.");
+                        return;
+                      }
+                      if (user.email.toLowerCase() === "easypay27.ng@gmail.com") {
+                        alert("Welcome Admin!");
+                        window.location.href = 'admin.html';
+                      } else {
+                        alert("Successfully logged in!");
+                        window.location.href = 'dashboard.html';
+                      }
+                    } catch (err) {
+                      console.error("Login error:", err);
+                      alert("Login failed: " + err.message);
+                    }
+                  });
+                });
+              })
+              .catch(e => console.error("Firestore load failed:", e));
+          })
+          .catch(e => console.error("Auth load failed:", e));
+      })
+      .catch(e => console.error("App load failed:", e));
+  </script>
+
+</body>
+</html>
