@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Activation Submissions</title>
+  <title>All Registered Users</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
     body {
@@ -15,103 +15,71 @@
       flex-direction: column;
       align-items: center;
     }
-
     h1 {
       color: #2e7d32;
       margin: 2rem 0 1rem;
+      font-weight: 600;
     }
-
     .table-container {
       width: 95%;
       max-width: 1000px;
       overflow-x: auto;
-      background: white;
+      background: #fff;
       border-radius: 12px;
       box-shadow: 0 10px 20px rgba(0,0,0,0.1);
       padding: 1rem;
       margin-bottom: 2rem;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 600px;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid #e0e0e0;
-    }
-
-    th {
-      background-color: #2e7d32;
-      color: white;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
-    td {
       font-size: 0.9rem;
     }
-
-    td img {
-      max-height: 60px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-
-    td img:hover {
-      transform: scale(1.05);
-    }
-
-    .status {
-      font-weight: bold;
-      padding: 4px 10px;
-      border-radius: 6px;
-      display: inline-block;
-    }
-
-    .pending {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .approved {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .rejected {
-      background: #f8d7da;
-      color: #721c24;
+    th {
+      background-color: #2e7d32;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
     }
   </style>
 </head>
 <body>
-  <h1>Activation Submissions</h1>
+  <h1>All Registered Users</h1>
 
   <div class="table-container">
     <table>
       <thead>
         <tr>
           <th>Username</th>
-          <th>Proof</th>
-          <th>Status</th>
-          <th>Submitted At</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Referral</th>
+          <th>Registered At</th>
         </tr>
       </thead>
-      <tbody id="submissionBody">
-        <tr><td colspan="4">Loading...</td></tr>
+      <tbody id="userBody">
+        <tr><td colspan="5">Loading...</td></tr>
       </tbody>
     </table>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
+    // Your existing Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -123,38 +91,36 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const tbody = document.getElementById("userBody");
 
-    const tbody = document.getElementById("submissionBody");
-
-    async function loadSubmissions() {
-      const q = query(collection(db, "activations"), orderBy("requestedAt", "desc"));
-      const querySnapshot = await getDocs(q);
+    async function loadUsers() {
+      // Query users ordered by their creation timestamp, if you stored one
+      const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
 
       tbody.innerHTML = "";
-
-      if (querySnapshot.empty) {
-        tbody.innerHTML = "<tr><td colspan='4'>No submissions found.</td></tr>";
+      if (snapshot.empty) {
+        tbody.innerHTML = "<tr><td colspan='5'>No users found.</td></tr>";
         return;
       }
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const row = document.createElement("tr");
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const registered = d.createdAt?.toDate?.().toLocaleString() || "N/A";
 
-        const submittedAt = data.requestedAt?.toDate?.().toLocaleString() || "N/A";
-        const status = data.status || "pending";
-
-        row.innerHTML = `
-          <td>${data.username || "N/A"}</td>
-          <td><a href="${data.proofURL}" target="_blank"><img src="${data.proofURL}" alt="Proof" /></a></td>
-          <td><span class="status ${status}">${status.toUpperCase()}</span></td>
-          <td>${submittedAt}</td>
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.username || "—"}</td>
+          <td>${d.fullName || "—"}</td>
+          <td>${d.email || "—"}</td>
+          <td>${d.referral || "—"}</td>
+          <td>${registered}</td>
         `;
-        tbody.appendChild(row);
+        tbody.appendChild(tr);
       });
     }
 
-    loadSubmissions();
+    loadUsers();
   </script>
 </body>
 </html>
