@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Activate Account</title>
+  <title>Upgrade Your Account</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
     :root {
@@ -118,7 +118,7 @@
   </style>
 </head>
 <body>
-  <main class="container" role="main" aria-label="Account Activation Form">
+  <main class="container" role="main" aria-label="Upgrade Account Form">
     <h1>Upgrade Your Account</h1>
     
     <label for="username">Username</label>
@@ -135,7 +135,7 @@
     </section>
     
     <label for="proof">Upload Proof of Upgrade</label>
-    <input id="proof" type="file" accept="image/*" aria-describedby="proofHelp" aria-required="true" />
+    <input id="proof" type="file" accept="image/*" aria-required="true" />
     
     <button id="submitBtn" type="button" aria-live="polite" aria-atomic="true">Submit for Approval</button>
     
@@ -144,9 +144,20 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import {
+      getStorage,
+      ref as storageRef,
+      uploadBytes,
+      getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
+    // ── Firebase initialization ─────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -160,72 +171,83 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    const usernameInput = document.getElementById('username');
-    const senderNameInput = document.getElementById('senderName');
-    const proofInput = document.getElementById('proof');
-    const submitBtn = document.getElementById('submitBtn');
-    const messageDiv = document.getElementById('message');
+    // ── DOM Elements ─────────────────────────────────────────────────────────────────
+    const usernameInput   = document.getElementById("username");
+    const senderNameInput = document.getElementById("senderName");
+    const proofInput      = document.getElementById("proof");
+    const submitBtn       = document.getElementById("submitBtn");
+    const messageDiv      = document.getElementById("message");
 
-    submitBtn.addEventListener('click', async () => {
-      // Reset message
-      messageDiv.textContent = '';
-      messageDiv.className = 'message';
+    // ── Submit Handler ─────────────────────────────────────────────────────────────────
+    submitBtn.addEventListener("click", async () => {
+      // Reset any previous message
+      messageDiv.textContent = "";
+      messageDiv.className = "message";
 
-      const username = usernameInput.value.trim();
+      const username   = usernameInput.value.trim();
       const senderName = senderNameInput.value.trim();
 
+      // Validate fields
       if (!username) {
-        messageDiv.textContent = 'Please enter your username.';
-        messageDiv.classList.add('error');
+        messageDiv.textContent = "Please enter your username.";
+        messageDiv.classList.add("error");
         usernameInput.focus();
         return;
       }
-
       if (!senderName) {
-        messageDiv.textContent = 'Please enter the sender\'s name.';
-        messageDiv.classList.add('error');
+        messageDiv.textContent = "Please enter the sender’s name.";
+        messageDiv.classList.add("error");
         senderNameInput.focus();
         return;
       }
-
       if (proofInput.files.length === 0) {
-        messageDiv.textContent = 'Please upload proof of activation.';
-        messageDiv.classList.add('error');
+        messageDiv.textContent = "Please upload proof of upgrade.";
+        messageDiv.classList.add("error");
         proofInput.focus();
         return;
       }
 
+      // Disable button and show uploading status
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Uploading...';
+      submitBtn.textContent = "Uploading...";
 
       try {
-        const file = proofInput.files[0];
-        const fileRef = storageRef(storage, `activations/${username}/${Date.now()}_${file.name}`);
-        await uploadBytes(fileRef, file);
-        const downloadURL = await getDownloadURL(fileRef);
+        console.log("Starting upload for:", username);
 
-        await setDoc(doc(db, 'activations', username), {
+        // 1) Upload the file to storage under `upgrades/<username>/<timestamp>_<filename>`
+        const file = proofInput.files[0];
+        const path = `upgrades/${username}/${Date.now()}_${file.name}`;
+        const fileReference = storageRef(storage, path);
+        await uploadBytes(fileReference, file);
+
+        // 2) Get the download URL of the uploaded image
+        const proofURL = await getDownloadURL(fileReference);
+        console.log("Proof uploaded, URL:", proofURL);
+
+        // 3) Add a new document into `upgrades` collection
+        await addDoc(collection(db, "upgrades"), {
           username,
           senderName,
-          proofURL: downloadURL,
-          status: 'pending',
+          proofURL,
           requestedAt: serverTimestamp()
         });
 
-        messageDiv.textContent = 'Submission successful! Await admin approval.';
-        messageDiv.classList.add('success');
+        // 4) Show success
+        messageDiv.textContent = "Submission successful! Await admin approval.";
+        messageDiv.classList.add("success");
 
-        // Clear inputs
-        usernameInput.value = '';
-        senderNameInput.value = '';
-        proofInput.value = '';
+        // Clear fields
+        usernameInput.value   = "";
+        senderNameInput.value = "";
+        proofInput.value      = "";
       } catch (error) {
-        console.error(error);
-        messageDiv.textContent = 'Submission failed. Please try again.';
-        messageDiv.classList.add('error');
+        console.error("Upload/send failed:", error);
+        messageDiv.textContent = "Submission failed. Please try again.";
+        messageDiv.classList.add("error");
       } finally {
+        // Re‐enable button
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit for Approval';
+        submitBtn.textContent = "Submit for Approval";
       }
     });
   </script>
