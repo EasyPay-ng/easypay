@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -124,6 +124,9 @@
     <label for="username">Username</label>
     <input id="username" type="text" placeholder="Enter your username" autocomplete="username" aria-required="true" />
     
+    <label for="senderName">Sender's Name</label>
+    <input id="senderName" type="text" placeholder="Enter sender's name" autocomplete="off" aria-required="true" />
+    
     <section class="info" aria-live="polite" aria-atomic="true">
       <p><strong>Amount:</strong> ₦100</p>
       <p><strong>Account Name:</strong> VICTOR OMUBO</p>
@@ -134,7 +137,7 @@
     <label for="proof">Upload Proof of Activation</label>
     <input id="proof" type="file" accept="image/*" aria-describedby="proofHelp" aria-required="true" />
     
-    <button id="submitBtn" type="button" aria-live="polite" aria-atomic="true" >Submit for Approval</button>
+    <button id="submitBtn" type="button" aria-live="polite" aria-atomic="true">Submit for Approval</button>
     
     <div id="message" class="message" aria-live="assertive"></div>
   </main>
@@ -150,7 +153,7 @@
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -158,19 +161,30 @@
     const storage = getStorage(app);
 
     const usernameInput = document.getElementById('username');
+    const senderNameInput = document.getElementById('senderName');
     const proofInput = document.getElementById('proof');
     const submitBtn = document.getElementById('submitBtn');
     const messageDiv = document.getElementById('message');
 
     submitBtn.addEventListener('click', async () => {
+      // Reset message
       messageDiv.textContent = '';
       messageDiv.className = 'message';
 
       const username = usernameInput.value.trim();
+      const senderName = senderNameInput.value.trim();
+
       if (!username) {
         messageDiv.textContent = 'Please enter your username.';
         messageDiv.classList.add('error');
         usernameInput.focus();
+        return;
+      }
+
+      if (!senderName) {
+        messageDiv.textContent = 'Please enter the sender\'s name.';
+        messageDiv.classList.add('error');
+        senderNameInput.focus();
         return;
       }
 
@@ -192,15 +206,18 @@
 
         await setDoc(doc(db, 'activations', username), {
           username,
+          senderName,
           proofURL: downloadURL,
           status: 'pending',
-          requestedAt: serverTimestamp(),
+          requestedAt: serverTimestamp()
         });
 
         messageDiv.textContent = 'Submission successful! Await admin approval.';
         messageDiv.classList.add('success');
 
+        // Clear inputs
         usernameInput.value = '';
+        senderNameInput.value = '';
         proofInput.value = '';
       } catch (error) {
         console.error(error);
