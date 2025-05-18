@@ -157,7 +157,7 @@
       getDownloadURL
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-    // ── Firebase initialization ─────────────────────────────────────────────
+    // ── Firebase initialization ────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -171,23 +171,23 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // ── DOM Elements ─────────────────────────────────────────────────────────────────
+    // ── DOM Elements ─────────────────────────────────────────────────────────
     const usernameInput   = document.getElementById("username");
     const senderNameInput = document.getElementById("senderName");
     const proofInput      = document.getElementById("proof");
     const submitBtn       = document.getElementById("submitBtn");
     const messageDiv      = document.getElementById("message");
 
-    // ── Submit Handler ─────────────────────────────────────────────────────────────────
+    // ── Submit Handler ─────────────────────────────────────────────────────────
     submitBtn.addEventListener("click", async () => {
-      // Reset any previous message
+      // Clear any previous message
       messageDiv.textContent = "";
       messageDiv.className = "message";
 
       const username   = usernameInput.value.trim();
       const senderName = senderNameInput.value.trim();
 
-      // Validate fields
+      // 1) Validate inputs
       if (!username) {
         messageDiv.textContent = "Please enter your username.";
         messageDiv.classList.add("error");
@@ -211,19 +211,28 @@
       submitBtn.disabled = true;
       submitBtn.textContent = "Uploading...";
 
+      let proofURL = "";
       try {
-        console.log("Starting upload for:", username);
-
-        // 1) Upload the file to storage under `upgrades/<username>/<timestamp>_<filename>`
+        console.log("Uploading file for", username);
+        // 2) Upload the file to storage under `upgrades/<username>/<timestamp>_<filename>`
         const file = proofInput.files[0];
         const path = `upgrades/${username}/${Date.now()}_${file.name}`;
         const fileReference = storageRef(storage, path);
         await uploadBytes(fileReference, file);
+        proofURL = await getDownloadURL(fileReference);
+        console.log("File uploaded, URL:", proofURL);
+      } catch (uploadErr) {
+        console.error("Upload error:", uploadErr);
+        messageDiv.textContent = "Failed to upload proof. Please try again.";
+        messageDiv.classList.add("error");
+        // Re-enable button and return early
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit for Approval";
+        return;
+      }
 
-        // 2) Get the download URL of the uploaded image
-        const proofURL = await getDownloadURL(fileReference);
-        console.log("Proof uploaded, URL:", proofURL);
-
+      try {
+        console.log("Saving to Firestore:", { username, senderName, proofURL });
         // 3) Add a new document into `upgrades` collection
         await addDoc(collection(db, "upgrades"), {
           username,
@@ -231,24 +240,29 @@
           proofURL,
           requestedAt: serverTimestamp()
         });
-
-        // 4) Show success
-        messageDiv.textContent = "Submission successful! Await admin approval.";
-        messageDiv.classList.add("success");
-
-        // Clear fields
-        usernameInput.value   = "";
-        senderNameInput.value = "";
-        proofInput.value      = "";
-      } catch (error) {
-        console.error("Upload/send failed:", error);
-        messageDiv.textContent = "Submission failed. Please try again.";
+        console.log("Firestore write complete");
+      } catch (dbErr) {
+        console.error("Firestore error:", dbErr);
+        messageDiv.textContent = "Failed to save data. Please try again.";
         messageDiv.classList.add("error");
-      } finally {
-        // Re‐enable button
+        // Re-enable button and return
         submitBtn.disabled = false;
         submitBtn.textContent = "Submit for Approval";
+        return;
       }
+
+      // 4) Success path
+      messageDiv.textContent = "Submission successful! Await admin approval.";
+      messageDiv.classList.add("success");
+
+      // Clear fields
+      usernameInput.value   = "";
+      senderNameInput.value = "";
+      proofInput.value      = "";
+
+      // Re-enable button and reset label
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit for Approval";
     });
   </script>
 </body>
