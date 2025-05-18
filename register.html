@@ -160,7 +160,7 @@
           const uid = user.uid;
 
           // Send verification email
-          user.sendEmailVerification()
+          return user.sendEmailVerification()
             .then(() => {
               // Save user data after sending verification
               const userData = {
@@ -169,6 +169,8 @@
                 email,
                 referral,
                 balance: 10,
+                plan: "basic",                     // ← new default field
+                lastDailyClaim: null,              // ← tracks when they last claimed
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 transactions: [
                   {
@@ -180,11 +182,11 @@
               };
 
               return db.collection("users").doc(uid).set(userData);
-            })
-            .then(() => {
-              alert("Registration successful! A verification email has been sent. Please verify your email before logging in.");
-              window.location.href = "login.html";
             });
+        })
+        .then(() => {
+          alert("Registration successful! A verification email has been sent. Please verify your email before logging in.");
+          window.location.href = "login.html";
         })
         .catch((error) => {
           alert(error.message);
