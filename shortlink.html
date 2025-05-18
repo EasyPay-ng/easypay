@@ -74,16 +74,14 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // ShrinkMe URLs
     const shrinkLinks = {
       27001: 'https://tpi.li/yXUwlkTj',
-      27002: 'https://shrinkme.ink/9GrK',
-      27003: 'https://tpi.li/eQahfcZv'
+      27002: 'https://shrinkme.ink/9GrK'
     };
 
     const container = document.getElementById("tasksContainer");
     const buttons = {};
-    for (let id = 27001; id <= 27003; id++) {
+    for (let id in shrinkLinks) {
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
@@ -103,7 +101,7 @@
       const snap = await userRef.get();
       const data = snap.exists ? snap.data() : {};
 
-      for (let id = 27001; id <= 27003; id++) {
+      for (let id in shrinkLinks) {
         const btn = buttons[id];
         const link = shrinkLinks[id];
         const localKey = `shortlink_${uid}_${id}`;
