@@ -122,12 +122,13 @@
 
   <div class="container">
     <div class="search-group">
-      <input type="text" id="searchInput" placeholder="Search users by username..." />
+      <input type="text" id="searchInput" placeholder="Search users by username..." oninput="filterTable()" />
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
     </div>
 
     <div id="resultsContainer">
       <!-- Table of users will be injected here -->
+      <p class="no-results" id="noResults" style="display: none;">No users found.</p>
     </div>
   </div>
 
@@ -136,8 +137,6 @@
     import {
       getFirestore,
       collection,
-      query,
-      where,
       getDocs,
       updateDoc,
       doc
@@ -164,12 +163,15 @@
     const db = getFirestore(app);
     const auth = getAuth();
 
-    let adminEmail = "easypay27.ng@gmail.com"; // Only this email can access
+    const adminEmail = "easypay27.ng@gmail.com"; // Only this email can access
 
     const logoutBtn = document.getElementById("logoutBtn");
     const searchInput = document.getElementById("searchInput");
     const searchBtn = document.getElementById("searchBtn");
     const resultsContainer = document.getElementById("resultsContainer");
+    const noResults = document.getElementById("noResults");
+
+    let allUsers = []; // Will hold the fetched user data
 
     // Check authentication and admin privileges
     onAuthStateChanged(auth, user => {
@@ -178,45 +180,52 @@
         signOut(auth).then(() => window.location.href = "login.html");
         return;
       }
-      // Admin is signed in: show search UI
+      // Admin is signed in: load all users
+      loadAllUsers();
     });
 
-    // Search handler
-    searchBtn.addEventListener("click", () => {
-      performSearch();
+    logoutBtn.addEventListener("click", () => {
+      signOut(auth).then(() => window.location.href = "login.html");
     });
 
-    // Also allow pressing Enter in the input
-    searchInput.addEventListener("keyup", (e) => {
-      if (e.key === "Enter") {
-        performSearch();
-      }
-    });
+    // Fetch all users from Firestore and render table
+    async function loadAllUsers() {
+      resultsContainer.innerHTML = ""; // Clear
+      const snapshot = await getDocs(collection(db, "users"));
 
-    async function performSearch() {
-      const term = searchInput.value.trim().toLowerCase();
-      resultsContainer.innerHTML = ""; // Clear previous results
-
-      if (!term) {
-        resultsContainer.innerHTML = `<p class="no-results">Please enter a username to search.</p>`;
+      if (snapshot.empty) {
+        noResults.style.display = "block";
         return;
+      } else {
+        noResults.style.display = "none";
       }
 
-      // Firestore prefix query: username >= term && username < term + '\uf8ff'
-      const usersRef = collection(db, "users");
-      const q = query(
-        usersRef,
-        where("username_lowercase", ">=", term),
-        where("username_lowercase", "<=", term + "\uf8ff")
-      );
+      // Store data locally
+      allUsers = [];
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        allUsers.push({
+          id: docSnap.id,
+          username: data.username || "",
+          email: data.email || "",
+          plan: data.plan || "basic"
+        });
+      });
 
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) {
-        resultsContainer.innerHTML = `<p class="no-results">No users found matching "${term}".</p>`;
+      renderTable(allUsers);
+    }
+
+    // Render a table given an array of user objects
+    function renderTable(users) {
+      resultsContainer.innerHTML = ""; // Clear any existing
+
+      if (users.length === 0) {
+        noResults.style.display = "block";
         return;
+      } else {
+        noResults.style.display = "none";
       }
 
-      // Build table
       const table = document.createElement("table");
       const thead = document.createElement("thead");
       thead.innerHTML = `
@@ -230,25 +239,20 @@
       table.appendChild(thead);
 
       const tbody = document.createElement("tbody");
-      querySnapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const uid = docSnap.id;
-        const username = data.username || "";
-        const email = data.email || "";
-        const plan = data.plan || "basic";
 
+      users.forEach(user => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${username}</td>
-          <td>${email}</td>
+          <td>${user.username}</td>
+          <td>${user.email}</td>
           <td>
-            <select id="plan-${uid}">
-              <option value="basic" ${plan === "basic" ? "selected" : ""}>Basic</option>
-              <option value="premium" ${plan === "premium" ? "selected" : ""}>Premium</option>
+            <select id="plan-${user.id}">
+              <option value="basic" ${user.plan === "basic" ? "selected" : ""}>Basic</option>
+              <option value="premium" ${user.plan === "premium" ? "selected" : ""}>Premium</option>
             </select>
           </td>
           <td>
-            <button class="save-btn" data-uid="${uid}">Save</button>
+            <button class="save-btn" data-uid="${user.id}">Save</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -266,7 +270,7 @@
 
           try {
             await updateDoc(doc(db, "users", uid), { plan: newPlan });
-            alert(`Updated ${uid} to ${newPlan.charAt(0).toUpperCase() + newPlan.slice(1)} plan.`);
+            alert(`Updated plan to ${newPlan} for user.`);
           } catch (err) {
             console.error("Error updating plan:", err);
             alert("Failed to update plan: " + err.message);
@@ -275,9 +279,21 @@
       });
     }
 
-    logoutBtn.addEventListener("click", () => {
-      signOut(auth).then(() => window.location.href = "login.html");
-    });
+    // Filter the table client-side based on search input
+    function filterTable() {
+      const query = searchInput.value.trim().toLowerCase();
+      if (query === "") {
+        renderTable(allUsers);
+        return;
+      }
+      const filtered = allUsers.filter(user =>
+        user.username.toLowerCase().includes(query)
+      );
+      renderTable(filtered);
+    }
+
+    // Also handle clicking “Search” button
+    searchBtn.addEventListener("click", filterTable);
   </script>
 </body>
 </html>
