@@ -169,6 +169,7 @@
         <a href="admin-advertise.html">Adverts</a>
         <a href="admin-task.html">Submissions</a>
         <a href="admin-activate.html">User Records</a>
+        <a href="plans.html">User Plans</a>
       </div>
     </div>
   </header>
@@ -201,7 +202,13 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { 
+      getFirestore, 
+      collection, 
+      getDocs, 
+      doc, 
+      updateDoc 
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
