@@ -170,6 +170,7 @@
         <a href="admin-task.html">Submissions</a>
         <a href="admin-activate.html">User Records</a>
         <a href="admin-plans.html">User Plans</a>
+        <a href="admin-upgrade.html">Upgrades</a> <!-- Newly added option -->
       </div>
     </div>
   </header>
@@ -202,12 +203,12 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      getDocs, 
-      doc, 
-      updateDoc 
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      updateDoc
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -239,7 +240,9 @@
           <td>${data.referrals || 0}</td>
           <td>${isSusp ? "Suspended" : "Active"}</td>
           <td>
-            <button class="btn edit-btn" onclick="openModal('${docSnap.id}', '${data.username}', ${data.balance || 0}, ${data.referrals || 0})">Edit</button>
+            <button class="btn edit-btn" onclick="openModal('${docSnap.id}', '${data.username}', ${data.balance || 0}, ${data.referrals || 0})">
+              Edit
+            </button>
             <button class="btn suspend-btn" onclick="toggleSuspend('${docSnap.id}', ${isSusp})">
               ${isSusp ? 'Unsuspend' : 'Suspend'}
             </button>
@@ -285,7 +288,7 @@
     };
 
     window.addEventListener("click", e => {
-      if (e.target.classList.contains("modal")) {
+      if (e.target === document.getElementById("editModal")) {
         document.getElementById("editModal").style.display = "none";
       }
     });
