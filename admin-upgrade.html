@@ -102,18 +102,18 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      getDocs 
+    import {
+      getFirestore,
+      collection,
+      getDocs
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-    import { 
-      getAuth, 
-      onAuthStateChanged, 
-      signOut 
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-    // Firebase config
+    // ── Firebase config ───────────────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -123,17 +123,17 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
 
-    // Initialize Firebase
+    // ── Initialize Firebase ────────────────────────────────────────────────────
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
-    const adminEmail = "easypay27.ng@gmail.com"; 
+    const adminEmail = "easypay27.ng@gmail.com";
     const resultsContainer = document.getElementById("resultsContainer");
     const noDataMsg = document.getElementById("noDataMsg");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    // Check admin authentication
+    // ── Check admin authentication ────────────────────────────────────────────
     onAuthStateChanged(auth, user => {
       if (!user || user.email.toLowerCase() !== adminEmail) {
         signOut(auth).then(() => window.location.href = "login.html");
@@ -146,9 +146,10 @@
       signOut(auth).then(() => window.location.href = "login.html");
     });
 
-    // Load all upgrade requests
+    // ── Load all upgrade requests ─────────────────────────────────────────────
     async function loadRequests() {
-      const snapshot = await getDocs(collection(db, "activations"));
+      // NOTE: changed “activations” → “upgrades”
+      const snapshot = await getDocs(collection(db, "upgrades"));
 
       if (snapshot.empty) {
         noDataMsg.style.display = "block";
@@ -171,17 +172,21 @@
       const tbody = document.createElement("tbody");
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        const username = data.username || "";
+        const username   = data.username || "";
         const senderName = data.senderName || "";
-        const proofURL = data.proofURL || "#";
-        const ts = data.requestedAt ? data.requestedAt.toDate().toLocaleString() : "";
+        const proofURL   = data.proofURL || "#";
+        const ts         = data.requestedAt 
+                          ? data.requestedAt.toDate().toLocaleString() 
+                          : "";
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${username}</td>
           <td>${senderName}</td>
           <td>
-            <button class="view-btn" onclick="window.open('${proofURL}', '_blank')">View Proof</button>
+            <button class="view-btn" onclick="window.open('${proofURL}', '_blank')">
+              View Proof
+            </button>
           </td>
           <td class="timestamp">${ts}</td>
         `;
