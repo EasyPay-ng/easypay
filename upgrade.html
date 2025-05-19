@@ -53,8 +53,7 @@
       margin-bottom: 0.4rem;
       display: block;
     }
-    input[type="text"],
-    input[type="file"] {
+    input[type="text"] {
       width: 100%;
       padding: 12px 16px;
       font-size: 1rem;
@@ -63,8 +62,7 @@
       transition: border-color 0.3s ease;
       outline-offset: 3px;
     }
-    input[type="text"]:focus,
-    input[type="file"]:focus {
+    input[type="text"]:focus {
       border-color: var(--green);
       outline: none;
     }
@@ -134,8 +132,8 @@
       <p><strong>Account No:</strong> 8037402826</p>
     </section>
     
-    <label for="proof">Upload Proof of Upgrade</label>
-    <input id="proof" type="file" accept="image/*" aria-required="true" />
+    <label for="proofUrl">Image URL of Proof</label>
+    <input id="proofUrl" type="text" placeholder="Paste image URL here" aria-required="true" />
     
     <button id="submitBtn" type="button" aria-live="polite" aria-atomic="true">Submit for Approval</button>
     
@@ -150,14 +148,8 @@
       addDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-    import {
-      getStorage,
-      ref as storageRef,
-      uploadBytes,
-      getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-    // ── Firebase initialization ────────────────────────────────
+    // ── Firebase initialization ───────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -169,23 +161,24 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
-    // ── DOM Elements ─────────────────────────────────────────────────────────
+    // ── DOM Elements ───────────────────────────────────────────────
     const usernameInput   = document.getElementById("username");
     const senderNameInput = document.getElementById("senderName");
-    const proofInput      = document.getElementById("proof");
+    const proofUrlInput   = document.getElementById("proofUrl");
     const submitBtn       = document.getElementById("submitBtn");
     const messageDiv      = document.getElementById("message");
 
-    // ── Submit Handler ─────────────────────────────────────────────────────────
+    // ── Submit Handler ─────────────────────────────────────────────
     submitBtn.addEventListener("click", async () => {
-      // Clear any previous message
+      // Clear previous message
       messageDiv.textContent = "";
       messageDiv.className = "message";
+      console.clear();
 
       const username   = usernameInput.value.trim();
       const senderName = senderNameInput.value.trim();
+      const proofUrl   = proofUrlInput.value.trim();
 
       // 1) Validate inputs
       if (!username) {
@@ -200,69 +193,54 @@
         senderNameInput.focus();
         return;
       }
-      if (proofInput.files.length === 0) {
-        messageDiv.textContent = "Please upload proof of upgrade.";
+      if (!proofUrl) {
+        messageDiv.textContent = "Please paste the image URL of your proof.";
         messageDiv.classList.add("error");
-        proofInput.focus();
+        proofUrlInput.focus();
+        return;
+      }
+      // (Optional) Basic URL format check:
+      try {
+        new URL(proofUrl);
+      } catch (_) {
+        messageDiv.textContent = "Please enter a valid URL.";
+        messageDiv.classList.add("error");
+        proofUrlInput.focus();
         return;
       }
 
-      // Disable button and show uploading status
+      // Disable button, change text
       submitBtn.disabled = true;
-      submitBtn.textContent = "Uploading...";
+      submitBtn.textContent = "Submitting...";
 
-      let proofURL = "";
+      // 2) Write to Firestore
       try {
-        console.log("Uploading file for", username);
-        // 2) Upload the file to storage under `upgrades/<username>/<timestamp>_<filename>`
-        const file = proofInput.files[0];
-        const path = `upgrades/${username}/${Date.now()}_${file.name}`;
-        const fileReference = storageRef(storage, path);
-        await uploadBytes(fileReference, file);
-        proofURL = await getDownloadURL(fileReference);
-        console.log("File uploaded, URL:", proofURL);
-      } catch (uploadErr) {
-        console.error("Upload error:", uploadErr);
-        messageDiv.textContent = "Failed to upload proof. Please try again.";
-        messageDiv.classList.add("error");
-        // Re-enable button and return early
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Submit for Approval";
-        return;
-      }
-
-      try {
-        console.log("Saving to Firestore:", { username, senderName, proofURL });
-        // 3) Add a new document into `upgrades` collection
+        console.log("Saving to Firestore:", { username, senderName, proofUrl });
         await addDoc(collection(db, "upgrades"), {
           username,
           senderName,
-          proofURL,
+          proofURL: proofUrl,
           requestedAt: serverTimestamp()
         });
-        console.log("Firestore write complete");
+        console.log("✅ Firestore write complete");
+
+        // 3) Show success
+        messageDiv.textContent = "Submission successful! Await admin approval.";
+        messageDiv.classList.add("success");
+
+        // Clear fields
+        usernameInput.value   = "";
+        senderNameInput.value = "";
+        proofUrlInput.value   = "";
       } catch (dbErr) {
         console.error("Firestore error:", dbErr);
         messageDiv.textContent = "Failed to save data. Please try again.";
         messageDiv.classList.add("error");
-        // Re-enable button and return
+      } finally {
+        // Re-enable button and reset text
         submitBtn.disabled = false;
         submitBtn.textContent = "Submit for Approval";
-        return;
       }
-
-      // 4) Success path
-      messageDiv.textContent = "Submission successful! Await admin approval.";
-      messageDiv.classList.add("success");
-
-      // Clear fields
-      usernameInput.value   = "";
-      senderNameInput.value = "";
-      proofInput.value      = "";
-
-      // Re-enable button and reset label
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Submit for Approval";
     });
   </script>
 </body>
