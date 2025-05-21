@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyPay Tap2Earn</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5fdf7;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background-color: #009f4d;
+      color: white;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    /* Ineligible (Basic User) Container */
+    #notEligibleContainer {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      flex: 1;
+      background-color: #f5fdf7;
+    }
+    #notEligibleContainer .emoji {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    #notEligibleContainer h2 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+    #notEligibleContainer p {
+      font-size: 1rem;
+      color: #555;
+      max-width: 400px;
+      line-height: 1.4;
+    }
+    #notEligibleContainer .upgradeBtn {
+      margin-top: 1.5rem;
+      padding: 12px 24px;
+      background-color: #009f4d;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    #notEligibleContainer .upgradeBtn:hover {
+      background-color: #00803a;
+    }
+
+    /* Tap2Earn Container (Premium User) */
+    #tap2earnContainer {
+      display: none;
+      width: 100%;
+      max-width: 450px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      margin: 1rem;
+    }
+    .balanceCard {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      color: #333;
+    }
+    .balanceCard > div {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .balanceCard .label {
+      font-weight: 500;
+    }
+    .balanceCard .amount {
+      font-size: 1.2rem;
+      margin-top: 0.25rem;
+    }
+
+    #tapSection, #transferSection {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    #tapBtn {
+      width: 100%;
+      max-width: 300px;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background-color: #009f4d;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    #tapBtn:disabled {
+      background-color: #7dbd94;
+      cursor: default;
+    }
+    #tapBtn:hover:not(:disabled) {
+      background-color: #00803a;
+    }
+    #tapMessage {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #555;
+      text-align: center;
+    }
+
+    #transferBtn {
+      width: 100%;
+      max-width: 300px;
+      padding: 12px 28px;
+      font-size: 1.1rem;
+      background-color: #fff;
+      color: #009f4d;
+      border: 2px solid #009f4d;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    #transferBtn:disabled {
+      background-color: #f0f0f0;
+      color: #aaa;
+      border-color: #aaa;
+      cursor: default;
+    }
+    #transferBtn:hover:not(:disabled) {
+      background-color: #009f4d;
+      color: #fff;
+    }
+    #transferMessage {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #555;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>Tap to Earn ₦0.50</header>
+
+  <main>
+    <!-- Ineligible Screen for Basic Users -->
+    <div id="notEligibleContainer">
+      <div class="emoji">😓</div>
+      <h2>Sorry, you’re not eligible for this feature.</h2>
+      <p>
+        Tap to Earn is only available to our Premium members. Upgrade today to unlock daily
+        rewards, build your tap balance, and move real earnings into your main wallet.
+      </p>
+      <button class="upgradeBtn" onclick="location.href='upgrade.html'">
+        Upgrade to Premium
+      </button>
+    </div>
+
+    <!-- Tap2Earn Interface for Premium Users -->
+    <div id="tap2earnContainer">
+      <!-- Balance Display Card -->
+      <div class="balanceCard">
+        <div>
+          <div class="label">Tap Wallet</div>
+          <div class="amount">₦<span id="tapBalance">0.00</span> / 50.00</div>
+        </div>
+        <div>
+          <div class="label">Main Balance</div>
+          <div class="amount">₦<span id="mainBalance">0.00</span></div>
+        </div>
+      </div>
+
+      <!-- Tap Section -->
+      <div id="tapSection">
+        <button id="tapBtn" disabled>
+          <i class="fas fa-hand-pointer"></i> Loading…
+        </button>
+        <div id="tapMessage">Checking eligibility…</div>
+      </div>
+
+      <!-- Transfer Section -->
+      <div id="transferSection">
+        <button id="transferBtn" disabled>Transfer to Main Balance</button>
+        <div id="transferMessage">Checking transfer eligibility…</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>© 2025 EasyPay</footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      serverTimestamp,
+      collection,
+      addDoc
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // 1) Firebase Initialization
+    // ──────────────────────────────────────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+    initializeApp(firebaseConfig);
+    const db = getFirestore();
+    const auth = getAuth();
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // 2) UI Elements
+    // ──────────────────────────────────────────────────────────────────────────────
+    const notEligibleContainer = document.getElementById("notEligibleContainer");
+    const tap2earnContainer = document.getElementById("tap2earnContainer");
+
+    const tapBalanceSpan = document.getElementById("tapBalance");
+    const mainBalanceSpan = document.getElementById("mainBalance");
+
+    const tapBtn = document.getElementById("tapBtn");
+    const tapMessage = document.getElementById("tapMessage");
+
+    const transferBtn = document.getElementById("transferBtn");
+    const transferMessage = document.getElementById("transferMessage");
+
+    // Constants
+    const MAX_TAP_BALANCE = 50.0;           // ₦50 max
+    const TAP_AMOUNT = 0.5;                // ₦0.50 per tap
+    const TRANSFER_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+    let userRef;           // Firestore doc reference for current user
+    let userData = null;   // Cached user data
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // 3) Auth & Initial Data Fetch
+    // ──────────────────────────────────────────────────────────────────────────────
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // Not logged in → redirect to login
+        return (window.location.href = "login.html");
+      }
+
+      userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        // No user doc → redirect (or show error)
+        console.error("User document not found.");
+        return (window.location.href = "login.html");
+      }
+
+      userData = userSnap.data();
+
+      // Check plan
+      if (userData.plan !== "premium") {
+        // Basic user → show ineligible screen
+        notEligibleContainer.style.display = "flex";
+        tap2earnContainer.style.display = "none";
+        return;
+      }
+
+      // Premium user → show Tap2Earn container
+      notEligibleContainer.style.display = "none";
+      tap2earnContainer.style.display = "block";
+
+      // Populate balances
+      mainBalanceSpan.innerText = (userData.mainBalance || 0).toFixed(2);
+      tapBalanceSpan.innerText = (userData.tapBalance || 0).toFixed(2);
+
+      // Initialize Tap and Transfer sections
+      setupTapSection();
+      setupTransferSection();
+    });
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // 4) Setup Tap Section
+    // ──────────────────────────────────────────────────────────────────────────────
+    function setupTapSection() {
+      const currentTap = parseFloat(userData.tapBalance || 0);
+
+      if (currentTap < MAX_TAP_BALANCE) {
+        tapBtn.disabled = false;
+        tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
+        tapMessage.innerText = "Tap now to add ₦0.50 to your tap wallet.";
+      } else {
+        tapBtn.disabled = true;
+        tapBtn.innerHTML = `Tap Wallet Full`;
+        tapMessage.innerText = "Your tap wallet is full. Transfer to main balance to continue.";
+      }
+
+      // Tap button listener
+      tapBtn.addEventListener("click", async () => {
+        tapBtn.disabled = true;
+        tapMessage.innerText = "Crediting…";
+
+        try {
+          // Read fresh tapBalance
+          const freshSnap = await getDoc(userRef);
+          const freshData = freshSnap.data();
+          const freshTap = parseFloat(freshData.tapBalance || 0);
+
+          // If still below max, credit
+          if (freshTap + TAP_AMOUNT <= MAX_TAP_BALANCE) {
+            const newTap = freshTap + TAP_AMOUNT;
+            await updateDoc(userRef, {
+              tapBalance: newTap
+            });
+            await addDoc(collection(userRef, "transactionHistory"), {
+              type: "Tap Earnings",
+              amount: TAP_AMOUNT,
+              timestamp: serverTimestamp()
+            });
+
+            // Update UI
+            tapBalanceSpan.innerText = newTap.toFixed(2);
+            userData.tapBalance = newTap;
+
+            if (newTap < MAX_TAP_BALANCE) {
+              tapMessage.innerText = `₦${TAP_AMOUNT.toFixed(2)} added! 🎉 Tap again to earn more (up to ₦${MAX_TAP_BALANCE.toFixed(2)}).`;
+              tapBtn.disabled = false;
+              tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
+            } else {
+              tapMessage.innerText = "Your tap wallet is full. Transfer to main balance to continue.";
+              tapBtn.innerHTML = `Tap Wallet Full`;
+              tapBtn.disabled = true;
+            }
+          } else {
+            tapMessage.innerText = "Your tap wallet is full. Transfer to main balance to continue.";
+            tapBtn.innerHTML = `Tap Wallet Full`;
+            tapBtn.disabled = true;
+          }
+
+          // After tapping, re-evaluate transfer eligibility
+          await refreshUserData();
+          setupTransferSection();
+        } catch (err) {
+          console.error("Error during tap:", err);
+          tapMessage.innerText = "Error—please try again.";
+          tapBtn.disabled = false;
+          tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
+        }
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // 5) Setup Transfer Section
+    // ──────────────────────────────────────────────────────────────────────────────
+    let transferIntervalId = null;
+
+    function setupTransferSection() {
+      // Clear any previous countdown
+      if (transferIntervalId) clearInterval(transferIntervalId);
+
+      const currentTap = parseFloat(userData.tapBalance || 0);
+      const lastTransfer =
+        userData.lastTransferTimestamp?.toDate().getTime() || 0;
+      const now = Date.now();
+
+      if (currentTap <= 0) {
+        transferBtn.disabled = true;
+        transferBtn.innerText = "Transfer to Main Balance";
+        transferMessage.innerText = "You have no tap earnings to transfer.";
+        return;
+      }
+
+      const msSinceLast = now - lastTransfer;
+      if (!lastTransfer || msSinceLast >= TRANSFER_INTERVAL_MS) {
+        // Eligible to transfer
+        transferBtn.disabled = false;
+        transferBtn.innerText = "Transfer to Main Balance";
+        transferMessage.innerText = `Ready to transfer ₦${currentTap.toFixed(2)} to main balance.`;
+
+        transferBtn.onclick = async () => {
+          transferBtn.disabled = true;
+          transferMessage.innerText = "Processing transfer…";
+
+          try {
+            const freshSnap = await getDoc(userRef);
+            const freshData = freshSnap.data();
+            const freshTapBal = parseFloat(freshData.tapBalance || 0);
+            const freshMainBal = parseFloat(freshData.mainBalance || 0);
+
+            if (freshTapBal > 0) {
+              const newMain = freshMainBal + freshTapBal;
+              await updateDoc(userRef, {
+                mainBalance: newMain,
+                tapBalance: 0,
+                lastTransferTimestamp: serverTimestamp()
+              });
+              await addDoc(collection(userRef, "transactionHistory"), {
+                type: "Tap Transfer",
+                amount: freshTapBal,
+                timestamp: serverTimestamp()
+              });
+
+              // Update UI
+              mainBalanceSpan.innerText = newMain.toFixed(2);
+              tapBalanceSpan.innerText = "0.00";
+              userData.tapBalance = 0;
+              userData.mainBalance = newMain;
+              userData.lastTransferTimestamp = new Date();
+
+              transferMessage.innerText = `₦${freshTapBal.toFixed(2)} transferred! Next transfer in 24h.`;
+              transferBtn.disabled = true;
+
+              // Restart countdown
+              startTransferCountdown(TRANSFER_INTERVAL_MS);
+              // Re-enable tap button
+              setupTapSection();
+            } else {
+              transferMessage.innerText = "You have no tap earnings to transfer.";
+            }
+          } catch (err) {
+            console.error("Error during transfer:", err);
+            transferMessage.innerText = "Error—please try again.";
+            transferBtn.disabled = false;
+          }
+        };
+      } else {
+        // Not yet eligible → countdown
+        transferBtn.disabled = true;
+        transferBtn.innerText = "Transfer to Main Balance";
+
+        const msLeft = TRANSFER_INTERVAL_MS - msSinceLast;
+        startTransferCountdown(msLeft);
+      }
+    }
+
+    function startTransferCountdown(initialMs) {
+      let msLeft = initialMs;
+      updateTransferMessage(msLeft);
+
+      transferIntervalId = setInterval(() => {
+        msLeft -= 1000;
+        if (msLeft <= 0) {
+          clearInterval(transferIntervalId);
+          refreshUserData().then(() => {
+            setupTransferSection();
+          });
+        } else {
+          updateTransferMessage(msLeft);
+        }
+      }, 1000);
+    }
+
+    function updateTransferMessage(ms) {
+      const hrs = Math.floor(ms / (1000 * 60 * 60));
+      const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((ms % (1000 * 60)) / 1000);
+      transferMessage.innerText = `Next transfer available in ${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // 6) Utility: Refresh User Data from Firestore
+    // ──────────────────────────────────────────────────────────────────────────────
+    async function refreshUserData() {
+      try {
+        const freshSnap = await getDoc(userRef);
+        userData = freshSnap.data();
+        // Update displayed balances just in case
+        mainBalanceSpan.innerText = (userData.mainBalance || 0).toFixed(2);
+        tapBalanceSpan.innerText = (userData.tapBalance || 0).toFixed(2);
+      } catch (err) {
+        console.error("Error refreshing user data:", err);
+      }
+    }
+  </script>
+</body>
+</html>
