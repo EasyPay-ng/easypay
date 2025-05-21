@@ -1,3 +1,49 @@
+inceLast;
+        startTransferCountdown(msLeft);
+      }
+    }
+
+    function startTransferCountdown(initialMs) {
+      let msLeft = initialMs;
+      updateTransferMessage(msLeft);
+
+      transferIntervalId = setInterval(() => {
+        msLeft -= 1000;
+        if (msLeft <= 0) {
+          clearInterval(transferIntervalId);
+          refreshUserData().then(() => {
+            setupTransferSection();
+          });
+        } else {
+          updateTransferMessage(msLeft);
+        }
+      }, 1000);
+    }
+
+    function updateTransferMessage(ms) {
+      const hrs = Math.floor(ms / (1000 * 60 * 60));
+      const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((ms % (1000 * 60)) / 1000);
+      transferMessage.innerText = `Next transfer available in ${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────
+    // 6) Utility: Refresh User Data from Firestore
+    // ──────────────────────────────────────────────────────────────────────────────
+    async function refreshUserData() {
+      try {
+        const freshSnap = await getDoc(userRef);
+        userData = freshSnap.data();
+        // Update displayed balances just in case
+        mainBalanceSpan.innerText = (userData.mainBalance || 0).toFixed(2);
+        tapBalanceSpan.innerText = (userData.tapBalance || 0).toFixed(2);
+      } catch (err) {
+        console.error("Error refreshing user data:", err);
+      }
+    }
+  </script>
+</body>
+</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -237,12 +283,12 @@
       updateDoc,
       serverTimestamp,
       collection,
-      addDoc
+      addDoc,
+      increment
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import {
       getAuth,
-      onAuthStateChanged,
-      signOut
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -316,8 +362,8 @@
       notEligibleContainer.style.display = "none";
       tap2earnContainer.style.display = "block";
 
-      // Populate balances
-      mainBalanceSpan.innerText = (userData.mainBalance || 0).toFixed(2);
+      // Populate balances (use `balance` instead of `mainBalance`)
+      mainBalanceSpan.innerText = (userData.balance || 0).toFixed(2);
       tapBalanceSpan.innerText = (userData.tapBalance || 0).toFixed(2);
 
       // Initialize Tap and Transfer sections
@@ -341,9 +387,11 @@
         tapMessage.innerText = "Your tap wallet is full. Transfer to main balance to continue.";
       }
 
-      // Tap button listener
-      tapBtn.addEventListener("click", async () => {
-        tapBtn.disabled = true;
+      // Remove any existing listener to avoid double-binding
+      tapBtn.replaceWith(tapBtn.cloneNode(true));
+      const newTapBtn = document.getElementById("tapBtn");
+      newTapBtn.addEventListener("click", async () => {
+        newTapBtn.disabled = true;
         tapMessage.innerText = "Crediting…";
 
         try {
@@ -370,17 +418,17 @@
 
             if (newTap < MAX_TAP_BALANCE) {
               tapMessage.innerText = `₦${TAP_AMOUNT.toFixed(2)} added! 🎉 Tap again to earn more (up to ₦${MAX_TAP_BALANCE.toFixed(2)}).`;
-              tapBtn.disabled = false;
-              tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
+              newTapBtn.disabled = false;
+              newTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
             } else {
               tapMessage.innerText = "Your tap wallet is full. Transfer to main balance to continue.";
-              tapBtn.innerHTML = `Tap Wallet Full`;
-              tapBtn.disabled = true;
+              newTapBtn.innerHTML = `Tap Wallet Full`;
+              newTapBtn.disabled = true;
             }
           } else {
             tapMessage.innerText = "Your tap wallet is full. Transfer to main balance to continue.";
-            tapBtn.innerHTML = `Tap Wallet Full`;
-            tapBtn.disabled = true;
+            newTapBtn.innerHTML = `Tap Wallet Full`;
+            newTapBtn.disabled = true;
           }
 
           // After tapping, re-evaluate transfer eligibility
@@ -389,14 +437,14 @@
         } catch (err) {
           console.error("Error during tap:", err);
           tapMessage.innerText = "Error—please try again.";
-          tapBtn.disabled = false;
-          tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
+          newTapBtn.disabled = false;
+          newTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
         }
       });
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
-    // 5) Setup Transfer Section
+    // 5) Setup Transfer Section (using `balance` instead of `mainBalance`)
     // ──────────────────────────────────────────────────────────────────────────────
     let transferIntervalId = null;
 
@@ -423,42 +471,46 @@
         transferBtn.innerText = "Transfer to Main Balance";
         transferMessage.innerText = `Ready to transfer ₦${currentTap.toFixed(2)} to main balance.`;
 
-        transferBtn.onclick = async () => {
-          transferBtn.disabled = true;
+        // Remove any existing listener to avoid double-binding
+        transferBtn.replaceWith(transferBtn.cloneNode(true));
+        const newTransferBtn = document.getElementById("transferBtn");
+        newTransferBtn.onclick = async () => {
+          newTransferBtn.disabled = true;
           transferMessage.innerText = "Processing transfer…";
 
           try {
             const freshSnap = await getDoc(userRef);
             const freshData = freshSnap.data();
             const freshTapBal = parseFloat(freshData.tapBalance || 0);
-            const freshMainBal = parseFloat(freshData.mainBalance || 0);
+            const freshBal = parseFloat(freshData.balance || 0); // read from `balance`
 
             if (freshTapBal > 0) {
-              const newMain = freshMainBal + freshTapBal;
+              // ATOMICALLY increment the existing `balance` field
               await updateDoc(userRef, {
-                mainBalance: newMain,
+                balance: increment(freshTapBal),      // increment `balance`
                 tapBalance: 0,
                 lastTransferTimestamp: serverTimestamp()
               });
+
+              // Add transaction history entry
               await addDoc(collection(userRef, "transactionHistory"), {
                 type: "Tap Transfer",
                 amount: freshTapBal,
                 timestamp: serverTimestamp()
               });
 
-              // Update UI
-              mainBalanceSpan.innerText = newMain.toFixed(2);
+              // Update UI manually (or re‐fetch userData)
+              mainBalanceSpan.innerText = (freshBal + freshTapBal).toFixed(2);
               tapBalanceSpan.innerText = "0.00";
               userData.tapBalance = 0;
-              userData.mainBalance = newMain;
+              userData.balance = freshBal + freshTapBal;
               userData.lastTransferTimestamp = new Date();
 
               transferMessage.innerText = `₦${freshTapBal.toFixed(2)} transferred! Next transfer in 24h.`;
-              transferBtn.disabled = true;
+              newTransferBtn.disabled = true;
 
-              // Restart countdown
+              // Restart countdown and re-enable tap
               startTransferCountdown(TRANSFER_INTERVAL_MS);
-              // Re-enable tap button
               setupTapSection();
             } else {
               transferMessage.innerText = "You have no tap earnings to transfer.";
@@ -466,7 +518,7 @@
           } catch (err) {
             console.error("Error during transfer:", err);
             transferMessage.innerText = "Error—please try again.";
-            transferBtn.disabled = false;
+            newTransferBtn.disabled = false;
           }
         };
       } else {
@@ -511,7 +563,7 @@
         const freshSnap = await getDoc(userRef);
         userData = freshSnap.data();
         // Update displayed balances just in case
-        mainBalanceSpan.innerText = (userData.mainBalance || 0).toFixed(2);
+        mainBalanceSpan.innerText = (userData.balance || 0).toFixed(2);
         tapBalanceSpan.innerText = (userData.tapBalance || 0).toFixed(2);
       } catch (err) {
         console.error("Error refreshing user data:", err);
