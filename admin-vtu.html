@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin VTU Transactions</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0fff0;
+      padding: 20px;
+    }
+    h1 {
+      color: #006400;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .txn-card {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,100,0,0.1);
+      position: relative;
+    }
+    .txn-card p {
+      margin: 6px 0;
+      color: #333;
+    }
+    .txn-card .label {
+      font-weight: 600;
+      color: #004400;
+    }
+    .txn-card button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .approve { background-color: #006400; color: white; }
+    .reject  { background-color: #ff4c4c; color: white; }
+    .cleared {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .timestamp {
+      font-size: 13px;
+      color: #006400;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pending VTU Transactions</h1>
+  <div id="txnList"></div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const txnList = document.getElementById('txnList');
+
+    // Load all pending VTU transactions
+    function loadTransactions() {
+      db.collection("transactions")
+        .where("type", "==", "VTU")
+        .where("status", "==", "pending")
+        .orderBy("timestamp", "desc")
+        .onSnapshot(snapshot => {
+          txnList.innerHTML = '';  // Clear current list
+          snapshot.forEach(doc => renderTransaction(doc));
+        });
+    }
+
+    // Render a single transaction card
+    function renderTransaction(doc) {
+      const data = doc.data();
+      const txnId = doc.id;
+
+      // Fetch username from users collection
+      if (data.userId) {
+        db.collection("users").doc(data.userId).get()
+          .then(userDoc => {
+            let username = "Unknown";
+            if (userDoc.exists && userDoc.data().username) {
+              username = userDoc.data().username;
+            }
+            buildCard(username, data, txnId);
+          })
+          .catch(err => {
+            console.error("Error fetching username:", err);
+            buildCard("Unknown", data, txnId);
+          });
+      } else {
+        buildCard("Unknown", data, txnId);
+      }
+    }
+
+    // Build the HTML card for one VTU transaction
+    function buildCard(username, data, txnId) {
+      const card = document.createElement("div");
+      card.className = "txn-card";
+      card.id = `txn-${txnId}`;
+
+      // Format timestamp
+      let timeStr = "—";
+      if (data.timestamp && data.timestamp.toDate) {
+        const dt = data.timestamp.toDate();
+        timeStr = dt.toLocaleString("en-NG", {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      }
+
+      card.innerHTML = `
+        <p><span class="label">Username:</span> ${username}</p>
+        <p><span class="label">Network:</span> ${data.network}</p>
+        <p><span class="label">Phone:</span> ${data.phone}</p>
+        <p><span class="label">Plan:</span> ${data.plan}</p>
+        <p><span class="label">Amount:</span> ₦${Math.abs(data.amount)}</p>
+        <p class="timestamp"><span class="label">Requested:</span> ${timeStr}</p>
+        <button class="approve" onclick="approveTxn('${txnId}')">Approve</button>
+        <button class="reject" onclick="rejectTxn('${txnId}')">Reject</button>
+      `;
+      txnList.appendChild(card);
+    }
+
+    // Approve the transaction (set status to "successful")
+    function approveTxn(txnId) {
+      const txnRef = db.collection("transactions").doc(txnId);
+      txnRef.update({ status: "successful" })
+        .then(() => {
+          // Optionally remove from UI
+          const card = document.getElementById(`txn-${txnId}`);
+          if (card) card.remove();
+        })
+        .catch(err => {
+          console.error("Error approving transaction:", err);
+        });
+    }
+
+    // Reject the transaction (set status to "rejected")
+    function rejectTxn(txnId) {
+      const txnRef = db.collection("transactions").doc(txnId);
+      txnRef.update({ status: "rejected" })
+        .then(() => {
+          const card = document.getElementById(`txn-${txnId}`);
+          if (card) card.remove();
+        })
+        .catch(err => {
+          console.error("Error rejecting transaction:", err);
+        });
+    }
+
+    // Initialize
+    loadTransactions();
+  </script>
+</body>
+</html>
