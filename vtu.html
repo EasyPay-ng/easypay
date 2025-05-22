@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VTU – EasyPay</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ---------- Base Reset & Body ---------- */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5fdf7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* ---------- Main Container ---------- */
+    .container {
+      width: 400px;
+      max-width: 95%;
+    }
+
+    /* ---------- Card Container ---------- */
+    .card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    /* ---------- Heading ---------- */
+    h2 {
+      margin-bottom: 20px;
+      color: #009f4d;
+    }
+
+    /* ---------- Current Balance Display ---------- */
+    .balance {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #004400;
+      font-weight: 500;
+    }
+
+    /* ---------- Input Groups ---------- */
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .input-group select,
+    .input-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .input-group select:focus,
+    .input-group input:focus {
+      border-color: #009f4d;
+      outline: none;
+    }
+
+    /* ---------- VTU Button ---------- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #009f4d;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn:hover {
+      background-color: #00803b;
+    }
+
+    /* ---------- Messages ---------- */
+    .message {
+      margin-top: 15px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+    .message.success {
+      color: #2f855a;
+    }
+    .message.error {
+      color: #c53030;
+    }
+
+    /* ---------- Back Link ---------- */
+    .back-link {
+      display: block;
+      margin-top: 20px;
+      color: #009f4d;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    /* ---------- Transactions Table ---------- */
+    .transactions-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .transactions-section h3 {
+      margin-bottom: 15px;
+      color: #009f4d;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px 6px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #f0fff0;
+      color: #004400;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+    .status-pending {
+      color: #c59a00;
+      font-weight: 500;
+    }
+    .status-successful {
+      color: #2f855a;
+      font-weight: 500;
+    }
+    .status-rejected {
+      color: #c53030;
+      font-weight: 500;
+    }
+
+    /* ---------- Floating WhatsApp Icon (Optional) ---------- */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background-color: #25D366;
+      color: white;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- VTU Card -->
+    <div class="card">
+      <h2><i class="fas fa-phone-volume"></i> Buy Airtime/Data</h2>
+
+      <!-- Current Balance Display -->
+      <div id="balance" class="balance">Loading balance...</div>
+
+      <!-- Network Provider Dropdown -->
+      <div class="input-group">
+        <label for="network">Select Network</label>
+        <select id="network">
+          <option value="" disabled selected>-- Choose Network --</option>
+          <option value="MTN">MTN</option>
+          <option value="AIRTEL">Airtel</option>
+          <option value="GLO">Glo</option>
+          <option value="9MOBILE">9mobile</option>
+        </select>
+      </div>
+
+      <!-- Plan Dropdown (initially hidden) -->
+      <div class="input-group" id="plan-group" style="display: none;">
+        <label for="planSelect">Select Plan</label>
+        <select id="planSelect">
+          <!-- Options will be injected via JS -->
+        </select>
+        <p style="font-size: 12px; color: #666; margin-top: 4px;">
+          *All plans are valid for 30 days, except where noted.
+        </p>
+      </div>
+
+      <!-- Phone Number Input -->
+      <div class="input-group">
+        <label for="phone">Phone Number</label>
+        <input
+          type="tel"
+          id="phone"
+          placeholder="0803xxxxxxx"
+          maxlength="11"
+          required
+        />
+      </div>
+
+      <!-- Purchase Button -->
+      <button class="btn" id="purchaseBtn" onclick="purchaseAirtime()" disabled>
+        <i class="fas fa-paper-plane"></i> Purchase
+      </button>
+
+      <!-- Message Element -->
+      <p id="msg" class="message"></p>
+
+      <!-- Back to Dashboard -->
+      <a href="dashboard.html" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="transactions-section">
+      <h3>Your VTU Transactions</h3>
+      <table id="txnTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Network</th>
+            <th>Phone</th>
+            <th>Plan</th>
+            <th>Amount (₦)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be injected via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Optional: Floating WhatsApp Icon -->
+  <a href="https://wa.me/08037402826" target="_blank" class="whatsapp-float">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      serverTimestamp,
+      collection,
+      addDoc,
+      query,
+      where,
+      orderBy,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+    // --- 1. Initialize Firebase ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- 2. DOM References ---
+    const balanceEl    = document.getElementById("balance");
+    const networkEl    = document.getElementById("network");
+    const planGroupEl  = document.getElementById("plan-group");
+    const planSelectEl = document.getElementById("planSelect");
+    const phoneEl      = document.getElementById("phone");
+    const purchaseBtn  = document.getElementById("purchaseBtn");
+    const msgEl        = document.getElementById("msg");
+    const txnTableBody = document.querySelector("#txnTable tbody");
+
+    let currentUserId   = null;
+    let currentBalance  = 0;
+    let selectedAmount  = 0;
+    let selectedPlanTxt = "";
+
+    // Hard-coded plan lists per network
+    const plans = {
+      MTN: [
+        { text: "2GB @ N1,400",   amount: 1400 },
+        { text: "3GB @ N1,910",   amount: 1910 },
+        { text: "5GB @ N2,800",   amount: 2800 },
+        { text: "20GB @ N7,500",  amount: 7500 },
+        { text: "36GB @ N11,500", amount: 11500 },
+        { text: "75GB @ N18,000", amount: 18000 }
+      ],
+      AIRTEL: [
+        { text: "2GB @ N1,500",  amount: 1500 },
+        { text: "3GB @ N2,000",  amount: 2000 },
+        { text: "8GB @ N3,100",  amount: 3100 },
+        { text: "25GB @ N8,000", amount: 8000 }
+      ],
+      GLO: [
+        { text: "2.5GB (2 days) @ N520",  amount: 520 },
+        { text: "10GB (7 days) @ N2,000", amount: 2000 }
+      ],
+      "9MOBILE": [
+        { text: "1GB @ N300",   amount: 300 },
+        { text: "2GB @ N600",   amount: 600 },
+        { text: "3GB @ N900",   amount: 900 },
+        { text: "4GB @ N1,200", amount: 1200 },
+        { text: "5GB @ N1,500", amount: 1500 }
+      ]
+    };
+
+    // Helper: Format to currency string
+    function formatNGN(amount) {
+      return "₦" + amount.toLocaleString("en-NG");
+    }
+
+    // --- 3. Populate Plan Dropdown upon Network Selection ---
+    networkEl.addEventListener("change", () => {
+      const selectedNetwork = networkEl.value;
+      planSelectEl.innerHTML = ""; // clear old options
+      selectedAmount = 0;
+      selectedPlanTxt = "";
+
+      if (plans[selectedNetwork]) {
+        // Show plan group
+        planGroupEl.style.display = "block";
+
+        // Add a placeholder option
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "-- Choose Plan --";
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        planSelectEl.appendChild(placeholder);
+
+        // Populate based on the chosen network
+        plans[selectedNetwork].forEach(item => {
+          const opt = document.createElement("option");
+          opt.value = item.amount;        // numeric amount
+          opt.textContent = item.text;    // e.g. "2GB @ N1,400"
+          planSelectEl.appendChild(opt);
+        });
+      } else {
+        planGroupEl.style.display = "none";
+      }
+
+      checkFormValidity();
+    });
+
+    // When a plan is selected, store its amount & text
+    planSelectEl.addEventListener("change", () => {
+      selectedAmount  = Number(planSelectEl.value);
+      selectedPlanTxt = planSelectEl.options[planSelectEl.selectedIndex].text;
+      checkFormValidity();
+    });
+
+    // Enable Purchase button only when fields are valid
+    function checkFormValidity() {
+      const net  = networkEl.value;
+      const ph   = phoneEl.value.trim();
+      const plan = planSelectEl.value;
+      const validPhone = /^0[789][01]\d{8}$/.test(ph); // crude NG phone regex
+      const validAmt   = selectedAmount > 0;
+
+      // Enable only if network + plan + valid phone + sufficient balance
+      if (net && plan && validPhone && currentBalance >= selectedAmount) {
+        purchaseBtn.disabled = false;
+      } else {
+        purchaseBtn.disabled = true;
+      }
+    }
+
+    phoneEl.addEventListener("input", checkFormValidity);
+
+    // --- 4. On Auth State Changed: Fetch balance & load transactions ---
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUserId = user.uid;
+        fetchUserBalance(user.uid);
+        loadTransactions(user.uid);
+      } else {
+        // If not logged in, redirect to login
+        window.location.href = "login.html";
+      }
+    });
+
+    // Fetch user’s balance from Firestore
+    async function fetchUserBalance(uid) {
+      try {
+        const userDocRef = doc(db, "users", uid);
+        const userSnap   = await getDoc(userDocRef);
+
+        if (userSnap.exists()) {
+          currentBalance = Number(userSnap.data().balance || 0);
+          balanceEl.textContent = `Current Balance: ${formatNGN(currentBalance)}`;
+          checkFormValidity();
+        } else {
+          balanceEl.textContent = "User data not found.";
+          purchaseBtn.disabled = true;
+        }
+      } catch (err) {
+        console.error("Error fetching balance:", err);
+        balanceEl.textContent = "Error loading balance.";
+        purchaseBtn.disabled = true;
+      }
+    }
+
+    // --- 5. Load & Display Transaction History ---
+    function loadTransactions(uid) {
+      // Query all VTU transactions for this user, ordered by timestamp descending
+      const txQuery = query(
+        collection(db, "transactions"),
+        where("userId", "==", uid),
+        where("type", "==", "VTU"),
+        orderBy("timestamp", "desc")
+      );
+
+      onSnapshot(txQuery, snapshot => {
+        // Clear any existing rows
+        txnTableBody.innerHTML = "";
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const ts   = data.timestamp?.toDate();
+          const dateStr = ts
+            ? ts.toLocaleString("en-NG", {
+                year: "numeric",
+                month: "short",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+              })
+            : "—";
+
+          // Determine CSS class for status
+          let statusClass = "";
+          if (data.status === "pending") {
+            statusClass = "status-pending";
+          } else if (data.status === "successful") {
+            statusClass = "status-successful";
+          } else if (data.status === "rejected") {
+            statusClass = "status-rejected";
+          }
+
+          // Build a table row
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${dateStr}</td>
+            <td>${data.network || "—"}</td>
+            <td>${data.phone || "—"}</td>
+            <td>${data.plan || "—"}</td>
+            <td>${Math.abs(data.amount || 0)}</td>
+            <td class="${statusClass}">${data.status || "—"}</td>
+          `;
+          txnTableBody.appendChild(row);
+        });
+      }, err => {
+        console.error("Error loading transactions:", err);
+      });
+    }
+
+    // --- 6. Purchase Airtime/Data Logic ---
+    async function purchaseAirtime() {
+      msgEl.textContent = "";
+      msgEl.className = "message";
+
+      const net  = networkEl.value;
+      const ph   = phoneEl.value.trim();
+      const amt  = selectedAmount;
+      const plan = selectedPlanTxt;
+
+      // Basic validation (reinforcement)
+      if (!net || !plan || !/^0[789][01]\d{8}$/.test(ph) || amt <= 0) {
+        msgEl.textContent = "❌ Please fill out all fields correctly.";
+        msgEl.classList.add("error");
+        return;
+      }
+
+      try {
+        // Re-fetch balance to avoid race conditions
+        const userRef   = doc(db, "users", currentUserId);
+        const userSnap  = await getDoc(userRef);
+        const latestBal = Number(userSnap.data().balance || 0);
+
+        if (latestBal < amt) {
+          msgEl.textContent = "❌ Insufficient balance. Please fund your account.";
+          msgEl.classList.add("error");
+          return;
+        }
+
+        // 1) Deduct balance
+        const newBalance = latestBal - amt;
+        await updateDoc(userRef, {
+          balance: newBalance
+        });
+
+        // 2) Record VTU transaction (status = "pending" by default)
+        await addDoc(collection(db, "transactions"), {
+          userId: currentUserId,
+          type: "VTU",
+          network: net,
+          phone: ph,
+          plan: plan,
+          amount: -amt,                    // Negative indicates debit
+          status: "pending",               // admin or backend can update to "successful" / "rejected"
+          timestamp: serverTimestamp()
+        });
+
+        // 3) Update on-screen balance & show success
+        currentBalance = newBalance;
+        balanceEl.textContent = `Current Balance: ${formatNGN(currentBalance)}`;
+        msgEl.textContent = `✅ You purchased "${plan}" for ${formatNGN(amt)} to ${ph}.`;
+        msgEl.classList.add("success");
+
+        // Reset form fields
+        networkEl.value = "";
+        planGroupEl.style.display = "none";
+        planSelectEl.innerHTML = "";
+        phoneEl.value = "";
+        selectedAmount  = 0;
+        selectedPlanTxt = "";
+        purchaseBtn.disabled = true;
+      }
+      catch (err) {
+        console.error("Error during VTU purchase:", err);
+        msgEl.textContent = "❌ Failed to process your request. Try again.";
+        msgEl.classList.add("error");
+      }
+    }
+  </script>
+</body>
+</html>
