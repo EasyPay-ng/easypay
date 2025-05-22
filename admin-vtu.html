@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin VTU Transactions</title>
+  <title>VTU Requests</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -41,6 +41,17 @@
     }
     .approve { background-color: #006400; color: white; }
     .reject  { background-color: #ff4c4c; color: white; }
+    .status-tag {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+      color: #fff;
+    }
+    .status-pending { background-color: #c59a00; }
+    .status-successful { background-color: #2f855a; }
+    .status-rejected { background-color: #c53030; }
     .timestamp {
       font-size: 13px;
       color: #006400;
@@ -49,7 +60,7 @@
   </style>
 </head>
 <body>
-  <h1>Pending VTU Transactions</h1>
+  <h1>VTU Requests</h1>
   <div id="txnList"></div>
 
   <!-- Firebase -->
@@ -70,20 +81,17 @@
 
     const txnList = document.getElementById('txnList');
 
-    // Load all pending VTU transactions (without orderBy in the query)
+    // Load all VTU transactions (pending, approved, rejected)
     function loadTransactions() {
       db.collection("transactions")
         .where("type", "==", "VTU")
-        .where("status", "==", "pending")
         .onSnapshot(snapshot => {
-          // Collect all documents into an array
           const docs = [];
           snapshot.forEach(doc => {
             docs.push({ id: doc.id, data: doc.data() });
           });
 
-          // Sort client-side by timestamp (newest first).
-          // If timestamp is missing, treat it as 0 (oldest).
+          // Sort by timestamp (newest first); missing timestamp => oldest
           docs.sort((a, b) => {
             const tA = a.data.timestamp && a.data.timestamp.toDate
                        ? a.data.timestamp.toDate().getTime()
@@ -94,7 +102,6 @@
             return tB - tA;
           });
 
-          // Clear and re-render
           txnList.innerHTML = '';
           docs.forEach(({ id, data }) => renderTransaction(id, data));
         }, err => {
@@ -104,7 +111,6 @@
 
     // Render a single transaction card
     function renderTransaction(txnId, data) {
-      // Fetch username from users collection
       if (data.userId) {
         db.collection("users").doc(data.userId).get()
           .then(userDoc => {
@@ -114,8 +120,7 @@
             }
             buildCard(username, txnId, data);
           })
-          .catch(err => {
-            console.error("Error fetching username:", err);
+          .catch(() => {
             buildCard("Unknown", txnId, data);
           });
       } else {
@@ -129,7 +134,6 @@
       card.className = "txn-card";
       card.id = `txn-${txnId}`;
 
-      // Format timestamp
       let timeStr = "—";
       if (data.timestamp && data.timestamp.toDate) {
         const dt = data.timestamp.toDate();
@@ -142,6 +146,20 @@
         });
       }
 
+      // Determine status and corresponding UI
+      const status = data.status || "pending";
+      const statusClass = {
+        pending: "status-pending",
+        successful: "status-successful",
+        rejected: "status-rejected"
+      }[status] || "status-pending";
+
+      // Show Approve/Reject buttons only if still pending
+      const buttonsHTML = status === "pending"
+        ? `<button class="approve" onclick="approveTxn('${txnId}')">Approve</button>
+           <button class="reject" onclick="rejectTxn('${txnId}')">Reject</button>`
+        : ``;
+
       card.innerHTML = `
         <p><span class="label">Username:</span> ${username}</p>
         <p><span class="label">Network:</span> ${data.network || '—'}</p>
@@ -149,36 +167,22 @@
         <p><span class="label">Plan:</span> ${data.plan || '—'}</p>
         <p><span class="label">Amount:</span> ₦${Math.abs(data.amount || 0)}</p>
         <p class="timestamp"><span class="label">Requested:</span> ${timeStr}</p>
-        <button class="approve" onclick="approveTxn('${txnId}')">Approve</button>
-        <button class="reject" onclick="rejectTxn('${txnId}')">Reject</button>
+        ${buttonsHTML}
+        <span class="status-tag ${statusClass}">${status.toUpperCase()}</span>
       `;
       txnList.appendChild(card);
     }
 
     // Approve the transaction (set status to "successful")
     function approveTxn(txnId) {
-      const txnRef = db.collection("transactions").doc(txnId);
-      txnRef.update({ status: "successful" })
-        .then(() => {
-          const card = document.getElementById(`txn-${txnId}`);
-          if (card) card.remove();
-        })
-        .catch(err => {
-          console.error("Error approving transaction:", err);
-        });
+      db.collection("transactions").doc(txnId).update({ status: "successful" })
+        .catch(err => console.error("Error approving transaction:", err));
     }
 
     // Reject the transaction (set status to "rejected")
     function rejectTxn(txnId) {
-      const txnRef = db.collection("transactions").doc(txnId);
-      txnRef.update({ status: "rejected" })
-        .then(() => {
-          const card = document.getElementById(`txn-${txnId}`);
-          if (card) card.remove();
-        })
-        .catch(err => {
-          console.error("Error rejecting transaction:", err);
-        });
+      db.collection("transactions").doc(txnId).update({ status: "rejected" })
+        .catch(err => console.error("Error rejecting transaction:", err));
     }
 
     // Initialize
