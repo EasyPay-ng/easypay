@@ -353,11 +353,21 @@
       );
 
       onSnapshot(txQuery, snapshot => {
-        txnTableBody.innerHTML = ""; // Clear previous rows
+        console.log("loadTransactions: snapshot received. Number of docs =", snapshot.size);
+
+        // If the snapshot is empty, log that too
+        if (snapshot.empty) {
+          console.log("loadTransactions: No VTU docs found for user:", uid);
+        }
+
+        // Clear existing rows
+        txnTableBody.innerHTML = "";
 
         snapshot.forEach(docSnap => {
           const data = docSnap.data();
-          const ts   = data.timestamp?.toDate();
+          console.log("loadTransactions: Found doc", docSnap.id, "→", data);
+
+          const ts = data.timestamp?.toDate();
           const dateStr = ts
             ? ts.toLocaleString("en-NG", {
                 year: "numeric",
@@ -482,5 +492,5 @@
     window.submitVTU = submitVTU;
   </script>
 </body>
-  </html>
-  
+</html>
+
