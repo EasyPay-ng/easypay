@@ -146,7 +146,7 @@
   <div class="container">
     <!-- ─── VTU Card ───────────────────────────────────────────────────────────── -->
     <div class="card">
-      <h2><i class="fas fa-phone-volume"></i> Buy Airtime/Data</h2>
+      <h2><i class="fas fa-phone-volume"></i> Buy Data</h2>
       <div id="balance" class="balance">Loading balance...</div>
 
       <!-- Network Dropdown -->
@@ -227,7 +227,6 @@
       serverTimestamp,
       query,
       where,
-      orderBy,
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
@@ -348,24 +347,36 @@
       const txQuery = query(
         collection(db, "transactions"),
         where("userId", "==", uid),
-        where("type", "==", "VTU"),
-        orderBy("timestamp", "desc")
+        where("type", "==", "VTU")
       );
 
       onSnapshot(txQuery, snapshot => {
         console.log("loadTransactions: snapshot received. Number of docs =", snapshot.size);
 
-        // If the snapshot is empty, log that too
+        // If the snapshot is empty, log that as well
         if (snapshot.empty) {
           console.log("loadTransactions: No VTU docs found for user:", uid);
         }
 
+        // Collect all docs into an array for sorting
+        const allDocs = [];
+        snapshot.forEach(docSnap => {
+          allDocs.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        // Sort descending by timestamp (newest first). If no timestamp, treat as very old.
+        allDocs.sort((a, b) => {
+          const tA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
+          const tB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
+          return tB - tA;
+        });
+
         // Clear existing rows
         txnTableBody.innerHTML = "";
 
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          console.log("loadTransactions: Found doc", docSnap.id, "→", data);
+        // Render each sorted doc
+        allDocs.forEach(data => {
+          console.log("loadTransactions: Rendering doc:", data);
 
           const ts = data.timestamp?.toDate();
           const dateStr = ts
@@ -459,7 +470,7 @@
         currentBalance = newBalance;
         balanceEl.textContent = `Current Balance: ₦${currentBalance.toLocaleString("en-NG")}`;
 
-        // 7.5 Create pending transaction
+        // 7.5 Create pending transaction (with serverTimestamp)
         await addDoc(collection(db, "transactions"), {
           userId: currentUserId,
           type: "VTU",
@@ -493,4 +504,3 @@
   </script>
 </body>
 </html>
-
