@@ -25,10 +25,9 @@
     .task p {
       margin: 6px 0;
     }
-    .posted-by {
-      font-size: 13px;
+    .task .label {
+      font-weight: 600;
       color: #004400;
-      margin-bottom: 8px;
     }
     .task button {
       padding: 8px 16px;
@@ -62,6 +61,11 @@
       height: 100%;
       width: 0%;
       transition: width 0.4s ease-in-out;
+    }
+    .task-id {
+      font-size: 13px;
+      color: #004400;
+      margin-bottom: 8px;
     }
   </style>
 </head>
@@ -99,29 +103,16 @@
 
     // Render one task card
     function renderTask(taskId, data) {
-      // We now assume data.userId always exists
-      const posterUid = data.userId;
-      db.collection("users").doc(posterUid).get()
-        .then(userDoc => {
-          let username = "Unknown";
-          if (userDoc.exists && userDoc.data().username) {
-            username = userDoc.data().username;
-          }
-          buildCard(username, taskId, data);
-        })
-        .catch(err => {
-          console.error("Error fetching user for task:", err);
-          buildCard("Unknown", taskId, data);
-        });
+      buildCard(taskId, data);
     }
 
-    // Build the HTML card for one task, given the poster's username
-    function buildCard(username, taskId, data) {
+    // Build the HTML card for one task, showing Task ID
+    function buildCard(taskId, data) {
       const div = document.createElement("div");
       div.className = "task";
       div.id = `task-${taskId}`;
       div.innerHTML = `
-        <p class="posted-by"><strong>Posted by:</strong> ${username}</p>
+        <p class="task-id"><strong>Task ID:</strong> ${taskId}</p>
         <p><strong>Title:</strong> ${data.taskTitle}</p>
         <p><strong>Platform:</strong> ${data.category} - ${data.subCategory}</p>
         <p><strong>Workers Needed:</strong> ${data.workersNeeded}</p>
@@ -162,7 +153,7 @@
           document.getElementById(`label-${taskId}`).textContent =
             `${count} / ${needed} approved`;
 
-          // Auto-disable Approve/Reject when complete
+          // Disable Approve/Reject when complete
           if (count >= needed) {
             const card = document.getElementById(`task-${taskId}`);
             if (card) {
