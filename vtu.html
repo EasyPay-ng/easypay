@@ -6,25 +6,22 @@
   <title>VTU – EasyPay</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    /* ---------- Base Reset & Body ---------- */
+    /* ─── Body & Container ─────────────────────────────────────────────────── */
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f5fdf7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
       color: #333;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
     }
-
-    /* ---------- Main Container ---------- */
     .container {
       width: 400px;
-      max-width: 95%;
+      max-width: 100%;
     }
 
-    /* ---------- Card Container ---------- */
+    /* ─── Card (Form) ───────────────────────────────────────────────────────── */
     .card {
       background: #fff;
       padding: 30px;
@@ -33,22 +30,16 @@
       text-align: center;
       margin-bottom: 30px;
     }
-
-    /* ---------- Heading ---------- */
     h2 {
       margin-bottom: 20px;
       color: #009f4d;
     }
-
-    /* ---------- Current Balance Display ---------- */
     .balance {
       font-size: 18px;
       margin-bottom: 20px;
       color: #004400;
       font-weight: 500;
     }
-
-    /* ---------- Input Groups ---------- */
     .input-group {
       margin-bottom: 20px;
       text-align: left;
@@ -73,8 +64,6 @@
       border-color: #009f4d;
       outline: none;
     }
-
-    /* ---------- VTU Button ---------- */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -89,28 +78,16 @@
       transition: background 0.2s;
       margin-top: 10px;
     }
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
     .btn:hover {
       background-color: #00803b;
     }
-
-    /* ---------- Messages ---------- */
     .message {
       margin-top: 15px;
       font-size: 14px;
       min-height: 20px;
     }
-    .message.success {
-      color: #2f855a;
-    }
-    .message.error {
-      color: #c53030;
-    }
-
-    /* ---------- Back Link ---------- */
+    .message.success { color: #2f855a; }
+    .message.error   { color: #c53030; }
     .back-link {
       display: block;
       margin-top: 20px;
@@ -122,7 +99,7 @@
       text-decoration: underline;
     }
 
-    /* ---------- Transactions Table ---------- */
+    /* ─── Transactions Table ───────────────────────────────────────────────── */
     .transactions-section {
       background: #fff;
       padding: 20px;
@@ -163,36 +140,16 @@
       color: #c53030;
       font-weight: 500;
     }
-
-    /* ---------- Floating WhatsApp Icon (Optional) ---------- */
-    .whatsapp-float {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background-color: #25D366;
-      color: white;
-      border-radius: 50%;
-      width: 56px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      font-size: 24px;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- VTU Card -->
+    <!-- ─── VTU Card ───────────────────────────────────────────────────────────── -->
     <div class="card">
-      <h2><i class="fas fa-phone-volume"></i> Buy Data</h2>
-
-      <!-- Current Balance Display -->
+      <h2><i class="fas fa-phone-volume"></i> Buy Airtime/Data</h2>
       <div id="balance" class="balance">Loading balance...</div>
 
-      <!-- Network Provider Dropdown -->
+      <!-- Network Dropdown -->
       <div class="input-group">
         <label for="network">Select Network</label>
         <select id="network">
@@ -204,44 +161,36 @@
         </select>
       </div>
 
-      <!-- Plan Dropdown (initially hidden) -->
+      <!-- Plan Dropdown (hidden until network chosen) -->
       <div class="input-group" id="plan-group" style="display: none;">
         <label for="planSelect">Select Plan</label>
         <select id="planSelect">
-          <!-- Options will be injected via JS -->
+          <!-- JS will inject options -->
         </select>
-        <p style="font-size: 12px; color: #666; margin-top: 4px;">
-          *All plans are valid for 30 days, except where noted.
+        <p style="font-size:12px; color:#666; margin-top:4px;">
+          *All plans valid for 30 days (unless noted).
         </p>
       </div>
 
       <!-- Phone Number Input -->
       <div class="input-group">
         <label for="phone">Phone Number</label>
-        <input
-          type="tel"
-          id="phone"
-          placeholder="0803xxxxxxx"
-          maxlength="11"
-          required
-        />
+        <input type="tel" id="phone" placeholder="0803xxxxxxx" maxlength="11" />
       </div>
 
       <!-- Purchase Button -->
-      <button class="btn" id="purchaseBtn" onclick="purchaseAirtime()" disabled>
-        <i class="fas fa-paper-plane"></i> Purchase
-      </button>
+      <button class="btn" onclick="submitVTU()">Purchase</button>
 
-      <!-- Message Element -->
+      <!-- Status Message -->
       <p id="msg" class="message"></p>
 
-      <!-- Back to Dashboard -->
+      <!-- Back Link -->
       <a href="dashboard.html" class="back-link">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
       </a>
     </div>
 
-    <!-- Transactions Table -->
+    <!-- ─── Transactions Table ───────────────────────────────────────────────── -->
     <div class="transactions-section">
       <h3>Your VTU Transactions</h3>
       <table id="txnTable">
@@ -256,16 +205,11 @@
           </tr>
         </thead>
         <tbody>
-          <!-- Rows will be injected via JS -->
+          <!-- Rows populated by JS -->
         </tbody>
       </table>
     </div>
   </div>
-
-  <!-- Optional: Floating WhatsApp Icon -->
-  <a href="https://wa.me/08037402826" target="_blank" class="whatsapp-float">
-    <i class="fab fa-whatsapp"></i>
-  </a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
@@ -278,16 +222,16 @@
       doc,
       getDoc,
       updateDoc,
-      serverTimestamp,
       collection,
       addDoc,
+      serverTimestamp,
       query,
       where,
       orderBy,
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    // --- 1. Initialize Firebase ---
+    // ─── 1. Initialize Firebase ───────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -297,27 +241,23 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
       measurementId: "G-2FZKDQ47FZ"
     };
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db   = getFirestore(app);
 
-    // --- 2. DOM References ---
+    // ─── 2. DOM References ──────────────────────────────────────────────────────
     const balanceEl    = document.getElementById("balance");
     const networkEl    = document.getElementById("network");
     const planGroupEl  = document.getElementById("plan-group");
     const planSelectEl = document.getElementById("planSelect");
     const phoneEl      = document.getElementById("phone");
-    const purchaseBtn  = document.getElementById("purchaseBtn");
     const msgEl        = document.getElementById("msg");
     const txnTableBody = document.querySelector("#txnTable tbody");
 
-    let currentUserId   = null;
-    let currentBalance  = 0;
-    let selectedAmount  = 0;
-    let selectedPlanTxt = "";
+    let currentUserId  = null;
+    let currentBalance = 0;
 
-    // Hard-coded plan lists per network
+    // ─── 3. Hard-Coded Plans by Network ────────────────────────────────────────
     const plans = {
       MTN: [
         { text: "2GB @ N1,400",   amount: 1400 },
@@ -346,23 +286,15 @@
       ]
     };
 
-    // Helper: Format to currency string
-    function formatNGN(amount) {
-      return "₦" + amount.toLocaleString("en-NG");
-    }
-
-    // --- 3. Populate Plan Dropdown upon Network Selection ---
+    // ─── 4. Populate Plan Dropdown on Network Change ───────────────────────────
     networkEl.addEventListener("change", () => {
-      const selectedNetwork = networkEl.value;
-      planSelectEl.innerHTML = ""; // clear old options
-      selectedAmount = 0;
-      selectedPlanTxt = "";
+      const net = networkEl.value;
+      planSelectEl.innerHTML = "";   // Clear existing options
 
-      if (plans[selectedNetwork]) {
-        // Show plan group
+      if (net && plans[net]) {
         planGroupEl.style.display = "block";
 
-        // Add a placeholder option
+        // Add placeholder option
         const placeholder = document.createElement("option");
         placeholder.value = "";
         placeholder.textContent = "-- Choose Plan --";
@@ -370,81 +302,49 @@
         placeholder.selected = true;
         planSelectEl.appendChild(placeholder);
 
-        // Populate based on the chosen network
-        plans[selectedNetwork].forEach(item => {
+        // Populate plans
+        plans[net].forEach(item => {
           const opt = document.createElement("option");
-          opt.value = item.amount;        // numeric amount
-          opt.textContent = item.text;    // e.g. "2GB @ N1,400"
+          // Store JSON so we can read both text & amount later
+          opt.value = JSON.stringify({ text: item.text, amount: item.amount });
+          opt.textContent = item.text;
           planSelectEl.appendChild(opt);
         });
       } else {
         planGroupEl.style.display = "none";
       }
-
-      checkFormValidity();
     });
 
-    // When a plan is selected, store its amount & text
-    planSelectEl.addEventListener("change", () => {
-      selectedAmount  = Number(planSelectEl.value);
-      selectedPlanTxt = planSelectEl.options[planSelectEl.selectedIndex].text;
-      checkFormValidity();
-    });
-
-    // Enable Purchase button only when fields are valid
-    function checkFormValidity() {
-      const net  = networkEl.value;
-      const ph   = phoneEl.value.trim();
-      const plan = planSelectEl.value;
-      const validPhone = /^0[789][01]\d{8}$/.test(ph); // crude NG phone regex
-      const validAmt   = selectedAmount > 0;
-
-      // Enable only if network + plan + valid phone + sufficient balance
-      if (net && plan && validPhone && currentBalance >= selectedAmount) {
-        purchaseBtn.disabled = false;
-      } else {
-        purchaseBtn.disabled = true;
-      }
-    }
-
-    phoneEl.addEventListener("input", checkFormValidity);
-
-    // --- 4. On Auth State Changed: Fetch balance & load transactions ---
+    // ─── 5. Watch Auth State → Fetch Balance & Start Listening to Transactions ─
     onAuthStateChanged(auth, user => {
       if (user) {
         currentUserId = user.uid;
         fetchUserBalance(user.uid);
         loadTransactions(user.uid);
       } else {
-        // If not logged in, redirect to login
         window.location.href = "login.html";
       }
     });
 
-    // Fetch user’s balance from Firestore
+    // ─── Fetch User Balance ────────────────────────────────────────────────────
     async function fetchUserBalance(uid) {
       try {
-        const userDocRef = doc(db, "users", uid);
-        const userSnap   = await getDoc(userDocRef);
-
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
           currentBalance = Number(userSnap.data().balance || 0);
-          balanceEl.textContent = `Current Balance: ${formatNGN(currentBalance)}`;
-          checkFormValidity();
+          balanceEl.textContent = `Current Balance: ₦${currentBalance.toLocaleString("en-NG")}`;
         } else {
           balanceEl.textContent = "User data not found.";
-          purchaseBtn.disabled = true;
         }
       } catch (err) {
         console.error("Error fetching balance:", err);
         balanceEl.textContent = "Error loading balance.";
-        purchaseBtn.disabled = true;
       }
     }
 
-    // --- 5. Load & Display Transaction History ---
+    // ─── 6. Load & Render User’s VTU Transactions (Real-Time) ──────────────────
     function loadTransactions(uid) {
-      // Query all VTU transactions for this user, ordered by timestamp descending
       const txQuery = query(
         collection(db, "transactions"),
         where("userId", "==", uid),
@@ -453,8 +353,7 @@
       );
 
       onSnapshot(txQuery, snapshot => {
-        // Clear any existing rows
-        txnTableBody.innerHTML = "";
+        txnTableBody.innerHTML = ""; // Clear previous rows
 
         snapshot.forEach(docSnap => {
           const data = docSnap.data();
@@ -469,7 +368,6 @@
               })
             : "—";
 
-          // Determine CSS class for status
           let statusClass = "";
           if (data.status === "pending") {
             statusClass = "status-pending";
@@ -479,7 +377,6 @@
             statusClass = "status-rejected";
           }
 
-          // Build a table row
           const row = document.createElement("tr");
           row.innerHTML = `
             <td>${dateStr}</td>
@@ -496,67 +393,83 @@
       });
     }
 
-    // --- 6. Purchase Airtime/Data Logic ---
-    async function purchaseAirtime() {
+    // ─── 7. Submit VTU (With Balance Check & Firestore Write) ─────────────────
+    async function submitVTU() {
       msgEl.textContent = "";
       msgEl.className = "message";
 
-      const net  = networkEl.value;
-      const ph   = phoneEl.value.trim();
-      const amt  = selectedAmount;
-      const plan = selectedPlanTxt;
+      const netOption  = networkEl.value;
+      const planOption = planSelectEl.value;
+      const phone      = phoneEl.value.trim();
 
-      // Basic validation (reinforcement)
-      if (!net || !plan || !/^0[789][01]\d{8}$/.test(ph) || amt <= 0) {
-        msgEl.textContent = "❌ Please fill out all fields correctly.";
+      // 7.1 Basic validation
+      if (!netOption) {
+        msgEl.textContent = "❌ Please select a network.";
+        msgEl.classList.add("error");
+        return;
+      }
+      if (!planOption) {
+        msgEl.textContent = "❌ Please choose a plan.";
+        msgEl.classList.add("error");
+        return;
+      }
+      if (!/^0\d{10}$/.test(phone)) {
+        msgEl.textContent = "❌ Enter a valid 11-digit phone number.";
         msgEl.classList.add("error");
         return;
       }
 
+      // 7.2 Parse selected plan JSON
+      let planData;
       try {
-        // Re-fetch balance to avoid race conditions
-        const userRef   = doc(db, "users", currentUserId);
-        const userSnap  = await getDoc(userRef);
+        planData = JSON.parse(planOption);
+      } catch {
+        msgEl.textContent = "❌ Plan data is invalid.";
+        msgEl.classList.add("error");
+        return;
+      }
+      const planText = planData.text;
+      const amount   = Number(planData.amount);
+
+      try {
+        // 7.3 Re-fetch latest balance
+        const userRef  = doc(db, "users", currentUserId);
+        const userSnap = await getDoc(userRef);
         const latestBal = Number(userSnap.data().balance || 0);
 
-        if (latestBal < amt) {
+        if (latestBal < amount) {
           msgEl.textContent = "❌ Insufficient balance. Please fund your account.";
           msgEl.classList.add("error");
           return;
         }
 
-        // 1) Deduct balance
-        const newBalance = latestBal - amt;
-        await updateDoc(userRef, {
-          balance: newBalance
-        });
+        // 7.4 Deduct amount from balance
+        const newBalance = latestBal - amount;
+        await updateDoc(userRef, { balance: newBalance });
+        currentBalance = newBalance;
+        balanceEl.textContent = `Current Balance: ₦${currentBalance.toLocaleString("en-NG")}`;
 
-        // 2) Record VTU transaction (status = "pending" by default)
+        // 7.5 Create pending transaction
         await addDoc(collection(db, "transactions"), {
           userId: currentUserId,
           type: "VTU",
-          network: net,
-          phone: ph,
-          plan: plan,
-          amount: -amt,                    // Negative indicates debit
-          status: "pending",               // admin or backend can update to "successful" / "rejected"
+          network: netOption,
+          phone: phone,
+          plan: planText,
+          amount: -amount,
+          status: "pending",
           timestamp: serverTimestamp()
         });
 
-        // 3) Update on-screen balance & show success
-        currentBalance = newBalance;
-        balanceEl.textContent = `Current Balance: ${formatNGN(currentBalance)}`;
-        msgEl.textContent = `✅ You purchased "${plan}" for ${formatNGN(amt)} to ${ph}.`;
+        // 7.6 Success message
+        msgEl.textContent = `✅ You purchased "${planText}" for ₦${amount.toLocaleString("en-NG")} to ${phone}. Awaiting approval.`;
         msgEl.classList.add("success");
 
-        // Reset form fields
+        // 7.7 Reset form
         networkEl.value = "";
         planGroupEl.style.display = "none";
         planSelectEl.innerHTML = "";
         phoneEl.value = "";
-        selectedAmount  = 0;
-        selectedPlanTxt = "";
-        purchaseBtn.disabled = true;
       }
       catch (err) {
         console.error("Error during VTU purchase:", err);
@@ -564,6 +477,10 @@
         msgEl.classList.add("error");
       }
     }
+
+    // Expose to global scope so the inline onclick can call it
+    window.submitVTU = submitVTU;
   </script>
 </body>
-</html>
+  </html>
+  
