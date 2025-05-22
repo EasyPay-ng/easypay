@@ -41,10 +41,6 @@
     }
     .approve { background-color: #006400; color: white; }
     .reject  { background-color: #ff4c4c; color: white; }
-    .cleared {
-      opacity: 0.6;
-      pointer-events: none;
-    }
     .timestamp {
       font-size: 13px;
       color: #006400;
@@ -74,23 +70,40 @@
 
     const txnList = document.getElementById('txnList');
 
-    // Load all pending VTU transactions
+    // Load all pending VTU transactions (without orderBy in the query)
     function loadTransactions() {
       db.collection("transactions")
         .where("type", "==", "VTU")
         .where("status", "==", "pending")
-        .orderBy("timestamp", "desc")
         .onSnapshot(snapshot => {
-          txnList.innerHTML = '';  // Clear current list
-          snapshot.forEach(doc => renderTransaction(doc));
+          // Collect all documents into an array
+          const docs = [];
+          snapshot.forEach(doc => {
+            docs.push({ id: doc.id, data: doc.data() });
+          });
+
+          // Sort client-side by timestamp (newest first).
+          // If timestamp is missing, treat it as 0 (oldest).
+          docs.sort((a, b) => {
+            const tA = a.data.timestamp && a.data.timestamp.toDate
+                       ? a.data.timestamp.toDate().getTime()
+                       : 0;
+            const tB = b.data.timestamp && b.data.timestamp.toDate
+                       ? b.data.timestamp.toDate().getTime()
+                       : 0;
+            return tB - tA;
+          });
+
+          // Clear and re-render
+          txnList.innerHTML = '';
+          docs.forEach(({ id, data }) => renderTransaction(id, data));
+        }, err => {
+          console.error("Error loading transactions:", err);
         });
     }
 
     // Render a single transaction card
-    function renderTransaction(doc) {
-      const data = doc.data();
-      const txnId = doc.id;
-
+    function renderTransaction(txnId, data) {
       // Fetch username from users collection
       if (data.userId) {
         db.collection("users").doc(data.userId).get()
@@ -99,19 +112,19 @@
             if (userDoc.exists && userDoc.data().username) {
               username = userDoc.data().username;
             }
-            buildCard(username, data, txnId);
+            buildCard(username, txnId, data);
           })
           .catch(err => {
             console.error("Error fetching username:", err);
-            buildCard("Unknown", data, txnId);
+            buildCard("Unknown", txnId, data);
           });
       } else {
-        buildCard("Unknown", data, txnId);
+        buildCard("Unknown", txnId, data);
       }
     }
 
     // Build the HTML card for one VTU transaction
-    function buildCard(username, data, txnId) {
+    function buildCard(username, txnId, data) {
       const card = document.createElement("div");
       card.className = "txn-card";
       card.id = `txn-${txnId}`;
@@ -131,10 +144,10 @@
 
       card.innerHTML = `
         <p><span class="label">Username:</span> ${username}</p>
-        <p><span class="label">Network:</span> ${data.network}</p>
-        <p><span class="label">Phone:</span> ${data.phone}</p>
-        <p><span class="label">Plan:</span> ${data.plan}</p>
-        <p><span class="label">Amount:</span> ₦${Math.abs(data.amount)}</p>
+        <p><span class="label">Network:</span> ${data.network || '—'}</p>
+        <p><span class="label">Phone:</span> ${data.phone || '—'}</p>
+        <p><span class="label">Plan:</span> ${data.plan || '—'}</p>
+        <p><span class="label">Amount:</span> ₦${Math.abs(data.amount || 0)}</p>
         <p class="timestamp"><span class="label">Requested:</span> ${timeStr}</p>
         <button class="approve" onclick="approveTxn('${txnId}')">Approve</button>
         <button class="reject" onclick="rejectTxn('${txnId}')">Reject</button>
@@ -147,7 +160,6 @@
       const txnRef = db.collection("transactions").doc(txnId);
       txnRef.update({ status: "successful" })
         .then(() => {
-          // Optionally remove from UI
           const card = document.getElementById(`txn-${txnId}`);
           if (card) card.remove();
         })
