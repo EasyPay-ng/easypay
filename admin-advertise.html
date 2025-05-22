@@ -58,6 +58,12 @@
       width: 0%;
       transition: width 0.4s ease-in-out;
     }
+    /* New styling for "posted by" line */
+    .posted-by {
+      font-size: 13px;
+      color: #004400;
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 <body>
@@ -68,7 +74,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script>
-    // Initialize
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -82,12 +88,12 @@
 
     const taskList = document.getElementById('taskList');
 
-    // Load tasks and set up submission listeners
+    // Load tasks (pending or approved) and listen for realtime updates
     function loadTasks() {
       db.collection("tasks")
-        .where("status", "in", ["pending","approved"])
+        .where("status", "in", ["pending", "approved"])
         .onSnapshot(snapshot => {
-          taskList.innerHTML = '';
+          taskList.innerHTML = '';  // clear current list
           snapshot.forEach(doc => renderTask(doc));
         });
     }
@@ -97,77 +103,108 @@
       const data   = doc.data();
       const taskId = doc.id;
 
-      // Build card
-      const div = document.createElement("div");
-      div.className = "task";
-      div.id = `task-${taskId}`;
-      div.innerHTML = `
-        <p><strong>Title:</strong> ${data.taskTitle}</p>
-        <p><strong>Platform:</strong> ${data.category} - ${data.subCategory}</p>
-        <p><strong>Workers Needed:</strong> ${data.workersNeeded}</p>
-        <p><strong>Budget:</strong> ₦${data.totalBudget}</p>
-        <p><strong>Description:</strong> ${data.description||''}</p>
-        <p><strong>Link:</strong> 
-          <a href="${data.link}" target="_blank">${data.link}</a>
-        </p>
-        <div class="progress-container">
-          <span id="label-${taskId}">0 / ${data.workersNeeded} approved</span>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fg" id="bar-${taskId}"></div>
+      // Helper to actually build the card once we have the username
+      function buildCard(username) {
+        // Create container div
+        const div = document.createElement("div");
+        div.className = "task";
+        div.id = `task-${taskId}`;
+
+        // Insert inner HTML, including "Posted by: {username}"
+        div.innerHTML = `
+          <p class="posted-by"><strong>Posted by:</strong> ${username}</p>
+          <p><strong>Title:</strong> ${data.taskTitle}</p>
+          <p><strong>Platform:</strong> ${data.category} - ${data.subCategory}</p>
+          <p><strong>Workers Needed:</strong> ${data.workersNeeded}</p>
+          <p><strong>Budget:</strong> ₦${data.totalBudget}</p>
+          <p><strong>Description:</strong> ${data.description || ''}</p>
+          <p><strong>Link:</strong>
+            <a href="${data.link}" target="_blank">${data.link}</a>
+          </p>
+          <div class="progress-container">
+            <span id="label-${taskId}">0 / ${data.workersNeeded} approved</span>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fg" id="bar-${taskId}"></div>
+            </div>
           </div>
-        </div>
-        <button class="approve" onclick="approveTask('${taskId}')"
-          ${data.status!=="pending"?'disabled':''}>
-          Approve Task
-        </button>
-        <button class="reject" onclick="rejectTask('${taskId}')"
-          ${data.status!=="pending"?'disabled':''}>
-          Reject Task
-        </button>
-        <button class="takedown" onclick="takeDownTask('${taskId}')">
-          Take Down
-        </button>
-      `;
-      taskList.appendChild(div);
+          <button class="approve" onclick="approveTask('${taskId}')"
+            ${data.status !== "pending" ? 'disabled' : ''}>
+            Approve Task
+          </button>
+          <button class="reject" onclick="rejectTask('${taskId}')"
+            ${data.status !== "pending" ? 'disabled' : ''}>
+            Reject Task
+          </button>
+          <button class="takedown" onclick="takeDownTask('${taskId}')">
+            Take Down
+          </button>
+        `;
 
-      // Listen approved submissions
-      db.collection("task_submissions")
-        .where("taskId","==",taskId)
-        .where("status","==","approved")
-        .onSnapshot(snap => {
-          const count = snap.size;
-          const needed = data.workersNeeded;
-          const pct = Math.min(100, Math.round(count/needed*100));
-          document.getElementById(`bar-${taskId}`).style.width = pct + '%';
-          document.getElementById(`label-${taskId}`).textContent = 
-            `${count} / ${needed} approved`;
+        taskList.appendChild(div);
 
-          // Auto-disable Approve/Reject when complete
-          if (count>=needed) {
-            const card = document.getElementById(`task-${taskId}`);
-            card.querySelector('.approve').disabled = true;
-            card.querySelector('.reject').disabled  = true;
-          }
-        });
+        // Listen to approved submissions for progress bar updates
+        db.collection("task_submissions")
+          .where("taskId", "==", taskId)
+          .where("status", "==", "approved")
+          .onSnapshot(snap => {
+            const count = snap.size;
+            const needed = data.workersNeeded;
+            const pct = Math.min(100, Math.round(count / needed * 100));
+            document.getElementById(`bar-${taskId}`).style.width = pct + '%';
+            document.getElementById(`label-${taskId}`).textContent =
+              `${count} / ${needed} approved`;
+
+            // Disable Approve/Reject when the task is “filled”
+            if (count >= needed) {
+              const card = document.getElementById(`task-${taskId}`);
+              if (card) {
+                card.querySelector('.approve').disabled = true;
+                card.querySelector('.reject').disabled = true;
+              }
+            }
+          });
+      }
+
+      // 1) If data.userId exists, fetch that user’s document to get “username”
+      if (data.userId) {
+        db.collection("users").doc(data.userId).get()
+          .then(userDoc => {
+            let username = "Unknown";
+            if (userDoc.exists && userDoc.data().username) {
+              username = userDoc.data().username;
+            }
+            buildCard(username);
+          })
+          .catch(err => {
+            console.error("Error fetching user for task:", err);
+            buildCard("Unknown");
+          });
+      }
+      // 2) Otherwise, if data.username is already stored in task doc, use that
+      else if (data.username) {
+        buildCard(data.username);
+      }
+      // 3) Fallback if neither field is present
+      else {
+        buildCard("Unknown");
+      }
     }
 
-    // Approve / Reject / Take Down
+    // Approve / Reject / Take Down functions (unchanged)
     function approveTask(taskId) {
-      db.collection("tasks").doc(taskId).update({ status:"approved" });
+      db.collection("tasks").doc(taskId).update({ status: "approved" });
     }
     function rejectTask(taskId) {
-      db.collection("tasks").doc(taskId).update({ status:"rejected" });
+      db.collection("tasks").doc(taskId).update({ status: "rejected" });
     }
     function takeDownTask(taskId) {
-      // mark as taken down and remove from UI
-      db.collection("tasks").doc(taskId).update({ status:"taken down" });
+      db.collection("tasks").doc(taskId).update({ status: "taken down" });
       const card = document.getElementById(`task-${taskId}`);
       if (card) card.remove();
     }
 
-    // Init
+    // Initialize loading of tasks on page load
     loadTasks();
   </script>
 </body>
 </html>
-
