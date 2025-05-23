@@ -74,13 +74,24 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // Map of task IDs to their destination shortlinks
     const shrinkLinks = {
       27001: 'https://tpi.li/yXUwlkTj',
-      27002: 'https://shrinkme.ink/9GrK'
+      27002: 'https://shrinkme.ink/9GrK',
+      27003: 'https://tinylinks.top/Q5QBi'
+    };
+
+    // Map of task IDs to their cooldown durations (ms)
+    const cooldowns = {
+      27001: 24 * 60 * 60 * 1000, // 24 hours
+      27002: 24 * 60 * 60 * 1000, // 24 hours
+      27003: 12 * 60 * 60 * 1000  // 12 hours
     };
 
     const container = document.getElementById("tasksContainer");
     const buttons = {};
+
+    // Create a card and button for each shortlink ID
     for (let id in shrinkLinks) {
       const card = document.createElement("div");
       card.className = "card";
@@ -104,36 +115,42 @@
       for (let id in shrinkLinks) {
         const btn = buttons[id];
         const link = shrinkLinks[id];
+        const cooldown = cooldowns[id];
         const localKey = `shortlink_${uid}_${id}`;
-        let nextAvailable = parseInt(localStorage.getItem(localKey)) || 0;
 
+        // Determine nextAvailable from Firestore record if present
+        let nextAvailable = parseInt(localStorage.getItem(localKey)) || 0;
         const record = data.shortlinkTasks?.[id];
         if (!nextAvailable && record?.date) {
           const last = new Date(record.date).getTime();
-          nextAvailable = last + 86400000;
+          nextAvailable = last + cooldown;
           localStorage.setItem(localKey, nextAvailable);
         }
 
+        // If still in cooldown, disable button with countdown
         if (Date.now() < nextAvailable) {
-          disableWithCountdown(btn, nextAvailable);
+          disableWithCountdown(btn, nextAvailable, cooldown);
         }
 
+        // Button click handler
         btn.onclick = async () => {
           const now = Date.now();
           if (now < nextAvailable) return;
 
-          const expire = now + 86400000;
-          await userRef.update({
-            [`shortlinkTasks.${id}`]: { date: new Date().toISOString() }
-          });
+          const expire = now + cooldown;
+          await userRef.set({
+            shortlinkTasks: {
+              [id]: { date: new Date().toISOString() }
+            }
+          }, { merge: true });
           localStorage.setItem(localKey, expire);
-          disableWithCountdown(btn, expire);
+          disableWithCountdown(btn, expire, cooldown);
           window.open(link, '_blank');
         };
       }
     });
 
-    function disableWithCountdown(btn, availableTime) {
+    function disableWithCountdown(btn, availableTime, cooldown) {
       btn.disabled = true;
       const update = () => {
         const diff = availableTime - Date.now();
@@ -142,6 +159,7 @@
           btn.textContent = 'Start Task';
           clearInterval(interval);
         } else {
+          // Compute hours, minutes, seconds based on this task's cooldown
           const h = Math.floor(diff / 3600000);
           const m = Math.floor((diff % 3600000) / 60000);
           const s = Math.floor((diff % 60000) / 1000);
