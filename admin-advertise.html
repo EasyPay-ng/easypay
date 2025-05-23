@@ -62,7 +62,7 @@
       width: 0%;
       transition: width 0.4s ease-in-out;
     }
-    .poster-name {
+    .task-id {
       font-size: 13px;
       color: #004400;
       margin-bottom: 8px;
@@ -101,33 +101,18 @@
         });
     }
 
-    // Render one task card, replacing Task ID with poster's username
+    // Render one task card
     function renderTask(taskId, data) {
-      if (data.userId) {
-        // Fetch username from users collection
-        db.collection("users").doc(data.userId).get()
-          .then(userDoc => {
-            let username = "Unknown";
-            if (userDoc.exists && userDoc.data().username) {
-              username = userDoc.data().username;
-            }
-            buildCard(username, taskId, data);
-          })
-          .catch(() => {
-            buildCard("Unknown", taskId, data);
-          });
-      } else {
-        buildCard("Unknown", taskId, data);
-      }
+      buildCard(taskId, data);
     }
 
-    // Build the HTML card for one task, showing Poster Username instead of ID
-    function buildCard(username, taskId, data) {
+    // Build the HTML card for one task, showing Task ID
+    function buildCard(taskId, data) {
       const div = document.createElement("div");
       div.className = "task";
       div.id = `task-${taskId}`;
       div.innerHTML = `
-        <p class="poster-name"><strong>Posted by:</strong> ${username}</p>
+        <p class="task-id"><strong>Task ID:</strong> ${taskId}</p>
         <p><strong>Title:</strong> ${data.taskTitle}</p>
         <p><strong>Platform:</strong> ${data.category} - ${data.subCategory}</p>
         <p><strong>Workers Needed:</strong> ${data.workersNeeded}</p>
