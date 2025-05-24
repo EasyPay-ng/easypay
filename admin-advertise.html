@@ -41,19 +41,15 @@
     .approve { background-color: #006400; color: white; }
     .reject  { background-color: #ff4c4c; color: white; }
     .takedown { background-color: #f39c12; color: white; }
-    .status-tag {
-      display: inline-block;
+    .status-text {
       margin-top: 12px;
-      padding: 6px 12px;
-      border-radius: 6px;
+      font-size: 1.1rem;
       font-weight: bold;
-      color: #fff;
-      font-size: 1rem;
     }
-    .status-pending     { background-color: #c59a00; }
-    .status-approved    { background-color: #2f855a; }
-    .status-rejected    { background-color: #c53030; }
-    .status-taken\ down { background-color: #718096; }
+    .status-pending     { color: #c59a00; }
+    .status-approved    { color: #2f855a; }
+    .status-rejected    { color: #c53030; }
+    .status-taken\ down { color: #718096; }
     .progress-container {
       margin-top: 10px;
       font-size: 14px;
@@ -160,7 +156,7 @@
           </div>
         </div>
         ${buttonsHTML}
-        <span class="status-tag ${statusClass}">${status.toUpperCase()}</span>
+        <p class="status-text ${statusClass}">Status: ${status.toUpperCase()}</p>
       `;
       taskList.appendChild(div);
 
