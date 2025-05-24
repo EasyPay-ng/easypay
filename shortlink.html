@@ -78,14 +78,14 @@
     const shrinkLinks = {
       27001: 'https://tpi.li/yXUwlkTj',
       27002: 'https://shrinkme.ink/9GrK',
-      27003: 'https://tinylinks.top/Q5QBi'
+      27003: 'https://linksfly.net/27003'
     };
 
     // Map of task IDs to their cooldown durations (ms)
     const cooldowns = {
       27001: 24 * 60 * 60 * 1000, // 24 hours
       27002: 24 * 60 * 60 * 1000, // 24 hours
-      27003: 12 * 60 * 60 * 1000  // 12 hours
+      27003: 24 * 60 * 60 * 1000  // 24 hours (changed from 12)
     };
 
     const container = document.getElementById("tasksContainer");
@@ -159,7 +159,7 @@
           btn.textContent = 'Start Task';
           clearInterval(interval);
         } else {
-          // Compute hours, minutes, seconds based on this task's cooldown
+          // Compute hours, minutes, seconds
           const h = Math.floor(diff / 3600000);
           const m = Math.floor((diff % 3600000) / 60000);
           const s = Math.floor((diff % 60000) / 1000);
