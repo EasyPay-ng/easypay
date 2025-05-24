@@ -64,6 +64,27 @@
       border-radius: 5px;
       cursor: pointer;
       font-weight: bold;
+      position: relative;
+    }
+    .btn:disabled {
+      background: #999;
+      cursor: default;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .footer {
@@ -74,6 +95,9 @@
     .footer a {
       color: green;
       text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
     }
   </style>
   <!-- Firebase SDKs -->
@@ -109,7 +133,7 @@
       <label>Referral</label>
       <input type="text" id="referral" />
     </div>
-    <button class="btn" onclick="registerUser()">Register</button>
+    <button class="btn" id="registerBtn" onclick="registerUser()">Register</button>
     <div class="footer">
       <p>Already registered? <a href="login.html">Login now!</a></p>
     </div>
@@ -137,7 +161,8 @@
       document.getElementById("referral").value = ref;
     }
 
-    function registerUser() {
+    async function registerUser() {
+      const registerBtn = document.getElementById("registerBtn");
       const username = document.getElementById("username").value.trim();
       const fullname = document.getElementById("fullname").value.trim();
       const email = document.getElementById("email").value.trim();
@@ -154,43 +179,47 @@
         return;
       }
 
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          const uid = user.uid;
+      // Show loading effect
+      registerBtn.disabled = true;
+      registerBtn.innerHTML = '<span class="spinner"></span>Registering...';
 
-          // Send verification email
-          return user.sendEmailVerification()
-            .then(() => {
-              // Save user data after sending verification
-              const userData = {
-                username,
-                fullname,
-                email,
-                referral,
-                balance: 10,
-                plan: "basic",                     // ← new default field
-                lastDailyClaim: null,              // ← tracks when they last claimed
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                transactions: [
-                  {
-                    amount: 10,
-                    type: "Registration Bonus",
-                    date: new Date().toLocaleString()
-                  }
-                ]
-              };
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        const uid = user.uid;
 
-              return db.collection("users").doc(uid).set(userData);
-            });
-        })
-        .then(() => {
-          alert("Registration successful! A verification email has been sent. Please verify your email before logging in.");
-          window.location.href = "login.html";
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
+        // Send verification email
+        await user.sendEmailVerification();
+
+        // Prepare user data
+        const userData = {
+          username,
+          fullname,
+          email,
+          referral,
+          balance: 10,
+          plan: "basic",
+          lastDailyClaim: null,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          transactions: [
+            {
+              amount: 10,
+              type: "Registration Bonus",
+              date: new Date().toLocaleString()
+            }
+          ]
+        };
+
+        await db.collection("users").doc(uid).set(userData);
+
+        alert("Registration successful! A verification email has been sent. Please verify your email before logging in.");
+        window.location.href = "login.html";
+
+      } catch (error) {
+        alert(error.message);
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Register';
+      }
     }
   </script>
 </body>
