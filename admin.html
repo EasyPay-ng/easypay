@@ -78,6 +78,13 @@
       padding: 2rem;
     }
 
+    #userCount {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      font-weight: 500;
+      color: #004400;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -170,18 +177,20 @@
         <a href="admin-task.html">Submissions</a>
         <a href="admin-activate.html">User Records</a>
         <a href="admin-plans.html">User Plans</a>
-        <a href="admin-upgrade.html">Upgrades</a> <!-- Newly added option -->
-        <a href="admin-vtu.html">VTU Request</a>    <!-- New VTU Request link -->
+        <a href="admin-upgrade.html">Upgrades</a>
+        <a href="admin-vtu.html">VTU Request</a>
       </div>
     </div>
   </header>
 
   <div class="container">
-    <input type="text" id="searchInput" placeholder="Search by Username..." oninput="searchUsers()">
+    <div id="userCount">Total Users:  0</div>
+    <input type="text" id="searchInput" placeholder="Search by Username or UID..." oninput="searchUsers()">
     <table>
       <thead>
         <tr>
           <th>Username</th>
+          <th>UID</th>
           <th>Balance</th>
           <th>Referrals</th>
           <th>Status</th>
@@ -228,23 +237,29 @@
 
     async function loadUsers() {
       const tbody = document.getElementById("userTableBody");
+      const userCountEl = document.getElementById("userCount");
       tbody.innerHTML = "";
+
       const snapshot = await getDocs(collection(db, "users"));
+      const totalUsers = snapshot.size;
+      userCountEl.textContent = `Total Users:  ${totalUsers}`;
 
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
+        const uid = docSnap.id;
         const isSusp = data.suspended || false;
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${data.username}</td>
+          <td>${data.username || '—'}</td>
+          <td>${uid}</td>
           <td>₦${data.balance || 0}</td>
           <td>${data.referrals || 0}</td>
           <td>${isSusp ? "Suspended" : "Active"}</td>
           <td>
-            <button class="btn edit-btn" onclick="openModal('${docSnap.id}', '${data.username}', ${data.balance || 0}, ${data.referrals || 0})">
+            <button class="btn edit-btn" onclick="openModal('${uid}', '${data.username}', ${data.balance || 0}, ${data.referrals || 0})">
               Edit
             </button>
-            <button class="btn suspend-btn" onclick="toggleSuspend('${docSnap.id}', ${isSusp})">
+            <button class="btn suspend-btn" onclick="toggleSuspend('${uid}', ${isSusp})">
               ${isSusp ? 'Unsuspend' : 'Suspend'}
             </button>
           </td>
@@ -283,8 +298,9 @@
     window.searchUsers = () => {
       const query = document.getElementById("searchInput").value.toLowerCase();
       document.querySelectorAll("#userTableBody tr").forEach(row => {
-        const name = row.children[0].innerText.toLowerCase();
-        row.style.display = name.includes(query) ? "" : "none";
+        const username = row.children[0].innerText.toLowerCase();
+        const uid = row.children[1].innerText.toLowerCase();
+        row.style.display = (username.includes(query) || uid.includes(query)) ? "" : "none";
       });
     };
 
