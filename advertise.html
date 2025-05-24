@@ -43,6 +43,27 @@
       width: 100%;
       border-radius: 8px;
       font-size: 16px;
+      position: relative;
+    }
+    button:disabled {
+      background-color: #999;
+      cursor: default;
+    }
+    /* Spinner */
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     #totalCost {
       font-weight: bold;
@@ -99,7 +120,7 @@
     <label>Task Link</label>
     <input type="url" id="taskLink" required />
 
-    <button onclick="submitTask()">Submit Task</button>
+    <button id="submitBtn" onclick="submitTask()">Submit Task</button>
   </div>
 
   <!-- Proof section -->
@@ -193,12 +214,13 @@
     const subcategorySelect = document.getElementById("subcategory");
     const workersInput = document.getElementById("workers");
     const totalCostDiv = document.getElementById("totalCost");
+    const submitBtn = document.getElementById("submitBtn");
 
     let currentUnitCost = 0;
 
     platformSelect.addEventListener("change", () => {
       const selected = platformSelect.value;
-      subcategorySelect.innerHTML = "<option value=''>Select Subcategory</option>";  // Reset options
+      subcategorySelect.innerHTML = "<option value=''>Select Subcategory</option>";
       if (subcategoryData[selected]) {
         Object.entries(subcategoryData[selected]).forEach(([name, price]) => {
           const opt = document.createElement("option");
@@ -208,16 +230,16 @@
           subcategorySelect.appendChild(opt);
         });
       }
-      updateCost();  // Update the cost whenever platform is changed
+      updateCost();
     });
 
     subcategorySelect.addEventListener("change", () => {
       const selected = subcategorySelect.options[subcategorySelect.selectedIndex];
       currentUnitCost = selected ? parseFloat(selected.dataset.price) : 0;
-      updateCost();  // Update cost when subcategory is selected
+      updateCost();
     });
 
-    workersInput.addEventListener("input", updateCost);  // Update when workers number changes
+    workersInput.addEventListener("input", updateCost);
 
     function updateCost() {
       const workers = parseInt(workersInput.value) || 0;
@@ -237,11 +259,17 @@
       const user = firebase.auth().currentUser;
       if (!user) return alert("Please log in first.");
 
+      // Show loading effect
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
+
       const userRef = db.collection("users").doc(user.uid);
       const userDoc = await userRef.get();
       const balance = userDoc.data()?.balance || 0;
       if (balance < totalCost) {
         alert("Insufficient balance to post this task.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Task';
         return;
       }
 
@@ -257,7 +285,7 @@
         description: description,
         link: taskLink,
         createdBy: user.uid,
-        createdAt: new Date(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         status: "pending",
         taskId: taskId
       });
@@ -273,11 +301,15 @@
         type: "debit",
         source: "Task Post",
         amount: totalCost,
-        date: new Date()
+        date: firebase.firestore.FieldValue.serverTimestamp()
       });
 
       alert("Task submitted for approval!");
       loadProofs(taskId); // Load proofs for the task
+
+      // Reset button after submission
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Task';
     }
 
     async function loadProofs(taskId) {
@@ -310,6 +342,3 @@
 
 </body>
 </html>
-
-
-
