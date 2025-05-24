@@ -40,10 +40,18 @@
     .approve { background-color: #006400; color: white; }
     .reject  { background-color: #ff4c4c; color: white; }
     .takedown { background-color: #f39c12; color: white; }
-    .disabled {
-      opacity: 0.6;
-      pointer-events: none;
+    .status-tag {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+      color: #fff;
     }
+    .status-pending    { background-color: #c59a00; }
+    .status-approved   { background-color: #2f855a; }
+    .status-rejected   { background-color: #c53030; }
+    .status-taken\ down { background-color: #718096; }
     .progress-container {
       margin-top: 10px;
       font-size: 14px;
@@ -62,15 +70,10 @@
       width: 0%;
       transition: width 0.4s ease-in-out;
     }
-    .task-id {
-      font-size: 13px;
-      color: #004400;
-      margin-bottom: 8px;
-    }
   </style>
 </head>
 <body>
-  <h1>Pending Tasks for Approval</h1>
+  <h1>All Tasks for Review</h1>
   <div id="taskList"></div>
 
   <!-- Firebase -->
@@ -91,10 +94,9 @@
 
     const taskList = document.getElementById('taskList');
 
-    // Load tasks (pending or approved) and listen for realtime updates
+    // Load all tasks and listen for realtime updates
     function loadTasks() {
       db.collection("tasks")
-        .where("status", "in", ["pending", "approved"])
         .onSnapshot(snapshot => {
           taskList.innerHTML = '';  // clear current list
           snapshot.forEach(doc => renderTask(doc.id, doc.data()));
@@ -106,11 +108,39 @@
       buildCard(taskId, data);
     }
 
-    // Build the HTML card for one task, showing Task ID
+    // Build the HTML card for one task, showing status and buttons
     function buildCard(taskId, data) {
       const div = document.createElement("div");
       div.className = "task";
       div.id = `task-${taskId}`;
+
+      // Format timestamp if needed (not used here)
+      // Determine current status
+      const status = data.status || "pending";
+      const statusClassMap = {
+        pending:    "status-pending",
+        approved:   "status-approved",
+        rejected:   "status-rejected",
+        "taken down":"status-taken down"
+      };
+      const statusClass = statusClassMap[status] || "status-pending";
+
+      // Determine which buttons to disable
+      const canApprove = status === "pending";
+      const canReject  = status === "pending";
+      // Take down always allowed
+      const buttonsHTML = `
+        <button class="approve" onclick="updateStatus('${taskId}','approved')" ${!canApprove ? 'disabled' : ''}>
+          Approve Task
+        </button>
+        <button class="reject" onclick="updateStatus('${taskId}','rejected')" ${!canReject ? 'disabled' : ''}>
+          Reject Task
+        </button>
+        <button class="takedown" onclick="updateStatus('${taskId}','taken down')">
+          Take Down
+        </button>
+      `;
+
       div.innerHTML = `
         <p class="task-id"><strong>Task ID:</strong> ${taskId}</p>
         <p><strong>Title:</strong> ${data.taskTitle}</p>
@@ -127,54 +157,37 @@
             <div class="progress-bar-fg" id="bar-${taskId}"></div>
           </div>
         </div>
-        <button class="approve" onclick="approveTask('${taskId}')"
-          ${data.status !== "pending" ? 'disabled' : ''}>
-          Approve Task
-        </button>
-        <button class="reject" onclick="rejectTask('${taskId}')"
-          ${data.status !== "pending" ? 'disabled' : ''}>
-          Reject Task
-        </button>
-        <button class="takedown" onclick="takeDownTask('${taskId}')">
-          Take Down
-        </button>
+        ${buttonsHTML}
+        <span class="status-tag ${statusClass}">${status.toUpperCase()}</span>
       `;
       taskList.appendChild(div);
 
-      // Listen to approved submissions for progress bar updates
+      // Update progress bar
       db.collection("task_submissions")
         .where("taskId", "==", taskId)
         .where("status", "==", "approved")
         .onSnapshot(snap => {
           const count = snap.size;
           const needed = data.workersNeeded;
-          const pct = Math.min(100, Math.round(count / needed * 100));
+          const pct = Math.min(100, Math.round((count/needed)*100));
           document.getElementById(`bar-${taskId}`).style.width = pct + '%';
-          document.getElementById(`label-${taskId}`).textContent =
-            `${count} / ${needed} approved`;
-
-          // Disable Approve/Reject when complete
-          if (count >= needed) {
-            const card = document.getElementById(`task-${taskId}`);
-            if (card) {
-              card.querySelector('.approve').disabled = true;
-              card.querySelector('.reject').disabled = true;
-            }
-          }
+          document.getElementById(`label-${taskId}`).textContent = `${count} / ${needed} approved`;
         });
     }
 
-    // Approve / Reject / Take Down
-    function approveTask(taskId) {
-      db.collection("tasks").doc(taskId).update({ status: "approved" });
-    }
-    function rejectTask(taskId) {
-      db.collection("tasks").doc(taskId).update({ status: "rejected" });
-    }
-    function takeDownTask(taskId) {
-      db.collection("tasks").doc(taskId).update({ status: "taken down" });
-      const card = document.getElementById(`task-${taskId}`);
-      if (card) card.remove();
+    // Update task status
+    function updateStatus(taskId, newStatus) {
+      const taskRef = db.collection("tasks").doc(taskId);
+      taskRef.get().then(doc => {
+        const current = doc.data().status || "pending";
+        if (current === "pending" && (newStatus === "approved" || newStatus === "rejected")) {
+          // Allow approve or reject only if currently pending
+          taskRef.update({ status: newStatus });
+        } else if (newStatus === "taken down") {
+          // Always allow takedown
+          taskRef.update({ status: "taken down" });
+        }
+      });
     }
 
     // Initialize
