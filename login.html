@@ -51,9 +51,29 @@
       cursor: pointer;
       font-size: 16px;
       transition: background 0.2s;
+      position: relative;
     }
-    .btn:hover {
+    .btn:disabled {
+      background-color: #999;
+      cursor: default;
+    }
+    .btn:hover:not(:disabled) {
       background-color: #0d8f0d;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     .footer-text {
       margin-top: 12px;
@@ -119,6 +139,11 @@
         if (!email || !password) {
           return alert("Please enter both email and password.");
         }
+
+        // Show loading effect
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<span class="spinner"></span>Logging in...';
+
         try {
           const { user } = await signInWithEmailAndPassword(auth, email, password);
 
@@ -126,6 +151,8 @@
           if (user.email.toLowerCase() !== "easypay27.ng@gmail.com" && !user.emailVerified) {
             alert("Please verify your email before logging in.");
             await signOut(auth);
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
             return;
           }
 
@@ -134,10 +161,12 @@
           if (userSnap.exists() && userSnap.data().suspended) {
             await signOut(auth);
             alert("Your account has been suspended. Please contact support.");
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
             return;
           }
 
-          // Redirect with popup
+          // Redirect
           if (user.email.toLowerCase() === "easypay27.ng@gmail.com") {
             alert("Welcome Admin!");
             window.location.href = 'admin.html';
@@ -149,6 +178,8 @@
         } catch (err) {
           console.error("Login failed:", err);
           alert("Login failed: " + err.message);
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Login';
         }
       });
     });
