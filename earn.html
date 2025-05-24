@@ -95,13 +95,13 @@
       background: #28a745;
       width: 0%;
       transition: width 0.4s ease-in-out;
-    }
+     }
     .progress-label {
       font-size: 12px;
       text-align: right;
       margin-top: 4px;
       color: #004400;
-    }
+     }
   </style>
 </head>
 <body>
@@ -120,7 +120,7 @@
     <header>Available Tasks</header>
     <!-- Added Upload Proof button below header -->
     <button 
-      onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'"
+      onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'" 
       style="display:block; margin: 0 auto 10px; padding:8px 16px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;"
     >
       Upload Proof
@@ -177,11 +177,10 @@
       }
     });
 
-    // Real-time listener for tasks, ordered newest first
+    // Real-time listener for tasks
     function startTaskListener() {
       db.collection("tasks")
         .where("status", "==", "approved")
-        .orderBy("createdAt", "desc")
         .onSnapshot(snapshot => {
           taskContainer.innerHTML = "";
           snapshot.forEach(doc => renderTask(doc));
