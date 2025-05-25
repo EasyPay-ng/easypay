@@ -13,6 +13,18 @@
       color: #006400;
       text-align: center;
     }
+    #searchContainer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #searchInput {
+      width: 60%;
+      max-width: 400px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
     .task {
       background: #fff;
       border: 1px solid #ccc;
@@ -38,8 +50,8 @@
       cursor: pointer;
       font-size: 0.95rem;
     }
-    .approve { background-color: #006400; color: white; }
-    .reject  { background-color: #ff4c4c; color: white; }
+    .approve  { background-color: #006400; color: white; }
+    .reject   { background-color: #ff4c4c; color: white; }
     .takedown { background-color: #f39c12; color: white; }
     .status-text {
       margin-top: 12px;
@@ -72,6 +84,16 @@
 </head>
 <body>
   <h1>All Tasks for Review</h1>
+
+  <!-- Search Bar -->
+  <div id="searchContainer">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search by Task ID..."
+    />
+  </div>
+
   <div id="taskList"></div>
 
   <!-- Firebase -->
@@ -91,6 +113,7 @@
     const db = firebase.firestore();
 
     const taskList = document.getElementById('taskList');
+    const searchInput = document.getElementById('searchInput');
 
     // Show confirmation before taking down
     function confirmTakedown(taskId) {
@@ -106,6 +129,7 @@
         .onSnapshot(snapshot => {
           taskList.innerHTML = '';  // clear current list
           snapshot.forEach(doc => renderTask(doc.id, doc.data()));
+          applyFilter(); // re-apply filter after rendering
         });
     }
 
@@ -119,6 +143,7 @@
       const div = document.createElement("div");
       div.className = "task";
       div.id = `task-${taskId}`;
+      div.dataset.taskId = taskId.toLowerCase();
 
       // Determine current status
       const status = data.status || "pending";
@@ -199,6 +224,23 @@
         }
       });
     }
+
+    // Filter visible tasks based on search input
+    function applyFilter() {
+      const term = searchInput.value.trim().toLowerCase();
+      const tasks = taskList.querySelectorAll('.task');
+      tasks.forEach(taskDiv => {
+        const id = taskDiv.dataset.taskId; 
+        if (id.includes(term)) {
+          taskDiv.style.display = '';
+        } else {
+          taskDiv.style.display = 'none';
+        }
+      });
+    }
+
+    // Listen for input changes to filter
+    searchInput.addEventListener('input', applyFilter);
 
     // Initialize
     loadTasks();
