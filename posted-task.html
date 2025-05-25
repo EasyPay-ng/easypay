@@ -117,7 +117,7 @@
       const tasks = [];
       taskSnap.forEach(doc => {
         const data = doc.data();
-        tasks.push({ id: doc.id, ts: data.createdAt?.toMillis()||0, data });
+        tasks.push({ id: doc.id, ts: data.createdAt?.toMillis() || 0, data });
       });
       tasks.sort((a,b) => b.ts - a.ts);
 
@@ -183,29 +183,43 @@
               }
               tr.replaceChild(imgTd, tr.children[3]);
 
-              // Approve/Reject
+              // Approve/Reject buttons
               const apBtn = document.createElement("button");
               const rjBtn = document.createElement("button");
-              apBtn.className   = "approve-btn"; apBtn.textContent = "Approve";
-              rjBtn.className   = "reject-btn";  rjBtn.textContent = "Reject";
-              // Handlers
-              apBtn.onclick = async () => {
-                apBtn.disabled = true; rjBtn.disabled = true;
-                apBtn.style.opacity = 0.5; rjBtn.style.opacity = 0.5;
-                await handleDecision(taskId, id, true);
-                tr.children[4].textContent = "approved";
-              };
-              rjBtn.onclick = async () => {
-                apBtn.disabled = true; rjBtn.disabled = true;
-                apBtn.style.opacity = 0.5; rjBtn.style.opacity = 0.5;
-                await handleDecision(taskId, id, false);
-                tr.children[4].textContent = "rejected";
-              };
+              apBtn.className = "approve-btn"; apBtn.textContent = "Approve";
+              rjBtn.className = "reject-btn";  rjBtn.textContent = "Reject";
+
+              // If already approved/rejected, disable both
+              if (d.status !== "pending") {
+                apBtn.disabled = true;
+                rjBtn.disabled = true;
+                apBtn.style.opacity = 0.5;
+                rjBtn.style.opacity = 0.5;
+              } else {
+                apBtn.onclick = async () => {
+                  apBtn.disabled = true;
+                  rjBtn.disabled = true;
+                  apBtn.style.opacity = 0.5;
+                  rjBtn.style.opacity = 0.5;
+                  await handleDecision(taskId, id, true);
+                  tr.children[4].textContent = "approved";
+                };
+                rjBtn.onclick = async () => {
+                  apBtn.disabled = true;
+                  rjBtn.disabled = true;
+                  apBtn.style.opacity = 0.5;
+                  rjBtn.style.opacity = 0.5;
+                  await handleDecision(taskId, id, false);
+                  tr.children[4].textContent = "rejected";
+                };
+              }
 
               const apTd = document.createElement("td");
               const rjTd = document.createElement("td");
-              apTd.appendChild(apBtn); rjTd.appendChild(rjBtn);
-              tr.appendChild(apTd); tr.appendChild(rjTd);
+              apTd.appendChild(apBtn);
+              rjTd.appendChild(rjBtn);
+              tr.appendChild(apTd);
+              tr.appendChild(rjTd);
 
               tbody.appendChild(tr);
             });
