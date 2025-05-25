@@ -15,6 +15,8 @@
       text-align: center;
       color: #006400;
       margin-bottom: 20px;
+      font-size: 1.5em;
+      font-weight: bold;
     }
     #loginDiv {
       max-width: 400px;
@@ -23,18 +25,25 @@
     }
     #loginDiv input {
       width: 100%;
-      padding: 8px;
-      margin: 6px 0;
+      padding: 10px;
+      margin: 8px 0;
       border-radius: 6px;
       border: 1px solid #ccc;
+      font-size: 1rem;
     }
     #loginDiv button {
-      padding: 8px 16px;
+      padding: 10px 16px;
       background: #006400;
       color: #fff;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 1rem;
+    }
+    #loginError {
+      color: red;
+      margin-top: 6px;
+      font-size: 0.9rem;
     }
     #app {
       display: none;
@@ -46,42 +55,49 @@
     .task {
       background: #fff;
       border: 1px solid #ccc;
-      padding: 15px;
+      padding: 18px;
       margin-bottom: 20px;
       border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,100,0,0.1);
+      box-shadow: 0 0 5px rgba(0, 100, 0, 0.1);
       position: relative;
     }
     .task h2 {
       margin: 0 0 10px;
       color: #006400;
+      font-size: 1.2rem;
     }
     .task p {
-      margin: 5px 0;
+      margin: 6px 0;
+      font-size: 1rem;
     }
     .task button {
-      padding: 6px 12px;
+      padding: 8px 14px;
       background: #006400;
       color: #fff;
       border: none;
       border-radius: 6px;
       margin-top: 10px;
+      font-size: 1rem;
       cursor: pointer;
     }
     .proof {
       margin-top: 10px;
     }
-    .proof input, .proof textarea {
+    .proof input,
+    .proof textarea {
       width: 100%;
-      margin: 4px 0;
-      padding: 6px;
+      margin: 6px 0;
+      padding: 8px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      font-size: 1rem;
     }
     .submit-btn {
       background: #007700;
       color: white;
       font-weight: bold;
+      font-size: 1rem;
+      padding: 8px 14px;
     }
     .progress-container {
       background: #eee;
@@ -102,6 +118,16 @@
       margin-top: 4px;
       color: #004400;
     }
+    #logoutBtn {
+      float: right;
+      background: #cc0000;
+      color: #fff;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -112,20 +138,13 @@
     <input type="email" id="email" placeholder="Email" /><br />
     <input type="password" id="password" placeholder="Password" /><br />
     <button id="loginBtn">Sign In</button>
-    <p id="loginError" style="color:red;"></p>
+    <p id="loginError"></p>
   </div>
 
   <!-- App Content -->
   <div id="app">
     <header>Available Tasks</header>
-    <!-- Added Upload Proof button below header -->
-    <button 
-      onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'" 
-      style="display:block; margin: 0 auto 10px; padding:8px 16px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;"
-    >
-      Upload Proof
-    </button>
-    <button style="float:right; margin-bottom:10px;" id="logoutBtn">Sign Out</button>
+    <button id="logoutBtn">Sign Out</button>
     <div id="taskContainer"></div>
   </div>
 
@@ -133,6 +152,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
   <script>
     // --- Initialize Firebase ---
     const firebaseConfig = {
@@ -144,17 +165,19 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.firestore();
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
 
     // DOM refs
-    const loginDiv       = document.getElementById("loginDiv");
-    const appDiv         = document.getElementById("app");
-    const taskContainer  = document.getElementById("taskContainer");
-    const loginBtn       = document.getElementById("loginBtn");
-    const logoutBtn      = document.getElementById("logoutBtn");
-    const loginError     = document.getElementById("loginError");
-    const emailInput     = document.getElementById("email");
-    const passInput      = document.getElementById("password");
+    const loginDiv      = document.getElementById("loginDiv");
+    const appDiv        = document.getElementById("app");
+    const taskContainer = document.getElementById("taskContainer");
+    const loginBtn      = document.getElementById("loginBtn");
+    const logoutBtn     = document.getElementById("logoutBtn");
+    const loginError    = document.getElementById("loginError");
+    const emailInput    = document.getElementById("email");
+    const passInput     = document.getElementById("password");
 
     // Sign in / out
     loginBtn.onclick = () => {
@@ -207,12 +230,12 @@
           <div class="progress-bar" id="bar-${id}"></div>
         </div>
         <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
-        <button onclick="window.open('${data.link}','_blank')">Start Task</button>
+        <button onclick="window.open('${data.link}', '_blank')">Start Task</button>
         <div class="proof">
           <label>Text Proof:</label>
           <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
-          <label>Image Proof URL:</label>
-          <input type="text" id="image-${id}" placeholder="Paste image proof URL..." />
+          <label>Image Proof:</label>
+          <input type="file" accept="image/*" id="file-${id}" /><br />
           <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
         </div>
       `;
@@ -235,33 +258,62 @@
           // Auto-complete task when done
           if (approvedCount >= needed) {
             // Remove from UI
-            document.getElementById(`task-${id}`).remove();
+            const taskElem = document.getElementById(`task-${id}`);
+            if (taskElem) taskElem.remove();
             // Mark task completed in DB
             db.collection("tasks").doc(id).update({ status: "completed" });
           }
         });
     }
 
-    // Submit proof
+    // Submit proof (with image file upload)
     async function submitProof(taskId, payout) {
       const user = auth.currentUser;
       if (!user) return alert("Sign in to submit");
-      const text  = document.getElementById(`text-${taskId}`).value.trim();
-      const image = document.getElementById(`image-${taskId}`).value.trim();
-      if (!text || !image) return alert("Fill both proof fields");
 
-      await db.collection("task_submissions").add({
-        taskId: taskId,
-        userId: user.uid,
-        textProof: text,
-        imageProof: image,
-        payout: payout,
-        status: "pending",
-        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      alert("Proof submitted!");
-      document.getElementById(`text-${taskId}`).value = "";
-      document.getElementById(`image-${taskId}`).value = "";
+      const textElem = document.getElementById(`text-${taskId}`);
+      const fileElem = document.getElementById(`file-${taskId}`);
+      const text  = textElem.value.trim();
+      const file  = fileElem.files[0];
+
+      if (!text) {
+        return alert("Please enter text proof before submitting.");
+      }
+      if (!file) {
+        return alert("Please select an image file to upload.");
+      }
+
+      try {
+        // Create a Storage reference
+        const timestamp = Date.now();
+        const storageRef = storage.ref().child(`task_submissions/${taskId}/${user.uid}_${timestamp}_${file.name}`);
+        
+        // Upload the file
+        const uploadTask = storageRef.put(file);
+        await uploadTask;
+
+        // Get download URL
+        const downloadURL = await storageRef.getDownloadURL();
+
+        // Now save submission to Firestore
+        await db.collection("task_submissions").add({
+          taskId: taskId,
+          userId: user.uid,
+          textProof: text,
+          imageProof: downloadURL,
+          payout: payout,
+          status: "pending",
+          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Proof submitted successfully!");
+        // Clear inputs
+        textElem.value = "";
+        fileElem.value = "";
+      } catch (err) {
+        console.error("Error uploading file and submitting proof:", err);
+        alert("There was an error submitting your proof. Please try again.");
+      }
     }
   </script>
 </body>
