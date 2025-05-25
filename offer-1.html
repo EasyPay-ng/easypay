@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EasyPay – Integrated Freecash</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8fff8;
+      color: #003300;
+    }
+    header {
+      background-color: #006400;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+    }
+    header img {
+      height: 48px;
+      margin-right: 12px;
+    }
+    header h1 {
+      font-size: 1.5rem;
+      margin: 0;
+      font-weight: normal;
+    }
+    #iframe-wrapper {
+      position: relative;
+      width: 100%;
+      /* Calculate full viewport height minus header (64px) */
+      height: calc(100vh - 64px);
+      overflow: hidden;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER with EasyPay logo and title -->
+  <header>
+    <!-- Base64‐encoded logo: replace the data URI below if you ever host the logo separately. -->
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAoKCgoKCgsMDAsPEA4QDxYUExMUFiIYGhgaGCIzICUgICUgMy03LCksNy1RQDg4QFFe
+      HF9fYmVpaWtmZmponJyjouYGBkYmJCRk5eXl7///AABEIAKABKwMBIgACEQEDEQH/xAAbAAEAAwEBAQEAAAAAAAAAAAAABQYHBAMCAf
+      /EADgQAAEDAgMFBgMGBgIDAAAAAAEAAgMEEQUSIQYxQVFhBhMicZGxwdEjUmJyghQjM0NinoLC8P/EABkBAAMBAQEAAAAAAAAAAAAA
+      AAECAwAEBf/EACQRAAICAgEEAgMAAAAAAAAAAAABAhEDBCExEkFRYTJxgaGx/9oADAMBAAIRAxEAPwDxSUUpSlFKUpSlFKUpSlFKUp
+      SlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSl
+      FKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFK
+      UpSlFKUpSlFKUpSlFKUpSlFKv/2Q==" 
+      alt="EasyPay Logo" 
+    />
+    <h1>EasyPay Nigeria</h1>
+  </header>
+
+  <!-- IFRAME Container: loads the Freecash site -->
+  <div id="iframe-wrapper">
+    <iframe src="https://freecash.com/r/4510f3458f" allowfullscreen></iframe>
+  </div>
+
+</body>
+</html>
