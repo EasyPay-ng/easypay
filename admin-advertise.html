@@ -12,50 +12,53 @@
     h1 {
       color: #006400;
       text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
     }
     #searchContainer {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
     #searchInput {
-      width: 60%;
-      max-width: 400px;
-      padding: 8px;
+      width: 80%;
+      max-width: 600px;
+      padding: 12px 16px;
+      font-size: 1.2rem;
       border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
+      border-radius: 8px;
     }
     .task {
       background: #fff;
       border: 1px solid #ccc;
-      padding: 20px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,100,0,0.1);
+      padding: 25px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 8px rgba(0,100,0,0.1);
       position: relative;
     }
     .task p {
-      margin: 6px 0;
+      margin: 8px 0;
+      font-size: 1rem;
     }
     .task .label {
       font-weight: 600;
       color: #004400;
     }
     .task button {
-      padding: 10px 18px;
-      margin-right: 10px;
+      padding: 12px 24px;
+      margin-right: 12px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
     .approve  { background-color: #006400; color: white; }
     .reject   { background-color: #ff4c4c; color: white; }
     .takedown { background-color: #f39c12; color: white; }
     .status-text {
-      margin-top: 12px;
-      font-size: 1.1rem;
+      margin-top: 14px;
+      font-size: 1.2rem;
       font-weight: bold;
     }
     .status-pending     { color: #c59a00; }
@@ -63,16 +66,16 @@
     .status-rejected    { color: #c53030; }
     .status-taken\ down { color: #718096; }
     .progress-container {
-      margin-top: 10px;
-      font-size: 14px;
+      margin-top: 12px;
+      font-size: 1rem;
       color: #004400;
     }
     .progress-bar-bg {
       background: #eee;
       border-radius: 20px;
       overflow: hidden;
-      height: 12px;
-      margin-top: 4px;
+      height: 14px;
+      margin-top: 6px;
     }
     .progress-bar-fg {
       background: #28a745;
@@ -230,7 +233,7 @@
       const term = searchInput.value.trim().toLowerCase();
       const tasks = taskList.querySelectorAll('.task');
       tasks.forEach(taskDiv => {
-        const id = taskDiv.dataset.taskId; 
+        const id = taskDiv.dataset.taskId;
         if (id.includes(term)) {
           taskDiv.style.display = '';
         } else {
