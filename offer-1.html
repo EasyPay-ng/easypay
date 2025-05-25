@@ -18,10 +18,6 @@
       align-items: center;
       padding: 12px 20px;
     }
-    header img {
-      height: 48px;
-      margin-right: 12px;
-    }
     header h1 {
       font-size: 1.5rem;
       margin: 0;
@@ -30,7 +26,7 @@
     #iframe-wrapper {
       position: relative;
       width: 100%;
-      /* Calculate full viewport height minus header (64px) */
+      /* 64px = header height (12px top + 12px bottom + font padding) */
       height: calc(100vh - 64px);
       overflow: hidden;
     }
@@ -39,29 +35,57 @@
       height: 100%;
       border: none;
     }
+    .error-message {
+      padding: 20px;
+      text-align: center;
+      color: #cc0000;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
 
-  <!-- HEADER with EasyPay logo and title -->
+  <!-- HEADER: EasyPay Title Only -->
   <header>
-    <!-- Base64‐encoded logo: replace the data URI below if you ever host the logo separately. -->
-    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAoKCgoKCgsMDAsPEA4QDxYUExMUFiIYGhgaGCIzICUgICUgMy03LCksNy1RQDg4QFFe
-      HF9fYmVpaWtmZmponJyjouYGBkYmJCRk5eXl7///AABEIAKABKwMBIgACEQEDEQH/xAAbAAEAAwEBAQEAAAAAAAAAAAAABQYHBAMCAf
-      /EADgQAAEDAgMFBgMGBgIDAAAAAAEAAgMEEQUSIQYxQVFhBhMicZGxwdEjUmJyghQjM0NinoLC8P/EABkBAAMBAQEAAAAAAAAAAAAA
-      AAECAwAEBf/EACQRAAICAgEEAgMAAAAAAAAAAAABAhEDBCExEkFRYTJxgaGx/9oADAMBAAIRAxEAPwDxSUUpSlFKUpSlFKUpSlFKUp
-      SlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSl
-      FKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFKUpSlFK
-      UpSlFKUpSlFKUpSlFKUpSlFKv/2Q==" 
-      alt="EasyPay Logo" 
-    />
     <h1>EasyPay Nigeria</h1>
   </header>
 
-  <!-- IFRAME Container: loads the Freecash site -->
+  <!-- IFRAME Container: attempts to load Freecash -->
   <div id="iframe-wrapper">
-    <iframe src="https://freecash.com/r/4510f3458f" allowfullscreen></iframe>
+    <iframe src="https://freecash.com/r/4510f3458f" id="externalFrame"></iframe>
   </div>
 
+  <!-- Fallback/error text if Freecash refuses to connect -->
+  <div id="fallback" class="error-message" style="display: none;">
+    ● Unable to display embedded content, because the remote site (Freecash) does not allow framing.  
+    ● <strong><a href="https://freecash.com/r/4510f3458f" target="_blank">Click here to open Freecash in a new tab</a></strong>.
+  </div>
+
+  <script>
+    // Check if the iframe failed to load due to X-Frame-Options or CSP.
+    // We do this by setting a timeout: if the iframe's contentWindow
+    // remains inaccessible after a short delay, assume it was blocked.
+    setTimeout(() => {
+      const iframe = document.getElementById('externalFrame');
+      let blocked = false;
+
+      try {
+        // Some browsers throw a cross-origin security error if framing is blocked.
+        const doc = iframe.contentWindow.document;
+        // If doc still refers to "about:blank" or throws, we treat as blocked.
+        if (!doc || doc.location.href === 'about:blank') {
+          blocked = true;
+        }
+      } catch (e) {
+        blocked = true;
+      }
+
+      if (blocked) {
+        // Hide the iframe and show a friendly fallback message
+        iframe.style.display = 'none';
+        document.getElementById('fallback').style.display = 'block';
+      }
+    }, 500); // half-second delay to let the browser attempt the load
+  </script>
 </body>
 </html>
