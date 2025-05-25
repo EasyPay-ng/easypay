@@ -152,7 +152,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
   <script>
-    // Initialize Firebase
+    // 1) Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -162,11 +162,11 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const auth    = firebase.auth();
+    const db      = firebase.firestore();
     const storage = firebase.storage();
 
-    // DOM references
+    // 2) DOM refs
     const loginDiv      = document.getElementById("loginDiv");
     const appDiv        = document.getElementById("app");
     const taskContainer = document.getElementById("taskContainer");
@@ -176,7 +176,7 @@
     const emailInput    = document.getElementById("email");
     const passInput     = document.getElementById("password");
 
-    // Sign in / out
+    // 3) Sign in/out handlers
     loginBtn.onclick = () => {
       loginError.textContent = "";
       auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
@@ -184,7 +184,7 @@
     };
     logoutBtn.onclick = () => auth.signOut();
 
-    // Auth state listener
+    // 4) Auth state listener
     auth.onAuthStateChanged(user => {
       if (user) {
         loginDiv.style.display = "none";
@@ -197,7 +197,7 @@
       }
     });
 
-    // Real-time listener for tasks
+    // 5) Real‐time listener for tasks
     function startTaskListener() {
       db.collection("tasks")
         .where("status", "==", "approved")
@@ -207,7 +207,7 @@
         });
     }
 
-    // Render one task, set up its submission listener
+    // 6) Render one task card
     function renderTask(doc) {
       const data = doc.data();
       const id   = doc.id;
@@ -232,12 +232,14 @@
           <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
           <label>Image Proof:</label>
           <input type="file" accept="image/*" id="file-${id}" /><br />
-          <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
+          <button class="submit-btn" onclick="submitProof('${id}', ${userPay}, ${data.workersNeeded})">
+            Submit Proof
+          </button>
         </div>
       `;
       taskContainer.appendChild(div);
 
-      // Listen for approved submissions to update progress
+      // Listen for approved submissions to update progress bar
       db.collection("task_submissions")
         .where("taskId", "==", id)
         .onSnapshot(snap => {
@@ -251,7 +253,7 @@
           document.getElementById(`label-${id}`).textContent =
             `${approvedCount} / ${needed} completed`;
 
-          // Auto-complete task when done
+          // If all slots are approved, remove task from UI and mark "completed"
           if (approvedCount >= needed) {
             const taskElem = document.getElementById(`task-${id}`);
             if (taskElem) taskElem.remove();
@@ -260,22 +262,22 @@
         });
     }
 
-    // Submit proof (with image file upload)
-    async function submitProof(taskId, payout) {
-      // 1) Check login
+    // 7) Submit proof (with live progress & no `await uploadTask`)
+    async function submitProof(taskId, payout, workersNeeded) {
+      // A) Check login
       const user = auth.currentUser;
       if (!user) {
         alert("Sign in to submit");
         return;
       }
 
-      // 2) Gather inputs
+      // B) Gather inputs
       const textElem = document.getElementById(`text-${taskId}`);
       const fileElem = document.getElementById(`file-${taskId}`);
       const text  = textElem.value.trim();
       const file  = fileElem.files[0];
 
-      // 3) Validate
+      // C) Validate
       if (!text) {
         alert("Please enter text proof before submitting.");
         return;
@@ -285,41 +287,82 @@
         return;
       }
 
+      // D) Show initial “Uploading” state
+      const progressLabel = document.getElementById(`label-${taskId}`);
+      progressLabel.textContent = `Uploading: 0%`;
+
       try {
-        // 4) Upload stage
-        alert("Uploading image to server…");
+        // E) Create Storage reference
         const timestamp = Date.now();
         const storageRef = storage
           .ref()
           .child(`task_submissions/${taskId}/${user.uid}_${timestamp}_${file.name}`);
 
+        // F) Start upload
         const uploadTask = storageRef.put(file);
-        await uploadTask;                               // wait for upload
-        alert("Image upload complete, fetching URL…");
 
-        // 5) Fetch download URL
-        const downloadURL = await storageRef.getDownloadURL();
-        alert("Got image URL, now saving submission…");
+        // G) Listen to progress / errors / completion
+        uploadTask.on(
+          "state_changed",
+          snapshot => {
+            // i) Most browsers will report bytesTransferred / totalBytes
+            const pct = Math.floor((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            progressLabel.textContent = `Uploading: ${pct}%`;
+          },
+          error => {
+            // ii) If Firebase Storage rules are blocking this, you’ll get an error here
+            console.error("Upload error:", error);
+            alert("Upload failed: " + error.message);
+            // Reset the label so the user can try again
+            progressLabel.textContent = `0 / ${workersNeeded} completed`;
+          },
+          async () => {
+            // iii) This callback runs once the file is fully in Storage
+            progressLabel.textContent = "Upload complete, fetching URL…";
 
-        // 6) Write Firestore entry
-        await db.collection("task_submissions").add({
-          taskId: taskId,
-          userId: user.uid,
-          textProof: text,
-          imageProof: downloadURL,
-          payout: payout,
-          status: "pending",
-          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Proof submitted successfully!");
+            // 1) Grab the download URL
+            let downloadURL;
+            try {
+              downloadURL = await storageRef.getDownloadURL();
+            } catch (err) {
+              console.error("Failed to get download URL:", err);
+              alert("Could not fetch image URL. Please try again.");
+              progressLabel.textContent = `0 / ${workersNeeded} completed`;
+              return;
+            }
 
-        // 7) Clear inputs
-        textElem.value = "";
-        fileElem.value = "";
+            progressLabel.textContent = "Saving submission…";
+
+            // 2) Write a Firestore document
+            try {
+              await db.collection("task_submissions").add({
+                taskId: taskId,
+                userId: user.uid,
+                textProof: text,
+                imageProof: downloadURL,
+                payout: payout,
+                status: "pending",
+                submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+            } catch (err) {
+              console.error("Failed to save submission in Firestore:", err);
+              alert("Couldn’t save your submission—please try again.");
+              progressLabel.textContent = `0 / ${workersNeeded} completed`;
+              return;
+            }
+
+            // 3) All done
+            alert("Proof submitted successfully!");
+            textElem.value = "";
+            fileElem.value = "";
+            progressLabel.textContent = `0 / ${workersNeeded} completed`;
+          }
+        );
 
       } catch (err) {
-        console.error("Error in submitProof():", err);
-        alert("There was an error submitting your proof. Please try again.");
+        console.error("Unexpected error in submitProof:", err);
+        alert("There was an unexpected error. Please try again.");
+        progressLabel.textContent = `0 / ${workersNeeded} completed`;
       }
     }
   </script>
