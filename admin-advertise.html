@@ -92,6 +92,13 @@
 
     const taskList = document.getElementById('taskList');
 
+    // Show confirmation before taking down
+    function confirmTakedown(taskId) {
+      if (window.confirm("Do you want to take down this task?")) {
+        updateStatus(taskId, "taken down");
+      }
+    }
+
     // Load all tasks ordered by newest first and listen for realtime updates
     function loadTasks() {
       db.collection("tasks")
@@ -116,25 +123,30 @@
       // Determine current status
       const status = data.status || "pending";
       const statusClassMap = {
-        pending:     "status-pending",
-        approved:    "status-approved",
-        rejected:    "status-rejected",
-        "taken down":"status-taken down"
+        pending:      "status-pending",
+        approved:     "status-approved",
+        rejected:     "status-rejected",
+        "taken down": "status-taken down"
       };
       const statusClass = statusClassMap[status] || "status-pending";
 
       // Determine which buttons to disable
       const canApprove = status === "pending";
       const canReject  = status === "pending";
-      // Take down always allowed
+      // Take down always allowed, but we’ll wrap it in confirmTakedown
       const buttonsHTML = `
-        <button class="approve" onclick="updateStatus('${taskId}', 'approved')" ${!canApprove ? 'disabled' : ''}>
+        <button class="approve"
+                onclick="updateStatus('${taskId}', 'approved')"
+                ${!canApprove ? 'disabled' : ''}>
           Approve Task
         </button>
-        <button class="reject" onclick="updateStatus('${taskId}', 'rejected')" ${!canReject ? 'disabled' : ''}>
+        <button class="reject"
+                onclick="updateStatus('${taskId}', 'rejected')"
+                ${!canReject ? 'disabled' : ''}>
           Reject Task
         </button>
-        <button class="takedown" onclick="updateStatus('${taskId}', 'taken down')">
+        <button class="takedown"
+                onclick="confirmTakedown('${taskId}')">
           Take Down
         </button>
       `;
