@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Available Tasks</title>
   <style>
+    /* ... (same styles as before) ... */
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f8fff8;
@@ -182,13 +183,21 @@
     // Sign in / out
     loginBtn.onclick = () => {
       loginError.textContent = "";
+      console.log("Attempting to sign in with", emailInput.value);
       auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
-        .catch(e => loginError.textContent = e.message);
+        .catch(e => {
+          console.error("Sign-in error:", e);
+          loginError.textContent = e.message;
+        });
     };
-    logoutBtn.onclick = () => auth.signOut();
+    logoutBtn.onclick = () => {
+      console.log("Signing out");
+      auth.signOut();
+    };
 
     // Auth state listener
     auth.onAuthStateChanged(user => {
+      console.log("Auth state changed:", user);
       if (user) {
         loginDiv.style.display = "none";
         appDiv.style.display   = "block";
@@ -205,6 +214,7 @@
       db.collection("tasks")
         .where("status", "==", "approved")
         .onSnapshot(snapshot => {
+          console.log("Loaded tasks:", snapshot.size);
           taskContainer.innerHTML = "";
           snapshot.forEach(doc => renderTask(doc));
         });
@@ -217,7 +227,6 @@
       const pricePerUser = data.costPerUser || (data.totalBudget / data.workersNeeded);
       const userPay = Math.floor(pricePerUser * 0.7);
 
-      // Create task box
       const div = document.createElement("div");
       div.className = "task";
       div.id = `task-${id}`;
@@ -257,10 +266,8 @@
 
           // Auto-complete task when done
           if (approvedCount >= needed) {
-            // Remove from UI
             const taskElem = document.getElementById(`task-${id}`);
             if (taskElem) taskElem.remove();
-            // Mark task completed in DB
             db.collection("tasks").doc(id).update({ status: "completed" });
           }
         });
@@ -268,35 +275,58 @@
 
     // Submit proof (with image file upload)
     async function submitProof(taskId, payout) {
+      console.log("submitProof() called for", taskId, "with payout", payout);
       const user = auth.currentUser;
-      if (!user) return alert("Sign in to submit");
+      if (!user) {
+        console.log("No logged‐in user found");
+        return alert("Sign in to submit");
+      }
 
       const textElem = document.getElementById(`text-${taskId}`);
       const fileElem = document.getElementById(`file-${taskId}`);
       const text  = textElem.value.trim();
       const file  = fileElem.files[0];
 
+      console.log("Text proof:", text);
+      console.log("File chosen:", file);
+
       if (!text) {
+        console.log("Text proof is empty");
         return alert("Please enter text proof before submitting.");
       }
       if (!file) {
+        console.log("No file selected");
         return alert("Please select an image file to upload.");
       }
 
       try {
-        // Create a Storage reference
+        console.log("Uploading file to Firebase Storage…");
         const timestamp = Date.now();
-        const storageRef = storage.ref().child(`task_submissions/${taskId}/${user.uid}_${timestamp}_${file.name}`);
+        const storageRef = storage
+          .ref()
+          .child(`task_submissions/${taskId}/${user.uid}_${timestamp}_${file.name}`);
         
         // Upload the file
         const uploadTask = storageRef.put(file);
-        await uploadTask;
 
-        // Get download URL
+        // Optional: monitor progress
+        uploadTask.on("state_changed",
+          snapshot => {
+            const pct = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`Upload is ${Math.floor(pct)}% done`);
+          },
+          error => {
+            console.error("Upload error:", error);
+          }
+        );
+
+        await uploadTask;
+        console.log("Upload complete, getting download URL…");
         const downloadURL = await storageRef.getDownloadURL();
+        console.log("Download URL:", downloadURL);
 
         // Now save submission to Firestore
-        await db.collection("task_submissions").add({
+        const submissionRef = await db.collection("task_submissions").add({
           taskId: taskId,
           userId: user.uid,
           textProof: text,
@@ -305,13 +335,13 @@
           status: "pending",
           submittedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        console.log("Firestore doc created:", submissionRef.id);
 
         alert("Proof submitted successfully!");
-        // Clear inputs
         textElem.value = "";
         fileElem.value = "";
       } catch (err) {
-        console.error("Error uploading file and submitting proof:", err);
+        console.error("Error in submitProof():", err);
         alert("There was an error submitting your proof. Please try again.");
       }
     }
