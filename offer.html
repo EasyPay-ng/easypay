@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EasyPay Offers</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8fff8;
+      color: #003300;
+    }
+    header {
+      background-color: #006400;
+      color: white;
+      padding: 16px 20px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: normal;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+    .offer-card {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,100,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .offer-header {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background-color: #e6f4e6;
+    }
+    .offer-header .emoji {
+      font-size: 2rem;
+      margin-right: 12px;
+    }
+    .offer-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #006400;
+    }
+    .offer-body {
+      padding: 16px;
+      line-height: 1.5;
+      color: #004400;
+    }
+    .requirements {
+      margin: 16px 0;
+      padding-left: 20px;
+    }
+    .requirements li {
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    .crypto-info {
+      background: #f0fff0;
+      border: 1px solid #a3d9a5;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 20px;
+      color: #004400;
+    }
+    .crypto-info p {
+      margin: 6px 0;
+    }
+    .ltc-address {
+      font-family: monospace;
+      background: #fff;
+      border: 1px dashed #006400;
+      padding: 8px;
+      border-radius: 4px;
+      word-break: break-all;
+      margin-top: 4px;
+    }
+    .action-button {
+      display: block;
+      text-align: center;
+      background: #007700;
+      color: #fff;
+      padding: 12px 0;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 1rem;
+      margin: 0 16px 20px;
+    }
+    .action-button:hover {
+      background: #005f00;
+    }
+    @media (max-width: 600px) {
+      header { font-size: 1.25rem; padding: 12px; }
+      .offer-header .emoji { font-size: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>EasyPay Nigeria</header>
+
+  <div class="container">
+    <!-- FIRST OFFER: FreeCash -->
+    <div class="offer-card">
+      <div class="offer-header">
+        <div class="emoji">💰</div>
+        <h2>FreeCash Offer</h2>
+      </div>
+      <div class="offer-body">
+        <p>Earn rewards from completing offers and surveys. Payment will be made to your local bank account as long as you follow these requirements:</p>
+        <ul class="requirements">
+          <li>Must be an active EasyPay user</li>
+          <li>Complete each offer or survey in full</li>
+          <li>Provide valid personal and banking information</li>
+          <li>Only one account per user is allowed</li>
+        </ul>
+        <div class="crypto-info">
+          <p>Anytime you want to cash out your money, withdraw via crypto—specifically Litecoin. Send the funds to the address below:</p>
+          <div class="ltc-address">LLTCaddress1234567890AbCdEfGhIjKlMnOpQrStU</div>
+          <p>It will be moved to your EasyPay account at the rate of ₦1400 per $.</p>
+        </div>
+        <a href="https://freecash.com/r/EasyPay22" target="_blank" class="action-button">
+          Start Offer on FreeCash
+        </a>
+      </div>
+    </div>
+
+    <!-- Additional offers can be added here in similar structure -->
+    <!--
+    <div class="offer-card">
+      ...
+    </div>
+    -->
+  </div>
+
+</body>
+</html>
