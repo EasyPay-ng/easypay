@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Activation Submissions</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #eef8ee;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #2e7d32;
+      margin: 2rem 0 1rem;
+      font-weight: 600;
+    }
+    .search-container {
+      width: 90%;
+      max-width: 800px;
+      margin-bottom: 1rem;
+    }
+    #searchInput {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .table-container {
+      width: 90%;
+      max-width: 800px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      overflow-x: auto;
+      padding: 1rem;
+      margin-bottom: 2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 0.9rem;
+    }
+    th {
+      background-color: #2e7d32;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    @media (max-width: 600px) {
+      th, td {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+      }
+      #searchInput {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Activation Submissions</h1>
+
+  <div class="search-container">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search by username..."
+    />
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Sender Name</th>
+          <th>Amount Sent</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="submissionBody">
+        <tr><td colspan="4">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    // Firebase config (same as your project)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+
+    // Initialize
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const submissionBody = document.getElementById("submissionBody");
+    const searchInput = document.getElementById("searchInput");
+
+    let allSubmissions = [];
+
+    // Load all activation submissions ordered by newest first
+    async function loadSubmissions() {
+      const q = query(
+        collection(db, "activations"),
+        orderBy("timestamp", "desc")
+      );
+      const snapshot = await getDocs(q);
+
+      allSubmissions = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        allSubmissions.push({
+          username: data.username || "",
+          senderName: data.senderName || "",
+          amountSent: data.amountSent || "",
+          timestamp: data.timestamp
+            ? data.timestamp.toDate().toLocaleString()
+            : "N/A"
+        });
+      });
+
+      renderSubmissions(allSubmissions);
+    }
+
+    // Render given array of submissions into table
+    function renderSubmissions(submissions) {
+      submissionBody.innerHTML = "";
+      if (submissions.length === 0) {
+        submissionBody.innerHTML = "<tr><td colspan='4'>No submissions found.</td></tr>";
+        return;
+      }
+      submissions.forEach(sub => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${sub.username}</td>
+          <td>${sub.senderName}</td>
+          <td>₦${sub.amountSent}</td>
+          <td>${sub.timestamp}</td>
+        `;
+        submissionBody.appendChild(tr);
+      });
+    }
+
+    // Filter as user types
+    searchInput.addEventListener("input", () => {
+      const term = searchInput.value.trim().toLowerCase();
+      const filtered = allSubmissions.filter(sub =>
+        sub.username.toLowerCase().includes(term)
+      );
+      renderSubmissions(filtered);
+    });
+
+    // Initial load
+    loadSubmissions();
+  </script>
+</body>
+</html>
