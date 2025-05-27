@@ -2,15 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EasyPay Dashboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f5fdf7;
       color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     header {
       background-color: #009f4d;
@@ -42,6 +44,7 @@
     }
     .container {
       padding: 20px;
+      flex-grow: 1;
     }
     .card {
       background: white;
@@ -74,6 +77,7 @@
       color: white;
       text-decoration: none;
       text-align: center;
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -118,7 +122,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = {
@@ -141,16 +145,15 @@
         return;
       }
 
-      const uid    = user.uid;
+      const uid = user.uid;
       const userRef = doc(db, "users", uid);
-      const snap    = await getDoc(userRef);
+      const snap = await getDoc(userRef);
       if (!snap.exists()) return;
 
-      const data    = snap.data();
-      const plan    = data.plan || "basic";           // default to basic if missing
-      const lastTs  = data.lastClaim || 0;             // lastClaim stored as an integer
+      const data = snap.data();
+      const plan = data.plan || "basic";
+      const lastTs = data.lastClaim || 0;
 
-      // Update profile/header info
       document.getElementById("usernameDisplay").innerText = data.username || "";
       document.getElementById("profileUsername").innerText = data.username || "";
       document.getElementById("profileEmail").innerText = data.email || "";
@@ -158,16 +161,10 @@
       document.getElementById("referrals").innerText = data.referrals ?? 0;
       document.getElementById("referralCode").innerText = data.username || "";
 
-      // Set claim button text based on plan
       const claimBtn = document.getElementById("claimBtn");
-      claimBtn.innerText = plan === "premium"
-        ? "Claim ₦30"
-        : "Claim ₦1";
-
-      // Attach fresh click handler
+      claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
       claimBtn.onclick = () => claimNaira(uid);
 
-      // Start or show countdown until next claim
       updateCountdown(lastTs);
     });
 
@@ -187,15 +184,15 @@
     function updateCountdown(lastClaimTs) {
       const countdownEl = document.getElementById("countdown");
       const tick = () => {
-        const now          = Date.now();
-        const nextAvailable = lastClaimTs + 86400000; // 24h = 86,400,000 ms
-        const diff         = nextAvailable - now;
+        const now = Date.now();
+        const nextAvailable = lastClaimTs + 86400000; // 24h
+        const diff = nextAvailable - now;
 
         if (diff <= 0) {
           countdownEl.innerText = "You can now claim!";
           clearInterval(intervalId);
         } else {
-          const hrs  = Math.floor(diff / 3600000);
+          const hrs = Math.floor(diff / 3600000);
           const mins = Math.floor((diff % 3600000) / 60000);
           const secs = Math.floor((diff % 60000) / 1000);
           countdownEl.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
@@ -207,43 +204,32 @@
 
     async function claimNaira(uid) {
       const userRef = doc(db, "users", uid);
-      const snap    = await getDoc(userRef);
-      const data    = snap.exists() ? snap.data() : {};
-      const lastTs  = data.lastClaim || 0;
-      const now     = Date.now();
+      const snap = await getDoc(userRef);
+      const data = snap.exists() ? snap.data() : {};
+      const lastTs = data.lastClaim || 0;
+      const now = Date.now();
 
-      // Check 24h cooldown
       if (now - lastTs < 86400000) {
         alert("You have to wait 24 hours before claiming again.");
         return;
       }
 
-      // Determine plan & payout amount
-      const plan   = data.plan || "basic";
-      const amount = plan === "premium" ? 30 : 1;
-
-      // Compute new balance
+      const plan = data.plan || "basic";
+      // Premium users now claim ₦2 instead of ₦30
+      const amount = plan === "premium" ? 2 : 1;
       const newBalance = (data.balance || 0) + amount;
 
-      // Update Firestore: set new balance and lastClaim timestamp
       await updateDoc(userRef, {
         balance: newBalance,
         lastClaim: now
       });
 
-      // Update UI
       document.getElementById("balance").innerText = newBalance;
       alert(`Claimed ₦${amount} Successfully!`);
-
-      // Restart countdown from ‘now’
       updateCountdown(now);
 
-      // Update “Claim” button text in case plan changed server-side
-      // (optional: can re-fetch plan if you expect it to toggle immediately)
       const claimBtn = document.getElementById("claimBtn");
-      claimBtn.innerText = plan === "premium"
-        ? "Claim ₦30"
-        : "Claim ₦1";
+      claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
     }
   </script>
 </body>
