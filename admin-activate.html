@@ -20,6 +20,19 @@
       margin: 2rem 0 1rem;
       font-weight: 600;
     }
+    .search-container {
+      width: 95%;
+      max-width: 1000px;
+      margin-bottom: 1rem;
+    }
+    #searchInput {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
     .table-container {
       width: 95%;
       max-width: 1000px;
@@ -47,10 +60,28 @@
       font-weight: 600;
       font-size: 0.95rem;
     }
+    @media (max-width: 600px) {
+      th, td {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+      }
+      #searchInput {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+      }
+    }
   </style>
 </head>
 <body>
   <h1>All Registered Users</h1>
+
+  <div class="search-container">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search by username..."
+    />
+  </div>
 
   <div class="table-container">
     <table>
@@ -79,7 +110,7 @@
       orderBy
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // Your existing Firebase config
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -92,33 +123,55 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const tbody = document.getElementById("userBody");
+    const searchInput = document.getElementById("searchInput");
+
+    let allUsers = [];
 
     async function loadUsers() {
-      // Query users ordered by their creation timestamp, if you stored one
       const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
 
+      allUsers = [];
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        allUsers.push({
+          username: d.username || "",
+          fullName: d.fullName || "",
+          email: d.email || "",
+          referral: d.referral || "",
+          registeredAt: d.createdAt?.toDate?.().toLocaleString() || "N/A"
+        });
+      });
+
+      renderUsers(allUsers);
+    }
+
+    function renderUsers(usersList) {
       tbody.innerHTML = "";
-      if (snapshot.empty) {
+      if (usersList.length === 0) {
         tbody.innerHTML = "<tr><td colspan='5'>No users found.</td></tr>";
         return;
       }
-
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        const registered = d.createdAt?.toDate?.().toLocaleString() || "N/A";
-
+      usersList.forEach(u => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${d.username || "—"}</td>
-          <td>${d.fullName || "—"}</td>
-          <td>${d.email || "—"}</td>
-          <td>${d.referral || "—"}</td>
-          <td>${registered}</td>
+          <td>${u.username}</td>
+          <td>${u.fullName}</td>
+          <td>${u.email}</td>
+          <td>${u.referral}</td>
+          <td>${u.registeredAt}</td>
         `;
         tbody.appendChild(tr);
       });
     }
+
+    searchInput.addEventListener("input", () => {
+      const term = searchInput.value.trim().toLowerCase();
+      const filtered = allUsers.filter(u =>
+        u.username.toLowerCase().includes(term)
+      );
+      renderUsers(filtered);
+    });
 
     loadUsers();
   </script>
