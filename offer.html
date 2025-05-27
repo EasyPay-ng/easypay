@@ -3,26 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EasyPay Offers</title>
+  <title>EasyPay Premium Offers</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background-color: #f8fff8;
       color: #003300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
     header {
       background-color: #006400;
       color: white;
+      width: 100%;
       padding: 16px 20px;
       text-align: center;
       font-size: 1.5rem;
       font-weight: normal;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .container {
       max-width: 800px;
+      width: 100%;
       margin: 20px auto;
       padding: 0 16px;
+      flex-grow: 1;
     }
     .offer-card {
       background: #fff;
@@ -31,6 +39,11 @@
       box-shadow: 0 0 5px rgba(0,100,0,0.1);
       overflow: hidden;
       margin-bottom: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .offer-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 15px rgba(0,100,0,0.2);
     }
     .offer-header {
       display: flex;
@@ -91,13 +104,53 @@
       font-weight: bold;
       font-size: 1rem;
       margin: 0 16px 20px;
+      transition: background 0.2s;
     }
     .action-button:hover {
       background: #005f00;
     }
+    /* Access Denied Styles */
+    #accessDenied {
+      display: none;
+      width: 100%;
+      text-align: center;
+      padding: 40px 20px;
+      box-sizing: border-box;
+      flex-grow: 1;
+    }
+    #accessDenied .emoji-large {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+    #accessDenied h2 {
+      font-size: 1.75rem;
+      color: #cc0000;
+      margin-bottom: 12px;
+    }
+    #accessDenied p {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    #upgradeButton {
+      display: inline-block;
+      background: #006400;
+      color: #fff;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    #upgradeButton:hover {
+      background: #004d00;
+    }
     @media (max-width: 600px) {
       header { font-size: 1.25rem; padding: 12px; }
       .offer-header .emoji { font-size: 1.75rem; }
+      #accessDenied .emoji-large { font-size: 3rem; }
+      #accessDenied h2 { font-size: 1.5rem; }
     }
   </style>
 </head>
@@ -106,7 +159,17 @@
   <!-- HEADER -->
   <header>EasyPay Nigeria</header>
 
-  <div class="container">
+  <!-- Access Denied Container -->
+  <div id="accessDenied">
+    <div class="emoji-large">😓</div>
+    <h2>Premium Members Only</h2>
+    <p>This page can only be viewed by our premium members.</p>
+    <p>Upgrade now to gain access to exclusive offers and earn more rewards!</p>
+    <a id="upgradeButton" href="/upgrade">Upgrade to Premium</a>
+  </div>
+
+  <!-- Premium Content Container -->
+  <div class="container" id="premiumContent">
     <!-- FIRST OFFER: FreeCash -->
     <div class="offer-card">
       <div class="offer-header">
@@ -119,10 +182,10 @@
           <li>Must be an active EasyPay user</li>
           <li>Complete each offer or survey in full</li>
           <li>Provide valid personal and banking information</li>
-          <li>Only one account per user is allowed</li>
+          <li>Only one EasyPay account per user</li>
         </ul>
         <div class="crypto-info">
-          <p>Anytime you want to cash out your money, withdraw via crypto—specifically Litecoin. Send the funds to the address below:</p>
+          <p>Anytime you want to cash out your money, withdraw via cryptocurrency—specifically Litecoin. Send the funds to the address below:</p>
           <div class="ltc-address">LQk9uT3YB2TZeLx4FYCxvR7kVgy7nNRuCK</div>
           <p>It will be moved to your EasyPay account at the rate of ₦1400 per $.</p>
         </div>
@@ -132,13 +195,64 @@
       </div>
     </div>
 
-    <!-- Additional offers can be added here in similar structure -->
-    <!--
-    <div class="offer-card">
-      ...
-    </div>
-    -->
+    <!-- You can add more offer cards here -->
   </div>
 
+  <!-- Firebase SDKs (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const accessDeniedDiv = document.getElementById("accessDenied");
+    const premiumContentDiv = document.getElementById("premiumContent");
+
+    // Hide both initially, then show depending on role
+    accessDeniedDiv.style.display = "none";
+    premiumContentDiv.style.display = "none";
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        // Not logged in → show access denied
+        accessDeniedDiv.style.display = "block";
+        premiumContentDiv.style.display = "none";
+        return;
+      }
+
+      try {
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        const userData = userDoc.data() || {};
+        const role = userData.role || userData.userType || "basic";
+
+        if (role.toLowerCase() === "premium") {
+          // Show premium content
+          accessDeniedDiv.style.display = "none";
+          premiumContentDiv.style.display = "block";
+        } else {
+          // Basic users see access denied
+          accessDeniedDiv.style.display = "block";
+          premiumContentDiv.style.display = "none";
+        }
+      } catch (err) {
+        console.error("Error checking user role:", err);
+        // On error, default to denied
+        accessDeniedDiv.style.display = "block";
+        premiumContentDiv.style.display = "none";
+      }
+    });
+  </script>
 </body>
 </html>
