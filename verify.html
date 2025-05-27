@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Activate Your EasyPay Account</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0faf0;
+      color: #023d03;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding-top: 40px;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #006400;
+    }
+    .bank-info {
+      background: #fff;
+      border: 1px solid #c4e3c4;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 100, 0, 0.1);
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      margin-bottom: 30px;
+    }
+    .bank-info p {
+      margin: 8px 0;
+      font-size: 1rem;
+    }
+    .bank-info span {
+      font-weight: 600;
+    }
+    .form-container {
+      background: #fff;
+      border: 1px solid #c4e3c4;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 100, 0, 0.1);
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-sizing: border-box;
+    }
+    .form-container label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+      color: #004d00;
+    }
+    .form-container input {
+      width: 100%;
+      padding: 8px 10px;
+      margin-top: 6px;
+      border: 1px solid #aacdaa;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .form-container button {
+      position: relative;
+      margin-top: 20px;
+      width: 100%;
+      background: #006400;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-container button:hover:not([disabled]) {
+      background: #004d00;
+    }
+    .form-container button[disabled] {
+      background: #94c694;
+      cursor: default;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: #cc0000;
+      text-align: center;
+    }
+
+    /* Spinner styles */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Activate Your EasyPay Account</h1>
+
+  <div class="bank-info">
+    <p>To activate your account, please send <span>₦100</span> to the following details:</p>
+    <p><span>Account Name:</span> Victor Omubo</p>
+    <p><span>Bank Name:</span> Kuda MFB</p>
+    <p><span>Account Number:</span> 8037402826</p>
+    <p>After sending, fill in your details below to confirm.</p>
+  </div>
+
+  <div class="form-container">
+    <label for="username">Your Username</label>
+    <input type="text" id="username" placeholder="Enter your EasyPay username" />
+
+    <label for="senderName">Name on Bank Transfer</label>
+    <input type="text" id="senderName" placeholder="Enter the name you used when sending" />
+
+    <button id="activateBtn">
+      Submit Activation
+    </button>
+    <p id="responseMsg" class="message"></p>
+  </div>
+
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // -- Initialize Firebase --
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // -- DOM Elements --
+    const usernameInput = document.getElementById("username");
+    const senderInput   = document.getElementById("senderName");
+    const activateBtn   = document.getElementById("activateBtn");
+    const responseMsg   = document.getElementById("responseMsg");
+
+    // -- Helper to show loading spinner inside button --
+    function showLoading() {
+      activateBtn.disabled = true;
+      activateBtn.innerHTML = '<div class="spinner"></div>Submitting…';
+    }
+    function hideLoading() {
+      activateBtn.disabled = false;
+      activateBtn.innerHTML = 'Submit Activation';
+    }
+
+    // -- Handle Activation Submission --
+    activateBtn.addEventListener("click", async () => {
+      const username   = usernameInput.value.trim();
+      const senderName = senderInput.value.trim();
+
+      responseMsg.style.color = "#cc0000";
+      responseMsg.textContent = "";
+
+      if (!username || !senderName) {
+        responseMsg.textContent = "Both fields are required.";
+        return;
+      }
+
+      showLoading();
+
+      try {
+        // Save activation request to Firestore
+        await db.collection("activations").add({
+          username: username,
+          senderName: senderName,
+          amountSent: 100,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        responseMsg.style.color = "#007700";
+        responseMsg.textContent = "Activation request submitted! We will verify and activate your account shortly.";
+        usernameInput.value = "";
+        senderInput.value = "";
+      } catch (error) {
+        console.error("Error submitting activation:", error);
+        responseMsg.textContent = "An error occurred. Please try again.";
+      } finally {
+        hideLoading();
+      }
+    });
+  </script>
+</body>
+  </html>
+  
