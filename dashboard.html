@@ -78,6 +78,13 @@
       text-decoration: none;
       text-align: center;
       font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .nav a .emoji {
+      font-size: 1.5rem;
+      margin-bottom: 4px;
     }
   </style>
 </head>
@@ -85,7 +92,7 @@
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
     <div class="profile" onclick="toggleProfile()">
-      <i class="fas fa-user-circle fa-2x"></i>
+      <span style="font-size:1.8rem;">👤</span>
       <div id="profileInfo" class="profile-info">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
@@ -114,10 +121,22 @@
   </div>
 
   <div class="nav">
-    <a href="menu.html"><i class="fas fa-home"></i><br />Menu</a>
-    <a href="advertise.html"><i class="fas fa-bullhorn"></i><br />Advertise</a>
-    <a href="earn.html"><i class="fas fa-coins"></i><br />Earn</a>
-    <a href="leaderboard.html"><i class="fas fa-trophy"></i><br />Leaderboard</a>
+    <a href="menu.html">
+      <span class="emoji">🏠</span>
+      Menu
+    </a>
+    <a href="advertise.html">
+      <span class="emoji">📣</span>
+      Advertise
+    </a>
+    <a href="earn.html">
+      <span class="emoji">💰</span>
+      Earn
+    </a>
+    <a href="leaderboard.html">
+      <span class="emoji">🏆</span>
+      Leaderboard
+    </a>
   </div>
 
   <script type="module">
@@ -215,7 +234,6 @@
       }
 
       const plan = data.plan || "basic";
-      // Premium users now claim ₦2 instead of ₦30
       const amount = plan === "premium" ? 2 : 1;
       const newBalance = (data.balance || 0) + amount;
 
