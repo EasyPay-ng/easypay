@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Referrals – EasyPay</title>
+  <style>
+    :root {
+      --green-dark: #006400;
+      --green-medium: #009f4d;
+      --green-light: #e6f4e6;
+      --bg: #f5fdf7;
+      --text-dark: #003300;
+      --text-medium: #004d00;
+      --white: #ffffff;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background-color: var(--green-dark);
+      color: var(--white);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .profile {
+      position: relative;
+      cursor: pointer;
+    }
+    .profile .emoji {
+      font-size: 1.8rem;
+      color: var(--white);
+    }
+    .profile-info {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 48px;
+      background: var(--white);
+      color: var(--text-dark);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      width: 220px;
+      padding: 12px;
+      z-index: 1;
+    }
+    .profile-info.show {
+      display: block;
+    }
+    .profile-info p {
+      margin: 6px 0;
+      font-size: 0.95rem;
+    }
+    .profile-info button {
+      background: var(--green-medium);
+      color: var(--white);
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+      width: 100%;
+      font-weight: 600;
+    }
+    .container {
+      flex-grow: 1;
+      padding: 24px;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+      box-sizing: border-box;
+      padding-bottom: 100px; /* space for nav */
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--green-dark);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .table-container {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 100, 0, 0.1);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 0.9rem;
+    }
+    th {
+      background-color: var(--green-dark);
+      color: var(--white);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    tr:hover td {
+      background-color: var(--green-light);
+    }
+    .no-data {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-medium);
+      font-size: 1rem;
+    }
+    .nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: var(--white);
+      border-top: 1px solid var(--green-medium);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+    }
+    .nav a {
+      color: var(--green-medium);
+      text-decoration: none;
+      text-align: center;
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .nav a .emoji {
+      font-size: 1.6rem;
+      margin-bottom: 4px;
+    }
+    @media (min-width: 768px) {
+      header h1 {
+        font-size: 1.75rem;
+      }
+      th, td {
+        padding: 16px 20px;
+        font-size: 1rem;
+      }
+      .section-title {
+        font-size: 1.75rem;
+      }
+      .nav a {
+        font-size: 1rem;
+      }
+      .nav a .emoji {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>My Referrals</h1>
+    <div class="profile" onclick="toggleProfile()">
+      <span class="emoji">👤</span>
+      <div id="profileInfo" class="profile-info">
+        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="section-title">Users You Referred</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Registered At</th>
+          </tr>
+        </thead>
+        <tbody id="referralBody">
+          <tr><td colspan="3" class="no-data">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a href="menu.html">
+      <span class="emoji">🏠</span>
+      Menu
+    </a>
+    <a href="advertise.html">
+      <span class="emoji">📣</span>
+      Advertise
+    </a>
+    <a href="earn.html">
+      <span class="emoji">💰</span>
+      Earn
+    </a>
+    <a href="leaderboard.html">
+      <span class="emoji">🏆</span>
+      Leaderboard
+    </a>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      orderBy,
+      getDocs,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+
+    // Initialize
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    const referralBody = document.getElementById("referralBody");
+    const profileUsername = document.getElementById("profileUsername");
+    const profileEmail = document.getElementById("profileEmail");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Get current user’s document to find their username
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>User data not found.</td></tr>";
+        return;
+      }
+      const userData = userSnap.data();
+      const myUsername = userData.username || "";
+      profileUsername.textContent = myUsername;
+      profileEmail.textContent = userData.email || "";
+
+      // Query users where referral == myUsername
+      const q = query(
+        collection(db, "users"),
+        where("referral", "==", myUsername),
+        orderBy("createdAt", "desc")
+      );
+      const snapshot = await getDocs(q);
+
+      // Render results
+      if (snapshot.empty) {
+        referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>No referrals found.</td></tr>";
+      } else {
+        referralBody.innerHTML = "";
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const registeredAt = d.createdAt?.toDate?.().toLocaleString() || "N/A";
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${d.username || "—"}</td>
+            <td>${d.email || "—"}</td>
+            <td>${registeredAt}</td>
+          `;
+          referralBody.appendChild(tr);
+        });
+      }
+    });
+
+    function toggleProfile() {
+      document.getElementById("profileInfo").classList.toggle("show");
+    }
+
+    function logout() {
+      signOut(auth);
+    }
+  </script>
+</body>
+</html>
