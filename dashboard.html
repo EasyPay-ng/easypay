@@ -2,42 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    :root {
-      --green-dark: #006400;
-      --green-medium: #009f4d;
-      --green-light: #e6f4e6;
-      --bg: #f5fdf7;
-      --text-dark: #003300;
-      --text-medium: #004d00;
-    }
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg);
-      color: var(--text-dark);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+      background-color: #f5fdf7;
+      color: #333;
     }
     header {
-      background-color: var(--green-dark);
+      background-color: #009f4d;
       color: white;
       padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     .profile {
       position: relative;
       cursor: pointer;
-    }
-    .profile .emoji {
-      font-size: 1.8rem;
-      color: white;
     }
     .profile-info {
       display: none;
@@ -45,7 +30,7 @@
       right: 0;
       top: 40px;
       background: white;
-      color: var(--text-dark);
+      color: black;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       border-radius: 8px;
       width: 200px;
@@ -55,50 +40,32 @@
     .profile-info.show {
       display: block;
     }
-    .profile-info button {
-      background: var(--green-medium);
-      color: #fff;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 8px;
-      width: 100%;
-      font-weight: 600;
-    }
     .container {
       padding: 20px;
-      flex-grow: 1;
     }
     .card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 100, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 20px;
       margin-bottom: 20px;
-      border-left: 4px solid var(--green-medium);
     }
     .card h3 {
       margin-top: 0;
-      color: var(--green-dark);
     }
     .copy-btn {
-      background: var(--green-medium);
+      background: #009f4d;
       color: white;
       border: none;
       padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
-      font-weight: 600;
-    }
-    .copy-btn:hover {
-      background: var(--green-dark);
     }
     .nav {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: var(--green-dark);
+      background: #009f4d;
       display: flex;
       justify-content: space-around;
       padding: 10px 0;
@@ -107,23 +74,6 @@
       color: white;
       text-decoration: none;
       text-align: center;
-      font-size: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .nav a .emoji {
-      font-size: 1.5rem;
-      margin-bottom: 4px;
-    }
-    @media (max-width: 600px) {
-      header { padding: 12px; }
-      .profile .emoji { font-size: 1.6rem; }
-      .card { padding: 16px; margin-bottom: 16px; }
-      .card h3 { font-size: 1.1rem; }
-      .copy-btn { padding: 5px 10px; }
-      .nav a { font-size: 0.8rem; }
-      .nav a .emoji { font-size: 1.3rem; }
     }
   </style>
 </head>
@@ -131,7 +81,7 @@
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
     <div class="profile" onclick="toggleProfile()">
-      <span class="emoji">👤</span>
+      <i class="fas fa-user-circle fa-2x"></i>
       <div id="profileInfo" class="profile-info">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
@@ -160,27 +110,15 @@
   </div>
 
   <div class="nav">
-    <a href="menu.html">
-      <span class="emoji">🏠</span>
-      Menu
-    </a>
-    <a href="advertise.html">
-      <span class="emoji">📣</span>
-      Advertise
-    </a>
-    <a href="earn.html">
-      <span class="emoji">💰</span>
-      Earn
-    </a>
-    <a href="leaderboard.html">
-      <span class="emoji">🏆</span>
-      Leaderboard
-    </a>
+    <a href="menu.html"><i class="fas fa-home"></i><br />Menu</a>
+    <a href="advertise.html"><i class="fas fa-bullhorn"></i><br />Advertise</a>
+    <a href="earn.html"><i class="fas fa-coins"></i><br />Earn</a>
+    <a href="leaderboard.html"><i class="fas fa-trophy"></i><br />Leaderboard</a>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = {
@@ -203,15 +141,16 @@
         return;
       }
 
-      const uid = user.uid;
+      const uid    = user.uid;
       const userRef = doc(db, "users", uid);
-      const snap = await getDoc(userRef);
+      const snap    = await getDoc(userRef);
       if (!snap.exists()) return;
 
-      const data = snap.data();
-      const plan = data.plan || "basic";
-      const lastTs = data.lastClaim || 0;
+      const data    = snap.data();
+      const plan    = data.plan || "basic";           // default to basic if missing
+      const lastTs  = data.lastClaim || 0;             // lastClaim stored as an integer
 
+      // Update profile/header info
       document.getElementById("usernameDisplay").innerText = data.username || "";
       document.getElementById("profileUsername").innerText = data.username || "";
       document.getElementById("profileEmail").innerText = data.email || "";
@@ -219,10 +158,16 @@
       document.getElementById("referrals").innerText = data.referrals ?? 0;
       document.getElementById("referralCode").innerText = data.username || "";
 
+      // Set claim button text based on plan
       const claimBtn = document.getElementById("claimBtn");
-      claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
+      claimBtn.innerText = plan === "premium"
+        ? "Claim ₦30"
+        : "Claim ₦1";
+
+      // Attach fresh click handler
       claimBtn.onclick = () => claimNaira(uid);
 
+      // Start or show countdown until next claim
       updateCountdown(lastTs);
     });
 
@@ -242,15 +187,15 @@
     function updateCountdown(lastClaimTs) {
       const countdownEl = document.getElementById("countdown");
       const tick = () => {
-        const now = Date.now();
-        const nextAvailable = lastClaimTs + 86400000; // 24h
-        const diff = nextAvailable - now;
+        const now          = Date.now();
+        const nextAvailable = lastClaimTs + 86400000; // 24h = 86,400,000 ms
+        const diff         = nextAvailable - now;
 
         if (diff <= 0) {
           countdownEl.innerText = "You can now claim!";
           clearInterval(intervalId);
         } else {
-          const hrs = Math.floor(diff / 3600000);
+          const hrs  = Math.floor(diff / 3600000);
           const mins = Math.floor((diff % 3600000) / 60000);
           const secs = Math.floor((diff % 60000) / 1000);
           countdownEl.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
@@ -262,31 +207,43 @@
 
     async function claimNaira(uid) {
       const userRef = doc(db, "users", uid);
-      const snap = await getDoc(userRef);
-      const data = snap.exists() ? snap.data() : {};
-      const lastTs = data.lastClaim || 0;
-      const now = Date.now();
+      const snap    = await getDoc(userRef);
+      const data    = snap.exists() ? snap.data() : {};
+      const lastTs  = data.lastClaim || 0;
+      const now     = Date.now();
 
+      // Check 24h cooldown
       if (now - lastTs < 86400000) {
         alert("You have to wait 24 hours before claiming again.");
         return;
       }
 
-      const plan = data.plan || "basic";
+      // Determine plan & payout amount
+      const plan   = data.plan || "basic";
       const amount = plan === "premium" ? 2 : 1;
+
+      // Compute new balance
       const newBalance = (data.balance || 0) + amount;
 
+      // Update Firestore: set new balance and lastClaim timestamp
       await updateDoc(userRef, {
         balance: newBalance,
         lastClaim: now
       });
 
+      // Update UI
       document.getElementById("balance").innerText = newBalance;
       alert(`Claimed ₦${amount} Successfully!`);
+
+      // Restart countdown from ‘now’
       updateCountdown(now);
 
+      // Update “Claim” button text in case plan changed server-side
+      // (optional: can re-fetch plan if you expect it to toggle immediately)
       const claimBtn = document.getElementById("claimBtn");
-      claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
+      claimBtn.innerText = plan === "premium"
+        ? "Claim ₦2"
+        : "Claim ₦1";
     }
   </script>
 </body>
