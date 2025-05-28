@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EasyPay Dashboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
       margin: 0;
@@ -19,26 +18,6 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-    .profile {
-      position: relative;
-      cursor: pointer;
-    }
-    .profile-info {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 40px;
-      background: white;
-      color: black;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      border-radius: 8px;
-      width: 200px;
-      padding: 10px;
-      z-index: 1;
-    }
-    .profile-info.show {
-      display: block;
     }
     .container {
       padding: 20px;
@@ -80,14 +59,7 @@
 <body>
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
-    <div class="profile" onclick="toggleProfile()">
-      <i class="fas fa-user-circle fa-2x"></i>
-      <div id="profileInfo" class="profile-info">
-        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-        <button onclick="logout()">Logout</button>
-      </div>
-    </div>
+    <button onclick="logout()">Logout</button>
   </header>
 
   <div class="container">
@@ -118,7 +90,16 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = {
@@ -141,33 +122,37 @@
         return;
       }
 
-      const uid    = user.uid;
+      const uid = user.uid;
       const userRef = doc(db, "users", uid);
-      const snap    = await getDoc(userRef);
-      if (!snap.exists()) return;
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) return;
 
-      const data    = snap.data();
-      const plan    = data.plan || "basic";           // default to basic if missing
-      const lastTs  = data.lastClaim || 0;             // lastClaim stored as an integer
-
-      // Update profile/header info
-      document.getElementById("usernameDisplay").innerText = data.username || "";
-      document.getElementById("profileUsername").innerText = data.username || "";
-      document.getElementById("profileEmail").innerText = data.email || "";
+      const data = userSnap.data();
+      const username = data.username || "";
+      document.getElementById("usernameDisplay").innerText = username;
       document.getElementById("balance").innerText = data.balance ?? 0;
-      document.getElementById("referrals").innerText = data.referrals ?? 0;
-      document.getElementById("referralCode").innerText = data.username || "";
+      document.getElementById("referralCode").innerText = username;
 
-      // Set claim button text based on plan
+      // Fetch count of referred users
+      try {
+        const referralsQuery = query(
+          collection(db, "users"),
+          where("referral", "==", username)
+        );
+        const snapshot = await getDocs(referralsQuery);
+        const count = snapshot.size;
+        document.getElementById("referrals").innerText = count;
+      } catch (err) {
+        console.error("Error fetching referrals count:", err);
+        document.getElementById("referrals").innerText = "0";
+      }
+
+      // Daily bonus logic
+      const plan = data.plan || "basic";
+      const lastTs = data.lastClaim ?? 0;
       const claimBtn = document.getElementById("claimBtn");
-      claimBtn.innerText = plan === "premium"
-        ? "Claim ₦30"
-        : "Claim ₦1";
-
-      // Attach fresh click handler
+      claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
       claimBtn.onclick = () => claimNaira(uid);
-
-      // Start or show countdown until next claim
       updateCountdown(lastTs);
     });
 
@@ -180,22 +165,17 @@
 
     window.logout = () => signOut(auth);
 
-    window.toggleProfile = () => {
-      document.getElementById("profileInfo").classList.toggle("show");
-    };
-
     function updateCountdown(lastClaimTs) {
       const countdownEl = document.getElementById("countdown");
       const tick = () => {
-        const now          = Date.now();
-        const nextAvailable = lastClaimTs + 86400000; // 24h = 86,400,000 ms
-        const diff         = nextAvailable - now;
-
+        const now = Date.now();
+        const nextAvailable = lastClaimTs + 86400000;
+        const diff = nextAvailable - now;
         if (diff <= 0) {
           countdownEl.innerText = "You can now claim!";
           clearInterval(intervalId);
         } else {
-          const hrs  = Math.floor(diff / 3600000);
+          const hrs = Math.floor(diff / 3600000);
           const mins = Math.floor((diff % 3600000) / 60000);
           const secs = Math.floor((diff % 60000) / 1000);
           countdownEl.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
@@ -207,44 +187,28 @@
 
     async function claimNaira(uid) {
       const userRef = doc(db, "users", uid);
-      const snap    = await getDoc(userRef);
-      const data    = snap.exists() ? snap.data() : {};
-      const lastTs  = data.lastClaim || 0;
-      const now     = Date.now();
-
-      // Check 24h cooldown
+      const userSnap = await getDoc(userRef);
+      const data = userSnap.data() || {};
+      const lastTs = data.lastClaim ?? 0;
+      const now = Date.now();
       if (now - lastTs < 86400000) {
         alert("You have to wait 24 hours before claiming again.");
         return;
       }
-
-      // Determine plan & payout amount
-      const plan   = data.plan || "basic";
+      const plan = data.plan || "basic";
       const amount = plan === "premium" ? 2 : 1;
-
-      // Compute new balance
       const newBalance = (data.balance || 0) + amount;
-
-      // Update Firestore: set new balance and lastClaim timestamp
       await updateDoc(userRef, {
         balance: newBalance,
         lastClaim: now
       });
-
-      // Update UI
       document.getElementById("balance").innerText = newBalance;
       alert(`Claimed ₦${amount} Successfully!`);
-
-      // Restart countdown from ‘now’
       updateCountdown(now);
-
-      // Update “Claim” button text in case plan changed server-side
-      // (optional: can re-fetch plan if you expect it to toggle immediately)
       const claimBtn = document.getElementById("claimBtn");
-      claimBtn.innerText = plan === "premium"
-        ? "Claim ₦2"
-        : "Claim ₦1";
+      claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
     }
   </script>
 </body>
-</html>
+  </html>
+  
