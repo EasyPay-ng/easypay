@@ -62,7 +62,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 600px;
+      min-width: 700px;
     }
     th, td {
       padding: 14px 16px;
@@ -120,11 +120,12 @@
           <tr>
             <th>Username</th>
             <th>Email</th>
+            <th>Balance</th>
             <th>Registered At</th>
           </tr>
         </thead>
         <tbody id="referralBody">
-          <tr><td colspan="3" class="no-data">Loading…</td></tr>
+          <tr><td colspan="4" class="no-data">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -175,7 +176,7 @@
         const userDocRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userDocRef);
         if (!userSnap.exists()) {
-          referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>User data not found.</td></tr>";
+          referralBody.innerHTML = "<tr><td colspan='4' class='no-data'>User data not found.</td></tr>";
           totalReferredEl.textContent = "Total referred: 0";
           return;
         }
@@ -183,7 +184,7 @@
         const userData = userSnap.data();
         const myUsername = userData.username || "";
         if (!myUsername) {
-          referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>Your username is missing.</td></tr>";
+          referralBody.innerHTML = "<tr><td colspan='4' class='no-data'>Your username is missing.</td></tr>";
           totalReferredEl.textContent = "Total referred: 0";
           return;
         }
@@ -199,16 +200,18 @@
         totalReferredEl.textContent = `Total referred: ${count}`;
 
         if (snapshot.empty) {
-          referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>No referrals found.</td></tr>";
+          referralBody.innerHTML = "<tr><td colspan='4' class='no-data'>No referrals found.</td></tr>";
         } else {
           referralBody.innerHTML = "";
           snapshot.forEach(docSnap => {
             const d = docSnap.data();
             const registeredAt = d.createdAt?.toDate?.().toLocaleString() || "N/A";
+            const balance = d.balance != null ? `₦${d.balance}` : "₦0";
             const tr = document.createElement("tr");
             tr.innerHTML = `
               <td>${d.username || "—"}</td>
               <td>${d.email || "—"}</td>
+              <td>${balance}</td>
               <td>${registeredAt}</td>
             `;
             referralBody.appendChild(tr);
@@ -216,7 +219,7 @@
         }
       } catch (error) {
         console.error("Error fetching referrals:", error);
-        referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>Error loading data.</td></tr>";
+        referralBody.innerHTML = "<tr><td colspan='4' class='no-data'>Error loading data.</td></tr>";
         totalReferredEl.textContent = "Total referred: 0";
       }
     });
