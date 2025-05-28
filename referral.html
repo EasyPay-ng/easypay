@@ -82,7 +82,7 @@
       width: 100%;
       margin: 0 auto;
       box-sizing: border-box;
-      padding-bottom: 100px; /* space for nav */
+      padding-bottom: 40px;
     }
     .section-title {
       font-size: 1.5rem;
@@ -122,30 +122,6 @@
       color: var(--text-medium);
       font-size: 1rem;
     }
-    .nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: var(--white);
-      border-top: 1px solid var(--green-medium);
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
-    }
-    .nav a {
-      color: var(--green-medium);
-      text-decoration: none;
-      text-align: center;
-      font-size: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .nav a .emoji {
-      font-size: 1.6rem;
-      margin-bottom: 4px;
-    }
     @media (min-width: 768px) {
       header h1 {
         font-size: 1.75rem;
@@ -156,12 +132,6 @@
       }
       .section-title {
         font-size: 1.75rem;
-      }
-      .nav a {
-        font-size: 1rem;
-      }
-      .nav a .emoji {
-        font-size: 1.8rem;
       }
     }
   </style>
@@ -195,25 +165,6 @@
         </tbody>
       </table>
     </div>
-  </div>
-
-  <div class="nav">
-    <a href="menu.html">
-      <span class="emoji">🏠</span>
-      Menu
-    </a>
-    <a href="advertise.html">
-      <span class="emoji">📣</span>
-      Advertise
-    </a>
-    <a href="earn.html">
-      <span class="emoji">💰</span>
-      Earn
-    </a>
-    <a href="leaderboard.html">
-      <span class="emoji">🏆</span>
-      Leaderboard
-    </a>
   </div>
 
   <script type="module">
