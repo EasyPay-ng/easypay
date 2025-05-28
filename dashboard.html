@@ -4,12 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EasyPay Dashboard</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f5fdf7;
       color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     header {
       background-color: #009f4d;
@@ -19,18 +26,40 @@
       justify-content: space-between;
       align-items: center;
     }
+    .profile {
+      position: relative;
+      cursor: pointer;
+    }
+    .profile-info {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background: white;
+      color: black;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      width: 200px;
+      padding: 10px;
+      z-index: 1;
+    }
+    .profile-info.show {
+      display: block;
+    }
     .container {
       padding: 20px;
+      flex-grow: 1;
     }
     .card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       padding: 20px;
       margin-bottom: 20px;
     }
     .card h3 {
       margin-top: 0;
+      color: #006400;
     }
     .copy-btn {
       background: #009f4d;
@@ -39,6 +68,7 @@
       padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
+      margin-top: 10px;
     }
     .nav {
       position: fixed;
@@ -53,13 +83,43 @@
       color: white;
       text-decoration: none;
       text-align: center;
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .nav a .emoji {
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+    @media (min-width: 768px) {
+      .card {
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      .card h3 {
+        font-size: 1.25rem;
+      }
+      .nav a {
+        font-size: 1rem;
+      }
+      .nav a .emoji {
+        font-size: 1.8rem;
+      }
     }
   </style>
 </head>
 <body>
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
-    <button onclick="logout()">Logout</button>
+    <div class="profile" onclick="toggleProfile()">
+      <i class="fas fa-user-circle fa-2x"></i>
+      <div id="profileInfo" class="profile-info">
+        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </div>
   </header>
 
   <div class="container">
@@ -71,7 +131,7 @@
     </div>
     <div class="card">
       <h3>Referral Code:</h3>
-      <p id="referralCode"></p>
+      <p id="referralCode" style="word-break: break-all;"></p>
       <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
     </div>
     <div class="card">
@@ -82,10 +142,22 @@
   </div>
 
   <div class="nav">
-    <a href="menu.html"><i class="fas fa-home"></i><br />Menu</a>
-    <a href="advertise.html"><i class="fas fa-bullhorn"></i><br />Advertise</a>
-    <a href="earn.html"><i class="fas fa-coins"></i><br />Earn</a>
-    <a href="leaderboard.html"><i class="fas fa-trophy"></i><br />Leaderboard</a>
+    <a href="menu.html">
+      <span class="emoji">🏠</span>
+      Menu
+    </a>
+    <a href="advertise.html">
+      <span class="emoji">📣</span>
+      Advertise
+    </a>
+    <a href="earn.html">
+      <span class="emoji">💰</span>
+      Earn
+    </a>
+    <a href="leaderboard.html">
+      <span class="emoji">🏆</span>
+      Leaderboard
+    </a>
   </div>
 
   <script type="module">
@@ -129,19 +201,22 @@
 
       const data = userSnap.data();
       const username = data.username || "";
+      const email = data.email || "";
+
       document.getElementById("usernameDisplay").innerText = username;
+      document.getElementById("profileUsername").innerText = username;
+      document.getElementById("profileEmail").innerText = email;
       document.getElementById("balance").innerText = data.balance ?? 0;
       document.getElementById("referralCode").innerText = username;
 
-      // Fetch count of referred users
+      // Fetch and display referral count
       try {
         const referralsQuery = query(
           collection(db, "users"),
           where("referral", "==", username)
         );
         const snapshot = await getDocs(referralsQuery);
-        const count = snapshot.size;
-        document.getElementById("referrals").innerText = count;
+        document.getElementById("referrals").innerText = snapshot.size;
       } catch (err) {
         console.error("Error fetching referrals count:", err);
         document.getElementById("referrals").innerText = "0";
@@ -169,7 +244,7 @@
       const countdownEl = document.getElementById("countdown");
       const tick = () => {
         const now = Date.now();
-        const nextAvailable = lastClaimTs + 86400000;
+        const nextAvailable = lastClaimTs + 86400000; // 24h
         const diff = nextAvailable - now;
         if (diff <= 0) {
           countdownEl.innerText = "You can now claim!";
@@ -208,7 +283,10 @@
       const claimBtn = document.getElementById("claimBtn");
       claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
     }
+
+    function toggleProfile() {
+      document.getElementById("profileInfo").classList.toggle("show");
+    }
   </script>
 </body>
-  </html>
-  
+</html>
