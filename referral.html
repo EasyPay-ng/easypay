@@ -1,137 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Referred Users</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Referrals – EasyPay</title>
   <style>
+    :root {
+      --green-dark: #006400;
+      --green-medium: #009f4d;
+      --green-light: #e6f4e6;
+      --bg: #f5fdf7;
+      --text-dark: #003300;
+      --text-medium: #004d00;
+      --white: #ffffff;
+    }
     body {
-      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
-      background: #f8fff8;
-      color: #003300;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: var(--bg);
+      color: var(--text-dark);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
     header {
-      background-color: #007f00;
-      color: white;
-      padding: 15px;
+      background-color: var(--green-dark);
+      color: var(--white);
+      padding: 16px 24px;
       text-align: center;
-      font-size: 20px;
+      font-size: 1.5rem;
       font-weight: bold;
     }
-
     .container {
-      padding: 30px;
-      max-width: 600px;
-      margin: auto;
+      flex-grow: 1;
+      padding: 24px;
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      box-sizing: border-box;
+      padding-bottom: 0; /* footer handled separately */
     }
-
-    h2 {
-      color: #004d00;
-      font-size: 24px;
-      margin-bottom: 20px;
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--green-dark);
+      margin-bottom: 8px;
+      text-align: center;
     }
-
-    ul {
-      list-style: none;
-      padding: 0;
+    .total-referred {
+      font-size: 1rem;
+      color: var(--text-medium);
+      margin-bottom: 16px;
+      text-align: center;
     }
-
-    li {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.05);
-      margin-bottom: 10px;
+    .table-container {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 100, 0, 0.1);
+      overflow-x: auto;
     }
-
-    .footer {
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 0.9rem;
+    }
+    th {
+      background-color: var(--green-dark);
+      color: var(--white);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    tr:hover td {
+      background-color: var(--green-light);
+    }
+    .no-data {
       text-align: center;
       padding: 20px;
-      background: #e9ffe9;
-      color: #007f00;
-      font-weight: bold;
+      color: var(--text-medium);
+      font-size: 1rem;
     }
-
-    .loading {
+    footer {
+      background: var(--green-dark);
+      color: var(--white);
       text-align: center;
-      font-size: 18px;
-      margin-top: 50px;
-      color: #555;
+      padding: 12px 0;
+      font-size: 0.9rem;
+      margin-top: auto;
+    }
+    @media (min-width: 768px) {
+      header {
+        font-size: 1.75rem;
+        padding: 20px 24px;
+      }
+      th, td {
+        padding: 16px 20px;
+        font-size: 1rem;
+      }
+      .section-title {
+        font-size: 1.75rem;
+      }
     }
   </style>
 </head>
 <body>
-  <header>Users You Referred</header>
+  <header>My Referrals</header>
+
   <div class="container">
-    <h2>Total Referred: <span id="refCount">0</span></h2>
-    <div id="userList" class="loading">Loading...</div>
+    <div class="section-title">Users You Referred</div>
+    <div id="totalReferred" class="total-referred">Total referred: 0</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Registered At</th>
+          </tr>
+        </thead>
+        <tbody id="referralBody">
+          <tr><td colspan="3" class="no-data">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="footer">EasyPay 2025</div>
 
-  <!-- Firebase SDK -->
+  <footer>EasyPay 2025</footer>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    onAuthStateChanged(auth, async (user) => {
-      const userList = document.getElementById("userList");
-      const refCount = document.getElementById("refCount");
+    const referralBody = document.getElementById("referralBody");
+    const totalReferredEl = document.getElementById("totalReferred");
 
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        userList.innerHTML = "Please log in to view your referrals.";
+        // Redirect to login if not authenticated
+        window.location.href = 'login.html';
         return;
       }
 
-      const myUsername = user.displayName || user.email.split('@')[0];
-
       try {
+        // Fetch current user's Firestore doc to get their "username"
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userDocRef);
+        if (!userSnap.exists()) {
+          referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>User data not found.</td></tr>";
+          totalReferredEl.textContent = "Total referred: 0";
+          return;
+        }
+
+        const userData = userSnap.data();
+        const myUsername = userData.username || "";
+        if (!myUsername) {
+          referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>Your username is missing.</td></tr>";
+          totalReferredEl.textContent = "Total referred: 0";
+          return;
+        }
+
+        // Query for users where "referral" == current user's username
         const q = query(
           collection(db, "users"),
           where("referral", "==", myUsername)
         );
         const snapshot = await getDocs(q);
 
+        const count = snapshot.size;
+        totalReferredEl.textContent = `Total referred: ${count}`;
+
         if (snapshot.empty) {
-          userList.innerHTML = "No referrals found.";
-          refCount.textContent = "0";
-          return;
+          referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>No referrals found.</td></tr>";
+        } else {
+          referralBody.innerHTML = "";
+          snapshot.forEach(docSnap => {
+            const d = docSnap.data();
+            const registeredAt = d.createdAt?.toDate?.().toLocaleString() || "N/A";
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${d.username || "—"}</td>
+              <td>${d.email || "—"}</td>
+              <td>${registeredAt}</td>
+            `;
+            referralBody.appendChild(tr);
+          });
         }
-
-        let html = "<ul>";
-        let count = 0;
-
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          html += `<li><strong>Username:</strong> ${data.username || 'N/A'}<br><strong>Email:</strong> ${data.email}</li>`;
-          count++;
-        });
-
-        html += "</ul>";
-        userList.innerHTML = html;
-        refCount.textContent = count;
-
       } catch (error) {
-        console.error(error);
-        userList.innerHTML = "An error occurred while fetching data.";
+        console.error("Error fetching referrals:", error);
+        referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>Error loading data.</td></tr>";
+        totalReferredEl.textContent = "Total referred: 0";
       }
     });
+
+    // Optional logout function if needed elsewhere
+    function logout() {
+      signOut(auth);
+    }
   </script>
 </body>
 </html>
