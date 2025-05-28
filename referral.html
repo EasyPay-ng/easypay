@@ -28,52 +28,13 @@
       color: var(--white);
       padding: 16px 24px;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     header h1 {
       margin: 0;
       font-size: 1.5rem;
-    }
-    .profile {
-      position: relative;
-      cursor: pointer;
-    }
-    .profile .emoji {
-      font-size: 1.8rem;
-      color: var(--white);
-    }
-    .profile-info {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 48px;
-      background: var(--white);
-      color: var(--text-dark);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      border-radius: 8px;
-      width: 220px;
-      padding: 12px;
-      z-index: 1;
-    }
-    .profile-info.show {
-      display: block;
-    }
-    .profile-info p {
-      margin: 6px 0;
-      font-size: 0.95rem;
-    }
-    .profile-info button {
-      background: var(--green-medium);
-      color: var(--white);
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 8px;
-      width: 100%;
-      font-weight: 600;
     }
     .container {
       flex-grow: 1;
@@ -87,6 +48,12 @@
     .section-title {
       font-size: 1.5rem;
       color: var(--green-dark);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .total-referred {
+      font-size: 1rem;
+      color: var(--text-medium);
       margin-bottom: 16px;
       text-align: center;
     }
@@ -122,6 +89,14 @@
       color: var(--text-medium);
       font-size: 1rem;
     }
+    footer {
+      background: var(--green-dark);
+      color: var(--white);
+      text-align: center;
+      padding: 12px 0;
+      font-size: 0.9rem;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+    }
     @media (min-width: 768px) {
       header h1 {
         font-size: 1.75rem;
@@ -139,18 +114,11 @@
 <body>
   <header>
     <h1>My Referrals</h1>
-    <div class="profile" onclick="toggleProfile()">
-      <span class="emoji">👤</span>
-      <div id="profileInfo" class="profile-info">
-        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-        <button onclick="logout()">Logout</button>
-      </div>
-    </div>
   </header>
 
   <div class="container">
     <div class="section-title">Users You Referred</div>
+    <div id="totalReferred" class="total-referred">Total referred: 0</div>
     <div class="table-container">
       <table>
         <thead>
@@ -166,6 +134,8 @@
       </table>
     </div>
   </div>
+
+  <footer>EasyPay 2025</footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
@@ -197,8 +167,7 @@
     const auth = getAuth();
 
     const referralBody = document.getElementById("referralBody");
-    const profileUsername = document.getElementById("profileUsername");
-    const profileEmail = document.getElementById("profileEmail");
+    const totalReferredEl = document.getElementById("totalReferred");
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -211,12 +180,11 @@
       const userSnap = await getDoc(userRef);
       if (!userSnap.exists()) {
         referralBody.innerHTML = "<tr><td colspan='3' class='no-data'>User data not found.</td></tr>";
+        totalReferredEl.textContent = "Total referred: 0";
         return;
       }
       const userData = userSnap.data();
       const myUsername = userData.username || "";
-      profileUsername.textContent = myUsername;
-      profileEmail.textContent = userData.email || "";
 
       // Query users where referral == myUsername
       const q = query(
@@ -225,6 +193,10 @@
         orderBy("createdAt", "desc")
       );
       const snapshot = await getDocs(q);
+
+      // Update total referred count
+      const count = snapshot.size;
+      totalReferredEl.textContent = `Total referred: ${count}`;
 
       // Render results
       if (snapshot.empty) {
@@ -244,10 +216,6 @@
         });
       }
     });
-
-    function toggleProfile() {
-      document.getElementById("profileInfo").classList.toggle("show");
-    }
 
     function logout() {
       signOut(auth);
