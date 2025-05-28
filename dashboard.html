@@ -5,26 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EasyPay Dashboard</title>
   <style>
+    :root {
+      --green-dark: #006400;
+      --green-medium: #009f4d;
+      --green-light: #e6f4e6;
+      --bg: #f5fdf7;
+      --text-dark: #003300;
+      --text-medium: #004d00;
+    }
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
+      background-color: var(--bg);
+      color: var(--text-dark);
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
     header {
-      background-color: #009f4d;
+      background-color: var(--green-dark);
       color: white;
       padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     .profile {
       position: relative;
       cursor: pointer;
+    }
+    .profile .emoji {
+      font-size: 1.8rem;
+      color: white;
     }
     .profile-info {
       display: none;
@@ -32,7 +45,7 @@
       right: 0;
       top: 40px;
       background: white;
-      color: black;
+      color: var(--text-dark);
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       border-radius: 8px;
       width: 200px;
@@ -42,6 +55,17 @@
     .profile-info.show {
       display: block;
     }
+    .profile-info button {
+      background: var(--green-medium);
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+      width: 100%;
+      font-weight: 600;
+    }
     .container {
       padding: 20px;
       flex-grow: 1;
@@ -49,26 +73,32 @@
     .card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 100, 0, 0.1);
       padding: 20px;
       margin-bottom: 20px;
+      border-left: 4px solid var(--green-medium);
     }
     .card h3 {
       margin-top: 0;
+      color: var(--green-dark);
     }
     .copy-btn {
-      background: #009f4d;
+      background: var(--green-medium);
       color: white;
       border: none;
       padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
+      font-weight: 600;
+    }
+    .copy-btn:hover {
+      background: var(--green-dark);
     }
     .nav {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: #009f4d;
+      background: var(--green-dark);
       display: flex;
       justify-content: space-around;
       padding: 10px 0;
@@ -86,13 +116,22 @@
       font-size: 1.5rem;
       margin-bottom: 4px;
     }
+    @media (max-width: 600px) {
+      header { padding: 12px; }
+      .profile .emoji { font-size: 1.6rem; }
+      .card { padding: 16px; margin-bottom: 16px; }
+      .card h3 { font-size: 1.1rem; }
+      .copy-btn { padding: 5px 10px; }
+      .nav a { font-size: 0.8rem; }
+      .nav a .emoji { font-size: 1.3rem; }
+    }
   </style>
 </head>
 <body>
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
     <div class="profile" onclick="toggleProfile()">
-      <span style="font-size:1.8rem;">👤</span>
+      <span class="emoji">👤</span>
       <div id="profileInfo" class="profile-info">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
