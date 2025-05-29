@@ -107,7 +107,7 @@
     .nav a i {
       font-size: 1.5rem;
       margin-bottom: 4px;
-      /* Font Awesome icons are already white because of the parent color */
+      /* Icons inherit the white color */
     }
     @media (min-width: 768px) {
       .card {
@@ -254,14 +254,28 @@
       updateCountdown(lastTs);
     });
 
-    window.copyReferral = () => {
+    // Make these functions available globally
+    window.copyReferral = copyReferral;
+    window.logout       = logout;
+    window.toggleProfile = toggleProfile;
+
+    // Copy referral code to clipboard
+    function copyReferral() {
       const code = document.getElementById("referralCode").innerText;
       navigator.clipboard.writeText(code)
         .then(() => alert("Referral code copied: " + code))
         .catch(console.error);
-    };
+    }
 
-    window.logout = () => signOut(auth);
+    // Sign out via Firebase Auth
+    function logout() {
+      signOut(auth);
+    }
+
+    // Show/hide the profile dropdown
+    function toggleProfile() {
+      document.getElementById("profileInfo").classList.toggle("show");
+    }
 
     function updateCountdown(lastClaimTs) {
       const countdownEl = document.getElementById("countdown");
@@ -306,10 +320,6 @@
       updateCountdown(now);
       const claimBtn = document.getElementById("claimBtn");
       claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
-    }
-
-    function toggleProfile() {
-      document.getElementById("profileInfo").classList.toggle("show");
     }
   </script>
 </body>
