@@ -165,7 +165,13 @@
     <h2>Premium Members Only</h2>
     <p>This page can only be viewed by our premium members.</p>
     <p>Upgrade now to gain access to exclusive offers and earn more rewards!</p>
-    <a id="upgradeButton" href="https://easypay-ng.github.io/easypay/upgrade.html" target="_blank">Upgrade to Premium</a>
+    <a
+      id="upgradeButton"
+      href="https://easypay-ng.github.io/easypay/upgrade.html"
+      target="_blank"
+    >
+      Upgrade to Premium
+    </a>
   </div>
 
   <!-- Premium Content Container -->
@@ -177,7 +183,11 @@
         <h2>FreeCash Offer</h2>
       </div>
       <div class="offer-body">
-        <p>Earn rewards from completing offers and surveys. Payment will be made to your local bank account as long as you follow these requirements:</p>
+        <p>
+          Earn rewards from completing offers and surveys. Payment will be
+          made to your local bank account as long as you follow these
+          requirements:
+        </p>
         <ul class="requirements">
           <li>Must be an active EasyPay user</li>
           <li>Complete each offer or survey in full</li>
@@ -185,11 +195,24 @@
           <li>Only one EasyPay account per user</li>
         </ul>
         <div class="crypto-info">
-          <p>Anytime you want to cash out your money, withdraw via cryptocurrency—specifically Litecoin. Send the funds to the address below:</p>
-          <div class="ltc-address">LQk9uT3YB2TZeLx4FYCxvR7kVgy7nNRuCK</div>
-          <p>It will be moved to your EasyPay account at the rate of ₦1400 per $.</p>
+          <p>
+            Anytime you want to cash out your money, withdraw via
+            cryptocurrency—specifically Litecoin. Send the funds to the
+            address below:
+          </p>
+          <div class="ltc-address">
+            LQk9uT3YB2TZeLx4FYCxvR7kVgy7nNRuCK
+          </div>
+          <p>
+            It will be moved to your EasyPay account at the rate of ₦1400 per
+            $.
+          </p>
         </div>
-        <a href="https://freecash.com/r/EasyPay22" target="_blank" class="action-button">
+        <a
+          href="https://freecash.com/r/EasyPay22"
+          target="_blank"
+          class="action-button"
+        >
           Start Offer on FreeCash
         </a>
       </div>
@@ -220,13 +243,13 @@
     const accessDeniedDiv = document.getElementById("accessDenied");
     const premiumContentDiv = document.getElementById("premiumContent");
 
-    // Hide both initially, then show depending on role
+    // Hide both sections initially
     accessDeniedDiv.style.display = "none";
     premiumContentDiv.style.display = "none";
 
-    auth.onAuthStateChanged(async user => {
+    auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        // Not logged in → show access denied
+        // Not logged in → show "Premium Members Only"
         accessDeniedDiv.style.display = "block";
         premiumContentDiv.style.display = "none";
         return;
@@ -235,20 +258,22 @@
       try {
         const userDoc = await db.collection("users").doc(user.uid).get();
         const userData = userDoc.data() || {};
-        const role = userData.role || userData.userType || "basic";
 
-        if (role.toLowerCase() === "premium") {
-          // Show premium content
+        // Read the "plan" field (basic vs. premium)
+        const plan = (userData.plan || "basic").toLowerCase();
+
+        if (plan === "premium") {
+          // Premium user → show premium offers
           accessDeniedDiv.style.display = "none";
           premiumContentDiv.style.display = "block";
         } else {
-          // Basic users see access denied
+          // Basic user → still show access denied
           accessDeniedDiv.style.display = "block";
           premiumContentDiv.style.display = "none";
         }
       } catch (err) {
-        console.error("Error checking user role:", err);
-        // On error, default to denied
+        console.error("Error checking user plan:", err);
+        // On any error, hide premium content and show access denied
         accessDeniedDiv.style.display = "block";
         premiumContentDiv.style.display = "none";
       }
