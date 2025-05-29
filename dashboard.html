@@ -39,12 +39,27 @@
       color: black;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       border-radius: 8px;
-      width: 200px;
+      width: 220px;
       padding: 10px;
       z-index: 1;
     }
     .profile-info.show {
       display: block;
+    }
+    .profile-info p {
+      margin: 8px 0;
+      font-size: 0.95rem;
+    }
+    .profile-info button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 8px;
+      background-color: #009f4d;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
     }
     .container {
       padding: 20px;
@@ -69,6 +84,7 @@
       border-radius: 6px;
       cursor: pointer;
       margin-top: 10px;
+      font-size: 0.95rem;
     }
     .nav {
       position: fixed;
@@ -88,9 +104,10 @@
       flex-direction: column;
       align-items: center;
     }
-    .nav a .emoji {
+    .nav a i {
       font-size: 1.5rem;
       margin-bottom: 4px;
+      /* Font Awesome icons are already white because of the parent color */
     }
     @media (min-width: 768px) {
       .card {
@@ -103,7 +120,7 @@
       .nav a {
         font-size: 1rem;
       }
-      .nav a .emoji {
+      .nav a i {
         font-size: 1.8rem;
       }
     }
@@ -117,6 +134,7 @@
       <div id="profileInfo" class="profile-info">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
         <button onclick="logout()">Logout</button>
       </div>
     </div>
@@ -143,19 +161,19 @@
 
   <div class="nav">
     <a href="menu.html">
-      <span class="emoji">🏠</span>
+      <i class="fas fa-home"></i>
       Menu
     </a>
     <a href="advertise.html">
-      <span class="emoji">📣</span>
+      <i class="fas fa-bullhorn"></i>
       Advertise
     </a>
     <a href="earn.html">
-      <span class="emoji">💰</span>
+      <i class="fas fa-money-bill-wave"></i>
       Earn
     </a>
     <a href="leaderboard.html">
-      <span class="emoji">🏆</span>
+      <i class="fas fa-trophy"></i>
       Leaderboard
     </a>
   </div>
@@ -202,14 +220,19 @@
       const data = userSnap.data();
       const username = data.username || "";
       const email = data.email || "";
+      const balanceValue = data.balance ?? 0;
 
+      // Populate header and profile dropdown
       document.getElementById("usernameDisplay").innerText = username;
       document.getElementById("profileUsername").innerText = username;
       document.getElementById("profileEmail").innerText = email;
-      document.getElementById("balance").innerText = data.balance ?? 0;
-      document.getElementById("referralCode").innerText = username;
+      document.getElementById("profileBalance").innerText = balanceValue;
 
-      // Fetch and display referral count
+      // Populate dashboard balance
+      document.getElementById("balance").innerText = balanceValue;
+
+      // Populate referral code and referral count
+      document.getElementById("referralCode").innerText = username;
       try {
         const referralsQuery = query(
           collection(db, "users"),
@@ -278,6 +301,7 @@
         lastClaim: now
       });
       document.getElementById("balance").innerText = newBalance;
+      document.getElementById("profileBalance").innerText = newBalance;
       alert(`Claimed ₦${amount} Successfully!`);
       updateCountdown(now);
       const claimBtn = document.getElementById("claimBtn");
