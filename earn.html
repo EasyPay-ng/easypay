@@ -56,8 +56,23 @@
       margin: 0 0 10px;
       color: #006400;
     }
-    .task p {
+    .description {
       margin: 5px 0;
+      line-height: 1.4;
+      max-height: 2.8em;      /* clamp to 2 lines */
+      overflow: hidden;
+      transition: max-height 0.2s ease;
+    }
+    .description.expanded {
+      max-height: none;      /* fully expand */
+    }
+    .toggle-link {
+      display: inline-block;
+      margin-top: 4px;
+      color: #006400;
+      font-size: 0.9rem;
+      cursor: pointer;
+      user-select: none;
     }
     .task button {
       padding: 6px 12px;
@@ -71,7 +86,8 @@
     .proof {
       margin-top: 10px;
     }
-    .proof input, .proof textarea {
+    .proof input,
+    .proof textarea {
       width: 100%;
       margin: 4px 0;
       padding: 6px;
@@ -118,7 +134,7 @@
   <!-- App Content -->
   <div id="app">
     <header>Available Tasks</header>
-    <!-- Added Upload Proof button below header -->
+    <!-- Upload Proof button -->
     <button 
       onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'" 
       style="display:block; margin: 0 auto 10px; padding:8px 16px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;"
@@ -198,9 +214,19 @@
       const div = document.createElement("div");
       div.className = "task";
       div.id = `task-${id}`;
+
+      // Build description area with truncated/expandable text
+      const descHtml = `
+        <div class="description" id="desc-${id}">${data.description || ""}</div>
+        ${data.description && data.description.length > 150
+          ? `<div class="toggle-link" id="toggle-${id}">See More</div>`
+          : ""
+        }
+      `;
+
       div.innerHTML = `
         <h2>${data.taskTitle} — ${data.category}</h2>
-        <p><strong>Description:</strong> ${data.description || ''}</p>
+        <div>${descHtml}</div>
         <p><strong>Earn:</strong> ₦${userPay}</p>
         <div class="progress-container">
           <div class="progress-bar" id="bar-${id}"></div>
@@ -217,6 +243,21 @@
       `;
       taskContainer.appendChild(div);
 
+      // If “See More” is present, hook the toggle logic
+      if (data.description && data.description.length > 150) {
+        const toggleLink = document.getElementById(`toggle-${id}`);
+        const descDiv    = document.getElementById(`desc-${id}`);
+        toggleLink.onclick = () => {
+          if (descDiv.classList.contains("expanded")) {
+            descDiv.classList.remove("expanded");
+            toggleLink.textContent = "See More";
+          } else {
+            descDiv.classList.add("expanded");
+            toggleLink.textContent = "Hide";
+          }
+        };
+      }
+
       // Listen for approved OR reviewed submissions to update progress
       db.collection("task_submissions")
         .where("taskId", "==", id)
@@ -224,10 +265,12 @@
           let completedCount = 0;
           snap.forEach(sdoc => {
             const status = sdoc.data().status;
-            // Count both "approved" and "reviewed" toward progress
+            // Only count “approved” or “reviewed”
             if (status === "approved" || status === "reviewed") {
               completedCount++;
             }
+            // If status === "rejected", we do NOT increment; 
+            // this automatically “frees up” one slot when a submission flips from approved/reviewed to rejected.
           });
           const needed = data.workersNeeded;
           const pct = Math.min(100, Math.round((completedCount / needed) * 100));
@@ -235,11 +278,9 @@
           document.getElementById(`label-${id}`).textContent =
             `${completedCount} / ${needed} completed`;
 
-          // Auto-complete task when enough performers (approved+reviewed) gathered
+          // Auto-complete task when enough performers gathered
           if (completedCount >= needed) {
-            // Remove from UI
             document.getElementById(`task-${id}`).remove();
-            // Mark task completed in DB
             db.collection("tasks").doc(id).update({ status: "completed" });
           }
         });
