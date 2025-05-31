@@ -80,7 +80,8 @@
       box-shadow: 0 4px 12px rgba(0,100,0,0.1);
       margin-bottom: 40px;
     }
-    .task-table th, .task-table td {
+    .task-table th,
+    .task-table td {
       padding: 12px 16px;
       border-bottom: 1px solid #e0e0e0;
       text-align: left;
@@ -93,6 +94,16 @@
       background: #f0fff0;
     }
     /* Buttons */
+    .review-btn {
+      background: #0055aa;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 4px;
+    }
     .approve-btn {
       background: #009900;
       color: #fff;
@@ -114,12 +125,20 @@
     }
     /* Responsive */
     @media (max-width: 600px) {
-      .task-table th, .task-table td {
+      .task-table th,
+      .task-table td {
         padding: 8px 10px;
       }
       header {
         font-size: 1.2em;
         padding: 12px;
+      }
+      /* Stack buttons on small screens */
+      .review-btn,
+      .approve-btn,
+      .reject-btn {
+        margin: 4px 0;
+        display: block;
       }
     }
   </style>
@@ -208,10 +227,10 @@
         .orderBy("submittedAt", "desc")
         .onSnapshot(snapshot => {
           const grouped = {};
-          snapshot.forEach(doc => {
-            const d = doc.data();
+          snapshot.forEach(docSnap => {
+            const d = docSnap.data();
             if (!grouped[d.taskId]) grouped[d.taskId] = [];
-            grouped[d.taskId].push({ id: doc.id, data: d });
+            grouped[d.taskId].push({ id: docSnap.id, data: d });
           });
           renderSubmissions(grouped, tasksData, usersData);
         });
@@ -245,6 +264,7 @@
               <th>Text Proof</th>
               <th>Image Proof</th>
               <th>Status</th>
+              <th>Review</th>
               <th>Approve</th>
               <th>Reject</th>
             </tr>
@@ -272,8 +292,8 @@
           const imgTd = document.createElement("td");
           if (d.imageProof) {
             const a = document.createElement("a");
-            a.href       = d.imageProof;
-            a.target     = "_blank";
+            a.href = d.imageProof;
+            a.target = "_blank";
             a.textContent = "View";
             imgTd.appendChild(a);
           }
@@ -282,12 +302,21 @@
           // Status
           tr.innerHTML += `<td>${d.status}</td>`;
 
+          // Review button
+          const revTd = document.createElement("td");
+          const revBtn = document.createElement("button");
+          revBtn.className = "review-btn";
+          revBtn.textContent = "Review";
+          revBtn.onclick = () => handleReview(sub.id);
+          revTd.appendChild(revBtn);
+          tr.appendChild(revTd);
+
           // Approve button
           const apTd = document.createElement("td");
           const apBtn = document.createElement("button");
           apBtn.className = "approve-btn";
           apBtn.textContent = "Approve";
-          apBtn.onclick   = () => handleApprove(taskId, sub.id, d.userId);
+          apBtn.onclick = () => handleApprove(taskId, sub.id, d.userId);
           apTd.appendChild(apBtn);
           tr.appendChild(apTd);
 
@@ -296,7 +325,7 @@
           const rjBtn = document.createElement("button");
           rjBtn.className = "reject-btn";
           rjBtn.textContent = "Reject";
-          rjBtn.onclick   = () => handleReject(sub.id);
+          rjBtn.onclick = () => handleReject(sub.id);
           rjTd.appendChild(rjBtn);
           tr.appendChild(rjTd);
 
@@ -305,6 +334,17 @@
 
         container.appendChild(tbl);
       });
+    }
+
+    // REVIEW LOGIC
+    function handleReview(submissionId) {
+      db.collection("task_submissions")
+        .doc(submissionId)
+        .update({ status: "reviewed" })
+        .then(() => {
+          console.log(`Submission ${submissionId} marked as reviewed.`);
+        })
+        .catch(console.error);
     }
 
     // APPROVE / REJECT LOGIC
@@ -320,13 +360,16 @@
           reward = Math.floor(reward);
           return db.collection("users")
             .doc(userId)
-            .update({ balance: firebase.firestore.FieldValue.increment(reward) });
+            .update({ 
+              balance: firebase.firestore.FieldValue.increment(reward) 
+            });
         })
         .catch(console.error);
     }
 
     function handleReject(submissionId) {
-      db.collection("task_submissions").doc(submissionId)
+      db.collection("task_submissions")
+        .doc(submissionId)
         .update({ status: "rejected" })
         .catch(console.error);
     }
