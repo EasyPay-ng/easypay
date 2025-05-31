@@ -193,13 +193,17 @@
       }
     });
 
-    // Real-time listener for tasks
+    // Real-time listener for tasks (newest at top)
     function startTaskListener() {
       db.collection("tasks")
         .where("status", "==", "approved")
         .onSnapshot(snapshot => {
           taskContainer.innerHTML = "";
-          snapshot.forEach(doc => renderTask(doc));
+          // Reverse order so newest tasks appear first
+          snapshot.docs
+            .slice()
+            .reverse()
+            .forEach(doc => renderTask(doc));
         });
     }
 
@@ -269,8 +273,7 @@
             if (status === "approved" || status === "reviewed") {
               completedCount++;
             }
-            // If status === "rejected", we do NOT increment; 
-            // this automatically “frees up” one slot when a submission flips from approved/reviewed to rejected.
+            // Rejected submissions are not counted, freeing spots
           });
           const needed = data.workersNeeded;
           const pct = Math.min(100, Math.round((completedCount / needed) * 100));
