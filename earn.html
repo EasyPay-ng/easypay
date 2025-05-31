@@ -59,12 +59,15 @@
     .description {
       margin: 5px 0;
       line-height: 1.4;
-      max-height: 2.8em;      /* clamp to 2 lines */
-      overflow: hidden;
       transition: max-height 0.2s ease;
     }
+    /* Clamp to two lines when applied */
+    .clamp {
+      max-height: 2.8em;
+      overflow: hidden;
+    }
     .description.expanded {
-      max-height: none;      /* fully expand */
+      max-height: none;
     }
     .toggle-link {
       display: inline-block;
@@ -219,13 +222,10 @@
       div.className = "task";
       div.id = `task-${id}`;
 
-      // Build description area with truncated/expandable text
+      // Build description area
       const descHtml = `
         <div class="description" id="desc-${id}">${data.description || ""}</div>
-        ${data.description && data.description.length > 150
-          ? `<div class="toggle-link" id="toggle-${id}">See More</div>`
-          : ""
-        }
+        <div class="toggle-link" id="toggle-${id}" style="display:none;"></div>
       `;
 
       div.innerHTML = `
@@ -247,17 +247,32 @@
       `;
       taskContainer.appendChild(div);
 
-      // If “See More” is present, hook the toggle logic
-      if (data.description && data.description.length > 150) {
-        const toggleLink = document.getElementById(`toggle-${id}`);
-        const descDiv    = document.getElementById(`desc-${id}`);
+      // After appending, measure description height
+      const descDiv = document.getElementById(`desc-${id}`);
+      const toggleLink = document.getElementById(`toggle-${id}`);
+
+      // Temporarily remove any clamp to measure
+      descDiv.classList.remove('clamp', 'expanded');
+
+      // Compute line-height in pixels
+      const computed = window.getComputedStyle(descDiv);
+      const lineHeightPx = parseFloat(computed.lineHeight);
+      const twoLineHeight = lineHeightPx * 2;
+
+      // If scrollHeight exceeds two lines, clamp it
+      if (descDiv.scrollHeight > twoLineHeight + 1) {
+        descDiv.classList.add('clamp');
+        toggleLink.style.display = 'inline';
+        toggleLink.textContent = 'See More';
         toggleLink.onclick = () => {
-          if (descDiv.classList.contains("expanded")) {
-            descDiv.classList.remove("expanded");
-            toggleLink.textContent = "See More";
+          if (descDiv.classList.contains('expanded')) {
+            descDiv.classList.remove('expanded');
+            descDiv.classList.add('clamp');
+            toggleLink.textContent = 'See More';
           } else {
-            descDiv.classList.add("expanded");
-            toggleLink.textContent = "Hide";
+            descDiv.classList.remove('clamp');
+            descDiv.classList.add('expanded');
+            toggleLink.textContent = 'Hide';
           }
         };
       }
@@ -273,7 +288,7 @@
             if (status === "approved" || status === "reviewed") {
               completedCount++;
             }
-            // Rejected submissions are not counted, freeing spots
+            // Rejected submissions are not counted, freeing slots
           });
           const needed = data.workersNeeded;
           const pct = Math.min(100, Math.round((completedCount / needed) * 100));
