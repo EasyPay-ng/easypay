@@ -95,13 +95,13 @@
       background: #28a745;
       width: 0%;
       transition: width 0.4s ease-in-out;
-     }
+    }
     .progress-label {
       font-size: 12px;
       text-align: right;
       margin-top: 4px;
       color: #004400;
-     }
+    }
   </style>
 </head>
 <body>
@@ -217,22 +217,26 @@
       `;
       taskContainer.appendChild(div);
 
-      // Listen for approved submissions to update progress
+      // Listen for approved OR reviewed submissions to update progress
       db.collection("task_submissions")
         .where("taskId", "==", id)
         .onSnapshot(snap => {
-          let approvedCount = 0;
+          let completedCount = 0;
           snap.forEach(sdoc => {
-            if (sdoc.data().status === "approved") approvedCount++;
+            const status = sdoc.data().status;
+            // Count both "approved" and "reviewed" toward progress
+            if (status === "approved" || status === "reviewed") {
+              completedCount++;
+            }
           });
           const needed = data.workersNeeded;
-          const pct = Math.min(100, Math.round(approvedCount / needed * 100));
+          const pct = Math.min(100, Math.round((completedCount / needed) * 100));
           document.getElementById(`bar-${id}`).style.width = pct + "%";
           document.getElementById(`label-${id}`).textContent =
-            `${approvedCount} / ${needed} completed`;
+            `${completedCount} / ${needed} completed`;
 
-          // Auto-complete task when done
-          if (approvedCount >= needed) {
+          // Auto-complete task when enough performers (approved+reviewed) gathered
+          if (completedCount >= needed) {
             // Remove from UI
             document.getElementById(`task-${id}`).remove();
             // Mark task completed in DB
@@ -245,6 +249,7 @@
     async function submitProof(taskId, payout) {
       const user = auth.currentUser;
       if (!user) return alert("Sign in to submit");
+
       const text  = document.getElementById(`text-${taskId}`).value.trim();
       const image = document.getElementById(`image-${taskId}`).value.trim();
       if (!text || !image) return alert("Fill both proof fields");
