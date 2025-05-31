@@ -125,11 +125,6 @@
       color: white;
     }
 
-    .delete-btn {
-      background-color: #cc0000;
-      color: white;
-    }
-
     input[type="text"] {
       padding: 0.5rem;
       width: 100%;
@@ -223,12 +218,6 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import {
@@ -237,12 +226,10 @@
       getDocs,
       doc,
       updateDoc,
-      deleteDoc,
       query,
       where
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // Initialize App
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -252,13 +239,11 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
       measurementId: "G-2FZKDQ47FZ"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const functions = firebase.functions(); // using compat for callable
-
     let selectedUserId = null;
 
-    // Load users and render table
     async function loadUsers() {
       const tbody = document.getElementById("userTableBody");
       const userCountEl = document.getElementById("userCount");
@@ -269,7 +254,7 @@
       const totalUsers = snapshot.size;
       userCountEl.textContent = `Total Users:  ${totalUsers}`;
 
-      // 2) Build array of { id, data } to later get referral counts
+      // 2) Build an array of { id, data } to later get referral‐counts
       const userDocs = [];
       snapshot.forEach(docSnap => {
         userDocs.push({
@@ -278,26 +263,29 @@
         });
       });
 
-      // 3) Query referral counts for each user
+      // 3) For each user, query how many docs have referral == thisUsername
       const rowsWithCounts = await Promise.all(
         userDocs.map(async ({ id, data }) => {
           const username = data.username || "";
+          // Query Firestore: where "referral" field equals this user's username
           const refQuery = query(
             collection(db, "users"),
             where("referral", "==", username)
           );
           const refSnap = await getDocs(refQuery);
+          const referralCount = refSnap.size;
+
           return {
             uid: id,
             username: data.username || "—",
             balance: data.balance || 0,
             suspended: data.suspended || false,
-            referralCount: refSnap.size
+            referralCount
           };
         })
       );
 
-      // 4) Render each row
+      // 4) Now render each row with the computed referralCount
       rowsWithCounts.forEach(userObj => {
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -327,19 +315,12 @@
             >
               ${userObj.suspended ? "Unsuspend" : "Suspend"}
             </button>
-            <button
-              class="btn delete-btn"
-              onclick="deleteUser('${userObj.uid}')"
-            >
-              Delete
-            </button>
           </td>
         `;
         tbody.appendChild(row);
       });
     }
 
-    // Open “Edit” modal
     window.openModal = (id, username, balance, referrals) => {
       selectedUserId = id;
       document.getElementById("editUsername").value = username;
@@ -348,11 +329,14 @@
       document.getElementById("editModal").style.display = "flex";
     };
 
-    // Save changes from “Edit” modal
     window.saveChanges = async () => {
       const username = document.getElementById("editUsername").value;
-      const balance  = parseFloat(document.getElementById("editBalance").value);
-      const referrals = parseInt(document.getElementById("editReferrals").value);
+      const balance = parseFloat(
+        document.getElementById("editBalance").value
+      );
+      const referrals = parseInt(
+        document.getElementById("editReferrals").value
+      );
       if (selectedUserId) {
         await updateDoc(doc(db, "users", selectedUserId), {
           username,
@@ -364,10 +348,11 @@
       }
     };
 
-    // Suspend / unsuspend user
     window.toggleSuspend = async (id, currentlySuspended) => {
       const action = currentlySuspended ? "unsuspend" : "suspend";
-      if (confirm(`Are you sure you want to ${action} this user?`)) {
+      if (
+        confirm(`Are you sure you want to ${action} this user?`)
+      ) {
         await updateDoc(doc(db, "users", id), {
           suspended: !currentlySuspended
         });
@@ -375,53 +360,35 @@
       }
     };
 
-    // Delete user from Firestore & Auth
-    window.deleteUser = async (uid) => {
-      if (!confirm("Permanently delete this user?")) return;
-
-      try {
-        // 1) Delete Firestore doc
-        await deleteDoc(doc(db, "users", uid));
-
-        // 2) Call a Cloud Function to remove from Authentication
-        //    Make sure you have deployed a function named `deleteUser` that takes { uid }.
-        const deleteFn = functions.httpsCallable('deleteUser');
-        await deleteFn({ uid });
-
-        alert("User deleted from Auth and Firestore.");
-        await loadUsers();
-      } catch (err) {
-        console.error("Error deleting user:", err);
-        alert("Failed to delete user: " + err.message);
-      }
-    };
-
-    // Search filter
     window.searchUsers = () => {
-      const queryVal = document.getElementById("searchInput").value.toLowerCase();
+      const queryVal = document
+        .getElementById("searchInput")
+        .value.toLowerCase();
       document.querySelectorAll("#userTableBody tr").forEach(row => {
         const username = row.children[0].innerText.toLowerCase();
         const uid = row.children[1].innerText.toLowerCase();
         row.style.display =
-          username.includes(queryVal) || uid.includes(queryVal) ? "" : "none";
+          username.includes(queryVal) || uid.includes(queryVal)
+            ? ""
+            : "none";
       });
     };
 
-    // Close modal when clicking outside
     window.addEventListener("click", (e) => {
       if (e.target === document.getElementById("editModal")) {
         document.getElementById("editModal").style.display = "none";
       }
     });
 
-    // Initial load
+    // Initial load of users
     loadUsers();
   </script>
 
   <script>
     function toggleDropdown() {
       const menu = document.getElementById("dropdownMenu");
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
+      menu.style.display =
+        menu.style.display === "block" ? "none" : "block";
     }
     window.addEventListener("click", (e) => {
       if (!e.target.closest(".dropdown")) {
