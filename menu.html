@@ -37,7 +37,7 @@
       top: 40px;
       background: white;
       color: black;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       border-radius: 8px;
       width: 200px;
       padding: 10px;
@@ -133,12 +133,12 @@
   </header>
 
   <div class="container">
-    <!-- Activate Account centered in its own row -->
+    <!-- Activate Account button (one full row) -->
     <button class="activate-btn" onclick="location.href='verify.html'">
       <i class="fas fa-user-check"></i> Activate Account
     </button>
 
-    <!-- Two options per row, centered -->
+    <!-- Two options per row, centered in a 600px grid -->
     <div class="menu">
       <button onclick="location.href='deposit.html'">
         <i class="fas fa-credit-card"></i> Deposit
@@ -186,6 +186,7 @@
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
+    // — Your Exact Firebase Configuration Below —
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -194,3 +195,38 @@
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
       measurementId: "G-2FZKDQ47FZ"
+    };
+    // — End Firebase Configuration —
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // Not signed in; redirect to login
+        window.location.href = 'login.html';
+        return;
+      }
+      // Signed in, fetch profile fields
+      const userDocRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userDocRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        document.getElementById("usernameDisplay").innerText = data.username;
+        document.getElementById("profileUsername").innerText = data.username;
+        document.getElementById("profileEmail").innerText = data.email;
+        document.getElementById("balance").innerText = data.balance || 0;
+      } else {
+        // If there’s no Firestore document for this UID:
+        alert("User record not found. Please contact support.");
+      }
+    });
+
+    window.logout = () => signOut(auth);
+    window.toggleProfile = () => {
+      document.getElementById("profileInfo").classList.toggle("show");
+    };
+  </script>
+</body>
+</html>
