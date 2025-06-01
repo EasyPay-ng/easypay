@@ -124,6 +124,58 @@
         font-size: 1.8rem;
       }
     }
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 320px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .modal-content h4 {
+      margin-top: 0;
+      color: #006400;
+      font-size: 1.1rem;
+    }
+    .modal-content p {
+      margin: 10px 0;
+      font-size: 0.95rem;
+    }
+    .modal-content a {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 16px;
+      background-color: #009f4d;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -139,6 +191,18 @@
       </div>
     </div>
   </header>
+
+  <!-- Modal Popup for WhatsApp Group -->
+  <div id="whatsappModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h4>Join our New WhatsApp Group</h4>
+      <p>Stay updated and connect with other EasyPay users.</p>
+      <a href="https://chat.whatsapp.com/FBs8BRuiOvaHUeomK5J6tz" target="_blank">
+        Click Here
+      </a>
+    </div>
+  </div>
 
   <div class="container">
     <div class="card">
@@ -192,6 +256,7 @@
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
+    // Your Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -205,6 +270,15 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
+
+    // Show modal on page load
+    window.addEventListener("load", () => {
+      document.getElementById("whatsappModal").style.display = "flex";
+    });
+
+    function closeModal() {
+      document.getElementById("whatsappModal").style.display = "none";
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -253,11 +327,6 @@
       claimBtn.onclick = () => claimNaira(uid);
       updateCountdown(lastTs);
     });
-
-    // Make these functions available globally
-    window.copyReferral = copyReferral;
-    window.logout       = logout;
-    window.toggleProfile = toggleProfile;
 
     // Copy referral code to clipboard
     function copyReferral() {
@@ -323,4 +392,5 @@
     }
   </script>
 </body>
-</html>
+  </html>
+  
