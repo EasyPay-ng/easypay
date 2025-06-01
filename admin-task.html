@@ -207,7 +207,7 @@
       }
     });
 
-    // REAL-TIME LISTENER (descending timestamp, numbering ascending)
+    // REAL-TIME LISTENER (descending timestamp, numbering oldest=1)
     async function startRealtimeListener() {
       // Preload tasks
       const tasksData = {};
@@ -278,8 +278,9 @@
           const d = sub.data;
           const tr = document.createElement("tr");
 
-          // Number for this category (descending timestamps, but idx+1 still asc)
-          tr.innerHTML += `<td>${idx + 1}</td>`;
+          // Number = subs.length - idx (oldest gets 1, newest gets length)
+          const number = subs.length - idx;
+          tr.innerHTML += `<td>${number}</td>`;
 
           // Username
           const uname = usersData[d.userId] || d.userId;
@@ -345,9 +346,6 @@
       db.collection("task_submissions")
         .doc(submissionId)
         .update({ status: "reviewed" })
-        .then(() => {
-          console.log(`Submission ${submissionId} marked as reviewed.`);
-        })
         .catch(console.error);
     }
 
