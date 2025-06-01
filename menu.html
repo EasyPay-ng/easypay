@@ -48,12 +48,39 @@
     .container {
       padding: 20px;
       flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    /* Centered activate button */
+    .activate-btn {
+      background: white;
+      border: 2px solid #009f4d;
+      border-radius: 10px;
+      padding: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #009f4d;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+      max-width: 300px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .activate-btn:hover {
+      background: #009f4d;
+      color: white;
     }
     .menu {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 20px;
-      padding: 20px;
+      max-width: 600px;
+      width: 100%;
     }
     .menu button {
       background: white;
@@ -74,10 +101,6 @@
       background: #009f4d;
       color: white;
     }
-    /* Span two columns for the important Activate Account button */
-    .activate-btn {
-      grid-column: span 2;
-    }
     footer {
       background-color: #009f4d;
       color: white;
@@ -88,7 +111,7 @@
       header h2 {
         font-size: 1.5rem;
       }
-      .menu button {
+      .activate-btn, .menu button {
         padding: 24px;
         font-size: 18px;
       }
@@ -110,23 +133,49 @@
   </header>
 
   <div class="container">
+    <!-- Activate Account centered in its own row -->
+    <button class="activate-btn" onclick="location.href='verify.html'">
+      <i class="fas fa-user-check"></i> Activate Account
+    </button>
+
+    <!-- Two options per row, centered -->
     <div class="menu">
-      <!-- New "Activate Account" button spans two columns -->
-      <button class="activate-btn" onclick="location.href='verify.html'">
-        <i class="fas fa-user-check"></i> Activate Account
+      <button onclick="location.href='deposit.html'">
+        <i class="fas fa-credit-card"></i> Deposit
       </button>
-      <button onclick="location.href='deposit.html'"><i class="fas fa-credit-card"></i> Deposit</button>
-      <button onclick="location.href='withdraw.html'"><i class="fas fa-university"></i> Withdraw</button>
-      <button onclick="location.href='shortlink.html'"><i class="fas fa-link"></i> Shortlink</button>
-      <button onclick="location.href='posted-task.html'"><i class="fas fa-thumbtack"></i> Posted Task</button>
-      <button onclick="location.href='user-submission.html'"><i class="fas fa-history"></i> Task History</button>
-      <button onclick="location.href='claim-code.html'"><i class="fas fa-ticket-alt"></i> Profile</button>
-      <button onclick="location.href='vtu.html'"><i class="fas fa-sim-card"></i> VTU</button>
-      <button onclick="location.href='contact.html'"><i class="fas fa-phone-alt"></i> Contact Us</button>
-      <button onclick="location.href='upgrade.html'"><i class="fas fa-arrow-up"></i> Upgrade</button>
-      <button onclick="location.href='tap.html'"><i class="fas fa-hand-pointer"></i> Tap to Earn</button>
-      <button onclick="location.href='referral.html'"><i class="fas fa-user-friends"></i> My Refs</button>
-      <button onclick="location.href='offer.html'"><i class="fas fa-gamepad"></i> Play &amp; Earn</button>
+      <button onclick="location.href='withdraw.html'">
+        <i class="fas fa-university"></i> Withdraw
+      </button>
+      <button onclick="location.href='shortlink.html'">
+        <i class="fas fa-link"></i> Shortlink
+      </button>
+      <button onclick="location.href='posted-task.html'">
+        <i class="fas fa-thumbtack"></i> Posted Task
+      </button>
+      <button onclick="location.href='user-submission.html'">
+        <i class="fas fa-history"></i> Task History
+      </button>
+      <button onclick="location.href='claim-code.html'">
+        <i class="fas fa-ticket-alt"></i> Profile
+      </button>
+      <button onclick="location.href='vtu.html'">
+        <i class="fas fa-sim-card"></i> VTU
+      </button>
+      <button onclick="location.href='contact.html'">
+        <i class="fas fa-phone-alt"></i> Contact Us
+      </button>
+      <button onclick="location.href='upgrade.html'">
+        <i class="fas fa-arrow-up"></i> Upgrade
+      </button>
+      <button onclick="location.href='tap.html'">
+        <i class="fas fa-hand-pointer"></i> Tap to Earn
+      </button>
+      <button onclick="location.href='referral.html'">
+        <i class="fas fa-user-friends"></i> My Refs
+      </button>
+      <button onclick="location.href='offer.html'">
+        <i class="fas fa-gamepad"></i> Play &amp; Earn
+      </button>
     </div>
   </div>
 
@@ -145,29 +194,3 @@
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
       measurementId: "G-2FZKDQ47FZ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return (window.location.href = 'login.html');
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("usernameDisplay").innerText = data.username;
-        document.getElementById("profileUsername").innerText = data.username;
-        document.getElementById("profileEmail").innerText = data.email;
-        document.getElementById("balance").innerText = data.balance || 0;
-      }
-    });
-
-    window.logout = () => signOut(auth);
-    window.toggleProfile = () => {
-      document.getElementById("profileInfo").classList.toggle("show");
-    };
-  </script>
-</body>
-</html>
