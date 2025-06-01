@@ -132,7 +132,9 @@
       collection,
       getDocs,
       query,
-      orderBy
+      orderBy,
+      updateDoc,
+      doc
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     // Firebase config
@@ -152,9 +154,6 @@
     const submissionBody = document.getElementById("submissionBody");
     const searchInput = document.getElementById("searchInput");
 
-    // To track approval/rejection state per submission ID
-    const submissionStates = {};
-
     let allSubmissions = [];
 
     // Load all activation submissions ordered by newest first
@@ -166,16 +165,17 @@
       const snapshot = await getDocs(q);
 
       allSubmissions = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
         allSubmissions.push({
-          id: doc.id,
+          id: docSnap.id,
           username: data.username || "",
           senderName: data.senderName || "",
           amountSent: data.amountSent || "",
           timestamp: data.timestamp
             ? data.timestamp.toDate().toLocaleString()
-            : "N/A"
+            : "N/A",
+          status: data.status || "" // read saved status
         });
       });
 
@@ -193,10 +193,10 @@
         const tr = document.createElement("tr");
         tr.setAttribute("data-id", sub.id);
 
-        // Apply row class if previously approved/rejected
-        if (submissionStates[sub.id] === "approved") {
+        // Apply row class if status saved
+        if (sub.status === "approved") {
           tr.classList.add("approved-row");
-        } else if (submissionStates[sub.id] === "rejected") {
+        } else if (sub.status === "rejected") {
           tr.classList.add("rejected-row");
         }
 
@@ -210,26 +210,29 @@
         `;
         submissionBody.appendChild(tr);
 
-        // Attach event listeners
+        // Attach event listeners to the buttons
         const approveBtn = tr.querySelector(".approve-btn");
         const rejectBtn = tr.querySelector(".reject-btn");
 
-        // If already approved, disable reject
-        if (submissionStates[sub.id] === "approved") {
-          approveBtn.disabled = true;
-          rejectBtn.disabled = true;
+        // If already approved, disable both
+        if (sub.status === "approved") {
           approveBtn.textContent = "Approved";
-        }
-        // If already rejected, disable approve
-        else if (submissionStates[sub.id] === "rejected") {
           approveBtn.disabled = true;
           rejectBtn.disabled = true;
+        }
+        // If already rejected, disable both
+        else if (sub.status === "rejected") {
           rejectBtn.textContent = "Rejected";
+          approveBtn.disabled = true;
+          rejectBtn.disabled = true;
         }
 
-        approveBtn.addEventListener("click", () => {
-          if (!submissionStates[sub.id]) {
-            submissionStates[sub.id] = "approved";
+        approveBtn.addEventListener("click", async () => {
+          if (!sub.status) {
+            // Update Firestore
+            await updateDoc(doc(db, "activations", sub.id), { status: "approved" });
+            // Update local state and UI
+            sub.status = "approved";
             tr.classList.add("approved-row");
             approveBtn.textContent = "Approved";
             approveBtn.disabled = true;
@@ -237,9 +240,12 @@
           }
         });
 
-        rejectBtn.addEventListener("click", () => {
-          if (!submissionStates[sub.id]) {
-            submissionStates[sub.id] = "rejected";
+        rejectBtn.addEventListener("click", async () => {
+          if (!sub.status) {
+            // Update Firestore
+            await updateDoc(doc(db, "activations", sub.id), { status: "rejected" });
+            // Update local state and UI
+            sub.status = "rejected";
             tr.classList.add("rejected-row");
             rejectBtn.textContent = "Rejected";
             rejectBtn.disabled = true;
