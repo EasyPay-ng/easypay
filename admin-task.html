@@ -207,7 +207,7 @@
       }
     });
 
-    // REAL-TIME LISTENER
+    // REAL-TIME LISTENER (descending timestamp, numbering ascending)
     async function startRealtimeListener() {
       // Preload tasks
       const tasksData = {};
@@ -222,7 +222,7 @@
         usersData[uDoc.id] = u.username || uDoc.id;
       });
 
-      // Listen to submissions
+      // Listen to submissions in descending order by submittedAt
       db.collection("task_submissions")
         .orderBy("submittedAt", "desc")
         .onSnapshot(snapshot => {
@@ -259,6 +259,7 @@
         tbl.innerHTML = `
           <thead>
             <tr>
+              <th>No.</th>
               <th>User</th>
               <th>Date Submitted</th>
               <th>Text Proof</th>
@@ -273,9 +274,12 @@
         `;
         const tbody = tbl.querySelector("tbody");
 
-        subs.forEach(sub => {
+        subs.forEach((sub, idx) => {
           const d = sub.data;
           const tr = document.createElement("tr");
+
+          // Number for this category (descending timestamps, but idx+1 still asc)
+          tr.innerHTML += `<td>${idx + 1}</td>`;
 
           // Username
           const uname = usersData[d.userId] || d.userId;
@@ -360,8 +364,8 @@
           reward = Math.floor(reward);
           return db.collection("users")
             .doc(userId)
-            .update({ 
-              balance: firebase.firestore.FieldValue.increment(reward) 
+            .update({
+              balance: firebase.firestore.FieldValue.increment(reward)
             });
         })
         .catch(console.error);
