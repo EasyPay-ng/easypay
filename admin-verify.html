@@ -78,6 +78,12 @@
       background-color: #cc0000;
       color: #fff;
     }
+    .approved-row td {
+      background-color: #e6f9e6;
+    }
+    .rejected-row td {
+      background-color: #f9e6e6;
+    }
     @media (max-width: 600px) {
       th, td {
         padding: 10px 12px;
@@ -129,7 +135,7 @@
       orderBy
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // Firebase config (same as your project)
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -146,6 +152,9 @@
     const submissionBody = document.getElementById("submissionBody");
     const searchInput = document.getElementById("searchInput");
 
+    // To track approval/rejection state per submission ID
+    const submissionStates = {};
+
     let allSubmissions = [];
 
     // Load all activation submissions ordered by newest first
@@ -160,6 +169,7 @@
       snapshot.forEach(doc => {
         const data = doc.data();
         allSubmissions.push({
+          id: doc.id,
           username: data.username || "",
           senderName: data.senderName || "",
           amountSent: data.amountSent || "",
@@ -181,6 +191,15 @@
       }
       submissions.forEach(sub => {
         const tr = document.createElement("tr");
+        tr.setAttribute("data-id", sub.id);
+
+        // Apply row class if previously approved/rejected
+        if (submissionStates[sub.id] === "approved") {
+          tr.classList.add("approved-row");
+        } else if (submissionStates[sub.id] === "rejected") {
+          tr.classList.add("rejected-row");
+        }
+
         tr.innerHTML = `
           <td>${sub.username}</td>
           <td>${sub.senderName}</td>
@@ -190,6 +209,43 @@
           <td><button class="reject-btn" type="button">Reject</button></td>
         `;
         submissionBody.appendChild(tr);
+
+        // Attach event listeners
+        const approveBtn = tr.querySelector(".approve-btn");
+        const rejectBtn = tr.querySelector(".reject-btn");
+
+        // If already approved, disable reject
+        if (submissionStates[sub.id] === "approved") {
+          approveBtn.disabled = true;
+          rejectBtn.disabled = true;
+          approveBtn.textContent = "Approved";
+        }
+        // If already rejected, disable approve
+        else if (submissionStates[sub.id] === "rejected") {
+          approveBtn.disabled = true;
+          rejectBtn.disabled = true;
+          rejectBtn.textContent = "Rejected";
+        }
+
+        approveBtn.addEventListener("click", () => {
+          if (!submissionStates[sub.id]) {
+            submissionStates[sub.id] = "approved";
+            tr.classList.add("approved-row");
+            approveBtn.textContent = "Approved";
+            approveBtn.disabled = true;
+            rejectBtn.disabled = true;
+          }
+        });
+
+        rejectBtn.addEventListener("click", () => {
+          if (!submissionStates[sub.id]) {
+            submissionStates[sub.id] = "rejected";
+            tr.classList.add("rejected-row");
+            rejectBtn.textContent = "Rejected";
+            rejectBtn.disabled = true;
+            approveBtn.disabled = true;
+          }
+        });
       });
     }
 
