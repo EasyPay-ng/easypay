@@ -47,7 +47,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 600px;
+      min-width: 700px;
     }
     th, td {
       padding: 14px 16px;
@@ -60,6 +60,23 @@
       color: #fff;
       font-weight: 600;
       font-size: 0.95rem;
+    }
+    .approve-btn, .reject-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .approve-btn {
+      background-color: #009900;
+      color: #fff;
+      margin-right: 6px;
+    }
+    .reject-btn {
+      background-color: #cc0000;
+      color: #fff;
     }
     @media (max-width: 600px) {
       th, td {
@@ -92,10 +109,12 @@
           <th>Sender Name</th>
           <th>Amount Sent</th>
           <th>Timestamp</th>
+          <th>Approve</th>
+          <th>Reject</th>
         </tr>
       </thead>
       <tbody id="submissionBody">
-        <tr><td colspan="4">Loading...</td></tr>
+        <tr><td colspan="6">Loading...</td></tr>
       </tbody>
     </table>
   </div>
@@ -157,7 +176,7 @@
     function renderSubmissions(submissions) {
       submissionBody.innerHTML = "";
       if (submissions.length === 0) {
-        submissionBody.innerHTML = "<tr><td colspan='4'>No submissions found.</td></tr>";
+        submissionBody.innerHTML = "<tr><td colspan='6'>No submissions found.</td></tr>";
         return;
       }
       submissions.forEach(sub => {
@@ -167,6 +186,8 @@
           <td>${sub.senderName}</td>
           <td>₦${sub.amountSent}</td>
           <td>${sub.timestamp}</td>
+          <td><button class="approve-btn" type="button">Approve</button></td>
+          <td><button class="reject-btn" type="button">Reject</button></td>
         `;
         submissionBody.appendChild(tr);
       });
