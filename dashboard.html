@@ -272,14 +272,15 @@
     const db = getFirestore(app);
     const auth = getAuth();
 
+    // Expose closeModal to global scope so inline onclick="closeModal()" works
+    window.closeModal = function() {
+      document.getElementById("whatsappModal").style.display = "none";
+    };
+
     // Show modal on page load
     window.addEventListener("load", () => {
       document.getElementById("whatsappModal").style.display = "flex";
     });
-
-    function closeModal() {
-      document.getElementById("whatsappModal").style.display = "none";
-    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -330,24 +331,24 @@
     });
 
     // Copy referral code to clipboard
-    function copyReferral() {
+    window.copyReferral = function() {
       const code = document.getElementById("referralCode").innerText;
       navigator.clipboard.writeText(code)
         .then(() => alert("Referral code copied: " + code))
         .catch(console.error);
-    }
+    };
 
     // Sign out via Firebase Auth
-    function logout() {
+    window.logout = function() {
       signOut(auth);
-    }
+    };
 
     // Show/hide the profile dropdown
-    function toggleProfile() {
+    window.toggleProfile = function() {
       document.getElementById("profileInfo").classList.toggle("show");
-    }
+    };
 
-    function updateCountdown(lastClaimTs) {
+    window.updateCountdown = function(lastClaimTs) {
       const countdownEl = document.getElementById("countdown");
       const tick = () => {
         const now = Date.now();
@@ -365,9 +366,9 @@
       };
       tick();
       const intervalId = setInterval(tick, 1000);
-    }
+    };
 
-    async function claimNaira(uid) {
+    window.claimNaira = async function(uid) {
       const userRef = doc(db, "users", uid);
       const userSnap = await getDoc(userRef);
       const data = userSnap.data() || {};
@@ -390,7 +391,7 @@
       updateCountdown(now);
       const claimBtn = document.getElementById("claimBtn");
       claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
-    }
+    };
   </script>
 </body>
 </html>
