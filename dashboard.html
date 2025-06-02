@@ -207,7 +207,7 @@
 
   <div class="container">
     <div class="card">
-      <h3>Balance: ₦<span id="balance">0</span></h3>
+      <h3>Balance: ₦<span id="balance">0.00</span></h3>
     </div>
     <div class="card">
       <h3>Total Referrals: <span id="referrals">0</span></h3>
@@ -298,14 +298,14 @@
       const email = data.email || "";
       const balanceValue = data.balance ?? 0;
 
-      // Populate header and profile dropdown
+      // Populate header and profile dropdown, formatting to two decimals
       document.getElementById("usernameDisplay").innerText = username;
       document.getElementById("profileUsername").innerText = username;
       document.getElementById("profileEmail").innerText = email;
-      document.getElementById("profileBalance").innerText = balanceValue;
+      document.getElementById("profileBalance").innerText = balanceValue.toFixed(2);
 
-      // Populate dashboard balance
-      document.getElementById("balance").innerText = balanceValue;
+      // Populate dashboard balance with two decimals
+      document.getElementById("balance").innerText = balanceValue.toFixed(2);
 
       // Populate referral code and referral count
       document.getElementById("referralCode").innerText = username;
@@ -385,8 +385,9 @@
         balance: newBalance,
         lastClaim: now
       });
-      document.getElementById("balance").innerText = newBalance;
-      document.getElementById("profileBalance").innerText = newBalance;
+      // Display new balance with two decimals
+      document.getElementById("balance").innerText = newBalance.toFixed(2);
+      document.getElementById("profileBalance").innerText = newBalance.toFixed(2);
       alert(`Claimed ₦${amount} Successfully!`);
       updateCountdown(now);
       const claimBtn = document.getElementById("claimBtn");
@@ -394,4 +395,5 @@
     };
   </script>
 </body>
-</html>
+  </html>
+  
