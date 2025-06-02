@@ -70,6 +70,11 @@
       margin-top: 0;
       color: #006400;
     }
+    h2.section-title + p {
+      margin-top: 4px;
+      font-size: 0.9em;
+      color: #004400;
+    }
     /* Table Styles */
     .task-table {
       width: 100%;
@@ -160,6 +165,7 @@
   <div id="adminDiv" style="display:none;">
     <button id="logoutBtn" onclick="logout()">Sign Out</button>
     <h2 class="section-title">All Task Submissions</h2>
+    <p>Payments are calculated at 55% of the task cost and can include decimal values.</p>
     <div id="tasksContainer"></div>
   </div>
 
@@ -356,10 +362,10 @@
         .then(() => db.collection("tasks").doc(taskId).get())
         .then(taskDoc => {
           const t = taskDoc.data();
+          // Calculate reward at 55% and keep decimals
           let reward = t.costPerUser
-            ? t.costPerUser * 0.7
-            : (t.totalBudget / t.workersNeeded) * 0.7;
-          reward = Math.floor(reward);
+            ? t.costPerUser * 0.55
+            : (t.totalBudget / t.workersNeeded) * 0.55;
           return db.collection("users")
             .doc(userId)
             .update({
