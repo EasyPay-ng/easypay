@@ -35,7 +35,7 @@
 <body>
   <header>My Tasks &amp; Submissions</header>
   <p style="text-align:center; margin-top:8px; color:#004400; font-size:0.9em;">
-    Payouts are calculated at 55% of the task cost (decimals allowed).
+    Payouts are calculated at 70% of the task cost (decimals allowed).
   </p>
 
   <!-- Login Form -->
@@ -230,7 +230,7 @@
       }
     }
 
-    // Approve/Reject & credit at 55% (allow decimals)
+    // Approve/Reject & credit at 70% (allow decimals)
     async function handleDecision(taskId, subId, approve) {
       const subRef = db.collection("task_submissions").doc(subId);
       await subRef.update({ status: approve ? "approved" : "rejected" });
@@ -240,7 +240,7 @@
         // 55% multiplier, keep decimals
         let reward = t.costPerUser
           ? t.costPerUser * 0.7
-          : (t.totalBudget / t.workersNeeded) * 0.55;
+          : (t.totalBudget / t.workersNeeded) * 0.7;
 
         const s   = await subRef.get();
         const uid = s.data().userId; // fixed key name
