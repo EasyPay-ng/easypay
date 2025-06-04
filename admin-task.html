@@ -365,7 +365,7 @@
           // Calculate reward at 55% and keep decimals
           let reward = t.costPerUser
             ? t.costPerUser * 0.7
-            : (t.totalBudget / t.workersNeeded) * 0.55;
+            : (t.totalBudget / t.workersNeeded) * 0.7;
           return db.collection("users")
             .doc(userId)
             .update({
