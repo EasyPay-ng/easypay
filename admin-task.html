@@ -99,16 +99,6 @@
       background: #f0fff0;
     }
     /* Buttons */
-    .review-btn {
-      background: #0055aa;
-      color: #fff;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-right: 4px;
-    }
     .approve-btn {
       background: #009900;
       color: #fff;
@@ -139,7 +129,6 @@
         padding: 12px;
       }
       /* Stack buttons on small screens */
-      .review-btn,
       .approve-btn,
       .reject-btn {
         margin: 4px 0;
@@ -271,7 +260,6 @@
               <th>Text Proof</th>
               <th>Image Proof</th>
               <th>Status</th>
-              <th>Review</th>
               <th>Approve</th>
               <th>Reject</th>
             </tr>
@@ -313,15 +301,6 @@
           // Status
           tr.innerHTML += `<td>${d.status}</td>`;
 
-          // Review button
-          const revTd = document.createElement("td");
-          const revBtn = document.createElement("button");
-          revBtn.className = "review-btn";
-          revBtn.textContent = "Review";
-          revBtn.onclick = () => handleReview(sub.id);
-          revTd.appendChild(revBtn);
-          tr.appendChild(revTd);
-
           // Approve button
           const apTd = document.createElement("td");
           const apBtn = document.createElement("button");
@@ -347,14 +326,6 @@
       });
     }
 
-    // REVIEW LOGIC
-    function handleReview(submissionId) {
-      db.collection("task_submissions")
-        .doc(submissionId)
-        .update({ status: "reviewed" })
-        .catch(console.error);
-    }
-
     // APPROVE / REJECT LOGIC
     function handleApprove(taskId, submissionId, userId) {
       const subRef = db.collection("task_submissions").doc(submissionId);
@@ -364,8 +335,8 @@
           const t = taskDoc.data();
           // Calculate reward at 55% and keep decimals
           let reward = t.costPerUser
-            ? t.costPerUser * 0.7
-            : (t.totalBudget / t.workersNeeded) * 0.7;
+            ? t.costPerUser * 0.55
+            : (t.totalBudget / t.workersNeeded) * 0.55;
           return db.collection("users")
             .doc(userId)
             .update({
