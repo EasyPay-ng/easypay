@@ -73,7 +73,7 @@
       return new Date(ts).toLocaleString();
     }
 
-    // Fetch and display deposits, optionally filtered by refId (no in-memory sorting)
+    // Fetch and display deposits, sorted by date descending
     async function loadAdmin(refIdFilter = '') {
       const tbody = document.getElementById('adminTable');
       tbody.innerHTML = ''; // clear existing rows
@@ -81,20 +81,30 @@
       try {
         let docs = [];
         if (refIdFilter) {
+          // Filtered query: fetch all matching, then sort in-memory by date
           const snap = await db.collection('deposits')
                                .where('refId', '==', refIdFilter)
                                .get();
           snap.forEach(docSnap => {
             docs.push({ id: docSnap.id, ...docSnap.data() });
           });
+          // In-memory sort by date descending
+          docs.sort((a, b) => {
+            const aMs = a.date.seconds ? a.date.seconds * 1000 : a.date;
+            const bMs = b.date.seconds ? b.date.seconds * 1000 : b.date;
+            return bMs - aMs;
+          });
         } else {
-          const snap = await db.collection('deposits').get();
+          // Unfiltered: order by date descending directly in Firestore
+          const snap = await db.collection('deposits')
+                               .orderBy('date', 'desc')
+                               .get();
           snap.forEach(docSnap => {
             docs.push({ id: docSnap.id, ...docSnap.data() });
           });
         }
 
-        console.log(`Fetched ${docs.length} deposit(s) from Firestore`);
+        console.log(`Fetched ${docs.length} deposit(s)`);
 
         if (docs.length === 0) {
           const tr = document.createElement('tr');
@@ -103,7 +113,7 @@
           return;
         }
 
-        // Display in Firestore's returned order
+        // Render rows in the order already sorted
         docs.forEach(d => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
@@ -128,14 +138,15 @@
       } catch (err) {
         console.error("Error loading deposits:", err);
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="7" class="no-data">Error loading data. See console.</td>`;
+        tr.innerHTML = `<td colspan="7" class="no-data">Error loading data. Check console.</td>`;
         tbody.appendChild(tr);
       }
     }
 
-    // Approve/Reject logic (unchanged)
+    // Approve/Reject logic
     async function updateStatus(depositId, creditAmt, username, newStatus) {
       try {
+        console.log(`Updating deposit ${depositId} → status: ${newStatus}`);
         await db.collection('deposits').doc(depositId).update({ status: newStatus });
 
         if (newStatus === 'approved') {
