@@ -182,7 +182,7 @@
   </style>
 </head>
 <body>
-  <header>Tap to Earn ₦0.50</header>
+  <header>Tap to Earn ₦10</header>
 
   <main>
     <!-- Ineligible Screen for Basic Users -->
@@ -204,7 +204,7 @@
       <div class="balanceCard">
         <div>
           <div class="label">Tap Wallet</div>
-          <div class="amount">₦<span id="tapBalance">0.00</span> / 50.00</div>
+          <div class="amount">₦<span id="tapBalance">0.00</span> / 100.00</div>
         </div>
         <div>
           <div class="label">Main Balance</div>
@@ -231,7 +231,6 @@
   <footer>© 2025 EasyPay</footer>
 
   <!-- ─────────────────────────────────────────────────────────────────────────────────── -->
-  <!-- Below is the ONLY place JavaScript lives. No stray code outside of <script>. -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
@@ -283,8 +282,8 @@
     // ──────────────────────────────────────────────────────────────────────────────
     // 3) Constants & State
     // ──────────────────────────────────────────────────────────────────────────────
-    const MAX_TAP_BALANCE   = 50.0;                 // ₦50 max in tap wallet
-    const TAP_AMOUNT        = 0.5;                  // ₦0.50 per tap
+    const MAX_TAP_BALANCE   = 100.0;                 // ₦100 max in tap wallet
+    const TAP_AMOUNT        = 10.0;                  // ₦10 per tap
     const TRANSFER_INTERVAL = 24 * 60 * 60 * 1000;  // 24h in ms
 
     let userRef   = null;  // points to `users/{uid}` doc
@@ -323,7 +322,7 @@
       notEligibleContainer.style.display = "none";
       tap2earnContainer.style.display    = "block";
 
-      // Populate both balances (read field “balance” instead of “mainBalance”)
+      // Populate both balances
       mainBalanceSpan.innerText = (userData.balance || 0).toFixed(2);
       tapBalanceSpan.innerText  = (userData.tapBalance || 0).toFixed(2);
 
@@ -339,8 +338,8 @@
 
       if (currentTap < MAX_TAP_BALANCE) {
         tapBtn.disabled = false;
-        tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
-        tapMessage.innerText = "Tap now to add ₦0.50 to your tap wallet.";
+        tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦10`;
+        tapMessage.innerText = "Tap now to add ₦10 to your tap wallet.";
       } else {
         tapBtn.disabled = true;
         tapBtn.innerHTML = `Tap Wallet Full`;
@@ -378,7 +377,7 @@
             if (newTap < MAX_TAP_BALANCE) {
               tapMessage.innerText = `₦${TAP_AMOUNT.toFixed(2)} added! 🎉 Tap again—up to ₦${MAX_TAP_BALANCE.toFixed(2)}.`;
               freshTapBtn.disabled = false;
-              freshTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
+              freshTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦10`;
             } else {
               tapMessage.innerText = "Your tap wallet is full. Transfer to main balance to continue.";
               freshTapBtn.innerHTML = `Tap Wallet Full`;
@@ -397,7 +396,7 @@
           console.error("Error during tap:", err);
           tapMessage.innerText = "Error—please try again.";
           freshTapBtn.disabled = false;
-          freshTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦0.50`;
+          freshTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦10`;
         }
       });
     }
@@ -406,7 +405,6 @@
     // 6) setupTransferSection(): enable/disable “Transfer” button
     // ──────────────────────────────────────────────────────────────────────────────
     function setupTransferSection() {
-      // Clear an existing countdown, if any
       if (countdownInterval) clearInterval(countdownInterval);
 
       const currentTap  = parseFloat(userData.tapBalance || 0);
@@ -427,7 +425,6 @@
         transferBtn.innerText = "Transfer to Main Balance";
         transferMessage.innerText = `Ready to transfer ₦${currentTap.toFixed(2)} to main balance.`;
 
-        // Remove old listener and add a fresh one
         transferBtn.replaceWith(transferBtn.cloneNode(true));
         const freshBtn = document.getElementById("transferBtn");
         freshBtn.onclick = async () => {
@@ -435,7 +432,6 @@
           transferMessage.innerText = "Processing transfer…";
 
           try {
-            // Re‐fetch tapBalance & balance
             const freshSnap = await getDoc(userRef);
             const freshData = freshSnap.data();
 
@@ -443,21 +439,18 @@
             const freshBal    = parseFloat(freshData.balance || 0);
 
             if (freshTapBal > 0) {
-              // ATOMICALLY add `freshTapBal` onto `balance`, and zero out tapBalance
               await updateDoc(userRef, {
                 balance: increment(freshTapBal),
                 tapBalance: 0,
                 lastTransferTimestamp: serverTimestamp()
               });
 
-              // Log it in transactionHistory
               await addDoc(collection(userRef, "transactionHistory"), {
                 type: "Tap Transfer",
                 amount: freshTapBal,
                 timestamp: serverTimestamp()
               });
 
-              // Update visible spans & local state
               mainBalanceSpan.innerText = (freshBal + freshTapBal).toFixed(2);
               tapBalanceSpan.innerText = "0.00";
               userData.tapBalance = 0;
@@ -467,7 +460,6 @@
               transferMessage.innerText = `₦${freshTapBal.toFixed(2)} transferred! Next transfer in 24h.`;
               freshBtn.disabled = true;
 
-              // Restart the 24h countdown and re-enable tapping
               startTransferCountdown(TRANSFER_INTERVAL);
               setupTapSection();
             } else {
@@ -480,7 +472,6 @@
           }
         };
       } else {
-        // Not yet eligible: show countdown until next transfer window
         transferBtn.disabled = true;
         transferBtn.innerText = "Transfer to Main Balance";
         const remaining = TRANSFER_INTERVAL - elapsed;
