@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Manage Deposits</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
@@ -10,7 +10,7 @@
     h2 { color: #2f7a2f; }
     .search-bar { margin-bottom: 15px; }
     .search-bar input { padding: 8px; width: 200px; border: 1px solid #ccc; border-radius: 4px; }
-    .search-bar button { padding: 8px 12px; margin-left: 5px; border:none; background:#2f7a2f; color:white; border-radius:4px; cursor:pointer; }
+    .search-bar button { padding: 8px 12px; margin-left: 5px; border: none; background: #2f7a2f; color: white; border-radius: 4px; cursor: pointer; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     th { background: #2f7a2f; color: #fff; }
@@ -34,7 +34,7 @@
         <tr>
           <th>Amount</th>
           <th>Sender</th>
-          <th>Username</th> <!-- Added Username column -->
+          <th>Username</th>
           <th>Ref ID</th>
           <th>Date</th>
           <th>Status</th>
@@ -62,12 +62,25 @@
     firebase.initializeApp(cfg);
     const db = firebase.firestore();
 
-    // Utility to format Firestore Timestamp or numeric date
+    // Utility: format Firestore Timestamp or numeric date
     function formatDate(ts) {
       if (!ts) return '';
       if (ts.toDate) return ts.toDate().toLocaleString();
       if (ts.seconds) return new Date(ts.seconds * 1000).toLocaleString();
       return new Date(ts).toLocaleString();
+    }
+
+    // Custom sort: pending first, then by date descending
+    function sortDeposits(docs) {
+      return docs.sort((a, b) => {
+        // If one is pending and the other is not, pending comes first
+        if (a.status === 'pending' && b.status !== 'pending') return -1;
+        if (a.status !== 'pending' && b.status === 'pending') return 1;
+        // Both same status: sort by date desc
+        const aMs = a.date.seconds ? a.date.seconds * 1000 : a.date;
+        const bMs = b.date.seconds ? b.date.seconds * 1000 : b.date;
+        return bMs - aMs;
+      });
     }
 
     // Fetch and display deposits, optionally filtered by refId
@@ -76,34 +89,31 @@
       tbody.innerHTML = '';
 
       try {
-        let docs;
+        let docs = [];
+
         if (refIdFilter) {
-          // Simple where query (no orderBy to avoid index requirement)
+          // Filtered query
           const snap = await db.collection('deposits')
-                                .where('refId', '==', refIdFilter)
-                                .get();
-          docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          // Sort in-memory by date desc
-          docs.sort((a, b) => {
-            const aMs = a.date.seconds ? a.date.seconds * 1000 : a.date;
-            const bMs = b.date.seconds ? b.date.seconds * 1000 : b.date;
-            return bMs - aMs;
-          });
+                               .where('refId', '==', refIdFilter)
+                               .get();
+          snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
         } else {
-          // Unfiltered query with date ordering
+          // Unfiltered: we do a real-time date ordering (newest first) and then re-sort
           const snap = await db.collection('deposits')
-                                .orderBy('date', 'desc')
-                                .get();
-          docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                               .get(); // we’ll sort in-memory
+          snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
         }
 
-        // Render
-        docs.forEach(d => {
+        // Apply our custom sort (pending first, then date desc)
+        const sorted = sortDeposits(docs);
+
+        // Render rows
+        sorted.forEach(d => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>₦${d.amount}</td>
             <td>${d.senderName}</td>
-            <td>${d.username}</td> <!-- Display username -->
+            <td>${d.username}</td>
             <td>${d.refId}</td>
             <td>${formatDate(d.date)}</td>
             <td>${d.status}</td>
@@ -112,7 +122,9 @@
               <button class="action reject">Reject</button>
             </td>
           `;
+          // Approve button: credits balance + updates status
           tr.querySelector('.approve').onclick = () => updateStatus(d.id, d.amount, d.username, 'approved');
+          // Reject button: just updates status
           tr.querySelector('.reject').onclick  = () => updateStatus(d.id, 0, d.username, 'rejected');
           tbody.appendChild(tr);
         });
@@ -128,8 +140,8 @@
         await depoRef.update({ status: newStatus });
 
         if (newStatus === 'approved') {
-          // Fetch the user by username
-          const userRef = db.collection('users').doc(username); // Assuming 'users' collection
+          // Fetch the user document by username
+          const userRef = db.collection('users').doc(username);
           const userSnap = await userRef.get();
 
           if (userSnap.exists) {
@@ -138,14 +150,12 @@
 
             // Update the user's balance
             await userRef.update({ balance: currentBalance + creditAmt });
-
-            console.log(`Balance for ${username} updated to: ₦${currentBalance + creditAmt}`);
           } else {
             console.error(`User ${username} not found!`);
           }
         }
 
-        // Reload the deposit table
+        // Reload the deposit table (maintains sort)
         const currentFilter = document.getElementById('searchInput').value.trim();
         loadAdmin(currentFilter);
       } catch (err) {
@@ -163,7 +173,7 @@
       loadAdmin();
     };
 
-    // Initial load
+    // Initial load: no filter
     document.addEventListener('DOMContentLoaded', () => loadAdmin());
   </script>
 </body>
