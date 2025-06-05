@@ -7,7 +7,7 @@
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
     .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h2 { color: #2f7a2f; }
+    h2 { color: #2f7a2f; margin-top: 0; }
     .search-bar { margin-bottom: 15px; }
     .search-bar input { padding: 8px; width: 200px; border: 1px solid #ccc; border-radius: 4px; }
     .search-bar button { padding: 8px 12px; margin-left: 5px; border: none; background: #2f7a2f; color: white; border-radius: 4px; cursor: pointer; }
@@ -17,6 +17,7 @@
     button.action { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
     .approve { background: #28a745; }
     .reject  { background: #dc3545; }
+    .no-data-row td { text-align: center; color: #555; }
   </style>
 </head>
 <body>
@@ -41,7 +42,9 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="adminTable"></tbody>
+      <tbody id="adminTable">
+        <tr class="no-data-row"><td colspan="7">Loading…</td></tr>
+      </tbody>
     </table>
   </div>
 
@@ -73,10 +76,10 @@
     // Custom sort: pending first, then by date descending
     function sortDeposits(docs) {
       return docs.sort((a, b) => {
-        // If one is pending and the other is not, pending comes first
+        // If one is "pending" and the other is not, "pending" comes first
         if (a.status === 'pending' && b.status !== 'pending') return -1;
         if (a.status !== 'pending' && b.status === 'pending') return 1;
-        // Both same status: sort by date desc
+        // Same status: sort by date descending
         const aMs = a.date.seconds ? a.date.seconds * 1000 : a.date;
         const bMs = b.date.seconds ? b.date.seconds * 1000 : b.date;
         return bMs - aMs;
@@ -86,11 +89,11 @@
     // Fetch and display deposits, optionally filtered by refId
     async function loadAdmin(refIdFilter = '') {
       const tbody = document.getElementById('adminTable');
+      // Clear existing rows
       tbody.innerHTML = '';
 
       try {
         let docs = [];
-
         if (refIdFilter) {
           // Filtered query
           const snap = await db.collection('deposits')
@@ -98,16 +101,26 @@
                                .get();
           snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
         } else {
-          // Unfiltered: we do a real-time date ordering (newest first) and then re-sort
-          const snap = await db.collection('deposits')
-                               .get(); // we’ll sort in-memory
+          // Unfiltered: get all deposits
+          const snap = await db.collection('deposits').get();
           snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
         }
 
-        // Apply our custom sort (pending first, then date desc)
+        console.log(`Fetched ${docs.length} deposit document(s)`);
+
+        if (docs.length === 0) {
+          // Show a “no data” row
+          const tr = document.createElement('tr');
+          tr.classList.add('no-data-row');
+          tr.innerHTML = '<td colspan="7">No deposit records found.</td>';
+          tbody.appendChild(tr);
+          return;
+        }
+
+        // Apply custom sort (pending first, then date descending)
         const sorted = sortDeposits(docs);
 
-        // Render rows
+        // Render each row
         sorted.forEach(d => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
@@ -122,18 +135,22 @@
               <button class="action reject">Reject</button>
             </td>
           `;
-          // Approve button: credits balance + updates status
+          // Approve button → credit user + update status
           tr.querySelector('.approve').onclick = () => updateStatus(d.id, d.amount, d.username, 'approved');
-          // Reject button: just updates status
-          tr.querySelector('.reject').onclick  = () => updateStatus(d.id, 0, d.username, 'rejected');
+          // Reject button → update status only
+          tr.querySelector('.reject').onclick = () => updateStatus(d.id, 0, d.username, 'rejected');
           tbody.appendChild(tr);
         });
       } catch (err) {
         console.error("Error loading deposits:", err);
+        const tr = document.createElement('tr');
+        tr.classList.add('no-data-row');
+        tr.innerHTML = '<td colspan="7">Error loading data. Check console.</td>';
+        tbody.appendChild(tr);
       }
     }
 
-    // Approve/Reject logic
+    // Approve / Reject logic
     async function updateStatus(depositId, creditAmt, username, newStatus) {
       try {
         const depoRef = db.collection('deposits').doc(depositId);
@@ -147,15 +164,15 @@
           if (userSnap.exists) {
             const userData = userSnap.data();
             const currentBalance = userData.balance || 0;
-
             // Update the user's balance
             await userRef.update({ balance: currentBalance + creditAmt });
+            console.log(`Credited ₦${creditAmt} to ${username}. New balance: ₦${currentBalance + creditAmt}`);
           } else {
-            console.error(`User ${username} not found!`);
+            console.error(`User document for "${username}" not found.`);
           }
         }
 
-        // Reload the deposit table (maintains sort)
+        // Reload the deposit table (maintaining any filter)
         const currentFilter = document.getElementById('searchInput').value.trim();
         loadAdmin(currentFilter);
       } catch (err) {
@@ -173,8 +190,8 @@
       loadAdmin();
     };
 
-    // Initial load: no filter
+    // Initial load when page is ready
     document.addEventListener('DOMContentLoaded', () => loadAdmin());
   </script>
 </body>
-    </html>
+</html>
