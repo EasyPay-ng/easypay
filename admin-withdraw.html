@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Withdrawal Panel</title>
+  <title>Admin — Manage Withdrawals</title>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, collectionGroup, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
@@ -21,29 +21,54 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Sort helper: pending first, then by timestamp descending
+    function sortWithdrawals(arr) {
+      return arr.sort((a, b) => {
+        const statusA = a.data.status;
+        const statusB = b.data.status;
+        if (statusA === "Pending" && statusB !== "Pending") return -1;
+        if (statusA !== "Pending" && statusB === "Pending") return 1;
+        // Same status → compare timestamps
+        const tsA = a.data.timestamp.seconds;
+        const tsB = b.data.timestamp.seconds;
+        return tsB - tsA;
+      });
+    }
+
     async function loadWithdrawals() {
       const withdrawalQuery = collectionGroup(db, "withdrawals");
       const snapshot = await getDocs(withdrawalQuery);
+
+      // Collect into an array for sorting
+      const allDocs = [];
+      snapshot.forEach(docSnap => {
+        allDocs.push({
+          path: docSnap.ref.path,
+          data: docSnap.data()
+        });
+      });
+
+      // Sort so Pending appear first, newest to oldest
+      const sorted = sortWithdrawals(allDocs);
+
+      // Render rows
       const tbody = document.getElementById("withdrawalTable").querySelector("tbody");
       tbody.innerHTML = "";
-
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const docPath = docSnap.ref.path;
-        const date = new Date(data.timestamp.seconds * 1000).toLocaleString();
-
+      sorted.forEach(item => {
+        const d = item.data;
+        const dateStr = new Date(d.timestamp.seconds * 1000).toLocaleString();
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${date}</td>
-          <td>₦${data.amount}</td>
-          <td>${data.bank}</td>
-          <td>${data.accNumber}</td>
-          <td>${data.accName}</td>
+          <td>${dateStr}</td>
+          <td>₦${d.amount}</td>
+          <td>${d.bank}</td>
+          <td>${d.accNumber}</td>
+          <td>${d.accName}</td>
           <td>
-            <select data-path="${docPath}" onchange="updateStatus(this)">
-              <option value="Pending" ${data.status === "Pending" ? "selected" : ""}>Pending</option>
-              <option value="Successful" ${data.status === "Successful" ? "selected" : ""}>Successful</option>
-              <option value="Rejected" ${data.status === "Rejected" ? "selected" : ""}>Rejected</option>
+            <select data-path="${item.path}" onchange="updateStatus(this)">
+              <option value="Pending" ${d.status === "Pending" ? "selected" : ""}>Pending</option>
+              <option value="Successful" ${d.status === "Successful" ? "selected" : ""}>Successful</option>
+              <option value="Rejected" ${d.status === "Rejected" ? "selected" : ""}>Rejected</option>
             </select>
           </td>
         `;
@@ -51,14 +76,17 @@
       });
     }
 
-    window.updateStatus = async function (selectEl) {
+    window.updateStatus = async function(selectEl) {
       const path = selectEl.getAttribute("data-path");
       const newStatus = selectEl.value;
-      const ref = doc(db, path);
-      await updateDoc(ref, { status: newStatus });
+      const refDoc = doc(db, path);
+      await updateDoc(refDoc, { status: newStatus });
       alert("Status updated to " + newStatus);
-    }
+      // Reload so sorting updates accordingly
+      loadWithdrawals();
+    };
 
+    // Initial load
     loadWithdrawals();
   </script>
   <style>
@@ -70,6 +98,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 1rem;
     }
     th, td {
       padding: 8px;
@@ -81,6 +110,7 @@
     }
     select {
       padding: 5px;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -98,7 +128,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr><td colspan="6">Loading...</td></tr>
+      <tr><td colspan="6">Loading…</td></tr>
     </tbody>
   </table>
 </body>
