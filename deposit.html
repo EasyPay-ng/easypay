@@ -28,7 +28,8 @@
       <p>🏦 Bank Name: <strong>Opay/Paycom</strong></p>
     </div>
 
-    <!-- Username is now hidden -->
+    <!-- Hidden fields for the signed-in user -->
+    <input type="hidden" id="userId" />
     <input type="hidden" id="username" />
 
     <label>Amount</label>
@@ -75,48 +76,54 @@
     const db = firebase.firestore();
 
     // DOM refs
-    const usernameIn = document.getElementById('username');
-    const amtIn      = document.getElementById('amount');
-    const senderIn   = document.getElementById('senderName');
-    const refIn      = document.getElementById('refId');
-    const btn        = document.getElementById('submitBtn');
-    const msg        = document.getElementById('msg');
-    const load       = document.getElementById('loading');
-    const hist       = document.getElementById('history');
+    const userIdIn    = document.getElementById('userId');
+    const usernameIn  = document.getElementById('username');
+    const amtIn       = document.getElementById('amount');
+    const senderIn    = document.getElementById('senderName');
+    const refIn       = document.getElementById('refId');
+    const btn         = document.getElementById('submitBtn');
+    const msg         = document.getElementById('msg');
+    const load        = document.getElementById('loading');
+    const hist        = document.getElementById('history');
 
-    // Helpers
+    // Generate a random reference ID
     const genRef = () => Math.random().toString(36).substr(2,9);
-    refIn.value   = genRef();
+    refIn.value = genRef();
 
-    // Require login and fetch username
+    // Once the user is authenticated, populate userId/username and set up listeners
     auth.onAuthStateChanged(async user => {
       if (!user) {
+        // If not signed in, redirect to login
         return window.location.href = 'login.html';
       }
-      // pull the user's username from Firestore
       try {
+        // Fetch the user's Firestore document to get their username
         const snap = await db.collection('users').doc(user.uid).get();
         const data = snap.data() || {};
         const uname = data.username || user.email;
+        userIdIn.value   = user.uid;
         usernameIn.value = uname;
         loadHistory();
+        watchForApproval();   // Start listening for approved deposits
       } catch (e) {
         console.error("Failed to load user profile:", e);
       }
     });
 
-    // Load deposits for this user only
+    // Load this user's deposit history (filtering by username for display)
     async function loadHistory() {
       hist.innerHTML = '';
-      const user = usernameIn.value;
-      if (!user) return;
+      const uname = usernameIn.value;
+      if (!uname) return;
 
       try {
+        // Query deposits by username for display
         const snap = await db.collection('deposits')
-                             .where('username', '==', user)
-                             .get();
+                           .where('username', '==', uname)
+                           .get();
         const docs = [];
         snap.forEach(doc => docs.push(doc.data()));
+        // Sort descending by date
         docs.sort((a,b) => b.date - a.date);
 
         docs.forEach(d => {
@@ -135,9 +142,42 @@
       }
     }
 
-    // Submit handler
+    // Watch for any deposit of this user that becomes "approved" & not yet processed
+    function watchForApproval() {
+      db.collection('deposits')
+        .where('userId', '==', userIdIn.value)
+        .where('status', '==', 'approved')
+        .where('processed', '==', false)
+        .onSnapshot(snapshot => {
+          snapshot.forEach(async docSnap => {
+            const d = docSnap.data();
+            const docId = docSnap.id;
+            const depositAmount = d.amount;
+
+            // 1) Credit the user's balance by UID
+            try {
+              await db.collection('users')
+                      .doc(userIdIn.value)
+                      .update({
+                        balance: firebase.firestore.FieldValue.increment(depositAmount)
+                      });
+              // 2) Mark this deposit as processed so it won't run again
+              await db.collection('deposits')
+                      .doc(docId)
+                      .update({ processed: true });
+            } catch (err) {
+              console.error('Error crediting balance:', err);
+            }
+          });
+          // Refresh history in case statuses have changed
+          loadHistory();
+        });
+    }
+
+    // Handle “Submit Deposit” click
     btn.addEventListener('click', async () => {
-      const username = usernameIn.value;
+      const uid      = userIdIn.value;
+      const uname    = usernameIn.value;
       const amount   = parseFloat(amtIn.value);
       const sender   = senderIn.value.trim();
       const refId    = refIn.value;
@@ -151,12 +191,14 @@
 
       try {
         await db.collection('deposits').add({
-          amount,
+          userId:     uid,            // store UID
+          username:   uname,          // store display‐name
+          amount:     amount,
           senderName: sender,
-          username,
-          refId,
-          status: 'pending',
-          date: Date.now()
+          refId:      refId,
+          status:     'pending',
+          processed:  false,          // not yet credited
+          date:       Date.now()
         });
         msg.style.color = 'green';
         msg.textContent = '✅ Deposit request sent!';
