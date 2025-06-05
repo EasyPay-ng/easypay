@@ -2,74 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Submit Deposit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Manage Deposits</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:20px; }
-    .container { max-width:700px; margin:auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-    h2 { color:#2f7a2f; margin-top:0; }
-    label { display:block; margin-top:15px; font-weight:bold; }
-    input, button { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:5px; }
-    button { background:#2f7a2f; color:#fff; border:none; cursor:pointer; font-size:16px; }
-    button:disabled { background:#ccc; cursor:not-allowed; }
-    .info { margin-top:10px; color:#333; font-size:14px; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    th, td { border:1px solid #ddd; padding:8px; text-align:left; }
-    th { background:#2f7a2f; color:#fff; }
-    #loading { display:none; text-align:center; margin:10px 0; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { color: #2f7a2f; }
+    .search-bar { margin-bottom: 15px; }
+    .search-bar input { padding: 8px; width: 200px; border: 1px solid #ccc; border-radius: 4px; }
+    .search-bar button { padding: 8px 12px; margin-left: 5px; border:none; background:#2f7a2f; color:white; border-radius:4px; cursor:pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #2f7a2f; color: #fff; }
+    button.action { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
+    .approve { background: #28a745; }
+    .reject  { background: #dc3545; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Submit a Deposit</h2>
-    <div class="info">
-      <p>📒 Account Number: <strong>8125600222</strong></p>
-      <p>👤 Account Name: <strong>Onyeka Anointed Chidi</strong></p>
-      <p>🏦 Bank Name: <strong>Opay/Paycom</strong></p>
+    <h2>Admin — Deposit Requests</h2>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by Ref ID…" />
+      <button id="searchBtn">Search</button>
+      <button id="resetBtn">Reset</button>
     </div>
 
-    <!-- Hidden fields for the signed-in user -->
-    <input type="hidden" id="userId" />
-    <input type="hidden" id="username" />
-
-    <label>Amount</label>
-    <input type="number" id="amount" min="1" placeholder="Enter amount" />
-
-    <label>Sender Name</label>
-    <input type="text" id="senderName" placeholder="Your name on transfer" />
-
-    <label>Reference ID</label>
-    <input type="text" id="refId" readonly />
-
-    <button id="submitBtn" type="button">Submit Deposit</button>
-    <div id="loading">Submitting…</div>
-    <div id="msg" class="info"></div>
-
-    <h3>Deposit Records</h3>
     <table>
       <thead>
         <tr>
-          <th>Username</th>
-          <th>UID</th>
           <th>Amount</th>
           <th>Sender</th>
+          <th>Username</th> <!-- Added Username column -->
           <th>Ref ID</th>
-          <th>Status</th>
           <th>Date</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="history"></tbody>
+      <tbody id="adminTable"></tbody>
     </table>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase v8 SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
   <script>
     // Initialize Firebase
-    const firebaseConfig = {
+    const cfg = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
@@ -77,147 +59,112 @@
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    firebase.initializeApp(cfg);
     const db = firebase.firestore();
 
-    // DOM refs
-    const userIdIn    = document.getElementById('userId');
-    const usernameIn  = document.getElementById('username');
-    const amtIn       = document.getElementById('amount');
-    const senderIn    = document.getElementById('senderName');
-    const refIn       = document.getElementById('refId');
-    const btn         = document.getElementById('submitBtn');
-    const msg         = document.getElementById('msg');
-    const load        = document.getElementById('loading');
-    const hist        = document.getElementById('history');
+    // Utility to format Firestore Timestamp or numeric date
+    function formatDate(ts) {
+      if (!ts) return '';
+      if (ts.toDate) return ts.toDate().toLocaleString();
+      if (ts.seconds) return new Date(ts.seconds * 1000).toLocaleString();
+      return new Date(ts).toLocaleString();
+    }
 
-    // Generate a random reference ID
-    const genRef = () => Math.random().toString(36).substr(2,9);
-    refIn.value = genRef();
-
-    // Once the user is authenticated, populate userId/username and set up listeners
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        return window.location.href = 'login.html';
-      }
-      try {
-        // Fetch the user's Firestore document to get their username
-        const snap = await db.collection('users').doc(user.uid).get();
-        const data = snap.data() || {};
-        const uname = data.username || user.email;
-        userIdIn.value   = user.uid;
-        usernameIn.value = uname;
-        loadHistory();
-        watchForApproval();
-      } catch (e) {
-        console.error("Failed to load user profile:", e);
-      }
-    });
-
-    // Load this user's deposit history by userId
-    async function loadHistory() {
-      hist.innerHTML = '';
-      const uid = userIdIn.value;
-      if (!uid) return;
+    // Fetch and display deposits, optionally filtered by refId
+    async function loadAdmin(refIdFilter = '') {
+      const tbody = document.getElementById('adminTable');
+      tbody.innerHTML = '';
 
       try {
-        const snap = await db.collection('deposits')
-                             .where('userId', '==', uid)
-                             .get();
-        const docs = [];
-        snap.forEach(doc => docs.push(doc.data()));
-        // Sort descending by date
-        docs.sort((a, b) => b.date - a.date);
+        let docs;
+        if (refIdFilter) {
+          // Simple where query (no orderBy to avoid index requirement)
+          const snap = await db.collection('deposits')
+                                .where('refId', '==', refIdFilter)
+                                .get();
+          docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          // Sort in-memory by date desc
+          docs.sort((a, b) => {
+            const aMs = a.date.seconds ? a.date.seconds * 1000 : a.date;
+            const bMs = b.date.seconds ? b.date.seconds * 1000 : b.date;
+            return bMs - aMs;
+          });
+        } else {
+          // Unfiltered query with date ordering
+          const snap = await db.collection('deposits')
+                                .orderBy('date', 'desc')
+                                .get();
+          docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
 
+        // Render
         docs.forEach(d => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${d.username}</td>
-            <td>${d.userId}</td>
             <td>₦${d.amount}</td>
             <td>${d.senderName}</td>
+            <td>${d.username}</td> <!-- Display username -->
             <td>${d.refId}</td>
+            <td>${formatDate(d.date)}</td>
             <td>${d.status}</td>
-            <td>${new Date(d.date).toLocaleString()}</td>
+            <td>
+              <button class="action approve">Approve</button>
+              <button class="action reject">Reject</button>
+            </td>
           `;
-          hist.appendChild(tr);
+          tr.querySelector('.approve').onclick = () => updateStatus(d.id, d.amount, d.username, 'approved');
+          tr.querySelector('.reject').onclick  = () => updateStatus(d.id, 0, d.username, 'rejected');
+          tbody.appendChild(tr);
         });
-      } catch(e) {
-        console.error('History load error:', e);
+      } catch (err) {
+        console.error("Error loading deposits:", err);
       }
     }
 
-    // Watch for any deposit that becomes "approved" & not yet processed
-    function watchForApproval() {
-      db.collection('deposits')
-        .where('userId', '==', userIdIn.value)
-        .where('status', '==', 'approved')
-        .where('processed', '==', false)
-        .onSnapshot(snapshot => {
-          snapshot.forEach(async docSnap => {
-            const d = docSnap.data();
-            const docId = docSnap.id;
-            const depositAmount = d.amount;
-
-            try {
-              await db.collection('users')
-                      .doc(userIdIn.value)
-                      .update({
-                        balance: firebase.firestore.FieldValue.increment(depositAmount)
-                      });
-              await db.collection('deposits')
-                      .doc(docId)
-                      .update({ processed: true });
-            } catch (err) {
-              console.error('Error crediting balance:', err);
-            }
-          });
-          loadHistory();
-        });
-    }
-
-    // Handle “Submit Deposit” click
-    btn.addEventListener('click', async () => {
-      const uid      = userIdIn.value;
-      const uname    = usernameIn.value;
-      const amount   = parseFloat(amtIn.value);
-      const sender   = senderIn.value.trim();
-      const refId    = refIn.value;
-      if (!amount || !sender) {
-        return alert('Please enter amount and sender name.');
-      }
-
-      btn.disabled       = true;
-      load.style.display = 'block';
-      msg.textContent    = '';
-
+    // Approve/Reject logic
+    async function updateStatus(depositId, creditAmt, username, newStatus) {
       try {
-        await db.collection('deposits').add({
-          userId:     uid,
-          username:   uname,
-          amount:     amount,
-          senderName: sender,
-          refId:      refId,
-          status:     'pending',
-          processed:  false,
-          date:       Date.now()
-        });
-        msg.style.color = 'green';
-        msg.textContent = '✅ Deposit request sent!';
-        amtIn.value     = '';
-        senderIn.value  = '';
-        refIn.value     = genRef();
-        await loadHistory();
-      } catch(e) {
-        console.error('Submission error:', e);
-        msg.style.color = 'red';
-        msg.textContent = '❌ Submission failed.';
-      } finally {
-        btn.disabled       = false;
-        load.style.display = 'none';
+        const depoRef = db.collection('deposits').doc(depositId);
+        await depoRef.update({ status: newStatus });
+
+        if (newStatus === 'approved') {
+          // Fetch the user by username
+          const userRef = db.collection('users').doc(username); // Assuming 'users' collection
+          const userSnap = await userRef.get();
+
+          if (userSnap.exists) {
+            const userData = userSnap.data();
+            const currentBalance = userData.balance || 0;
+
+            // Update the user's balance
+            await userRef.update({ balance: currentBalance + creditAmt });
+
+            console.log(`Balance for ${username} updated to: ₦${currentBalance + creditAmt}`);
+          } else {
+            console.error(`User ${username} not found!`);
+          }
+        }
+
+        // Reload the deposit table
+        const currentFilter = document.getElementById('searchInput').value.trim();
+        loadAdmin(currentFilter);
+      } catch (err) {
+        console.error("Error updating status:", err);
       }
-    });
+    }
+
+    // Event bindings
+    document.getElementById('searchBtn').onclick = () => {
+      const term = document.getElementById('searchInput').value.trim();
+      loadAdmin(term);
+    };
+    document.getElementById('resetBtn').onclick = () => {
+      document.getElementById('searchInput').value = '';
+      loadAdmin();
+    };
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', () => loadAdmin());
   </script>
 </body>
 </html>
