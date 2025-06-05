@@ -53,7 +53,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
   <script>
-    // 1) Initialize Firebase
+    // Initialize Firebase
     const cfg = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -65,7 +65,7 @@
     firebase.initializeApp(cfg);
     const db = firebase.firestore();
 
-    // 2) Utility: format Firestore Timestamp or numeric date
+    // Utility: format Firestore Timestamp or numeric date
     function formatDate(ts) {
       if (!ts) return '';
       if (ts.toDate) return ts.toDate().toLocaleString();
@@ -73,28 +73,14 @@
       return new Date(ts).toLocaleString();
     }
 
-    // 3) Custom sort: "pending" first, then by date descending
-    function sortDeposits(arr) {
-      return arr.sort((a, b) => {
-        // pending first
-        if (a.status === 'pending' && b.status !== 'pending') return -1;
-        if (a.status !== 'pending' && b.status === 'pending') return 1;
-        // same status → compare date descending
-        const aMs = a.date.seconds ? a.date.seconds * 1000 : a.date;
-        const bMs = b.date.seconds ? b.date.seconds * 1000 : b.date;
-        return bMs - aMs;
-      });
-    }
-
-    // 4) Fetch and display deposits (with optional filter by refId)
+    // Fetch and display deposits, optionally filtered by refId (no in-memory sorting)
     async function loadAdmin(refIdFilter = '') {
       const tbody = document.getElementById('adminTable');
-      tbody.innerHTML = ''; // clear before loading
+      tbody.innerHTML = ''; // clear existing rows
 
       try {
         let docs = [];
         if (refIdFilter) {
-          console.log('Applying filter:', refIdFilter);
           const snap = await db.collection('deposits')
                                .where('refId', '==', refIdFilter)
                                .get();
@@ -102,7 +88,6 @@
             docs.push({ id: docSnap.id, ...docSnap.data() });
           });
         } else {
-          console.log('Loading all deposits');
           const snap = await db.collection('deposits').get();
           snap.forEach(docSnap => {
             docs.push({ id: docSnap.id, ...docSnap.data() });
@@ -112,18 +97,14 @@
         console.log(`Fetched ${docs.length} deposit(s) from Firestore`);
 
         if (docs.length === 0) {
-          // No records found
           const tr = document.createElement('tr');
           tr.innerHTML = `<td colspan="7" class="no-data">No records found.</td>`;
           tbody.appendChild(tr);
           return;
         }
 
-        // Sort pending first, then by date desc
-        const sorted = sortDeposits(docs);
-
-        // Render each deposit row
-        sorted.forEach(d => {
+        // Display in Firestore's returned order
+        docs.forEach(d => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>₦${d.amount}</td>
@@ -137,30 +118,27 @@
               <button class="action reject">Reject</button>
             </td>
           `;
-          // Approve button
-          tr.querySelector('.approve').onclick = () => updateStatus(d.id, d.amount, d.username, 'approved');
-          // Reject button
-          tr.querySelector('.reject').onclick  = () => updateStatus(d.id, 0, d.username, 'rejected');
+          tr.querySelector('.approve').onclick = () =>
+            updateStatus(d.id, d.amount, d.username, 'approved');
+          tr.querySelector('.reject').onclick = () =>
+            updateStatus(d.id, 0, d.username, 'rejected');
           tbody.appendChild(tr);
         });
 
       } catch (err) {
         console.error("Error loading deposits:", err);
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="7" class="no-data">Error loading data. See console for details.</td>`;
+        tr.innerHTML = `<td colspan="7" class="no-data">Error loading data. See console.</td>`;
         tbody.appendChild(tr);
       }
     }
 
-    // 5) Approve/Reject logic
+    // Approve/Reject logic (unchanged)
     async function updateStatus(depositId, creditAmt, username, newStatus) {
       try {
-        console.log(`Updating deposit ${depositId} → status: ${newStatus}`);
-        const depoRef = db.collection('deposits').doc(depositId);
-        await depoRef.update({ status: newStatus });
+        await db.collection('deposits').doc(depositId).update({ status: newStatus });
 
         if (newStatus === 'approved') {
-          // Look up the user document by username
           const userRef = db.collection('users').doc(username);
           const userSnap = await userRef.get();
           if (userSnap.exists) {
@@ -169,21 +147,19 @@
             await userRef.update({ balance: currentBalance + creditAmt });
             console.log(`Credited ₦${creditAmt} to ${username}. New balance: ₦${currentBalance + creditAmt}`);
           } else {
-            console.warn(`User document for "${username}" not found.`);
+            console.warn(`User "${username}" not found.`);
           }
         }
 
-        // Reload after updating status
-        const currentFilter = document.getElementById('searchInput').value.trim();
-        loadAdmin(currentFilter);
-
+        const filter = document.getElementById('searchInput').value.trim();
+        loadAdmin(filter);
       } catch (err) {
         console.error("Error updating status:", err);
-        alert("Failed to update status. See console for details.");
+        alert("Failed to update status. See console.");
       }
     }
 
-    // 6) Wire up the search/reset buttons
+    // Wire up search/reset buttons
     document.getElementById('searchBtn').onclick = () => {
       const term = document.getElementById('searchInput').value.trim();
       loadAdmin(term);
@@ -193,7 +169,7 @@
       loadAdmin();
     };
 
-    // 7) Initial load on DOM ready
+    // Initial load on DOM ready
     document.addEventListener('DOMContentLoaded', () => {
       loadAdmin();
     });
