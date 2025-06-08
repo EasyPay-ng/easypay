@@ -61,7 +61,6 @@
       line-height: 1.4;
       transition: max-height 0.2s ease;
     }
-    /* Clamp to two lines when applied */
     .clamp {
       max-height: 2.8em;
       overflow: hidden;
@@ -170,8 +169,8 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), 
-          db   = firebase.firestore(), 
+    const auth = firebase.auth(),
+          db = firebase.firestore(),
           storage = firebase.storage();
 
     // DOM refs
@@ -223,9 +222,7 @@
     function renderTask(doc) {
       const data = doc.data();
       const id   = doc.id;
-      // If the document explicitly has costPerUser, use it; otherwise derive it.
       const pricePerUser = data.costPerUser || (data.totalBudget / data.workersNeeded);
-      // Payout to user is 70% (for example)
       const userPay = parseFloat((pricePerUser * 0.7).toFixed(2));
 
       // Build task container
@@ -261,7 +258,6 @@
       // After appending, measure description height for “See More”
       const descDiv = document.getElementById(`desc-${id}`);
       const toggleLink = document.getElementById(`toggle-${id}`);
-      // Temporarily remove clamp/expanded to measure
       descDiv.classList.remove('clamp', 'expanded');
       const computed = window.getComputedStyle(descDiv);
       const lineHeightPx = parseFloat(computed.lineHeight);
@@ -290,7 +286,6 @@
           let completedCount = 0;
           snap.forEach(sdoc => {
             const status = sdoc.data().status;
-            // Count only “approved” or “reviewed”; rejected submissions free up slots
             if (status === "approved" || status === "reviewed") {
               completedCount++;
             }
@@ -301,7 +296,6 @@
           document.getElementById(`label-${id}`).textContent =
             `${completedCount} / ${needed} completed`;
 
-          // If enough approved submissions, mark task complete and remove from UI
           if (completedCount >= needed) {
             document.getElementById(`task-${id}`).remove();
             db.collection("tasks").doc(id).update({ status: "completed" });
@@ -309,44 +303,55 @@
         });
     }
 
-    // Submit proof (including file upload to Firebase Storage)
+    // Submit proof with alert-based debugging
     async function submitProof(taskId, payout) {
-      const user = auth.currentUser;
-      if (!user) {
-        return alert("Sign in to submit your proof");
-      }
-
-      const textElem = document.getElementById(`text-${taskId}`);
-      const fileInput = document.getElementById(`file-${taskId}`);
-      const textProof = textElem.value.trim();
-      const file = fileInput.files[0];
-
-      if (!textProof || !file) {
-        return alert("Please fill in your text proof and choose an image file.");
-      }
+      alert("▶ submitProof() called for taskId: " + taskId + ", payout: " + payout);
 
       try {
-        // 1. Create a unique filename and storage reference
-        const storageRef = storage.ref(`task_proofs/${taskId}/${user.uid}_${Date.now()}_${file.name}`);
+        const user = auth.currentUser;
+        alert("   currentUser: " + (user ? user.uid : "null"));
+        if (!user) {
+          alert("⚠️ You must be signed in to submit proof.");
+          return;
+        }
 
-        // 2. Upload file to Firebase Storage
+        const textElem = document.getElementById(`text-${taskId}`);
+        const fileInput = document.getElementById(`file-${taskId}`);
+        const textProof = textElem.value.trim();
+        const file = fileInput.files[0];
+        alert("   textProof is '" + textProof + "'; file object: " + (file ? file.name : "none"));
+
+        if (!textProof || !file) {
+          alert("⚠️ Please fill in both text proof and choose an image.");
+          return;
+        }
+
+        // 1. Create a unique Storage path
+        const path = `task_proofs/${taskId}/${user.uid}_${Date.now()}_${file.name}`;
+        alert("   Storage path will be: " + path);
+
+        const storageRef = storage.ref(path);
+
+        // 2. Start uploading the file
         const uploadTask = storageRef.put(file);
+        alert("   uploadTask started…");
 
-        // 3. Monitor upload progress (optional)
-        uploadTask.on('state_changed',
+        // 3. Monitor upload
+        uploadTask.on(
+          'state_changed',
           snapshot => {
-            // You could display a small progress bar here if desired.
+            // Optionally show progress; no alerts to avoid too many popups
           },
           error => {
-            console.error("Upload failed:", error);
-            alert("Failed to upload image proof: " + error.message);
+            alert("❌ Upload failed: " + error.message);
           },
           async () => {
-            // 4. Once upload completes, get the download URL
+            // 4. On success, get the download URL
             const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+            alert("   downloadURL: " + downloadURL);
 
-            // 5. Add a new Firestore document with textProof + image URL
-            await db.collection("task_submissions").add({
+            // 5. Now write a document to Firestore
+            const submissionData = {
               taskId: taskId,
               userId: user.uid,
               textProof: textProof,
@@ -354,17 +359,19 @@
               payout: payout,
               status: "pending",
               submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            };
+            alert("   About to write to Firestore with data:\n" + JSON.stringify(submissionData));
 
-            alert("Proof submitted successfully!");
-            // Reset the fields
+            await db.collection("task_submissions").add(submissionData);
+            alert("✅ Firestore write complete! Proof submitted.");
+
+            // Clear the form fields
             textElem.value = "";
             fileInput.value = "";
           }
         );
       } catch (err) {
-        console.error("Error submitting proof:", err);
-        alert("Error submitting proof: " + err.message);
+        alert("❌ Caught exception: " + err.message);
       }
     }
   </script>
