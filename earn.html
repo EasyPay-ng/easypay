@@ -36,6 +36,10 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    #loginError {
+      color: red;
+      margin-top: 8px;
+    }
     #app {
       display: none;
     }
@@ -96,9 +100,6 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-    .proof input[type="file"] {
-      padding: 3px;
-    }
     .submit-btn {
       background: #007700;
       color: white;
@@ -133,14 +134,14 @@
     <input type="email" id="email" placeholder="Email" /><br />
     <input type="password" id="password" placeholder="Password" /><br />
     <button id="loginBtn">Sign In</button>
-    <p id="loginError" style="color:red;"></p>
+    <p id="loginError"></p>
   </div>
 
   <!-- App Content -->
   <div id="app">
     <header>Available Tasks</header>
 
-    <!-- Upload Proof button (external image‐host option left if you still need it) -->
+    <!-- Optional: External “Upload Proof” button -->
     <button 
       onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'"
       style="display:block; margin: 0 auto 10px; padding:8px 16px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;"
@@ -156,7 +157,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
   <script>
     // --- Initialize Firebase ---
@@ -169,19 +169,19 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(),
-          db = firebase.firestore(),
-          storage = firebase.storage();
+
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
 
     // DOM refs
-    const loginDiv       = document.getElementById("loginDiv");
-    const appDiv         = document.getElementById("app");
-    const taskContainer  = document.getElementById("taskContainer");
-    const loginBtn       = document.getElementById("loginBtn");
-    const logoutBtn      = document.getElementById("logoutBtn");
-    const loginError     = document.getElementById("loginError");
-    const emailInput     = document.getElementById("email");
-    const passInput      = document.getElementById("password");
+    const loginDiv      = document.getElementById("loginDiv");
+    const appDiv        = document.getElementById("app");
+    const taskContainer = document.getElementById("taskContainer");
+    const loginBtn      = document.getElementById("loginBtn");
+    const logoutBtn     = document.getElementById("logoutBtn");
+    const loginError    = document.getElementById("loginError");
+    const emailInput    = document.getElementById("email");
+    const passInput     = document.getElementById("password");
 
     // Sign in / out
     loginBtn.onclick = () => {
@@ -210,9 +210,8 @@
         .where("status", "==", "approved")
         .onSnapshot(snapshot => {
           taskContainer.innerHTML = "";
-          // Reverse order so newest tasks appear first
           snapshot.docs
-            .slice()
+            .slice() // make a shallow copy
             .reverse()
             .forEach(doc => renderTask(doc));
         });
@@ -222,8 +221,9 @@
     function renderTask(doc) {
       const data = doc.data();
       const id   = doc.id;
+      // Determine payout per user:
       const pricePerUser = data.costPerUser || (data.totalBudget / data.workersNeeded);
-      const userPay = parseFloat((pricePerUser * 0.7).toFixed(2));
+      const userPay      = parseFloat((pricePerUser * 0.7).toFixed(2));
 
       // Build task container
       const div = document.createElement("div");
@@ -233,7 +233,7 @@
       // Build a clamped/expandable description area
       const descHtml = `
         <div class="description" id="desc-${id}">${data.description || ""}</div>
-        <div class="toggle-link" id="toggle-${id}" style="display:none;"></div>
+        <div class="toggle-link" id="toggle-${id}" style="display:none;">See More</div>
       `;
 
       div.innerHTML = `
@@ -246,10 +246,10 @@
         <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
         <button onclick="window.open('${data.link}','_blank')">Start Task</button>
         <div class="proof">
-          <label>Text Proof:</label>
+          <label>Text Proof (optional):</label>
           <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
-          <label>Image Proof (choose file):</label>
-          <input type="file" id="file-${id}" accept="image/*" />
+          <label>Image Proof URL (optional):</label>
+          <input type="text" id="image-${id}" placeholder="Paste image URL here..." />
           <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
         </div>
       `;
@@ -303,75 +303,50 @@
         });
     }
 
-    // Submit proof with alert-based debugging
+    // Submit proof (text only, image URL only, or both)
     async function submitProof(taskId, payout) {
-      alert("▶ submitProof() called for taskId: " + taskId + ", payout: " + payout);
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You must be signed in to submit proof.");
+        return;
+      }
 
+      const textElem   = document.getElementById(`text-${taskId}`);
+      const imageElem  = document.getElementById(`image-${taskId}`);
+      const textProof  = textElem.value.trim();
+      const imageURL   = imageElem.value.trim();
+
+      // Require at least one: text OR imageURL
+      if (!textProof && !imageURL) {
+        alert("Please provide text proof or paste an image URL (or both).");
+        return;
+      }
+
+      // (Optionally: you could validate that imageURL starts with http/https)
+      if (imageURL && !/^https?:\/\//i.test(imageURL)) {
+        alert("Please enter a valid URL (beginning with http:// or https://).");
+        return;
+      }
+
+      // Write proof document to Firestore
       try {
-        const user = auth.currentUser;
-        alert("   currentUser: " + (user ? user.uid : "null"));
-        if (!user) {
-          alert("⚠️ You must be signed in to submit proof.");
-          return;
-        }
-
-        const textElem = document.getElementById(`text-${taskId}`);
-        const fileInput = document.getElementById(`file-${taskId}`);
-        const textProof = textElem.value.trim();
-        const file = fileInput.files[0];
-        alert("   textProof is '" + textProof + "'; file object: " + (file ? file.name : "none"));
-
-        if (!textProof || !file) {
-          alert("⚠️ Please fill in both text proof and choose an image.");
-          return;
-        }
-
-        // 1. Create a unique Storage path
-        const path = `task_proofs/${taskId}/${user.uid}_${Date.now()}_${file.name}`;
-        alert("   Storage path will be: " + path);
-
-        const storageRef = storage.ref(path);
-
-        // 2. Start uploading the file
-        const uploadTask = storageRef.put(file);
-        alert("   uploadTask started…");
-
-        // 3. Monitor upload
-        uploadTask.on(
-          'state_changed',
-          snapshot => {
-            // Optionally show progress; no alerts to avoid too many popups
-          },
-          error => {
-            alert("❌ Upload failed: " + error.message);
-          },
-          async () => {
-            // 4. On success, get the download URL
-            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-            alert("   downloadURL: " + downloadURL);
-
-            // 5. Now write a document to Firestore
-            const submissionData = {
-              taskId: taskId,
-              userId: user.uid,
-              textProof: textProof,
-              imageProofURL: downloadURL,
-              payout: payout,
-              status: "pending",
-              submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            alert("   About to write to Firestore with data:\n" + JSON.stringify(submissionData));
-
-            await db.collection("task_submissions").add(submissionData);
-            alert("✅ Firestore write complete! Proof submitted.");
-
-            // Clear the form fields
-            textElem.value = "";
-            fileInput.value = "";
-          }
-        );
-      } catch (err) {
-        alert("❌ Caught exception: " + err.message);
+        const submissionData = {
+          taskId:        taskId,
+          userId:        user.uid,
+          textProof:     textProof || "",
+          imageProofURL: imageURL,
+          payout:        payout,
+          status:        "pending",
+          submittedAt:   firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await db.collection("task_submissions").add(submissionData);
+        alert("Proof submitted successfully!");
+        // Clear the fields
+        textElem.value = "";
+        imageElem.value = "";
+      } catch (fsErr) {
+        console.error("Firestore write error:", fsErr);
+        alert("Failed to save proof: " + fsErr.message);
       }
     }
   </script>
