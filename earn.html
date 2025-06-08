@@ -36,10 +36,6 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    #loginError {
-      color: red;
-      margin-top: 8px;
-    }
     #app {
       display: none;
     }
@@ -65,6 +61,7 @@
       line-height: 1.4;
       transition: max-height 0.2s ease;
     }
+    /* Clamp to two lines when applied */
     .clamp {
       max-height: 2.8em;
       overflow: hidden;
@@ -134,21 +131,19 @@
     <input type="email" id="email" placeholder="Email" /><br />
     <input type="password" id="password" placeholder="Password" /><br />
     <button id="loginBtn">Sign In</button>
-    <p id="loginError"></p>
+    <p id="loginError" style="color:red;"></p>
   </div>
 
   <!-- App Content -->
   <div id="app">
     <header>Available Tasks</header>
-
-    <!-- Optional: External “Upload Proof” button -->
+    <!-- Upload Proof button -->
     <button 
-      onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'"
+      onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'" 
       style="display:block; margin: 0 auto 10px; padding:8px 16px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;"
     >
-      Upload Proof (External)
+      Upload Proof
     </button>
-
     <button style="float:right; margin-bottom:10px;" id="logoutBtn">Sign Out</button>
     <div id="taskContainer"></div>
   </div>
@@ -157,7 +152,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
   <script>
     // --- Initialize Firebase ---
     const firebaseConfig = {
@@ -169,19 +163,17 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
     firebase.initializeApp(firebaseConfig);
-
-    const auth = firebase.auth();
-    const db   = firebase.firestore();
+    const auth = firebase.auth(), db = firebase.firestore();
 
     // DOM refs
-    const loginDiv      = document.getElementById("loginDiv");
-    const appDiv        = document.getElementById("app");
-    const taskContainer = document.getElementById("taskContainer");
-    const loginBtn      = document.getElementById("loginBtn");
-    const logoutBtn     = document.getElementById("logoutBtn");
-    const loginError    = document.getElementById("loginError");
-    const emailInput    = document.getElementById("email");
-    const passInput     = document.getElementById("password");
+    const loginDiv       = document.getElementById("loginDiv");
+    const appDiv         = document.getElementById("app");
+    const taskContainer  = document.getElementById("taskContainer");
+    const loginBtn       = document.getElementById("loginBtn");
+    const logoutBtn      = document.getElementById("logoutBtn");
+    const loginError     = document.getElementById("loginError");
+    const emailInput     = document.getElementById("email");
+    const passInput      = document.getElementById("password");
 
     // Sign in / out
     loginBtn.onclick = () => {
@@ -204,14 +196,15 @@
       }
     });
 
-    // Real-time listener for approved tasks (newest at top)
+    // Real-time listener for tasks (newest at top)
     function startTaskListener() {
       db.collection("tasks")
         .where("status", "==", "approved")
         .onSnapshot(snapshot => {
           taskContainer.innerHTML = "";
+          // Reverse order so newest tasks appear first
           snapshot.docs
-            .slice() // make a shallow copy
+            .slice()
             .reverse()
             .forEach(doc => renderTask(doc));
         });
@@ -221,19 +214,19 @@
     function renderTask(doc) {
       const data = doc.data();
       const id   = doc.id;
-      // Determine payout per user:
       const pricePerUser = data.costPerUser || (data.totalBudget / data.workersNeeded);
-      const userPay      = parseFloat((pricePerUser * 0.7).toFixed(2));
+      // Calculate 55% and show two decimal places
+      const userPay = parseFloat((pricePerUser * 0.7).toFixed(2));
 
-      // Build task container
+      // Create task box
       const div = document.createElement("div");
       div.className = "task";
       div.id = `task-${id}`;
 
-      // Build a clamped/expandable description area
+      // Build description area
       const descHtml = `
         <div class="description" id="desc-${id}">${data.description || ""}</div>
-        <div class="toggle-link" id="toggle-${id}" style="display:none;">See More</div>
+        <div class="toggle-link" id="toggle-${id}" style="display:none;"></div>
       `;
 
       div.innerHTML = `
@@ -246,22 +239,28 @@
         <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
         <button onclick="window.open('${data.link}','_blank')">Start Task</button>
         <div class="proof">
-          <label>Text Proof (optional):</label>
+          <label>Text Proof:</label>
           <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
-          <label>Image Proof URL (optional):</label>
-          <input type="text" id="image-${id}" placeholder="Paste image URL here..." />
+          <label>Image Proof URL:</label>
+          <input type="text" id="image-${id}" placeholder="Paste image proof URL..." />
           <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
         </div>
       `;
       taskContainer.appendChild(div);
 
-      // After appending, measure description height for “See More”
+      // After appending, measure description height
       const descDiv = document.getElementById(`desc-${id}`);
       const toggleLink = document.getElementById(`toggle-${id}`);
+
+      // Temporarily remove any clamp to measure
       descDiv.classList.remove('clamp', 'expanded');
+
+      // Compute line-height in pixels
       const computed = window.getComputedStyle(descDiv);
       const lineHeightPx = parseFloat(computed.lineHeight);
       const twoLineHeight = lineHeightPx * 2;
+
+      // If scrollHeight exceeds two lines, clamp it
       if (descDiv.scrollHeight > twoLineHeight + 1) {
         descDiv.classList.add('clamp');
         toggleLink.style.display = 'inline';
@@ -279,16 +278,18 @@
         };
       }
 
-      // Listen for approved/reviewed submissions to update progress bar
+      // Listen for approved OR reviewed submissions to update progress
       db.collection("task_submissions")
         .where("taskId", "==", id)
         .onSnapshot(snap => {
           let completedCount = 0;
           snap.forEach(sdoc => {
             const status = sdoc.data().status;
+            // Only count “approved” or “reviewed”
             if (status === "approved" || status === "reviewed") {
               completedCount++;
             }
+            // Rejected submissions are not counted, freeing slots
           });
           const needed = data.workersNeeded;
           const pct = Math.min(100, Math.round((completedCount / needed) * 100));
@@ -296,6 +297,7 @@
           document.getElementById(`label-${id}`).textContent =
             `${completedCount} / ${needed} completed`;
 
+          // Auto-complete task when enough performers gathered
           if (completedCount >= needed) {
             document.getElementById(`task-${id}`).remove();
             db.collection("tasks").doc(id).update({ status: "completed" });
@@ -303,51 +305,27 @@
         });
     }
 
-    // Submit proof (text only, image URL only, or both)
+    // Submit proof
     async function submitProof(taskId, payout) {
       const user = auth.currentUser;
-      if (!user) {
-        alert("You must be signed in to submit proof.");
-        return;
-      }
+      if (!user) return alert("Sign in to submit");
 
-      const textElem   = document.getElementById(`text-${taskId}`);
-      const imageElem  = document.getElementById(`image-${taskId}`);
-      const textProof  = textElem.value.trim();
-      const imageURL   = imageElem.value.trim();
+      const text  = document.getElementById(`text-${taskId}`).value.trim();
+      const image = document.getElementById(`image-${taskId}`).value.trim();
+      if (!text || !image) return alert("Fill both proof fields");
 
-      // Require at least one: text OR imageURL
-      if (!textProof && !imageURL) {
-        alert("Please provide text proof or paste an image URL (or both).");
-        return;
-      }
-
-      // (Optionally: you could validate that imageURL starts with http/https)
-      if (imageURL && !/^https?:\/\//i.test(imageURL)) {
-        alert("Please enter a valid URL (beginning with http:// or https://).");
-        return;
-      }
-
-      // Write proof document to Firestore
-      try {
-        const submissionData = {
-          taskId:        taskId,
-          userId:        user.uid,
-          textProof:     textProof || "",
-          imageProofURL: imageURL,
-          payout:        payout,
-          status:        "pending",
-          submittedAt:   firebase.firestore.FieldValue.serverTimestamp()
-        };
-        await db.collection("task_submissions").add(submissionData);
-        alert("Proof submitted successfully!");
-        // Clear the fields
-        textElem.value = "";
-        imageElem.value = "";
-      } catch (fsErr) {
-        console.error("Firestore write error:", fsErr);
-        alert("Failed to save proof: " + fsErr.message);
-      }
+      await db.collection("task_submissions").add({
+        taskId: taskId,
+        userId: user.uid,
+        textProof: text,
+        imageProof: image,
+        payout: payout,
+        status: "pending",
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      alert("Proof submitted!");
+      document.getElementById(`text-${taskId}`).value = "";
+      document.getElementById(`image-${taskId}`).value = "";
     }
   </script>
 </body>
