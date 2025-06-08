@@ -147,8 +147,15 @@
         try {
           const { user } = await signInWithEmailAndPassword(auth, email, password);
 
-          // Only admin email skips verification
-          if (user.email.toLowerCase() !== "easypay27.ng@gmail.com" && !user.emailVerified) {
+          // Allow Samuelsanusi1111@gmail.com to log in without verification
+          const bypassEmail = "samuelsanusi1111@gmail.com";
+
+          // Only block if not admin, not bypass email, and email not verified
+          if (
+            user.email.toLowerCase() !== "easypay27.ng@gmail.com" &&
+            user.email.toLowerCase() !== bypassEmail &&
+            !user.emailVerified
+          ) {
             alert("Please verify your email before logging in.");
             await signOut(auth);
             loginBtn.disabled = false;
