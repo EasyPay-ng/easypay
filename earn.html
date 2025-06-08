@@ -97,6 +97,9 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+    .proof input[type="file"] {
+      padding: 3px;
+    }
     .submit-btn {
       background: #007700;
       color: white;
@@ -137,13 +140,15 @@
   <!-- App Content -->
   <div id="app">
     <header>Available Tasks</header>
-    <!-- Upload Proof button -->
+
+    <!-- Upload Proof button (external image‐host option left if you still need it) -->
     <button 
-      onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'" 
+      onclick="window.location.href='https://imageshostuploaded.xyz/uploadimage.php'"
       style="display:block; margin: 0 auto 10px; padding:8px 16px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;"
     >
-      Upload Proof
+      Upload Proof (External)
     </button>
+
     <button style="float:right; margin-bottom:10px;" id="logoutBtn">Sign Out</button>
     <div id="taskContainer"></div>
   </div>
@@ -152,6 +157,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
   <script>
     // --- Initialize Firebase ---
     const firebaseConfig = {
@@ -163,7 +170,9 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.firestore();
+    const auth = firebase.auth(), 
+          db   = firebase.firestore(), 
+          storage = firebase.storage();
 
     // DOM refs
     const loginDiv       = document.getElementById("loginDiv");
@@ -196,7 +205,7 @@
       }
     });
 
-    // Real-time listener for tasks (newest at top)
+    // Real-time listener for approved tasks (newest at top)
     function startTaskListener() {
       db.collection("tasks")
         .where("status", "==", "approved")
@@ -214,16 +223,17 @@
     function renderTask(doc) {
       const data = doc.data();
       const id   = doc.id;
+      // If the document explicitly has costPerUser, use it; otherwise derive it.
       const pricePerUser = data.costPerUser || (data.totalBudget / data.workersNeeded);
-      // Calculate 55% and show two decimal places
+      // Payout to user is 70% (for example)
       const userPay = parseFloat((pricePerUser * 0.7).toFixed(2));
 
-      // Create task box
+      // Build task container
       const div = document.createElement("div");
       div.className = "task";
       div.id = `task-${id}`;
 
-      // Build description area
+      // Build a clamped/expandable description area
       const descHtml = `
         <div class="description" id="desc-${id}">${data.description || ""}</div>
         <div class="toggle-link" id="toggle-${id}" style="display:none;"></div>
@@ -241,26 +251,21 @@
         <div class="proof">
           <label>Text Proof:</label>
           <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
-          <label>Image Proof URL:</label>
-          <input type="text" id="image-${id}" placeholder="Paste image proof URL..." />
+          <label>Image Proof (choose file):</label>
+          <input type="file" id="file-${id}" accept="image/*" />
           <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
         </div>
       `;
       taskContainer.appendChild(div);
 
-      // After appending, measure description height
+      // After appending, measure description height for “See More”
       const descDiv = document.getElementById(`desc-${id}`);
       const toggleLink = document.getElementById(`toggle-${id}`);
-
-      // Temporarily remove any clamp to measure
+      // Temporarily remove clamp/expanded to measure
       descDiv.classList.remove('clamp', 'expanded');
-
-      // Compute line-height in pixels
       const computed = window.getComputedStyle(descDiv);
       const lineHeightPx = parseFloat(computed.lineHeight);
       const twoLineHeight = lineHeightPx * 2;
-
-      // If scrollHeight exceeds two lines, clamp it
       if (descDiv.scrollHeight > twoLineHeight + 1) {
         descDiv.classList.add('clamp');
         toggleLink.style.display = 'inline';
@@ -278,18 +283,17 @@
         };
       }
 
-      // Listen for approved OR reviewed submissions to update progress
+      // Listen for approved/reviewed submissions to update progress bar
       db.collection("task_submissions")
         .where("taskId", "==", id)
         .onSnapshot(snap => {
           let completedCount = 0;
           snap.forEach(sdoc => {
             const status = sdoc.data().status;
-            // Only count “approved” or “reviewed”
+            // Count only “approved” or “reviewed”; rejected submissions free up slots
             if (status === "approved" || status === "reviewed") {
               completedCount++;
             }
-            // Rejected submissions are not counted, freeing slots
           });
           const needed = data.workersNeeded;
           const pct = Math.min(100, Math.round((completedCount / needed) * 100));
@@ -297,7 +301,7 @@
           document.getElementById(`label-${id}`).textContent =
             `${completedCount} / ${needed} completed`;
 
-          // Auto-complete task when enough performers gathered
+          // If enough approved submissions, mark task complete and remove from UI
           if (completedCount >= needed) {
             document.getElementById(`task-${id}`).remove();
             db.collection("tasks").doc(id).update({ status: "completed" });
@@ -305,27 +309,63 @@
         });
     }
 
-    // Submit proof
+    // Submit proof (including file upload to Firebase Storage)
     async function submitProof(taskId, payout) {
       const user = auth.currentUser;
-      if (!user) return alert("Sign in to submit");
+      if (!user) {
+        return alert("Sign in to submit your proof");
+      }
 
-      const text  = document.getElementById(`text-${taskId}`).value.trim();
-      const image = document.getElementById(`image-${taskId}`).value.trim();
-      if (!text || !image) return alert("Fill both proof fields");
+      const textElem = document.getElementById(`text-${taskId}`);
+      const fileInput = document.getElementById(`file-${taskId}`);
+      const textProof = textElem.value.trim();
+      const file = fileInput.files[0];
 
-      await db.collection("task_submissions").add({
-        taskId: taskId,
-        userId: user.uid,
-        textProof: text,
-        imageProof: image,
-        payout: payout,
-        status: "pending",
-        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      alert("Proof submitted!");
-      document.getElementById(`text-${taskId}`).value = "";
-      document.getElementById(`image-${taskId}`).value = "";
+      if (!textProof || !file) {
+        return alert("Please fill in your text proof and choose an image file.");
+      }
+
+      try {
+        // 1. Create a unique filename and storage reference
+        const storageRef = storage.ref(`task_proofs/${taskId}/${user.uid}_${Date.now()}_${file.name}`);
+
+        // 2. Upload file to Firebase Storage
+        const uploadTask = storageRef.put(file);
+
+        // 3. Monitor upload progress (optional)
+        uploadTask.on('state_changed',
+          snapshot => {
+            // You could display a small progress bar here if desired.
+          },
+          error => {
+            console.error("Upload failed:", error);
+            alert("Failed to upload image proof: " + error.message);
+          },
+          async () => {
+            // 4. Once upload completes, get the download URL
+            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+
+            // 5. Add a new Firestore document with textProof + image URL
+            await db.collection("task_submissions").add({
+              taskId: taskId,
+              userId: user.uid,
+              textProof: textProof,
+              imageProofURL: downloadURL,
+              payout: payout,
+              status: "pending",
+              submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            alert("Proof submitted successfully!");
+            // Reset the fields
+            textElem.value = "";
+            fileInput.value = "";
+          }
+        );
+      } catch (err) {
+        console.error("Error submitting proof:", err);
+        alert("Error submitting proof: " + err.message);
+      }
     }
   </script>
 </body>
