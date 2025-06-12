@@ -26,13 +26,8 @@ header {
   animation: gradientBG 12s ease infinite;
   color: #fff;
   padding: 1rem 2rem;
-  display: flex;
-  align-items: center;
+  text-align: center;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-header img {
-  height: 50px;
-  margin-right: 15px;
 }
 header h1 {
   font-size: 2rem;
@@ -62,10 +57,17 @@ header h1 {
   margin: auto;
   z-index: 1;
   animation: fadeIn 1.5s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+.hero-logo {
+  height: 80px;
+  margin-bottom: 1.5rem;
 }
 .hero h2 {
   font-size: 2.2rem;
@@ -159,10 +161,10 @@ footer {
   </style>
 </head>
 <body>  <header>
-    <img src="1000250298.jpg" alt="EasyPay Nigeria Logo">
     <h1>EasyPay</h1>
   </header>  <section class="hero">
     <div class="hero-content">
+      <img src="1000250298.jpg" alt="EasyPay Nigeria Logo" class="hero-logo">
       <h2>Welcome to EasyPay – Earn & Advertise Effortlessly</h2>
       <span class="tagline">Empowering Nigerians, One Task at a Time 🌟</span><div class="cta-buttons">
     <a href="login.html">📝 Login</a>
@@ -174,17 +176,17 @@ footer {
     <div class="card">
       <span class="emoji">📈</span>
       <h3>Advertisers: Reach Millions</h3>
-      <p>Boost your brand with affordable, trackable campaigns. Get real‑time insights and authentic user submissions to truly understand your audience.</p>
+      <p>Boost your brand with affordable, trackable campaigns. Get real-time insights and authentic user submissions to truly understand your audience.</p>
     </div>
     <div class="card">
       <span class="emoji">💸</span>
       <h3>Earners: Cash In Your Time</h3>
-      <p>Complete micro‑tasks (₦3–₦1,000), shortlinks, tap & earn, and more. Join a vibrant community and grow your earnings on your schedule.</p>
+      <p>Complete micro-tasks (₦3–₦1,000), shortlinks, tap & earn, and more. Join a vibrant community and grow your earnings on your schedule.</p>
     </div>
     <div class="card">
       <span class="emoji">🤔</span>
       <h3>Why EasyPay?</h3>
-      <p>Trusted by hundreds across Nigeria, built on modern tech, and designed for simplicity. Secure, rewarding, and fun—your all‑in‑one earning & advertising hub.</p>
+      <p>Trusted by hundreds across Nigeria, built on modern tech, and designed for simplicity. Secure, rewarding, and fun—your all-in-one earning & advertising hub.</p>
     </div>
   </div>  <footer>
     &copy; 2025 EasyPay. All rights reserved.
