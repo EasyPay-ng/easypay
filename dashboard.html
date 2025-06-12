@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -107,7 +106,6 @@
     .nav a i {
       font-size: 1.5rem;
       margin-bottom: 4px;
-      /* Icons inherit the white color */
     }
     @media (min-width: 768px) {
       .card {
@@ -138,9 +136,7 @@
         <button onclick="logout()">Logout</button>
       </div>
     </div>
-  </header>
-
-  <div class="container">
+  </header>  <div class="container">
     <div class="card">
       <h3>Balance: ₦<span id="balance">0.00</span></h3>
     </div>
@@ -157,9 +153,7 @@
       <p id="countdown">Loading...</p>
       <button class="copy-btn" id="claimBtn">Claim</button>
     </div>
-  </div>
-
-  <div class="nav">
+  </div>  <div class="nav">
     <a href="menu.html">
       <i class="fas fa-home"></i>
       Menu
@@ -176,9 +170,7 @@
       <i class="fas fa-trophy"></i>
       Leaderboard
     </a>
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
       getFirestore,
@@ -192,7 +184,6 @@
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    // Your Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -207,10 +198,21 @@
     const db = getFirestore(app);
     const auth = getAuth();
 
+    // Key for storing login timestamp
+    const LOGIN_TS_KEY = 'loginTimestamp';
+    const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        // Clear login timestamp on sign-out
+        localStorage.removeItem(LOGIN_TS_KEY);
         window.location.href = 'login.html';
         return;
+      }
+
+      // Set login timestamp if not already set
+      if (!localStorage.getItem(LOGIN_TS_KEY)) {
+        localStorage.setItem(LOGIN_TS_KEY, Date.now());
       }
 
       const uid = user.uid;
@@ -223,17 +225,13 @@
       const email = data.email || "";
       const balanceValue = data.balance ?? 0;
 
-      // Populate header and profile dropdown, formatting to two decimals
       document.getElementById("usernameDisplay").innerText = username;
       document.getElementById("profileUsername").innerText = username;
       document.getElementById("profileEmail").innerText = email;
       document.getElementById("profileBalance").innerText = balanceValue.toFixed(2);
-
-      // Populate dashboard balance with two decimals
       document.getElementById("balance").innerText = balanceValue.toFixed(2);
-
-      // Populate referral code and referral count
       document.getElementById("referralCode").innerText = username;
+
       try {
         const referralsQuery = query(
           collection(db, "users"),
@@ -246,16 +244,26 @@
         document.getElementById("referrals").innerText = "0";
       }
 
-      // Daily bonus logic
       const plan = data.plan || "basic";
       const lastTs = data.lastClaim ?? 0;
       const claimBtn = document.getElementById("claimBtn");
       claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
       claimBtn.onclick = () => claimNaira(uid);
       updateCountdown(lastTs);
+
+      // Start session check interval
+      setInterval(checkSessionExpiry, 60 * 1000);
     });
 
-    // Copy referral code to clipboard
+    function checkSessionExpiry() {
+      const loginTs = parseInt(localStorage.getItem(LOGIN_TS_KEY), 10);
+      if (loginTs && Date.now() - loginTs >= SESSION_DURATION) {
+        alert('Your session has expired. You will be logged out.');
+        signOut(auth);
+        localStorage.removeItem(LOGIN_TS_KEY);
+      }
+    }
+
     window.copyReferral = function() {
       const code = document.getElementById("referralCode").innerText;
       navigator.clipboard.writeText(code)
@@ -263,12 +271,10 @@
         .catch(console.error);
     };
 
-    // Sign out via Firebase Auth
     window.logout = function() {
       signOut(auth);
     };
 
-    // Show/hide the profile dropdown
     window.toggleProfile = function() {
       document.getElementById("profileInfo").classList.toggle("show");
     };
@@ -277,7 +283,7 @@
       const countdownEl = document.getElementById("countdown");
       const tick = () => {
         const now = Date.now();
-        const nextAvailable = lastClaimTs + 86400000; // 24h
+        const nextAvailable = lastClaimTs + 86400000; 
         const diff = nextAvailable - now;
         if (diff <= 0) {
           countdownEl.innerText = "You can now claim!";
@@ -310,7 +316,6 @@
         balance: newBalance,
         lastClaim: now
       });
-      // Display new balance with two decimals
       document.getElementById("balance").innerText = newBalance.toFixed(2);
       document.getElementById("profileBalance").innerText = newBalance.toFixed(2);
       alert(`Claimed ₦${amount} Successfully!`);
@@ -318,6 +323,5 @@
       const claimBtn = document.getElementById("claimBtn");
       claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
     };
-  </script>
-</body>
+  </script></body>
 </html>
