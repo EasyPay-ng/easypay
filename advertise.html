@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -92,41 +91,37 @@
   <div class="container">
     <h1>Advertise Task</h1>
     <label>Task Title</label>
-    <input type="text" id="taskTitle" required />
+    <input type="text" id="taskTitle" required /><label>Platform</label>
+<select id="platform" required>
+  <option value="">Select Platform</option>
+  <option value="WhatsApp">WhatsApp</option>
+  <option value="Facebook">Facebook</option>
+  <option value="Instagram">Instagram</option>
+  <option value="Telegram">Telegram</option>
+  <option value="TikTok">TikTok</option>
+  <option value="Website">Website</option>
+  <option value="App">App</option>
+  <option value="Twitter">Twitter</option>
+  <option value="YouTube">YouTube</option>
+</select>
 
-    <label>Platform</label>
-    <select id="platform" required>
-      <option value="">Select Platform</option>
-      <option value="WhatsApp">WhatsApp</option>
-      <option value="Facebook">Facebook</option>
-      <option value="Instagram">Instagram</option>
-      <option value="Telegram">Telegram</option>
-      <option value="TikTok">TikTok</option>
-      <option value="Website">Website</option>
-      <option value="App">App</option>
-      <option value="Twitter">Twitter</option>
-      <option value="YouTube">YouTube</option>
-    </select>
+<label>Subcategory</label>
+<select id="subcategory" required></select>
 
-    <label>Subcategory</label>
-    <select id="subcategory" required></select>
+<label>Number of Workers</label>
+<input type="number" id="workers" min="1" value="1" />
 
-    <label>Number of Workers</label>
-    <input type="number" id="workers" min="1" value="1" />
+<div id="totalCost">Total Cost: ₦0</div>
 
-    <div id="totalCost">Total Cost: ₦0</div>
+<label>Task Description</label>
+<textarea id="description" required></textarea>
 
-    <label>Task Description</label>
-    <textarea id="description" required></textarea>
+<label>Task Link</label>
+<input type="url" id="taskLink" required />
 
-    <label>Task Link</label>
-    <input type="url" id="taskLink" required />
+<button id="submitBtn" onclick="submitTask()">Submit Task</button>
 
-    <button id="submitBtn" onclick="submitTask()">Submit Task</button>
-  </div>
-
-  <!-- Proof section -->
-  <div class="container" id="proofSection" style="display: none;">
+  </div>  <!-- Proof section -->  <div class="container" id="proofSection" style="display: none;">
     <h2>Task Completion Proofs</h2>
     <table class="proof-table">
       <thead>
@@ -141,14 +136,7 @@
         <!-- Filled dynamically -->
       </tbody>
     </table>
-  </div>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <script>
+  </div>  <!-- Firebase SDKs -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
     // Firebase config (replace with yours)
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -192,8 +180,8 @@
       "TikTok": {
         "Follow": 12,
         "Like": 7,
-        "TikTok post": 20,      /* ← Added */
-        "TikTok repost": 15     /* ← Added */
+        "TikTok post": 20,
+        "TikTok repost": 15
       },
       "Website": {
         "Simple sign up": 25,
@@ -207,7 +195,9 @@
       "Twitter": {
         "Comment": 9,
         "Like": 5,
-        "Follow": 5
+        "Follow": 5,
+        "Retweet": 20,
+        "Quote": 15
       },
       "YouTube": {
         "Subscribe": 20,
@@ -265,7 +255,6 @@
       const user = firebase.auth().currentUser;
       if (!user) return alert("Please log in first.");
 
-      // Show loading effect
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
 
@@ -279,7 +268,6 @@
         return;
       }
 
-      // Save task to Firestore
       const taskId = `${Date.now()}-${user.uid}`;
       await db.collection("tasks").doc(taskId).set({
         taskTitle: title,
@@ -296,12 +284,8 @@
         taskId: taskId
       });
 
-      // Deduct balance from user
-      await userRef.update({
-        balance: balance - totalCost
-      });
+      await userRef.update({ balance: balance - totalCost });
 
-      // Log the transaction
       await db.collection("transactions").add({
         userId: user.uid,
         type: "debit",
@@ -311,9 +295,8 @@
       });
 
       alert("Task submitted for approval!");
-      loadProofs(taskId); // Load proofs for the task
+      loadProofs(taskId);
 
-      // Reset button after submission
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit Task';
     }
@@ -339,11 +322,8 @@
     }
 
     async function approveProof(proofId) {
-      await db.collection("proofs").doc(proofId).update({
-        status: "approved"
-      });
+      await db.collection("proofs").doc(proofId).update({ status: "approved" });
       alert("Proof approved!");
     }
-  </script>
-</body>
+  </script></body>
 </html>
