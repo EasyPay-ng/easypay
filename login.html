@@ -1,8 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login</title>
   <style>
     body {
@@ -21,14 +19,25 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 400px;
+      text-align: center;
+    }
+    /* Logo */
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 1.5rem;
+      display: block;
     }
     .login-container h2 {
       margin-top: 0;
-      text-align: center;
       color: green;
+      margin-bottom: 1.5rem;
     }
     .form-group {
       margin-bottom: 20px;
+      text-align: left;
     }
     .form-group label {
       display: block;
@@ -87,30 +96,27 @@
       text-decoration: underline;
     }
   </style>
-</head>
-<body>
+</head><body>  <div class="login-container">
+    <!-- Logo -->
+    <img src="1000250298.jpg" alt="EasyPay Logo" class="login-logo"><h2>User Login</h2>
+<div class="form-group">
+  <label for="email">Email</label>
+  <input type="email" id="email" placeholder="you@example.com" required>
+</div>
+<div class="form-group">
+  <label for="password">Password</label>
+  <input type="password" id="password" placeholder="••••••••" required>
+</div>
+<button id="loginBtn" class="btn">Login</button>
 
-  <div class="login-container">
-    <h2>User Login</h2>
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="you@example.com" required>
-    </div>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="••••••••" required>
-    </div>
-    <button id="loginBtn" class="btn">Login</button>
+<div class="footer-text">
+  <p><a href="reset-password.html">Forgot your password?</a></p>
+</div>
+<div class="footer-text">
+  <p>Don't have an account? <a href="register.html">Register now!</a></p>
+</div>
 
-    <div class="footer-text">
-      <p><a href="reset-password.html">Forgot your password?</a></p>
-    </div>
-    <div class="footer-text">
-      <p>Don't have an account? <a href="register.html">Register now!</a></p>
-    </div>
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
@@ -190,7 +196,5 @@
         }
       });
     });
-  </script>
-
-</body>
+  </script></body>
 </html>
