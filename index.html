@@ -26,8 +26,16 @@ header {
   animation: gradientBG 12s ease infinite;
   color: #fff;
   padding: 1rem 2rem;
-  text-align: center;
+  display: flex;
+  align-items: center;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+header img {
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
 }
 header h1 {
   font-size: 2rem;
@@ -64,10 +72,6 @@ header h1 {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-.hero-logo {
-  height: 80px;
-  margin-bottom: 1.5rem;
 }
 .hero h2 {
   font-size: 2.2rem;
@@ -161,10 +165,10 @@ footer {
   </style>
 </head>
 <body>  <header>
+    <img src="1000250298.jpg" alt="EasyPay Nigeria Logo">
     <h1>EasyPay</h1>
   </header>  <section class="hero">
     <div class="hero-content">
-      <img src="1000250298.jpg" alt="EasyPay Nigeria Logo" class="hero-logo">
       <h2>Welcome to EasyPay – Earn & Advertise Effortlessly</h2>
       <span class="tagline">Empowering Nigerians, One Task at a Time 🌟</span><div class="cta-buttons">
     <a href="login.html">📝 Login</a>
