@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,7 +12,6 @@
     .task p { margin: 8px 0; line-height: 1.4; }
     .progress-container { background: #eee; border-radius: 20px; overflow: hidden; margin: 10px 0; height: 16px; }
     .progress-bar { height: 100%; background: #28a745; width: 0%; transition: width 0.4s ease-in-out; }
-    .progress-label { font-size: 12px; text-align: right; color: #004400; }
     .proof { margin-top: 15px; }
     .proof label { display: block; margin-bottom: 4px; font-weight: bold; }
     .proof textarea, .proof input[type=file] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
@@ -26,13 +24,8 @@
 <body>
   <header>EasyPay – Available Tasks</header>
   <div id="loading">Loading tasks...</div>
-  <div id="taskContainer"></div>
-
-  <!-- Firebase Firestore SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script>
-    // Initialize Firebase (Firestore only)
+  <div id="taskContainer"></div>  <!-- Firebase Firestore SDK -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -48,7 +41,7 @@
     const loadingEl = document.getElementById('loading');
     const taskContainer = document.getElementById('taskContainer');
 
-    // 1) Load tasks
+    // Show and load tasks
     function startTaskListener() {
       loadingEl.style.display = 'block';
       db.collection('tasks')
@@ -60,7 +53,7 @@
         });
     }
 
-    // 2) Render each task with proof form
+    // Render each task card
     function renderTask(doc) {
       const data = doc.data(), id = doc.id;
       const price = data.costPerUser || data.totalBudget / data.workersNeeded;
@@ -78,102 +71,97 @@
         <button onclick="window.open('${data.link}','_blank')" style="padding:6px 12px; background:#006400; color:#fff; border:none; border-radius:6px; cursor:pointer;">Start Task</button>
         <div class="proof">
           <label>Text Proof:</label>
-          <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
-          <label>Upload Image Proof:</label>
-          <input type="file" id="file-${id}" accept="image/*" />
-          <div class="upload-progress-container" id="upload-container-${id}">
-            <div class="upload-progress-bar" id="upload-bar-${id}"></div>
-          </div>
-          <div class="upload-progress-label" id="upload-label-${id}"></div>
-          <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
-        </div>
-      `;
-      taskContainer.appendChild(div);
+          <textarea id="text-${id}" placeholder="Enter text proof..."></textarea><label>Upload Image Proof:</label>
+      <input type="file" id="file-${id}" accept="image/*" />
+      <div class="upload-progress-container" id="upload-container-${id}">
+        <div class="upload-progress-bar" id="upload-bar-${id}"></div>
+      </div>
+      <div class="upload-progress-label" id="upload-label-${id}"></div>
+      <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
+    </div>
+  `;
+  taskContainer.appendChild(div);
 
-      // Track completion progress
-      db.collection('task_submissions')
-        .where('taskId','==',id)
-        .onSnapshot(snap => {
-          let done = 0;
-          snap.forEach(s => { if (['approved','reviewed'].includes(s.data().status)) done++; });
-          const pct = Math.min(100, Math.round((done / data.workersNeeded) * 100));
-          document.getElementById(`bar-${id}`).style.width = pct + '%';
-          document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
-          if (done >= data.workersNeeded) {
-            document.getElementById(`task-${id}`)?.remove();
-            db.collection('tasks').doc(id).update({ status: 'completed' });
-          }
-        });
-    }
-
-    // 3) Upload via your PHP endpoint with progress
-    function uploadViaPhp(file, onProgress) {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://imageshostuploaded.xyz/uploadimage.php');
-        xhr.upload.onprogress = evt => {
-          if (evt.lengthComputable) {
-            onProgress(Math.round((evt.loaded / evt.total) * 100));
-          }
-        };
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            try {
-              const res = JSON.parse(xhr.responseText);
-              return resolve(res.imageUrl || '');
-            } catch {
-              return reject('Invalid JSON from server');
-            }
-          }
-          reject('Upload failed: ' + xhr.status);
-        };
-        xhr.onerror = () => reject('Network error');
-        const formData = new FormData();
-        formData.append('image', file);
-        xhr.send(formData);
-      });
-    }
-
-    // 4) Submit proof: text + image, then store in Firestore
-    async function submitProof(taskId, payout) {
-      const textEl = document.getElementById(`text-${taskId}`);
-      const fileEl = document.getElementById(`file-${taskId}`);
-      const text = textEl.value.trim();
-      const file = fileEl.files[0];
-      const bar = document.getElementById(`upload-bar-${taskId}`);
-      const label = document.getElementById(`upload-label-${taskId}`);
-      const container = document.getElementById(`upload-container-${taskId}`);
-
-      if (!text || !file) return alert('Please enter text proof and select an image');
-      container.style.display = 'block';
-      label.style.display = 'block';
-
-      try {
-        const imageUrl = await uploadViaPhp(file, pct => {
-          bar.style.width = pct + '%';
-          label.textContent = pct + '%';
-        });
-        // Using anonymous placeholder userId; replace with real UID if you have auth
-        const userId = 'public_' + Date.now();
-        await db.collection('task_submissions').add({
-          taskId, userId, textProof: text, imageProof: imageUrl,
-          payout, status: 'pending', submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        label.textContent = 'Submitted!';
-        setTimeout(() => {
-          container.style.display = 'none';
-          label.style.display = 'none';
-          bar.style.width = '0%';
-        }, 1000);
-        textEl.value = '';
-        fileEl.value = null;
-      } catch (err) {
-        label.textContent = 'Error: ' + err;
+  // Listen for approved submissions count
+  db.collection('task_submissions')
+    .where('taskId','==',id)
+    .onSnapshot(snap => {
+      let done = 0;
+      snap.forEach(s => { if (['approved','reviewed'].includes(s.data().status)) done++; });
+      const pct = Math.min(100, Math.round((done / data.workersNeeded) * 100));
+      document.getElementById(`bar-${id}`).style.width = `${pct}%`;
+      document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
+      if (done >= data.workersNeeded) {
+        document.getElementById(`task-${id}`)?.remove();
+        db.collection('tasks').doc(id).update({ status: 'completed' });
       }
-    }
+    });
+}
 
-    // Start loading tasks immediately
-    startTaskListener();
+/**
+ * Upload file to Imgur via anonymous API, reporting progress
+ */
+async function uploadToImgur(file, onProgress) {
+  const clientId = 'fb533db21a59486';
+  const endpoint = 'https://api.imgur.com/3/image';
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', endpoint);
+      xhr.setRequestHeader('Authorization', 'Client-ID ' + clientId);
+      xhr.upload.onprogress = evt => {
+        if (evt.lengthComputable) onProgress(Math.round((evt.loaded / evt.total) * 100));
+      };
+      xhr.onload = () => {
+        const res = JSON.parse(xhr.responseText);
+        res.success ? resolve(res.data.link) : reject(res.data.error);
+      };
+      xhr.onerror = () => reject('Network error');
+      xhr.send(JSON.stringify({ image: base64 }));
+    };
+    reader.onerror = () => reject('FileReader error');
+    reader.readAsDataURL(file);
+  });
+}
+
+// Submit proof: upload image to Imgur, then save in Firestore
+async function submitProof(taskId, payout) {
+  const textEl = document.getElementById(`text-${taskId}`);
+  const fileEl = document.getElementById(`file-${taskId}`);
+  const text = textEl.value.trim();
+  const file = fileEl.files[0];
+  const bar = document.getElementById(`upload-bar-${taskId}`);
+  const label = document.getElementById(`upload-label-${taskId}`);
+  const container = document.getElementById(`upload-container-${taskId}`);
+
+  if (!text || !file) return alert('Please fill both text and image proof.');
+
+  container.style.display = label.style.display = 'block';
+  try {
+    const imageUrl = await uploadToImgur(file, pct => {
+      bar.style.width = `${pct}%`;
+      label.textContent = pct + '%';
+    });
+    const userId = 'public_' + Date.now();
+    await db.collection('task_submissions').add({
+      taskId, userId, textProof: text, imageProof: imageUrl,
+      payout, status: 'pending', submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    label.textContent = 'Submitted!';
+    setTimeout(() => {
+      container.style.display = label.style.display = 'none';
+      bar.style.width = '0%'; textEl.value = ''; fileEl.value = null;
+    }, 1000);
+  } catch (err) {
+    label.textContent = 'Error: ' + err;
+  }
+}
+
+// Initialize
+startTaskListener();
+
   </script>
 </body>
 </html>
