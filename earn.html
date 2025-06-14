@@ -40,13 +40,15 @@
     <div id="loading">Loading tasks...</div>
     <div id="taskContainer"></div>
   </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>  <script>
+    // Correct Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5tQ8UY",
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore(), storage = firebase.storage();
