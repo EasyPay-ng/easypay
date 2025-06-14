@@ -24,8 +24,7 @@
 <body>
   <header>EasyPay – Available Tasks</header>
   <div id="loading">Loading tasks...</div>
-  <div id="taskContainer"></div>  <!-- Firebase Firestore SDK -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    // Initialize Firebase
+  <div id="taskContainer"></div>  <!-- Firestore SDK -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -41,11 +40,9 @@
     const loadingEl = document.getElementById('loading');
     const taskContainer = document.getElementById('taskContainer');
 
-    // Show and load tasks
     function startTaskListener() {
       loadingEl.style.display = 'block';
-      db.collection('tasks')
-        .where('status', '==', 'approved')
+      db.collection('tasks').where('status','==','approved')
         .onSnapshot(snapshot => {
           loadingEl.style.display = 'none';
           taskContainer.innerHTML = '';
@@ -53,7 +50,6 @@
         });
     }
 
-    // Render each task card
     function renderTask(doc) {
       const data = doc.data(), id = doc.id;
       const price = data.costPerUser || data.totalBudget / data.workersNeeded;
@@ -82,24 +78,21 @@
   `;
   taskContainer.appendChild(div);
 
-  // Listen for approved submissions count
-  db.collection('task_submissions')
-    .where('taskId','==',id)
-    .onSnapshot(snap => {
-      let done = 0;
-      snap.forEach(s => { if (['approved','reviewed'].includes(s.data().status)) done++; });
-      const pct = Math.min(100, Math.round((done / data.workersNeeded) * 100));
-      document.getElementById(`bar-${id}`).style.width = `${pct}%`;
-      document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
-      if (done >= data.workersNeeded) {
-        document.getElementById(`task-${id}`)?.remove();
-        db.collection('tasks').doc(id).update({ status: 'completed' });
-      }
-    });
+  db.collection('task_submissions').where('taskId','==',id).onSnapshot(snap => {
+    let done = 0;
+    snap.forEach(s => { if (['approved','reviewed'].includes(s.data().status)) done++; });
+    const pct = Math.min(100, Math.round((done / data.workersNeeded) * 100));
+    document.getElementById(`bar-${id}`).style.width = `${pct}%`;
+    document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
+    if (done >= data.workersNeeded) {
+      document.getElementById(`task-${id}`)?.remove();
+      db.collection('tasks').doc(id).update({ status: 'completed' });
+    }
+  });
 }
 
 /**
- * Upload file to Imgur via anonymous API, reporting progress
+ * Imgur upload via FormData, including type=base64 parameter
  */
 async function uploadToImgur(file, onProgress) {
   const clientId = 'fb533db21a59486';
@@ -108,6 +101,10 @@ async function uploadToImgur(file, onProgress) {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result.split(',')[1];
+      const form = new FormData();
+      form.append('image', base64);
+      form.append('type', 'base64');
+
       const xhr = new XMLHttpRequest();
       xhr.open('POST', endpoint);
       xhr.setRequestHeader('Authorization', 'Client-ID ' + clientId);
@@ -115,18 +112,22 @@ async function uploadToImgur(file, onProgress) {
         if (evt.lengthComputable) onProgress(Math.round((evt.loaded / evt.total) * 100));
       };
       xhr.onload = () => {
-        const res = JSON.parse(xhr.responseText);
-        res.success ? resolve(res.data.link) : reject(res.data.error);
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res.success) resolve(res.data.link);
+          else reject(res.data.error);
+        } catch (e) {
+          reject('Invalid JSON');
+        }
       };
       xhr.onerror = () => reject('Network error');
-      xhr.send(JSON.stringify({ image: base64 }));
+      xhr.send(form);
     };
     reader.onerror = () => reject('FileReader error');
     reader.readAsDataURL(file);
   });
 }
 
-// Submit proof: upload image to Imgur, then save in Firestore
 async function submitProof(taskId, payout) {
   const textEl = document.getElementById(`text-${taskId}`);
   const fileEl = document.getElementById(`file-${taskId}`);
@@ -137,7 +138,6 @@ async function submitProof(taskId, payout) {
   const container = document.getElementById(`upload-container-${taskId}`);
 
   if (!text || !file) return alert('Please fill both text and image proof.');
-
   container.style.display = label.style.display = 'block';
   try {
     const imageUrl = await uploadToImgur(file, pct => {
@@ -151,15 +151,14 @@ async function submitProof(taskId, payout) {
     });
     label.textContent = 'Submitted!';
     setTimeout(() => {
-      container.style.display = label.style.display = 'none';
-      bar.style.width = '0%'; textEl.value = ''; fileEl.value = null;
+      container.style.display = label.style.display = 'none'; bar.style.width = '0%';
+      textEl.value = ''; fileEl.value = null;
     }, 1000);
   } catch (err) {
     label.textContent = 'Error: ' + err;
   }
 }
 
-// Initialize
 startTaskListener();
 
   </script>
