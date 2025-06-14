@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -25,8 +26,13 @@
 <body>
   <header>EasyPay – Available Tasks</header>
   <div id="loading">Loading tasks...</div>
-  <div id="taskContainer"></div>  <!-- Firebase SDKs: only Firestore needed -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    // Firebase initialization
+  <div id="taskContainer"></div>
+
+  <!-- Firebase Firestore SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Initialize Firebase (Firestore only)
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -42,7 +48,7 @@
     const loadingEl = document.getElementById('loading');
     const taskContainer = document.getElementById('taskContainer');
 
-    // Listen and render tasks
+    // 1) Load tasks
     function startTaskListener() {
       loadingEl.style.display = 'block';
       db.collection('tasks')
@@ -51,12 +57,12 @@
           loadingEl.style.display = 'none';
           taskContainer.innerHTML = '';
           snapshot.docs.reverse().forEach(doc => renderTask(doc));
-      });
+        });
     }
 
+    // 2) Render each task with proof form
     function renderTask(doc) {
-      const data = doc.data();
-      const id = doc.id;
+      const data = doc.data(), id = doc.id;
       const price = data.costPerUser || data.totalBudget / data.workersNeeded;
       const userPay = parseFloat((price * 0.7).toFixed(2));
 
@@ -72,104 +78,102 @@
         <button onclick="window.open('${data.link}','_blank')" style="padding:6px 12px; background:#006400; color:#fff; border:none; border-radius:6px; cursor:pointer;">Start Task</button>
         <div class="proof">
           <label>Text Proof:</label>
-          <textarea id="text-${id}" placeholder="Enter text proof..."></textarea><label>Upload Image Proof:</label>
-      <input type="file" id="file-${id}" accept="image/*" />
-      <div class="upload-progress-container" id="upload-container-${id}">
-        <div class="upload-progress-bar" id="upload-bar-${id}"></div>
-      </div>
-      <div class="upload-progress-label" id="upload-label-${id}"></div>
-      <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
-    </div>
-  `;
-  taskContainer.appendChild(div);
+          <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
+          <label>Upload Image Proof:</label>
+          <input type="file" id="file-${id}" accept="image/*" />
+          <div class="upload-progress-container" id="upload-container-${id}">
+            <div class="upload-progress-bar" id="upload-bar-${id}"></div>
+          </div>
+          <div class="upload-progress-label" id="upload-label-${id}"></div>
+          <button class="submit-btn" onclick="submitProof('${id}', ${userPay})">Submit Proof</button>
+        </div>
+      `;
+      taskContainer.appendChild(div);
 
-  // Update progress for approval
-  db.collection('task_submissions')
-    .where('taskId', '==', id)
-    .onSnapshot(snap => {
-      let done = 0;
-      snap.forEach(s => { if (['approved','reviewed'].includes(s.data().status)) done++; });
-      const pct = Math.min(100, Math.round((done / data.workersNeeded) * 100));
-      document.getElementById(`bar-${id}`).style.width = pct + '%';
-      document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
-      if (done >= data.workersNeeded) {
-        document.getElementById(`task-${id}`)?.remove();
-        db.collection('tasks').doc(id).update({ status: 'completed' });
+      // Track completion progress
+      db.collection('task_submissions')
+        .where('taskId','==',id)
+        .onSnapshot(snap => {
+          let done = 0;
+          snap.forEach(s => { if (['approved','reviewed'].includes(s.data().status)) done++; });
+          const pct = Math.min(100, Math.round((done / data.workersNeeded) * 100));
+          document.getElementById(`bar-${id}`).style.width = pct + '%';
+          document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
+          if (done >= data.workersNeeded) {
+            document.getElementById(`task-${id}`)?.remove();
+            db.collection('tasks').doc(id).update({ status: 'completed' });
+          }
+        });
+    }
+
+    // 3) Upload via your PHP endpoint with progress
+    function uploadViaPhp(file, onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://imageshostuploaded.xyz/uploadimage.php');
+        xhr.upload.onprogress = evt => {
+          if (evt.lengthComputable) {
+            onProgress(Math.round((evt.loaded / evt.total) * 100));
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              return resolve(res.imageUrl || '');
+            } catch {
+              return reject('Invalid JSON from server');
+            }
+          }
+          reject('Upload failed: ' + xhr.status);
+        };
+        xhr.onerror = () => reject('Network error');
+        const formData = new FormData();
+        formData.append('image', file);
+        xhr.send(formData);
+      });
+    }
+
+    // 4) Submit proof: text + image, then store in Firestore
+    async function submitProof(taskId, payout) {
+      const textEl = document.getElementById(`text-${taskId}`);
+      const fileEl = document.getElementById(`file-${taskId}`);
+      const text = textEl.value.trim();
+      const file = fileEl.files[0];
+      const bar = document.getElementById(`upload-bar-${taskId}`);
+      const label = document.getElementById(`upload-label-${taskId}`);
+      const container = document.getElementById(`upload-container-${taskId}`);
+
+      if (!text || !file) return alert('Please enter text proof and select an image');
+      container.style.display = 'block';
+      label.style.display = 'block';
+
+      try {
+        const imageUrl = await uploadViaPhp(file, pct => {
+          bar.style.width = pct + '%';
+          label.textContent = pct + '%';
+        });
+        // Using anonymous placeholder userId; replace with real UID if you have auth
+        const userId = 'public_' + Date.now();
+        await db.collection('task_submissions').add({
+          taskId, userId, textProof: text, imageProof: imageUrl,
+          payout, status: 'pending', submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        label.textContent = 'Submitted!';
+        setTimeout(() => {
+          container.style.display = 'none';
+          label.style.display = 'none';
+          bar.style.width = '0%';
+        }, 1000);
+        textEl.value = '';
+        fileEl.value = null;
+      } catch (err) {
+        label.textContent = 'Error: ' + err;
       }
-    });
-}
+    }
 
-/**
- * Upload image file to your PHP endpoint with progress via XMLHttpRequest
- * Returns Promise<string> resolving to image URL
- */
-function uploadViaPhp(file, onProgress) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://imageshostuploaded.xyz/uploadimage.php');
-    xhr.upload.onprogress = evt => {
-      if (evt.lengthComputable) {
-        onProgress(Math.round((evt.loaded / evt.total) * 100));
-      }
-    };
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        try {
-          const res = JSON.parse(xhr.responseText);
-          resolve(res.imageUrl || '');
-        } catch (e) {
-          reject('Invalid JSON response');
-        }
-      } else reject('Upload failed with status ' + xhr.status);
-    };
-    xhr.onerror = () => reject('Network error');
-    const formData = new FormData();
-    formData.append('image', file);
-    xhr.send(formData);
-  });
-}
-
-// Submit proof using PHP upload
-async function submitProof(taskId, payout) {
-  const textEl = document.getElementById(`text-${taskId}`);
-  const fileEl = document.getElementById(`file-${taskId}`);
-  const text = textEl.value.trim();
-  const file = fileEl.files[0];
-  const bar = document.getElementById(`upload-bar-${taskId}`);
-  const label = document.getElementById(`upload-label-${taskId}`);
-  const container = document.getElementById(`upload-container-${taskId}`);
-  if (!text || !file) return alert('Fill text and select an image');
-
-  container.style.display = 'block';
-  label.style.display = 'block';
-
-  try {
-    const imageUrl = await uploadViaPhp(file, pct => {
-      bar.style.width = pct + '%';
-      label.textContent = pct + '%';
-    });
-    // Save to Firestore
-    const userId = 'public_' + Date.now();
-    await db.collection('task_submissions').add({
-      taskId, userId, textProof: text, imageProof: imageUrl,
-      payout, status: 'pending', submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    label.textContent = 'Submitted!';
-    setTimeout(() => {
-      container.style.display = 'none';
-      label.style.display = 'none';
-      bar.style.width = '0%';
-    }, 1000);
-    textEl.value = '';
-    fileEl.value = null;
-  } catch (err) {
-    label.textContent = 'Error: ' + err;
-  }
-}
-
-// Initialize
-startTaskListener();
-
+    // Start loading tasks immediately
+    startTaskListener();
   </script>
 </body>
 </html>
