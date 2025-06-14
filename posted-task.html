@@ -2,13 +2,14 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>My Tasks & Submissions</title>
+  <title>My Tasks &amp; Submissions</title>
   <style>
     /* Global */
     body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: #f8fff8; color: #003300; }
     header { background: #006400; color: #fff; padding: 16px; text-align: center; font-size: 1.5em; font-weight: bold; }
     button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; }
-    select { margin: 0 8px; padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
+    details { background: #fff; border-radius: 6px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    summary { padding: 12px 16px; font-weight: bold; background: #e6f4e6; cursor: pointer; }
     /* Login */
     #loginDiv { max-width: 360px; margin: 80px auto; padding: 24px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,100,0,0.1); text-align: center; }
     #loginDiv input, #loginDiv button { width: 100%; margin: 8px 0; padding: 10px; }
@@ -17,22 +18,14 @@
     /* Dashboard */
     #dashboard { display: none; padding: 20px; }
     #logoutBtn { float: right; background: #cc0000; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-radius: 6px; }
-    .task-header { display: flex; align-items: center; justify-content: space-between; }
     h2.task-title { margin: 24px 0 8px; color: #006400; }
     /* Table */
-    .sub-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,100,0,0.1); margin-bottom: 40px; }
+    .sub-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; margin: 0; }
     .sub-table th, .sub-table td { padding: 12px 16px; border-bottom: 1px solid #e0e0e0; text-align: left; }
     .sub-table th { background: #e6f4e6; color: #004400; }
-    .sub-table tr:hover td { background: #f0fff0; }
     .approve-btn { background: #009900; color: #fff; padding: 6px 12px; margin-right: 4px; }
     .reject-btn  { background: #cc0000; color: #fff; padding: 6px 12px; }
     .view-btn    { background: #0066cc; color: #fff; padding: 6px 12px; }
-    @media (max-width:600px) {
-      .sub-table th, .sub-table td { padding: 8px 10px; }
-      header { font-size:1.2em; padding:12px; }
-      .task-header { flex-direction: column; align-items: flex-start; }
-      select { margin-top: 8px; }
-    }
   </style>
 </head>
 <body>
@@ -92,7 +85,7 @@
       }
     });
 
-    // Load tasks + submissions with filter
+    // Load tasks + submissions with collapsible status sections
     async function loadOwnerTasks(uid) {
       tasksContainer.innerHTML = "";
 
@@ -119,141 +112,100 @@
         return;
       }
 
-      tasks.forEach(taskObj => {
-        const { id: taskId, data: task } = taskObj;
-
-        // Task header with filter
-        const headerDiv = document.createElement("div");
-        headerDiv.className = "task-header";
+      for (const {id: taskId, data: task} of tasks) {
+        // Task title
         const title = document.createElement("h2");
         title.className = "task-title";
         title.textContent = `${task.taskTitle} — ${task.category}`;
-        headerDiv.appendChild(title);
+        tasksContainer.appendChild(title);
 
-        const filter = document.createElement("select");
-        ["all","pending","approved","rejected"].forEach(status => {
-          const opt = document.createElement("option");
-          opt.value = status;
-          opt.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-          filter.appendChild(opt);
+        // Create details sections for each status
+        ['pending','approved','rejected'].forEach(status => {
+          const details = document.createElement('details');
+          const summary = document.createElement('summary');
+          summary.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+          details.appendChild(summary);
+
+          const table = document.createElement('table');
+          table.className = 'sub-table';
+          table.innerHTML = `
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>User</th>
+                <th>Date</th>
+                <th>Proof</th>
+                <th>Image</th>
+                <th>Approve</th>
+                <th>Reject</th>
+              </tr>
+            </thead>
+            <tbody id="${status}-tb-${taskId}"></tbody>`;
+          details.appendChild(table);
+          tasksContainer.appendChild(details);
         });
-        headerDiv.appendChild(filter);
-        tasksContainer.appendChild(headerDiv);
 
-        // Table setup
-        const table = document.createElement("table");
-        table.className = "sub-table";
-        table.innerHTML = `
-          <thead>
-            <tr>
-              <th>No.</th>
-              <th>User</th>
-              <th>Date</th>
-              <th>Proof</th>
-              <th>Image</th>
-              <th>Status</th>
-              <th>Approve</th>
-              <th>Reject</th>
-            </tr>
-          </thead>
-          <tbody id="tb-${taskId}"></tbody>`;
-        tasksContainer.appendChild(table);
-        const tbody = document.getElementById(`tb-${taskId}`);
-
-        // Subscription
+        // Listen submissions
         db.collection("task_submissions")
           .where("taskId","==",taskId)
           .onSnapshot(snap => {
-            let subs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+            const subs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+            // Sort newest-first
             subs.sort((a,b) => (b.data.submittedAt?.toMillis()||0) - (a.data.submittedAt?.toMillis()||0));
-            renderSubs(subs, filter.value);
-          });
-
-        // Filter change listener
-        filter.onchange = () => {
-          // Re-fetch current subs snapshot
-          db.collection("task_submissions")
-            .where("taskId","==",taskId)
-            .get()
-            .then(snap => {
-              let subs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
-              subs.sort((a,b) => (b.data.submittedAt?.toMillis()||0) - (a.data.submittedAt?.toMillis()||0));
-              renderSubs(subs, filter.value);
+            // Group by status
+            ['pending','approved','rejected'].forEach(status => {
+              const tbody = document.getElementById(`${status}-tb-${taskId}`);
+              tbody.innerHTML = '';
+              const filtered = subs.filter(s => s.data.status === status);
+              filtered.forEach((sub, idx) => {
+                const d = sub.data;
+                const tr = document.createElement('tr');
+                const uname = usersData[d.userId] || d.userId;
+                const dateStr = d.submittedAt?.toDate()?.toLocaleString() || '';
+                tr.innerHTML = `
+                  <td>${filtered.length - idx}</td>
+                  <td>${uname}</td>
+                  <td>${dateStr}</td>
+                  <td>${d.textProof||''}</td>
+                  <td></td>`;
+                // Image cell
+                const imgTd = document.createElement('td');
+                if (d.imageProof) {
+                  const btn = document.createElement('button');
+                  btn.className = 'view-btn'; btn.textContent = 'View';
+                  btn.onclick = () => window.open(d.imageProof, '_blank');
+                  imgTd.appendChild(btn);
+                }
+                tr.replaceChild(imgTd, tr.children[4]);
+                // Actions
+                const apBtn = document.createElement('button');
+                const rjBtn = document.createElement('button');
+                apBtn.className = 'approve-btn'; apBtn.textContent = 'Approve';
+                rjBtn.className = 'reject-btn';  rjBtn.textContent = 'Reject';
+                if (d.status !== 'pending') {
+                  [apBtn, rjBtn].forEach(b=>{b.disabled=true; b.style.opacity=0.5;});
+                } else {
+                  apBtn.onclick = async () => { await handleDecision(taskId, sub.id, true); };
+                  rjBtn.onclick = async () => { await handleDecision(taskId, sub.id, false); };
+                }
+                const apTd = document.createElement('td'); apTd.appendChild(apBtn);
+                const rjTd = document.createElement('td'); rjTd.appendChild(rjBtn);
+                tr.appendChild(apTd); tr.appendChild(rjTd);
+                tbody.appendChild(tr);
+              });
             });
-        };
-
-        // Render function
-        function renderSubs(allSubs, statusFilter) {
-          tbody.innerHTML = "";
-          const filtered = statusFilter === 'all'
-            ? allSubs
-            : allSubs.filter(s => s.data.status === statusFilter);
-
-          filtered.forEach((sub, index) => {
-            const total = filtered.length;
-            const number = total - index;
-            const d = sub.data;
-            const tr = document.createElement("tr");
-            const uname = usersData[d.userId] || d.userId;
-            const dateStr = d.submittedAt?.toDate()?.toLocaleString() || "";
-
-            tr.innerHTML = `
-              <td>${number}</td>
-              <td>${uname}</td>
-              <td>${dateStr}</td>
-              <td>${d.textProof||''}</td>
-              <td></td>
-              <td>${d.status}</td>
-            `;
-
-            // Image cell
-            const imgTd = document.createElement("td");
-            if (d.imageProof) {
-              const btn = document.createElement("button");
-              btn.className = "view-btn";
-              btn.textContent = "View";
-              btn.onclick = () => window.open(d.imageProof, "_blank");
-              imgTd.appendChild(btn);
-            }
-            tr.replaceChild(imgTd, tr.children[4]);
-
-            // Approve/Reject
-            ['approve','reject'].forEach(action => {
-              const td = document.createElement("td");
-              const btn = document.createElement("button");
-              btn.className = action==='approve' ? 'approve-btn':'reject-btn';
-              btn.textContent = action.charAt(0).toUpperCase()+action.slice(1);
-
-              if (d.status !== 'pending') {
-                btn.disabled = true;
-                btn.style.opacity = 0.5;
-              } else {
-                btn.onclick = async () => {
-                  btn.disabled = true;
-                  await handleDecision(taskId, sub.id, action==='approve');
-                  renderSubs(allSubs, statusFilter);
-                };
-              }
-              td.appendChild(btn);
-              tr.appendChild(td);
-            });
-
-            tbody.appendChild(tr);
           });
-        }
-      });
+      }
     }
 
-    // Approve/Reject & credit
+    // Approve/Reject & credit at 70%
     async function handleDecision(taskId, subId, approve) {
       const subRef = db.collection("task_submissions").doc(subId);
       await subRef.update({ status: approve?"approved":"rejected" });
       if (approve) {
         const tdoc = await db.collection("tasks").doc(taskId).get();
         const t = tdoc.data();
-        let reward = t.costPerUser?
-          t.costPerUser*0.7
-          : (t.totalBudget/t.workersNeeded)*0.7;
+        const reward = (t.costPerUser? t.costPerUser : (t.totalBudget/t.workersNeeded)) * 0.7;
         const s = await subRef.get();
         const uid = s.data().userId;
         await db.collection("users").doc(uid)
