@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EasyPay – Available Tasks & My Submissions</title>
+  <title>EasyPay – Available Tasks</title>
   <style>
     body { margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; background-color: #f8fff8; }
     #loginDiv, #app { max-width: 800px; margin: auto; }
@@ -11,23 +11,19 @@
     #loginDiv button { padding: 10px 20px; background: #006400; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
     #loginError { color: red; margin-top: 8px; }
     header { text-align: center; color: #006400; font-size: 2em; margin-bottom: 20px; }
-    #tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-    .tab { padding: 8px 16px; cursor: pointer; border-radius: 6px; background: #e8f5e9; }
-    .tab.active { background: #006400; color: #fff; }
-    .section { display: none; }
-    .section.active { display: block; }
-    .task, .submission { background: #fff; border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .task h2, .submission h3 { color: #006400; margin: 0 0 10px; }
+    #logoutBtn { float: right; padding: 6px 12px; background: #006400; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    .task { background: #fff; border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .task h2 { margin: 0 0 10px; color: #006400; font-size: 1.5em; }
+    .task p { margin: 8px 0; line-height: 1.4; }
+    .progress-container { background: #eee; border-radius: 20px; overflow: hidden; margin: 10px 0; height: 16px; }
+    .progress-bar { height: 100%; background: #28a745; width: 0%; transition: width 0.4s ease-in-out; }
+    .proof { margin-top: 15px; }
     .proof label { display: block; margin-bottom: 4px; font-weight: bold; }
     .proof textarea, .proof input[type=file] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
     .submit-btn { padding: 8px 16px; background: #007700; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    .progress-container { background: #eee; border-radius: 20px; overflow: hidden; margin: 10px 0; height: 16px; }
-    .progress-bar { height: 100%; background: #28a745; width: 0%; transition: width 0.4s ease-in-out; }
     .upload-progress-container { background: #eee; border-radius: 10px; overflow: hidden; height: 10px; margin-bottom: 4px; display: none; }
     .upload-progress-bar { height: 100%; width: 0%; transition: width 0.2s ease; }
     .upload-progress-label { font-size: 11px; text-align: right; color: #004400; display: none; }
-    .status { font-weight: bold; }
-    #logoutBtn { float: right; padding: 6px 12px; background:#006400; color:#fff; border:none; border-radius:6px; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -40,20 +36,11 @@
   </div>
   <div id="app">
     <button id="logoutBtn">Sign Out</button>
-    <header>EasyPay</header>
-    <div id="tabs">
-      <div class="tab active" data-target="tasksSection">Available Tasks</div>
-      <div class="tab" data-target="subsSection">My Submissions</div>
-    </div>
-    <div id="tasksSection" class="section active">
-      <div id="loadingTasks">Loading tasks...</div>
-      <div id="taskContainer"></div>
-    </div>
-    <div id="subsSection" class="section">
-      <div id="loadingSubs">Loading submissions...</div>
-      <div id="subsContainer"></div>
-    </div>
+    <header>EasyPay – Available Tasks</header>
+    <div id="loading">Loading tasks...</div>
+    <div id="taskContainer"></div>
   </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
+    // Firebase config and init
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -66,17 +53,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
-    // Tabs
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.onclick = () => {
-        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.target).classList.add('active');
-      };
-    });
-
-    // Auth
+    // Auth handling
     const loginDiv = document.getElementById('loginDiv'), appDiv = document.getElementById('app');
     const loginBtn = document.getElementById('loginBtn'), logoutBtn = document.getElementById('logoutBtn');
     const emailInput = document.getElementById('email'), passInput = document.getElementById('password');
@@ -93,22 +70,20 @@
       if (user) {
         loginDiv.style.display = 'none';
         appDiv.style.display = 'block';
-        startTaskListener();
-        startSubsListener();
+        loadTasks();
       } else {
         loginDiv.style.display = 'block';
         appDiv.style.display = 'none';
       }
     });
 
-    // Tasks
-    const loadingTasks = document.getElementById('loadingTasks');
-    const taskContainer = document.getElementById('taskContainer');
-    function startTaskListener() {
-      loadingTasks.style.display = 'block';
+    // Load and render tasks
+    const loadingEl = document.getElementById('loading'), taskContainer = document.getElementById('taskContainer');
+    function loadTasks() {
+      loadingEl.style.display = 'block';
       db.collection('tasks').where('status','==','approved')
         .onSnapshot(snapshot => {
-          loadingTasks.style.display = 'none';
+          loadingEl.style.display = 'none';
           taskContainer.innerHTML = '';
           snapshot.docs.reverse().forEach(renderTask);
         });
@@ -121,7 +96,7 @@
       const div = document.createElement('div'); div.className='task'; div.id=`task-${id}`;
       div.innerHTML = `
         <h2>${data.taskTitle} — ${data.category}</h2>
-        <p>${data.description||''}</p>
+        <p>${data.description || ''}</p>
         <p><strong>Earn:</strong> ₦${userPay}</p>
         <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
         <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
@@ -135,40 +110,18 @@
       <button onclick="submitProof('${id}',${userPay})" class="submit-btn">Submit Proof</button>
     </div>`;
   taskContainer.appendChild(div);
+
+  // Track approvals
   db.collection('task_submissions').where('taskId','==',id)
-    .onSnapshot(snap=>{
+    .onSnapshot(snap => {
       let done=0; snap.forEach(s=>{ if(['approved','reviewed'].includes(s.data().status)) done++; });
-      const pct=Math.min(100,Math.round(done/data.workersNeeded*100));
+      const pct = Math.min(100,Math.round(done/data.workersNeeded*100));
       document.getElementById(`bar-${id}`).style.width=`${pct}%`;
       document.getElementById(`label-${id}`).textContent=`${done} / ${data.workersNeeded} completed`;
     });
 }
 
-// My Submissions
-const loadingSubs = document.getElementById('loadingSubs');
-const subsContainer = document.getElementById('subsContainer');
-function startSubsListener() {
-  loadingSubs.style.display = 'block';
-  db.collection('task_submissions')
-    .where('userId','==', auth.currentUser.uid)
-    .orderBy('submittedAt','desc')
-    .onSnapshot(snapshot => {
-      loadingSubs.style.display = 'none';
-      subsContainer.innerHTML = '';
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        const div = document.createElement('div'); div.className='submission';
-        div.innerHTML = `
-          <h3>Task: ${d.taskId}</h3>
-          <p><strong>Text:</strong> ${d.textProof}</p>
-          <p class="status"><strong>Status:</strong> ${d.status}</p>
-          <p><strong>Image:</strong><br><img src="${d.imageProof}" style="max-width:100%; border-radius:6px;" /></p>`;
-        subsContainer.appendChild(div);
-      });
-    });
-}
-
-// Imgur upload
+/** Imgur upload **/
 async function uploadToImgur(file, onProgress) {
   const clientId='fb533db21a59486', endpoint='https://api.imgur.com/3/image';
   return new Promise((resolve,reject)=>{
@@ -178,13 +131,12 @@ async function uploadToImgur(file, onProgress) {
       const xhr=new XMLHttpRequest(); xhr.open('POST',endpoint);
       xhr.setRequestHeader('Authorization','Client-ID '+clientId);
       xhr.upload.onprogress=evt=> evt.lengthComputable && onProgress(Math.round(evt.loaded/evt.total*100));
-      xhr.onload=()=>{ try{const r=JSON.parse(xhr.responseText); r.success?resolve(r.data.link):reject(r.data.error);}catch{reject('Invalid JSON')} };
+      xhr.onload=()=>{ try{const r=JSON.parse(xhr.responseText); r.success?resolve(r.data.link):reject(r.data.error);}catch{reject('Invalid JSON')}};
       xhr.onerror=()=>reject('Network error'); xhr.send(form);
     }; reader.onerror=()=>reject('FileReader error'); reader.readAsDataURL(file);
   });
 }
 
-// Submit proof with Imgur
 async function submitProof(taskId,payout){
   const textEl=document.getElementById(`text-${taskId}`), fileEl=document.getElementById(`file-${taskId}`);
   const text=textEl.value.trim(), file=fileEl.files[0];
@@ -197,9 +149,6 @@ async function submitProof(taskId,payout){
     label.textContent='Submitted!'; setTimeout(()=>{cont.style.display=label.style.display='none'; bar.style.width='0%'; textEl.value=''; fileEl.value=null;},1000);
   }catch(e){label.textContent='Error: '+e;}
 }
-
-// Start
-startTaskListener();
 
   </script>
 </body>
