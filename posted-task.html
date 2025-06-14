@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -9,6 +8,7 @@
     body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: #f8fff8; color: #003300; }
     header { background: #006400; color: #fff; padding: 16px; text-align: center; font-size: 1.5em; font-weight: bold; }
     button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; }
+    select { margin: 0 8px; padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     /* Login */
     #loginDiv { max-width: 360px; margin: 80px auto; padding: 24px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,100,0,0.1); text-align: center; }
     #loginDiv input, #loginDiv button { width: 100%; margin: 8px 0; padding: 10px; }
@@ -17,6 +17,7 @@
     /* Dashboard */
     #dashboard { display: none; padding: 20px; }
     #logoutBtn { float: right; background: #cc0000; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-radius: 6px; }
+    .task-header { display: flex; align-items: center; justify-content: space-between; }
     h2.task-title { margin: 24px 0 8px; color: #006400; }
     /* Table */
     .sub-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,100,0,0.1); margin-bottom: 40px; }
@@ -29,6 +30,8 @@
     @media (max-width:600px) {
       .sub-table th, .sub-table td { padding: 8px 10px; }
       header { font-size:1.2em; padding:12px; }
+      .task-header { flex-direction: column; align-items: flex-start; }
+      select { margin-top: 8px; }
     }
   </style>
 </head>
@@ -36,29 +39,16 @@
   <header>My Tasks &amp; Submissions</header>
   <p style="text-align:center; margin-top:8px; color:#004400; font-size:0.9em;">
     Payouts are calculated at 70% of the task cost (decimals allowed).
-  </p>
-
-  <!-- Login Form -->
-  <div id="loginDiv">
+  </p>  <!-- Login Form -->  <div id="loginDiv">
     <h2>Sign In</h2>
     <input id="email"    type="email"    placeholder="Email"/><br>
     <input id="password" type="password" placeholder="Password"/><br>
     <button id="loginBtn">Sign In</button>
     <p id="loginError"></p>
-  </div>
-
-  <!-- Dashboard -->
-  <div id="dashboard">
+  </div>  <!-- Dashboard -->  <div id="dashboard">
     <button id="logoutBtn">Sign Out</button>
     <div id="tasksContainer"></div>
-  </div>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <script>
+  </div>  <!-- Firebase SDKs -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
     // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -102,18 +92,18 @@
       }
     });
 
-    // Load tasks + submissions, sorted newest-first
+    // Load tasks + submissions with filter
     async function loadOwnerTasks(uid) {
       tasksContainer.innerHTML = "";
 
-      // Preload users
+      // Preload users map
       const usersData = {};
       (await db.collection("users").get()).forEach(u => {
         const d = u.data();
         usersData[u.id] = d.username || d.email || u.id;
       });
 
-      // Fetch and sort tasks by createdAt desc
+      // Fetch and sort tasks
       const taskSnap = await db.collection("tasks")
         .where("createdBy", "==", uid)
         .get();
@@ -124,19 +114,33 @@
       });
       tasks.sort((a,b) => b.ts - a.ts);
 
-      if (tasks.length === 0) {
+      if (!tasks.length) {
         tasksContainer.innerHTML = "<p>No tasks posted.</p>";
         return;
       }
 
-      for (const {id: taskId, data: task} of tasks) {
-        // Task header
-        const h2 = document.createElement("h2");
-        h2.className   = "task-title";
-        h2.textContent = `${task.taskTitle} — ${task.category}`;
-        tasksContainer.appendChild(h2);
+      tasks.forEach(taskObj => {
+        const { id: taskId, data: task } = taskObj;
 
-        // Table (with "No." column added)
+        // Task header with filter
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "task-header";
+        const title = document.createElement("h2");
+        title.className = "task-title";
+        title.textContent = `${task.taskTitle} — ${task.category}`;
+        headerDiv.appendChild(title);
+
+        const filter = document.createElement("select");
+        ["all","pending","approved","rejected"].forEach(status => {
+          const opt = document.createElement("option");
+          opt.value = status;
+          opt.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+          filter.appendChild(opt);
+        });
+        headerDiv.appendChild(filter);
+        tasksContainer.appendChild(headerDiv);
+
+        // Table setup
         const table = document.createElement("table");
         table.className = "sub-table";
         table.innerHTML = `
@@ -156,110 +160,105 @@
         tasksContainer.appendChild(table);
         const tbody = document.getElementById(`tb-${taskId}`);
 
-        // Listen submissions
+        // Subscription
         db.collection("task_submissions")
           .where("taskId","==",taskId)
           .onSnapshot(snap => {
-            // Build array of { id, data }
-            const subs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
-            // Sort newest-first
-            subs.sort((a,b) => {
-              const ta = a.data.submittedAt?.toMillis() || 0;
-              const tb = b.data.submittedAt?.toMillis() || 0;
-              return tb - ta;
-            });
-            tbody.innerHTML = "";
-
-            subs.forEach(({id, data:d}, index) => {
-              // Compute chronological number: oldest = 1, newest = n
-              const total = subs.length;
-              const number = total - index;
-
-              const tr = document.createElement("tr");
-              const uname   = usersData[d.userId] || d.userId;
-              const dateStr = d.submittedAt?.toDate()?.toLocaleString() || "";
-
-              // Insert the "No." cell first, then the rest
-              tr.innerHTML = `
-                <td>${number}</td>
-                <td>${uname}</td>
-                <td>${dateStr}</td>
-                <td>${d.textProof || ""}</td>
-                <td></td>
-                <td>${d.status}</td>`;
-
-              // Replace the empty <td> for Image with a "View" button if exists
-              const imgTd = document.createElement("td");
-              if (d.imageProof) {
-                const viewBtn = document.createElement("button");
-                viewBtn.className   = "view-btn";
-                viewBtn.textContent = "View";
-                viewBtn.onclick     = () => window.open(d.imageProof, "_blank","noopener,noreferrer");
-                imgTd.appendChild(viewBtn);
-              }
-              tr.replaceChild(imgTd, tr.children[4]);
-
-              // Approve/Reject buttons
-              const apBtn = document.createElement("button");
-              const rjBtn = document.createElement("button");
-              apBtn.className = "approve-btn"; apBtn.textContent = "Approve";
-              rjBtn.className = "reject-btn";  rjBtn.textContent = "Reject";
-
-              if (d.status !== "pending") {
-                apBtn.disabled = true;
-                rjBtn.disabled = true;
-                apBtn.style.opacity = 0.5;
-                rjBtn.style.opacity = 0.5;
-              } else {
-                apBtn.onclick = async () => {
-                  apBtn.disabled = true;
-                  rjBtn.disabled = true;
-                  apBtn.style.opacity = 0.5;
-                  rjBtn.style.opacity = 0.5;
-                  await handleDecision(taskId, id, true);
-                  tr.children[5].textContent = "approved";
-                };
-                rjBtn.onclick = async () => {
-                  apBtn.disabled = true;
-                  rjBtn.disabled = true;
-                  apBtn.style.opacity = 0.5;
-                  rjBtn.style.opacity = 0.5;
-                  await handleDecision(taskId, id, false);
-                  tr.children[5].textContent = "rejected";
-                };
-              }
-
-              const apTd = document.createElement("td");
-              const rjTd = document.createElement("td");
-              apTd.appendChild(apBtn);
-              rjTd.appendChild(rjBtn);
-              tr.appendChild(apTd);
-              tr.appendChild(rjTd);
-
-              tbody.appendChild(tr);
-            });
+            let subs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+            subs.sort((a,b) => (b.data.submittedAt?.toMillis()||0) - (a.data.submittedAt?.toMillis()||0));
+            renderSubs(subs, filter.value);
           });
-      }
+
+        // Filter change listener
+        filter.onchange = () => {
+          // Re-fetch current subs snapshot
+          db.collection("task_submissions")
+            .where("taskId","==",taskId)
+            .get()
+            .then(snap => {
+              let subs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+              subs.sort((a,b) => (b.data.submittedAt?.toMillis()||0) - (a.data.submittedAt?.toMillis()||0));
+              renderSubs(subs, filter.value);
+            });
+        };
+
+        // Render function
+        function renderSubs(allSubs, statusFilter) {
+          tbody.innerHTML = "";
+          const filtered = statusFilter === 'all'
+            ? allSubs
+            : allSubs.filter(s => s.data.status === statusFilter);
+
+          filtered.forEach((sub, index) => {
+            const total = filtered.length;
+            const number = total - index;
+            const d = sub.data;
+            const tr = document.createElement("tr");
+            const uname = usersData[d.userId] || d.userId;
+            const dateStr = d.submittedAt?.toDate()?.toLocaleString() || "";
+
+            tr.innerHTML = `
+              <td>${number}</td>
+              <td>${uname}</td>
+              <td>${dateStr}</td>
+              <td>${d.textProof||''}</td>
+              <td></td>
+              <td>${d.status}</td>
+            `;
+
+            // Image cell
+            const imgTd = document.createElement("td");
+            if (d.imageProof) {
+              const btn = document.createElement("button");
+              btn.className = "view-btn";
+              btn.textContent = "View";
+              btn.onclick = () => window.open(d.imageProof, "_blank");
+              imgTd.appendChild(btn);
+            }
+            tr.replaceChild(imgTd, tr.children[4]);
+
+            // Approve/Reject
+            ['approve','reject'].forEach(action => {
+              const td = document.createElement("td");
+              const btn = document.createElement("button");
+              btn.className = action==='approve' ? 'approve-btn':'reject-btn';
+              btn.textContent = action.charAt(0).toUpperCase()+action.slice(1);
+
+              if (d.status !== 'pending') {
+                btn.disabled = true;
+                btn.style.opacity = 0.5;
+              } else {
+                btn.onclick = async () => {
+                  btn.disabled = true;
+                  await handleDecision(taskId, sub.id, action==='approve');
+                  renderSubs(allSubs, statusFilter);
+                };
+              }
+              td.appendChild(btn);
+              tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+          });
+        }
+      });
     }
 
-    // Approve/Reject & credit at 70% (allow decimals)
+    // Approve/Reject & credit
     async function handleDecision(taskId, subId, approve) {
       const subRef = db.collection("task_submissions").doc(subId);
-      await subRef.update({ status: approve ? "approved" : "rejected" });
+      await subRef.update({ status: approve?"approved":"rejected" });
       if (approve) {
         const tdoc = await db.collection("tasks").doc(taskId).get();
-        const t    = tdoc.data();
-        // 70% multiplier, keep decimals
-        let reward = t.costPerUser
-          ? t.costPerUser * 0.7
-          : (t.totalBudget / t.workersNeeded) * 0.7;
-
-        const s   = await subRef.get();
-        const uid = s.data().userId; 
+        const t = tdoc.data();
+        let reward = t.costPerUser?
+          t.costPerUser*0.7
+          : (t.totalBudget/t.workersNeeded)*0.7;
+        const s = await subRef.get();
+        const uid = s.data().userId;
         await db.collection("users").doc(uid)
           .update({ balance: firebase.firestore.FieldValue.increment(reward) });
       }
     }
-  </script>
-</body>
+  </script></body>
 </html>
