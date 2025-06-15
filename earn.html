@@ -57,15 +57,15 @@
           appDiv   = document.getElementById('app'),
           loginBtn = document.getElementById('loginBtn'),
           logoutBtn= document.getElementById('logoutBtn'),
-          emailInput = document.getElementById('email'),
-          passInput  = document.getElementById('password'),
+          email    = document.getElementById('email'),
+          password = document.getElementById('password'),
           loginError = document.getElementById('loginError'),
           loadingEl  = document.getElementById('loading'),
           taskContainer = document.getElementById('taskContainer');
 
     loginBtn.onclick = () => {
       loginError.textContent = '';
-      auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
+      auth.signInWithEmailAndPassword(email.value, password.value)
         .catch(e => loginError.textContent = e.message);
     };
     logoutBtn.onclick = () => auth.signOut();
@@ -82,26 +82,39 @@
     });
 
     async function loadTasks() {
+      loadingEl.textContent = 'Loading tasks...';
       loadingEl.style.display = 'block';
       taskContainer.innerHTML = '';
-
-      // Fetch approved tasks newest first
-      const tasksSnap = await db.collection('tasks')
-        .where('status','==','approved')
-        .orderBy('createdAt','desc')
-        .get();
-
-      for (let doc of tasksSnap.docs) {
-        const task = doc.data(), id = doc.id;
-        const approvedSnap = await db.collection('task_submissions')
-          .where('taskId','==',id)
+      try {
+        let tasksSnap = await db.collection('tasks')
           .where('status','==','approved')
           .get();
-        if (approvedSnap.size < task.workersNeeded) {
-          renderTask(id, task);
+        // Sort by createdAt desc, fallback to doc id
+        let tasks = tasksSnap.docs.slice();
+        tasks.sort((a,b) => {
+          const at = a.data().createdAt?.toMillis() || 0;
+          const bt = b.data().createdAt?.toMillis() || 0;
+          return bt - at;
+        });
+        if (!tasks.length) {
+          loadingEl.textContent = 'No available tasks.';
+        } else {
+          for (let doc of tasks) {
+            const data = doc.data(), id = doc.id;
+            const approvedSnap = await db.collection('task_submissions')
+              .where('taskId','==',id)
+              .where('status','==','approved')
+              .get();
+            if (approvedSnap.size < data.workersNeeded) {
+              renderTask(id, data);
+            }
+          }
+          loadingEl.style.display = 'none';
         }
+      } catch (e) {
+        console.error(e);
+        loadingEl.textContent = 'Error loading tasks';
       }
-      loadingEl.style.display = 'none';
     }
 
     function renderTask(id, data) {
@@ -144,7 +157,7 @@
     });
 }
 
-// Include your existing uploadToImgur and submitProof below
+// uploadToImgur & submitProof unchanged
 
   </script>
 </body>
