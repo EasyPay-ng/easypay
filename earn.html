@@ -85,11 +85,12 @@
       loadingEl.style.display = 'block';
       taskContainer.innerHTML = '';
 
-      // Get all approved tasks
+      // Fetch approved tasks newest first
       const tasksSnap = await db.collection('tasks')
-        .where('status','==','approved').get();
+        .where('status','==','approved')
+        .orderBy('createdAt','desc')
+        .get();
 
-      // For each task, check total approved submissions
       for (let doc of tasksSnap.docs) {
         const task = doc.data(), id = doc.id;
         const approvedSnap = await db.collection('task_submissions')
@@ -129,7 +130,6 @@
   `;
   taskContainer.appendChild(div);
 
-  // Progress bar updates
   db.collection('task_submissions')
     .where('taskId','==',id)
     .where('status','==','approved')
@@ -138,14 +138,13 @@
       const pct = Math.min(100, Math.round(done / data.workersNeeded * 100));
       document.getElementById(`bar-${id}`).style.width = pct + '%';
       document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
-      // If reached target, remove task
       if (done >= data.workersNeeded) {
         document.getElementById(`task-${id}`).remove();
       }
     });
 }
 
-// Existing uploadToImgur and submitProof functions go here
+// Include your existing uploadToImgur and submitProof below
 
   </script>
 </body>
