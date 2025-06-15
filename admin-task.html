@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>My Tasks &amp; Submissions</title>
   <style>
     /* Global */
@@ -37,18 +37,25 @@
 </head>
 <body>
   <header>My Tasks &amp; Submissions</header>
-  <p style="text-align:center; margin-top:8px; color:#004400; font-size:0.9em;">Payouts are calculated at 70% of the task cost (decimals allowed).</p>  <div id="loginDiv">
+  <p style="text-align:center; margin-top:8px; color:#004400; font-size:0.9em;">Payouts are calculated at 70% of the task cost (decimals allowed).</p>  <!-- Login Form -->  <div id="loginDiv">
     <h2>Sign In</h2>
-    <input id="email" type="email" placeholder="Email"/><br>
-    <input id="password" type="password" placeholder="Password"/><br>
+    <input id="emailInput" type="email" placeholder="Email"/><br>
+    <input id="passInput" type="password" placeholder="Password"/><br>
     <button id="loginBtn">Sign In</button>
     <p id="loginError"></p>
-  </div>  <div id="dashboard">
+  </div>  <!-- Dashboard -->  <div id="dashboard">
     <button id="logoutBtn">Sign Out</button>
     <div id="tasksContainer"></div>
-  </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    // Firebase init
-    const firebaseConfig = { /* your config */ };
+  </div>  <!-- Firebase SDKs -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
+    // Initialize Firebase with actual config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c1e"
+    };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
@@ -56,128 +63,94 @@
     const loginDiv = document.getElementById("loginDiv");
     const dashboard = document.getElementById("dashboard");
     const tasksContainer = document.getElementById("tasksContainer");
+    const emailInput = document.getElementById("emailInput");
+    const passInput  = document.getElementById("passInput");
+    const loginBtn   = document.getElementById("loginBtn");
+    const logoutBtn  = document.getElementById("logoutBtn");
+    const loginError = document.getElementById("loginError");
 
-    // Auth handlers
-    document.getElementById("loginBtn").onclick = () => {
-      document.getElementById("loginError").textContent = '';
-      auth.signInWithEmailAndPassword(
-        document.getElementById("email").value,
-        document.getElementById("password").value
-      ).catch(e => document.getElementById("loginError").textContent = e.message);
-    };
-    document.getElementById("logoutBtn").onclick = () => auth.signOut();
+    // Login/Logout
+    loginBtn.addEventListener('click', () => {
+      loginError.textContent = '';
+      auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
+        .catch(e => loginError.textContent = e.message);
+    });
+    logoutBtn.addEventListener('click', () => auth.signOut());
 
+    // Auth state
     auth.onAuthStateChanged(user => {
       if (user) {
         loginDiv.style.display = 'none';
         dashboard.style.display = 'block';
-        startTasks();
+        loadOwnerTasks();
       } else {
         dashboard.style.display = 'none';
         loginDiv.style.display = 'block';
-        tasksContainer.innerHTML = '';
       }
     });
 
-    let openState = {};
-    function captureOpenState() {
-      openState = {};
-      document.querySelectorAll('details[data-task][data-status]').forEach(d => {
-        openState[d.dataset.task] = openState[d.dataset.task] || {};
-        openState[d.dataset.task][d.dataset.status] = d.open;
-      });
-    }
-
-    async function startTasks() {
+    // Load submissions for tasks created by current user
+    async function loadOwnerTasks() {
       tasksContainer.innerHTML = '<p class="loading">Loading submissions...</p>';
-      // Fetch all tasks
-      const tasksSnap = await db.collection("tasks").get();
+      const user = auth.currentUser;
+      // fetch tasks created by this user
+      const tasksSnap = await db.collection('tasks')
+        .where('createdBy','==',user.uid).get();
       const tasksData = {};
-      const taskIds = tasksSnap.docs.map(doc => { tasksData[doc.id] = doc.data(); return doc.id; });
+      const taskIds = [];
+      tasksSnap.forEach(doc => { tasksData[doc.id] = doc.data(); taskIds.push(doc.id); });
       if (!taskIds.length) {
         tasksContainer.innerHTML = '<p class="loading">No tasks posted.</p>';
         return;
       }
-      // Preload users
-      const usersSnap = await db.collection("users").get();
+      // preload users
       const usersData = {};
-      usersSnap.forEach(u => { usersData[u.id] = u.data().username || u.data().email || u.id; });
+      (await db.collection('users').get()).forEach(u => usersData[u.id] = u.data().username||u.data().email||u.id);
 
-      // Listen all submissions for these tasks
-      db.collection("task_submissions")
-        .where("taskId","in",taskIds)
-        .orderBy("submittedAt","desc")
+      // listen submissions
+      db.collection('task_submissions')
+        .where('taskId','in',taskIds)
+        .orderBy('submittedAt','desc')
         .onSnapshot(snap => {
-          captureOpenState();
           const grouped = {};
-          snap.forEach(doc => {
-            const d = doc.data();
-            grouped[d.taskId] = grouped[d.taskId] || [];
-            grouped[d.taskId].push({ id: doc.id, data: d });
+          snap.docs.forEach(d => {
+            const data = d.data();
+            grouped[data.taskId] = grouped[data.taskId]||[];
+            grouped[data.taskId].push({id: d.id, data});
           });
           render(grouped, tasksData, usersData);
         });
     }
 
-    function render(grouped, tasksData, usersData) {
+    function render(grouped,tasksData,usersData) {
       tasksContainer.innerHTML = '';
-      Object.entries(tasksData).forEach(([taskId, task]) => {
-        const subs = grouped[taskId] || [];
-        // Title
+      Object.entries(tasksData).forEach(([taskId,task])=>{
+        const subs = grouped[taskId]||[];
         const title = document.createElement('h2');
-        title.className = 'task-title';
+        title.className='task-title';
         title.textContent = `${task.taskTitle} — ${task.category}`;
         tasksContainer.appendChild(title);
-        // Sections
-        ['pending','approved','rejected'].forEach(status => {
+        ['pending','approved','rejected'].forEach(status=>{
           const details = document.createElement('details');
-          details.dataset.task = taskId;
-          details.dataset.status = status;
-          if (openState[taskId] && openState[taskId][status]) details.open = true;
           const summary = document.createElement('summary');
-          summary.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-          const filtered = subs.filter(s => s.data.status === status);
-          const countSpan = document.createElement('span');
-          countSpan.textContent = ` (${filtered.length})`;
-          summary.appendChild(countSpan);
+          summary.textContent = status.charAt(0).toUpperCase()+status.slice(1)+` (${subs.filter(s=>s.data.status===status).length})`;
           details.appendChild(summary);
-          // Table
           const table = document.createElement('table');
-          table.className = 'sub-table';
-          table.innerHTML = `<thead><tr>
-            <th>No.</th><th>User</th><th>Date</th><th>Proof</th><th>Image</th><th>Approve</th><th>Reject</th>
-          </tr></thead><tbody></tbody>`;
-          const tbody = table.querySelector('tbody');
-          filtered.forEach((sub, i) => {
-            const d = sub.data;
-            const tr = document.createElement('tr');
-            const num = filtered.length - i;
-            tr.innerHTML = `<td>${num}</td>
-              <td>${usersData[d.userId]||d.userId}</td>
-              <td>${d.submittedAt?.toDate()?.toLocaleString()||''}</td>
-              <td>${d.textProof||''}</td>`;
-            // Image
-            const imgTd = document.createElement('td');
-            if (d.imageProof) {
-              const btn = document.createElement('button'); btn.className = 'view-btn'; btn.textContent = 'View';
-              btn.onclick = () => window.open(d.imageProof, '_blank');
-              imgTd.appendChild(btn);
-            }
-            tr.appendChild(imgTd);
-            // Actions
-            const apTd = document.createElement('td');
-            const rjTd = document.createElement('td');
-            const apBtn = document.createElement('button'); apBtn.className = 'approve-btn'; apBtn.textContent = 'Approve';
-            const rjBtn = document.createElement('button'); rjBtn.className = 'reject-btn'; rjBtn.textContent = 'Reject';
-            if (status !== 'pending') {
-              [apBtn, rjBtn].forEach(b => { b.disabled = true; b.style.opacity = 0.5; });
-            } else {
-              apBtn.onclick = () => handleDecision(taskId, sub.id, true);
-              rjBtn.onclick = () => handleDecision(taskId, sub.id, false);
-            }
-            apTd.appendChild(apBtn); rjTd.appendChild(rjBtn);
-            tr.appendChild(apTd); tr.appendChild(rjTd);
-            tbody.appendChild(tr);
+          table.className='sub-table';
+          table.innerHTML=`<thead><tr><th>No.</th><th>User</th><th>Date</th><th>Proof</th><th>Image</th><th>Approve</th><th>Reject</th></tr></thead><tbody></tbody>`;
+          const tbody=table.querySelector('tbody');
+          subs.filter(s=>s.data.status===status).forEach((sub,i)=>{
+            const d=sub.data;
+            const tr=document.createElement('tr');
+            tr.innerHTML=`<td>${subs.filter(x=>x.data.status===status).length-i}</td><td>${usersData[d.userId]||d.userId}</td><td>${d.submittedAt.toDate().toLocaleString()}</td><td>${d.textProof||''}</td>`;
+            const imgTd=document.createElement('td');
+            if(d.imageProof){const btn=document.createElement('button');btn.className='view-btn';btn.textContent='View';btn.onclick=() => window.open(d.imageProof,'_blank');imgTd.appendChild(btn);} tr.appendChild(imgTd);
+            const apTd=document.createElement('td'), rjTd=document.createElement('td');
+            const apBtn=document.createElement('button'), rjBtn=document.createElement('button');
+            apBtn.className='approve-btn';apBtn.textContent='Approve';rjBtn.className='reject-btn';rjBtn.textContent='Reject';
+            if(d.status!=='pending'){[apBtn,rjBtn].forEach(b=>{b.disabled=true;b.style.opacity=0.5;});}
+            else{apBtn.onclick=()=>handleDecision(taskId,sub.id,true);rjBtn.onclick=()=>handleDecision(taskId,sub.id,false);} apTd.appendChild(apBtn);rjTd.appendChild(rjBtn);
+            tr.appendChild(apTd);tr.appendChild(rjTd);tbody.appendChild(tr);
           });
           details.appendChild(table);
           tasksContainer.appendChild(details);
@@ -185,14 +158,14 @@
       });
     }
 
-    async function handleDecision(taskId, subId, approve) {
-      const subRef = db.collection("task_submissions").doc(subId);
-      await subRef.update({ status: approve ? 'approved' : 'rejected' });
-      if (approve) {
-        const t = (await db.collection("tasks").doc(taskId).get()).data();
-        const reward = (t.costPerUser ? t.costPerUser : (t.totalBudget / t.workersNeeded)) * 0.7;
-        const uid = (await subRef.get()).data().userId;
-        await db.collection("users").doc(uid).update({ balance: firebase.firestore.FieldValue.increment(reward) });
+    async function handleDecision(taskId,subId,approve){
+      const subRef=db.collection('task_submissions').doc(subId);
+      await subRef.update({status:approve?'approved':'rejected'});
+      if(approve){
+        const t=(await db.collection('tasks').doc(taskId).get()).data();
+        const reward=(t.costPerUser? t.costPerUser : t.totalBudget/t.workersNeeded)*0.7;
+        const uid=(await subRef.get()).data().userId;
+        await db.collection('users').doc(uid).update({balance:firebase.firestore.FieldValue.increment(reward)});
       }
     }
   </script></body>
