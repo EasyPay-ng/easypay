@@ -19,7 +19,7 @@
     h2.section-title + p { margin-top: 4px; font-size: 0.9em; color: #004400; }
     /* Collapsible */
     details { background: #fff; border-radius: 6px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    summary { padding: 12px 16px; font-weight: bold; background: #e6f4e6; cursor: pointer; display: flex; justify-content: space-between; }
+    summary { padding: 12px 16px; font-weight: bold; background: #e6f4e6; cursor: pointer; }
     /* Table Styles */
     .task-table { width: 100%; border-collapse: collapse; background: #fff; margin: 0; }
     .task-table th, .task-table td { padding: 12px 16px; border-bottom: 1px solid #e0e0e0; text-align: left; }
@@ -33,29 +33,18 @@
     }
   </style>
 </head>
-<body>
-  <header>EasyPay Admin Dashboard</header>
-  <!-- Login Form -->
-  <div id="loginDiv">
+<body>  <header>EasyPay Admin Dashboard</header>  <!-- Login Form -->  <div id="loginDiv">
     <h2>Admin Sign In</h2>
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
-    <button id="loginBtn">Sign In</button>
+    <button onclick="login()">Sign In</button>
     <p id="loginError"></p>
-  </div>
-  <!-- Admin Content -->
-  <div id="adminDiv" style="display:none;">
-    <button id="logoutBtn">Sign Out</button>
+  </div>  <!-- Admin Content -->  <div id="adminDiv" style="display:none;">
+    <button id="logoutBtn" onclick="logout()">Sign Out</button>
     <h2 class="section-title">All Task Submissions</h2>
     <p>Payments are calculated at 70% of the task cost and can include decimal values.</p>
     <div id="tasksContainer"></div>
-  </div>
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script>
-    // Initialize Firebase
+  </div>  <!-- Firebase SDKs -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -65,163 +54,102 @@
       appId: "1:862671358267:web:b243c7b69840ef918c1e"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.firestore();// DOM Refs
-const loginDiv       = document.getElementById('loginDiv');
-const adminDiv       = document.getElementById('adminDiv');
-const loginBtn       = document.getElementById('loginBtn');
-const logoutBtn      = document.getElementById('logoutBtn');
-const emailInput     = document.getElementById('email');
-const passInput      = document.getElementById('password');
-const loginError     = document.getElementById('loginError');
-const tasksContainer = document.getElementById('tasksContainer');
+    const auth = firebase.auth(), db = firebase.firestore();
 
-// Sign In/Out
-loginBtn.addEventListener('click', () => {
-  loginError.textContent = '';
-  auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
-    .catch(e => loginError.textContent = e.message);
-});
-logoutBtn.addEventListener('click', () => auth.signOut());
+    function login() {
+      document.getElementById("loginError").textContent = '';
+      auth.signInWithEmailAndPassword(
+        document.getElementById("email").value,
+        document.getElementById("password").value
+      ).catch(e => document.getElementById("loginError").textContent = e.message);
+    }
+    function logout() { auth.signOut(); }
 
-// Auth Listener
-auth.onAuthStateChanged(user => {
-  loginDiv.style.display = user ? 'none' : 'block';
-  adminDiv.style.display = user ? 'block' : 'none';
-  if (user) startListener();
-});
-
-// Real-time listener for submissions
-async function startListener() {
-  // Preload tasks & users
-  const [tasksSnap, usersSnap] = await Promise.all([
-    db.collection('tasks').get(),
-    db.collection('users').get()
-  ]);
-  const tasksData = {}, usersData = {};
-  tasksSnap.forEach(d => tasksData[d.id] = d.data());
-  usersSnap.forEach(d => usersData[d.id] = d.data().username || d.id);
-
-  db.collection('task_submissions')
-    .orderBy('submittedAt', 'desc')
-    .onSnapshot(snap => {
-      const grouped = {};
-      snap.forEach(doc => {
-        const d = doc.data();
-        if (!grouped[d.taskId]) grouped[d.taskId] = [];
-        grouped[d.taskId].push({ id: doc.id, data: d });
-      });
-      render(grouped, tasksData, usersData);
+    auth.onAuthStateChanged(user => {
+      document.getElementById("loginDiv").style.display = user ? 'none' : 'block';
+      document.getElementById("adminDiv").style.display = user ? 'block' : 'none';
+      if (user) startListener();
     });
-}
 
-// Render function
-function render(grouped, tasksData, usersData) {
-  tasksContainer.innerHTML = '';
-  Object.entries(grouped).forEach(([taskId, subs]) => {
-    const task = tasksData[taskId];
-    if (!task) return;
-    // Task Header
-    const header = document.createElement('h3');
-    header.textContent = `${task.taskTitle} — ${task.category}`;
-    tasksContainer.appendChild(header);
+    async function startListener() {
+      const tasksData = {}, usersData = {};
+      (await db.collection("tasks").get()).forEach(doc => tasksData[doc.id] = doc.data());
+      (await db.collection("users").get()).forEach(u => usersData[u.id] = u.data().username || u.id);
 
-    ['pending','approved','rejected'].forEach(status => {
-      const details = document.createElement('details');
-      const summary = document.createElement('summary');
-      summary.textContent = status.charAt(0).toUpperCase() + status.slice(1) + ` (${subs.filter(s => s.data.status === status).length})`;
-      details.appendChild(summary);
-
-      // Table
-      const table = document.createElement('table');
-      table.className = 'task-table';
-      table.innerHTML = `
-        <thead><tr>
-          <th>No.</th><th>User</th><th>Date</th><th>Text Proof</th><th>Image</th><th>Approve</th><th>Reject</th>
-        </tr></thead>
-        <tbody></tbody>
-      `;
-      const tbody = table.querySelector('tbody');
-
-      subs.filter(s => s.data.status === status)
-        .forEach((sub, idx, arr) => {
-          const d = sub.data;
-          const tr = document.createElement('tr');
-          const num = arr.length - idx;
-          tr.innerHTML = `
-            <td>${num}</td>
-            <td>${usersData[d.userId] || d.userId}</td>
-            <td>${d.submittedAt.toDate().toLocaleString()}</td>
-            <td>${d.textProof || ''}</td>
-          `;
-          // Image cell
-          const imgTd = document.createElement('td');
-          if (d.imageProof) {
-            const btn = document.createElement('button');
-            btn.className = 'view-btn';
-            btn.textContent = 'View';
-            btn.addEventListener('click', e => {
-              e.stopPropagation();
-              window.open(d.imageProof, '_blank');
-            });
-            imgTd.appendChild(btn);
-          }
-          tr.appendChild(imgTd);
-
-          // Approve / Reject cells
-          const apTd = document.createElement('td');
-          const rjTd = document.createElement('td');
-          const apBtn = document.createElement('button');
-          const rjBtn = document.createElement('button');
-          apBtn.className = 'approve-btn'; apBtn.textContent = 'Approve';
-          rjBtn.className = 'reject-btn'; rjBtn.textContent = 'Reject';
-
-          if (status === 'pending') {
-            apBtn.addEventListener('click', e => {
-              e.stopPropagation();
-              handleApprove(taskId, sub.id, d.userId);
-            });
-            rjBtn.addEventListener('click', e => {
-              e.stopPropagation();
-              handleReject(sub.id);
-            });
-          } else {
-            [apBtn, rjBtn].forEach(b => {
-              b.disabled = true;
-              b.style.opacity = 0.5;
-            });
-          }
-
-          apTd.appendChild(apBtn);
-          rjTd.appendChild(rjBtn);
-          tr.appendChild(apTd);
-          tr.appendChild(rjTd);
-          tbody.appendChild(tr);
+      db.collection("task_submissions").orderBy("submittedAt","desc")
+        .onSnapshot(snap => {
+          const grouped = {};
+          snap.forEach(doc => {
+            const d = doc.data();
+            grouped[d.taskId] = grouped[d.taskId] || [];
+            grouped[d.taskId].push({ id: doc.id, data: d });
+          });
+          render(grouped, tasksData, usersData);
         });
+    }
 
-      details.appendChild(table);
-      tasksContainer.appendChild(details);
-    });
-  });
-}
+    function render(grouped, tasksData, usersData) {
+      const cont = document.getElementById("tasksContainer"); cont.innerHTML = '';
+      Object.entries(grouped).forEach(([taskId, subs]) => {
+        const task = tasksData[taskId];
+        if (!task) return;
+        const header = document.createElement('h3');
+        header.textContent = `${task.taskTitle} — ${task.category}`;
+        cont.appendChild(header);
+        ['pending','approved','rejected'].forEach(status => {
+          const details = document.createElement('details');
+          const summary = document.createElement('summary');
+          summary.textContent = status.charAt(0).toUpperCase()+status.slice(1) + ` (${subs.filter(s=>s.data.status===status).length})`;
+          details.appendChild(summary);
 
-// Approval / rejection logic
-function handleApprove(taskId, submissionId, userId) {
-  const ref = db.collection('task_submissions').doc(submissionId);
-  ref.update({ status: 'approved' })
-    .then(() => db.collection('tasks').doc(taskId).get())
-    .then(doc => {
-      const t = doc.data();
-      const reward = (t.costPerUser ? t.costPerUser : t.totalBudget / t.workersNeeded) * 0.7;
-      return db.collection('users').doc(userId)
-        .update({ balance: firebase.firestore.FieldValue.increment(reward) });
-    });
-}
+          const table = document.createElement('table'); table.className='task-table';
+          table.innerHTML = `
+            <thead><tr>
+              <th>No.</th><th>User</th><th>Date</th><th>Text Proof</th><th>Image</th><th>Action</th>
+            </tr></thead><tbody></tbody>`;
+          const tbody = table.querySelector('tbody');
 
-function handleReject(submissionId) {
-  db.collection('task_submissions').doc(submissionId)
-    .update({ status: 'rejected' });
-}
+          subs.filter(s=>s.data.status===status).forEach((sub,i) => {
+            const d = sub.data;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${subs.filter(s=>s.data.status===status).length - i}</td>
+              <td>${usersData[d.userId]||d.userId}</td>
+              <td>${d.submittedAt?.toDate()?.toLocaleString()||''}</td>
+              <td>${d.textProof||''}</td>
+              <td></td>
+            `;
+            const imgTd = document.createElement('td');
+            if (d.imageProof) {
+              const a = document.createElement('a'); a.href=d.imageProof; a.target='_blank'; a.textContent='View'; imgTd.appendChild(a);
+            }
+            tr.replaceChild(imgTd, tr.children[4]);
 
-  </script>
-</body>
+            const actionTd = document.createElement('td');
+            if (status==='pending') {
+              const ap = document.createElement('button'); ap.className='approve-btn'; ap.textContent='Approve';
+              ap.onclick = () => handleApprove(taskId, sub.id, d.userId);
+              const rj = document.createElement('button'); rj.className='reject-btn'; rj.textContent='Reject';
+              rj.onclick = () => handleReject(sub.id);
+              actionTd.appendChild(ap); actionTd.appendChild(rj);
+            }
+            tr.appendChild(actionTd);
+            tbody.appendChild(tr);
+          });
+          details.appendChild(table);
+          cont.appendChild(details);
+        });
+      });
+    }
+
+    function handleApprove(taskId, subId, userId) {
+      const ref = db.collection("task_submissions").doc(subId);
+      ref.update({ status:'approved' }).then(()=> db.collection("tasks").doc(taskId).get())
+        .then(t=>{
+          const d=t.data(), reward=(d.costPerUser?d.costPerUser:(d.totalBudget/d.workersNeeded))*0.7;
+          return db.collection("users").doc(userId).update({ balance: firebase.firestore.FieldValue.increment(reward) });
+        });
+    }
+    function handleReject(subId) { db.collection("task_submissions").doc(subId).update({ status:'rejected' }); }
+  </script></body>
 </html>
