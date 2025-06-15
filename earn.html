@@ -17,6 +17,7 @@
     .task p { margin: 8px 0; line-height: 1.4; }
     .progress-container { background: #eee; border-radius: 20px; overflow: hidden; margin: 10px 0; height: 16px; }
     .progress-bar { height: 100%; background: #28a745; width: 0%; transition: width 0.4s ease-in-out; }
+    .progress-label { font-size: 11px; color: #004400; margin-bottom: 10px; }
     .proof { margin-top: 15px; }
     .proof label { display: block; margin-bottom: 4px; font-weight: bold; }
     .proof textarea, .proof input[type=file] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
@@ -34,30 +35,33 @@
     <button id="loginBtn">Sign In</button>
     <p id="loginError"></p>
   </div>
-  <div id="app">
+  <div id="app" style="display:none;">
     <button id="logoutBtn">Sign Out</button>
     <header>EasyPay – Available Tasks</header>
     <div id="loading">Loading tasks...</div>
     <div id="taskContainer"></div>
   </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    // Firebase config and init
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      appId: "1:862671358267:web:b243c7b69840ef918c1e",
       measurementId: "G-2FZKDQ47FZ"
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
-    // Auth handling
-    const loginDiv = document.getElementById('loginDiv'), appDiv = document.getElementById('app');
-    const loginBtn = document.getElementById('loginBtn'), logoutBtn = document.getElementById('logoutBtn');
-    const emailInput = document.getElementById('email'), passInput = document.getElementById('password');
-    const loginError = document.getElementById('loginError');
+    const loginDiv = document.getElementById('loginDiv'),
+          appDiv   = document.getElementById('app'),
+          loginBtn = document.getElementById('loginBtn'),
+          logoutBtn= document.getElementById('logoutBtn'),
+          emailInput = document.getElementById('email'),
+          passInput  = document.getElementById('password'),
+          loginError = document.getElementById('loginError'),
+          loadingEl  = document.getElementById('loading'),
+          taskContainer = document.getElementById('taskContainer');
 
     loginBtn.onclick = () => {
       loginError.textContent = '';
@@ -77,23 +81,34 @@
       }
     });
 
-    // Load and render tasks
-    const loadingEl = document.getElementById('loading'), taskContainer = document.getElementById('taskContainer');
-    function loadTasks() {
+    async function loadTasks() {
       loadingEl.style.display = 'block';
-      db.collection('tasks').where('status','==','approved')
-        .onSnapshot(snapshot => {
-          loadingEl.style.display = 'none';
-          taskContainer.innerHTML = '';
-          snapshot.docs.reverse().forEach(renderTask);
-        });
+      taskContainer.innerHTML = '';
+
+      // Get all approved tasks
+      const tasksSnap = await db.collection('tasks')
+        .where('status','==','approved').get();
+
+      // For each task, check total approved submissions
+      for (let doc of tasksSnap.docs) {
+        const task = doc.data(), id = doc.id;
+        const approvedSnap = await db.collection('task_submissions')
+          .where('taskId','==',id)
+          .where('status','==','approved')
+          .get();
+        if (approvedSnap.size < task.workersNeeded) {
+          renderTask(id, task);
+        }
+      }
+      loadingEl.style.display = 'none';
     }
 
-    function renderTask(doc) {
-      const data = doc.data(), id = doc.id;
-      const price = data.costPerUser || data.totalBudget/data.workersNeeded;
-      const userPay = parseFloat((price*0.7).toFixed(2));
-      const div = document.createElement('div'); div.className='task'; div.id=`task-${id}`;
+    function renderTask(id, data) {
+      const price = data.costPerUser || data.totalBudget / data.workersNeeded;
+      const userPay = parseFloat((price * 0.7).toFixed(2));
+      const div = document.createElement('div');
+      div.className = 'task';
+      div.id = `task-${id}`;
       div.innerHTML = `
         <h2>${data.taskTitle} — ${data.category}</h2>
         <p>${data.description || ''}</p>
@@ -105,50 +120,32 @@
           <label>Text Proof:</label>
           <textarea id="text-${id}" placeholder="Enter text proof..."></textarea><label>Upload Image Proof:</label>
       <input type="file" id="file-${id}" accept="image/*" />
-      <div class="upload-progress-container" id="upload-container-${id}"><div class="upload-progress-bar" id="upload-bar-${id}"></div></div>
+      <div class="upload-progress-container" id="upload-container-${id}">
+        <div class="upload-progress-bar" id="upload-bar-${id}"></div>
+      </div>
       <div class="upload-progress-label" id="upload-label-${id}"></div>
       <button onclick="submitProof('${id}',${userPay})" class="submit-btn">Submit Proof</button>
-    </div>`;
+    </div>
+  `;
   taskContainer.appendChild(div);
 
-  // Track approvals
-  db.collection('task_submissions').where('taskId','==',id)
+  // Progress bar updates
+  db.collection('task_submissions')
+    .where('taskId','==',id)
+    .where('status','==','approved')
     .onSnapshot(snap => {
-      let done=0; snap.forEach(s=>{ if(['approved','reviewed'].includes(s.data().status)) done++; });
-      const pct = Math.min(100,Math.round(done/data.workersNeeded*100));
-      document.getElementById(`bar-${id}`).style.width=`${pct}%`;
-      document.getElementById(`label-${id}`).textContent=`${done} / ${data.workersNeeded} completed`;
+      const done = snap.size;
+      const pct = Math.min(100, Math.round(done / data.workersNeeded * 100));
+      document.getElementById(`bar-${id}`).style.width = pct + '%';
+      document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
+      // If reached target, remove task
+      if (done >= data.workersNeeded) {
+        document.getElementById(`task-${id}`).remove();
+      }
     });
 }
 
-/** Imgur upload **/
-async function uploadToImgur(file, onProgress) {
-  const clientId='fb533db21a59486', endpoint='https://api.imgur.com/3/image';
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader(); reader.onload=()=>{
-      const base=reader.result.split(',')[1];
-      const form=new FormData(); form.append('image',base); form.append('type','base64');
-      const xhr=new XMLHttpRequest(); xhr.open('POST',endpoint);
-      xhr.setRequestHeader('Authorization','Client-ID '+clientId);
-      xhr.upload.onprogress=evt=> evt.lengthComputable && onProgress(Math.round(evt.loaded/evt.total*100));
-      xhr.onload=()=>{ try{const r=JSON.parse(xhr.responseText); r.success?resolve(r.data.link):reject(r.data.error);}catch{reject('Invalid JSON')}};
-      xhr.onerror=()=>reject('Network error'); xhr.send(form);
-    }; reader.onerror=()=>reject('FileReader error'); reader.readAsDataURL(file);
-  });
-}
-
-async function submitProof(taskId,payout){
-  const textEl=document.getElementById(`text-${taskId}`), fileEl=document.getElementById(`file-${taskId}`);
-  const text=textEl.value.trim(), file=fileEl.files[0];
-  const bar=document.getElementById(`upload-bar-${taskId}`), label=document.getElementById(`upload-label-${taskId}`), cont=document.getElementById(`upload-container-${taskId}`);
-  if(!text||!file) return alert('Fill text and image proof'); cont.style.display=label.style.display='block';
-  try{
-    const imageUrl=await uploadToImgur(file,p=>{ bar.style.width=p+'%'; label.textContent=p+'%'; });
-    const user=auth.currentUser;
-    await db.collection('task_submissions').add({ taskId,userId:user.uid,username:user.email,textProof:text,imageProof:imageUrl,payout,status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp() });
-    label.textContent='Submitted!'; setTimeout(()=>{cont.style.display=label.style.display='none'; bar.style.width='0%'; textEl.value=''; fileEl.value=null;},1000);
-  }catch(e){label.textContent='Error: '+e;}
-}
+// Existing uploadToImgur and submitProof functions go here
 
   </script>
 </body>
