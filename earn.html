@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -18,19 +19,28 @@
     .submit-btn { padding: 8px 16px; background: #007700; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
   </style>
 </head>
-<body>  <div id="loginDiv">
+<body>
+
+  <div id="loginDiv">
     <h2>Sign In to Continue</h2>
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
     <button id="loginBtn">Sign In</button>
     <p id="loginError"></p>
-  </div>  <div id="app">
+  </div>
+
+  <div id="app">
     <button id="logoutBtn">Sign Out</button>
     <header>EasyPay – Available Tasks</header>
     <div id="loading">Loading tasks...</div>
     <div id="taskContainer"></div>
-  </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    // Your Firebase configuration
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -44,68 +54,68 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // DOM Elements
-    const loginDiv = document.getElementById('loginDiv');
-    const appDiv = document.getElementById('app');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const emailEl = document.getElementById('email');
-    const passEl = document.getElementById('password');
-    const loginError = document.getElementById('loginError');
-    const loadingEl = document.getElementById('loading');
+    // DOM refs
+    const loginDiv    = document.getElementById('loginDiv');
+    const appDiv      = document.getElementById('app');
+    const loginBtn    = document.getElementById('loginBtn');
+    const logoutBtn   = document.getElementById('logoutBtn');
+    const emailEl     = document.getElementById('email');
+    const passEl      = document.getElementById('password');
+    const loginError  = document.getElementById('loginError');
+    const loadingEl   = document.getElementById('loading');
     const taskContainer = document.getElementById('taskContainer');
 
-    // Sign in handler
-    loginBtn.addEventListener('click', () => {
+    // Sign in
+    loginBtn.onclick = () => {
       loginError.textContent = '';
       auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
-        .then(() => {
-          // Success
-        })
-        .catch(err => {
-          loginError.textContent = err.message;
-        });
-    });
+        .catch(err => loginError.textContent = err.message);
+    };
 
-    // Sign out handler
-    logoutBtn.addEventListener('click', () => auth.signOut());
+    // Sign out
+    logoutBtn.onclick = () => auth.signOut();
 
     // Auth state listener
     auth.onAuthStateChanged(user => {
       if (user) {
         loginDiv.style.display = 'none';
-        appDiv.style.display = 'block';
+        appDiv.style.display   = 'block';
         loadTasks();
       } else {
         loginDiv.style.display = 'block';
-        appDiv.style.display = 'none';
+        appDiv.style.display   = 'none';
       }
     });
 
-    // Load tasks function
+    // Load tasks without requiring a Firestore index on orderBy
     async function loadTasks() {
       loadingEl.textContent = 'Loading tasks...';
-      loadingEl.style.display = 'block';
       taskContainer.innerHTML = '';
-
       try {
         const snap = await db.collection('tasks')
-          .where('status', '==', 'approved')
-          .orderBy('createdAt', 'desc')
+          .where('status','==','approved')
           .get();
 
-        if (snap.empty) {
+        // Client‐side sort by createdAt descending
+        const tasks = snap.docs.sort((a,b) => {
+          const at = a.data().createdAt?.toMillis() || 0;
+          const bt = b.data().createdAt?.toMillis() || 0;
+          return bt - at;
+        });
+
+        if (!tasks.length) {
           loadingEl.textContent = 'No available tasks.';
           return;
         }
 
-        snap.forEach(doc => {
+        loadingEl.style.display = 'none';
+        tasks.forEach(doc => {
           const data = doc.data();
-          const id = doc.id;
-          // Check submissions
+          const id   = doc.id;
+          // Count approved submissions
           db.collection('task_submissions')
-            .where('taskId', '==', id)
-            .where('status', '==', 'approved')
+            .where('taskId','==',id)
+            .where('status','==','approved')
             .get()
             .then(subSnap => {
               if (subSnap.size < data.workersNeeded) {
@@ -113,28 +123,26 @@
               }
             });
         });
-
-        loadingEl.style.display = 'none';
-      } catch (err) {
-        loadingEl.textContent = 'Error loading tasks: ' + err.message;
+      } catch(e) {
+        loadingEl.textContent = 'Error loading tasks: ' + e.message;
       }
     }
 
-    // Render single task
+    // Render a single task card
     function renderTask(id, data) {
       const price = data.costPerUser || (data.totalBudget / data.workersNeeded);
-      const userPay = parseFloat((price * 0.7).toFixed(2));
+      const userPay = +(price * 0.7).toFixed(2);
+
       const div = document.createElement('div');
       div.className = 'task';
       div.id = `task-${id}`;
-
       div.innerHTML = `
         <h2>${data.taskTitle} — ${data.category}</h2>
         <p><strong>Earn:</strong> ₦${userPay}</p>
         <button onclick="window.open('${data.link}','_blank')" class="submit-btn">Start Task</button>
       `;
-
       taskContainer.appendChild(div);
     }
-  </script></body>
+  </script>
+</body>
 </html>
