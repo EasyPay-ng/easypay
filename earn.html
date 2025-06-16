@@ -91,6 +91,7 @@
 
     async function loadTasks() {
       loadingEl.style.display = 'block';
+      loadingEl.textContent = 'Loading tasks...';
       taskContainer.innerHTML = '';
       try {
         const snap = await db.collection('tasks')
@@ -101,6 +102,20 @@
           loadingEl.textContent = 'No available tasks.';
           return;
         }
+        loadingEl.style.display = 'none';
+        for (let doc of snap.docs) {
+          const data = doc.data(), id = doc.id;
+          const subSnap = await db.collection('task_submissions')
+            .where('taskId','==',id)
+            .where('status','==','approved')
+            .get();
+          if (subSnap.size < data.workersNeeded) renderTask(id, data);
+        }
+      } catch (e) {
+        // Show full error in UI for debugging
+        loadingEl.textContent = `Error loading tasks: ${e.message || e}`;
+      }
+    }
         loadingEl.style.display = 'none';
         for (let doc of snap.docs) {
           const data = doc.data(), id = doc.id;
@@ -156,4 +171,4 @@ function uploadToImgur(file,onProgress){return new Promise((res,rej)=>{const rea
 async function submitProof(taskId,payout){const textEl=document.getElementById(`text-${taskId}`),fileEl=document.getElementById(`file-${taskId}`);const text=textEl.value.trim(),file=fileEl.files[0];if(!text||!file)return alert('Provide text and image');const bar=document.getElementById(`upload-bar-${taskId}`),lbl=document.getElementById(`upload-label-${taskId}`),ctr=document.getElementById(`upload-container-${taskId}`);ctr.style.display=lbl.style.display='block';try{const url=await uploadToImgur(file,p=>{bar.style.width=p+'%';lbl.textContent=p+'%'});const user=auth.currentUser;await db.collection('task_submissions').add({taskId,userId:user.uid,username:user.email,textProof:text,imageProof:url,payout,status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp()});lbl.textContent='Submitted!';setTimeout(()=>{ctr.style.display=lbl.style.display='none';bar.style.width='0%';textEl.value='';fileEl.value=null},1000);}catch(e){console.error(e);lbl.textContent='Error: '+e;}}  </script>
 
 </body>
-</html>he
+</html>
