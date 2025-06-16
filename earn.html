@@ -41,60 +41,74 @@
     <div id="loading">Loading tasks...</div>
     <div id="taskContainer"></div>
   </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    // Firebase init
+    // Correct Firebase config
     const firebaseConfig = {
-      apiKey: "...",
-      authDomain: "...",
-      projectId: "...",
-      storageBucket: "...",
-      messagingSenderId: "...",
-      appId: "...",
-      measurementId: "..."
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      databaseURL: "https://easypay-6bce8.firebaseio.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c1e",
+      measurementId: "G-2FZKDQ47FZ"
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
     // DOM refs
-    const loginDiv = document.getElementById('loginDiv'), appDiv = document.getElementById('app');
-    const loginBtn = document.getElementById('loginBtn'), logoutBtn = document.getElementById('logoutBtn');
-    const emailEl = document.getElementById('email'), passEl = document.getElementById('password');
-    const loginError = document.getElementById('loginError');
-    const loadingEl = document.getElementById('loading'), taskContainer = document.getElementById('taskContainer');
+    const loginDiv = document.getElementById('loginDiv'),
+          appDiv   = document.getElementById('app'),
+          loginBtn = document.getElementById('loginBtn'),
+          logoutBtn= document.getElementById('logoutBtn'),
+          emailEl  = document.getElementById('email'),
+          passEl   = document.getElementById('password'),
+          loginError = document.getElementById('loginError'),
+          loadingEl  = document.getElementById('loading'),
+          taskContainer = document.getElementById('taskContainer');
 
     loginBtn.onclick = () => {
       loginError.textContent = '';
       auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
-        .catch(e => loginError.textContent = e.message);
+        .then(() => console.log('Login success'))
+        .catch(e => {
+          console.error(e);
+          loginError.textContent = e.message;
+        });
     };
     logoutBtn.onclick = () => auth.signOut();
 
     auth.onAuthStateChanged(user => {
       if (user) {
-        loginDiv.style.display = 'none'; appDiv.style.display = 'block'; loadTasks();
+        console.log('User:', user.email);
+        loginDiv.style.display = 'none';
+        appDiv.style.display = 'block';
+        loadTasks();
       } else {
-        loginDiv.style.display = 'block'; appDiv.style.display = 'none';
+        loginDiv.style.display = 'block';
+        appDiv.style.display = 'none';
       }
     });
 
     async function loadTasks() {
-      loadingEl.style.display = 'block'; taskContainer.innerHTML = '';
+      loadingEl.style.display = 'block';
+      taskContainer.innerHTML = '';
       try {
-        // fetch approved tasks
-        const snap = await db.collection('tasks').where('status','==','approved').get();
-        let tasks = snap.docs;
-        // sort by createdAt desc
-        tasks.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
-
-        if (!tasks.length) {
-          loadingEl.textContent = 'No available tasks.'; return;
+        const snap = await db.collection('tasks')
+          .where('status','==','approved')
+          .orderBy('createdAt','desc')
+          .get();
+        if (snap.empty) {
+          loadingEl.textContent = 'No available tasks.';
+          return;
         }
         loadingEl.style.display = 'none';
-        for (let doc of tasks) {
+        for (let doc of snap.docs) {
           const data = doc.data(), id = doc.id;
-          // count approved submissions
           const subSnap = await db.collection('task_submissions')
-            .where('taskId','==',id).where('status','==','approved').get();
-          if (subSnap.size < data.workersNeeded) renderTask(id,data);
+            .where('taskId','==',id)
+            .where('status','==','approved')
+            .get();
+          if (subSnap.size < data.workersNeeded) renderTask(id, data);
         }
       } catch (e) {
         console.error(e);
@@ -102,8 +116,8 @@
       }
     }
 
-    function renderTask(id,data) {
-      const price = data.costPerUser || data.totalBudget/data.workersNeeded;
+    function renderTask(id, data) {
+      const price = data.costPerUser || data.totalBudget / data.workersNeeded;
       const userPay = +(price*0.7).toFixed(2);
       const div = document.createElement('div'); div.className='task'; div.id=`task-${id}`;
       div.innerHTML = `
@@ -126,50 +140,20 @@
   `;
   taskContainer.appendChild(div);
 
-  // wire submit button
   document.getElementById(`submit-${id}`).onclick = () => submitProof(id,userPay);
-
-  // progress listener
   db.collection('task_submissions').where('taskId','==',id).where('status','==','approved')
-    .onSnapshot(snap => {
-      const done=snap.size, pct=Math.min(100,Math.round(done/data.workersNeeded*100));
-      document.getElementById(`bar-${id}`).style.width=`${pct}%`;
+    .onSnapshot(snap=>{
+      const done=snap.size;
+      const pct=Math.min(100,Math.round(done/data.workersNeeded*100));
+      document.getElementById(`bar-${id}`).style.width=pct+'%';
       document.getElementById(`label-${id}`).textContent=`${done} / ${data.workersNeeded} completed`;
       if(done>=data.workersNeeded) document.getElementById(`task-${id}`).remove();
     });
 }
 
-// Imgur upload
-function uploadToImgur(file,onProgress){
-  return new Promise((res,rej)=>{
-    const reader=new FileReader(); reader.onload=()=>{
-      const base=reader.result.split(',')[1],f=new FormData();f.append('image',base);
-      const xhr=new XMLHttpRequest();xhr.open('POST','https://api.imgur.com/3/image');
-      xhr.setRequestHeader('Authorization','Client-ID fb533db21a59486');
-      xhr.upload.onprogress=e=>e.lengthComputable&&onProgress(Math.round(e.loaded/e.total*100));
-      xhr.onload=()=>{const r=JSON.parse(xhr.responseText);r.success?res(r.data.link):rej(r.data.error)};
-      xhr.onerror=()=>rej('Upload failed');xhr.send(f);
-    };reader.onerror=()=>rej('Read error');reader.readAsDataURL(file);
-  });
-}
+function uploadToImgur(file,onProgress){return new Promise((res,rej)=>{const reader=new FileReader();reader.onload=()=>{const base=reader.result.split(',')[1],form=new FormData();form.append('image',base);const xhr=new XMLHttpRequest();xhr.open('POST','https://api.imgur.com/3/image');xhr.setRequestHeader('Authorization','Client-ID fb533db21a59486');xhr.upload.onprogress=e=>e.lengthComputable&&onProgress(Math.round(e.loaded/e.total*100));xhr.onload=()=>{const r=JSON.parse(xhr.responseText);r.success?res(r.data.link):rej(r.data.error)};xhr.onerror=()=>rej('Upload failed');xhr.send(form);};reader.onerror=()=>rej('Read error');reader.readAsDataURL(file);});}
 
-// submitProof
-async function submitProof(taskId,payout){
-  const textEl=document.getElementById(`text-${taskId}`),fileEl=document.getElementById(`file-${taskId}`);
-  const text=textEl.value.trim(), file=fileEl.files[0];
-  if(!text||!file)return alert('Provide text and image');
-  const barEl=document.getElementById(`upload-bar-${taskId}`),lblEl=document.getElementById(`upload-label-${taskId}`),ctrEl=document.getElementById(`upload-container-${taskId}`);
-  ctrEl.style.display=lblEl.style.display='block';
-  try{
-    const url=await uploadToImgur(file,p=>barEl.style.width=p+'%',lblEl.textContent=p+'%');
-    const user=auth.currentUser;
-    await db.collection('task_submissions').add({
-      taskId,userId:user.uid,username:user.email,textProof:text,imageProof:url,payout,status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    lblEl.textContent='Submitted!';setTimeout(()=>{ctrEl.style.display=lblEl.style.display='none';barEl.style.width='0%';textEl.value='';fileEl.value=null;},1000);
-  }catch(e){lblEl.textContent='Error: '+e;}
-}
+async function submitProof(taskId,payout){const textEl=document.getElementById(`text-${taskId}`),fileEl=document.getElementById(`file-${taskId}`);const text=textEl.value.trim(),file=fileEl.files[0];if(!text||!file)return alert('Provide text and image');const bar=document.getElementById(`upload-bar-${taskId}`),lbl=document.getElementById(`upload-label-${taskId}`),ctr=document.getElementById(`upload-container-${taskId}`);ctr.style.display=lbl.style.display='block';try{const url=await uploadToImgur(file,p=>{bar.style.width=p+'%';lbl.textContent=p+'%'});const user=auth.currentUser;await db.collection('task_submissions').add({taskId,userId:user.uid,username:user.email,textProof:text,imageProof:url,payout,status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp()});lbl.textContent='Submitted!';setTimeout(()=>{ctr.style.display=lbl.style.display='none';bar.style.width='0%';textEl.value='';fileEl.value=null},1000);}catch(e){console.error(e);lbl.textContent='Error: '+e;}}  </script>
 
-  </script>
 </body>
-</html>
+</html>he
