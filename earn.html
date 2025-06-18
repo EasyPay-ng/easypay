@@ -64,13 +64,16 @@
     const loadingEl     = document.getElementById('loading');
     const taskContainer = document.getElementById('taskContainer');
 
+    // Sign in
     loginBtn.onclick = () => {
       loginError.textContent = '';
       auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
         .catch(err => loginError.textContent = err.message);
     };
+    // Sign out
     logoutBtn.onclick = () => auth.signOut();
 
+    // Auth listener
     auth.onAuthStateChanged(async user => {
       if (user) {
         loginDiv.style.display = 'none';
@@ -82,7 +85,7 @@
       }
     });
 
-    // Load tasks skipping ones user has pending/approved submissions, but re-show if rejected
+    // Load tasks skipping if pending/approved, show if rejected
     async function loadTasks(uid) {
       loadingEl.textContent = 'Loading tasks...';
       taskContainer.innerHTML = '';
@@ -91,62 +94,65 @@
           db.collection('tasks').where('status','==','approved').get(),
           db.collection('task_submissions').where('userId','==',uid).get()
         ]);
-
-        // Build set of taskIds where user has submissions NOT rejected
+        // tasks user has pending or approved
         const skipIds = new Set(
-          userSubsSnap.docs
-            .map(d => d.data())
-            .filter(s => s.status !== 'rejected')
-            .map(s => s.taskId)
+          userSubsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId)
         );
-
-        // Sort tasks by createdAt desc
-        const tasks = tasksSnap.docs.sort((a,b) => {
-          const at = a.data().createdAt?.toMillis() || 0;
-          const bt = b.data().createdAt?.toMillis() || 0;
-          return bt - at;
-        });
-
-        if (!tasks.length) {
-          loadingEl.textContent = 'No available tasks.';
-          return;
-        }
+        // sort desc
+        const tasks = tasksSnap.docs.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
         loadingEl.style.display = 'none';
-
         for (let doc of tasks) {
           const data = doc.data(), id = doc.id;
           if (skipIds.has(id)) continue;
-          // check global completion
-          const globalApproved = await db.collection('task_submissions')
-            .where('taskId','==',id).where('status','==','approved').get();
-          if (globalApproved.size < data.workersNeeded) renderTask(id, data);
+          const globalApproved = (await db.collection('task_submissions')
+            .where('taskId','==',id).where('status','==','approved').get()).size;
+          if (globalApproved < data.workersNeeded) renderTask(id, data);
         }
-      } catch (e) {
+      } catch(e) {
         loadingEl.textContent = 'Error loading tasks: ' + e.message;
       }
     }
 
+    // Render task with proofs
     function renderTask(id, data) {
-      const price   = data.costPerUser || (data.totalBudget / data.workersNeeded);
-      const userPay = +(price * 0.7).toFixed(2);
-      const div = document.createElement('div');
-      div.className = 'task'; div.id = `task-${id}`;
+      const price = data.costPerUser || (data.totalBudget/data.workersNeeded);
+      const userPay = +(price*0.7).toFixed(2);
+      const div = document.createElement('div'); div.className='task'; div.id=`task-${id}`;
       div.innerHTML = `
         <h2>${data.taskTitle} — ${data.category}</h2>
         <p>${data.description||''}</p>
         <p><strong>Earn:</strong> ₦${userPay}</p>
+        <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
+        <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
+        <button onclick="window.open('${data.link}','_blank')" class="submit-btn">Start Task</button>
         <div class="proof">
           <label>Text Proof:</label>
           <textarea id="text-${id}" placeholder="Enter text proof..."></textarea><label>Upload Image Proof:</label>
-      <input type="file" id="file-${id}" accept="image/*" />
+      <input type="file" id="file_${id}" accept="image/*" />
+      <div class="upload-progress-container" id="upload-container-${id}">
+        <div class="upload-progress-bar" id="upload-bar-${id}"></div>
+      </div>
+      <div class="upload-progress-label" id="upload-label-${id}"></div>
       <button id="submit-${id}" class="submit-btn">Submit Proof</button>
     </div>
   `;
   taskContainer.appendChild(div);
-  document.getElementById(`submit-${id}`).onclick = () => submitProof(id, userPay);
+  document.getElementById(`submit-${id}`).onclick = () => submitProof(id,userPay);
+  db.collection('task_submissions').where('taskId','==',id).where('status','==','approved')
+    .onSnapshot(snap => {
+      const done = snap.size;
+      const pct = Math.min(100,Math.round(done/data.workersNeeded*100));
+      document.getElementById(`bar-${id}`).style.width = pct + '%';
+      document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
+      if (done>=data.workersNeeded) document.getElementById(`task-${id}`).remove();
+    });
 }
 
-// uploadToImgur and submitProof unchanged...
+// Imgur upload
+function uploadToImgur(file,onProgress){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const b=r.result.split(',')[1],f=new FormData();f.append('image',b);const x=new XMLHttpRequest();x.open('POST','https://api.imgur.com/3/image');x.setRequestHeader('Authorization','Client-ID fb533db21a59486');x.upload.onprogress=e=>e.lengthComputable&&onProgress(Math.round(e.loaded/e.total*100));x.onload=()=>{const j=JSON.parse(x.responseText);j.success?res(j.data.link):rej(j.data.error)};x.onerror=()=>rej('Upload failed');x.send(f)};r.onerror=()=>rej('Read error');r.readAsDataURL(file);});}
+
+// submitProof
+async function submitProof(taskId,payout){const t=document.getElementById(`text-${taskId}`),f=document.getElementById(`file_${taskId}`);const txt=t.value.trim(),file=f.files[0];if(!txt||!file)return alert('Provide text & image');const bar=document.getElementById(`upload-bar-${taskId}`),lbl=document.getElementById(`upload-label-${taskId}`),ctr=document.getElementById(`upload-container-${taskId}`);ctr.style.display=lbl.style.display='block';try{const url=await uploadToImgur(file,p=>{bar.style.width=p+'%';lbl.textContent=p+'%'});const u=auth.currentUser;await db.collection('task_submissions').add({taskId,userId:u.uid,username:u.email,textProof:txt,imageProof:url,payout,status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp()});lbl.textContent='Submitted!';setTimeout(()=>{ctr.style.display=lbl.style.display='none';bar.style.width='0%';t.value='';f.value=null},1000)}catch(e){lbl.textContent='Error: '+e}}
 
   </script>
 </body>
