@@ -1,148 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin — Manage Withdrawals</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, collectionGroup, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Manage Withdrawals</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, collectionGroup, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.firebasestorage.app",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    function sortWithdrawals(arr) {
-      return arr.sort((a, b) => {
-        const statusA = a.data.status;
-        const statusB = b.data.status;
-        if (statusA === "Pending" && statusB !== "Pending") return -1;
-        if (statusA !== "Pending" && statusB === "Pending") return 1;
-        const tsA = a.data.timestamp.seconds;
-        const tsB = b.data.timestamp.seconds;
-        return tsB - tsA;
-      });
-    }
+    function sortWithdrawals(arr) {
+      return arr.sort((a, b) => {
+        const statusA = a.data.status;
+        const statusB = b.data.status;
+        if (statusA === "Pending" && statusB !== "Pending") return -1;
+        if (statusA !== "Pending" && statusB === "Pending") return 1;
+        const tsA = a.data.timestamp.seconds;
+        const tsB = b.data.timestamp.seconds;
+        return tsB - tsA;
+      });
+    }
 
-    async function loadWithdrawals() {
-      const withdrawalQuery = collectionGroup(db, "withdrawals");
-      const snapshot = await getDocs(withdrawalQuery);
+    async function loadWithdrawals() {
+      const withdrawalQuery = collectionGroup(db, "withdrawals");
+      const snapshot = await getDocs(withdrawalQuery);
 
-      const allDocs = [];
-      let total = 0;
+      const allDocs = [];
+      let total = 0;
 
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        if (typeof data.amount === 'number') {
-          total += data.amount;
-        }
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (typeof data.amount === 'number') {
+          total += data.amount;
+        }
 
-        allDocs.push({
-          path: docSnap.ref.path,
-          data,
-          username: docSnap.ref.path.split("/")[1] // Assumes path like users/USERNAME/withdrawals/ID
-        });
-      });
+        allDocs.push({
+          path: docSnap.ref.path,
+          data,
+          username: data.username || docSnap.ref.path.split("/")[1] // Pull from field if available, fallback to path
+        });
+      });
 
-      const sorted = sortWithdrawals(allDocs);
+      const sorted = sortWithdrawals(allDocs);
 
-      document.getElementById("totalAmount").textContent = `Total Withdrawn: ₦${total.toLocaleString()}`;
+      document.getElementById("totalAmount").textContent = `Total Withdrawn: ₦${total.toLocaleString()}`;
 
-      const tbody = document.getElementById("withdrawalTable").querySelector("tbody");
-      tbody.innerHTML = "";
+      const tbody = document.getElementById("withdrawalTable").querySelector("tbody");
+      tbody.innerHTML = "";
 
-      sorted.forEach(item => {
-        const d = item.data;
-        const dateStr = new Date(d.timestamp.seconds * 1000).toLocaleString();
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${dateStr}</td>
-          <td>₦${d.amount}</td>
-          <td>${d.bank}</td>
-          <td>${d.accNumber}</td>
-          <td>${d.accName}</td>
-          <td>${item.username}</td>
-          <td>
-            <select data-path="${item.path}" onchange="updateStatus(this)">
-              <option value="Pending" ${d.status === "Pending" ? "selected" : ""}>Pending</option>
-              <option value="Successful" ${d.status === "Successful" ? "selected" : ""}>Successful</option>
-              <option value="Rejected" ${d.status === "Rejected" ? "selected" : ""}>Rejected</option>
-            </select>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+      sorted.forEach(item => {
+        const d = item.data;
+        const dateStr = new Date(d.timestamp.seconds * 1000).toLocaleString();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${dateStr}</td>
+          <td>₦${d.amount}</td>
+          <td>${d.bank}</td>
+          <td>${d.accNumber}</td>
+          <td>${d.accName}</td>
+          <td>${item.username}</td>
+          <td>
+            <select data-path="${item.path}" onchange="updateStatus(this)">
+              <option value="Pending" ${d.status === "Pending" ? "selected" : ""}>Pending</option>
+              <option value="Successful" ${d.status === "Successful" ? "selected" : ""}>Successful</option>
+              <option value="Rejected" ${d.status === "Rejected" ? "selected" : ""}>Rejected</option>
+            </select>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
-    window.updateStatus = async function(selectEl) {
-      const path = selectEl.getAttribute("data-path");
-      const newStatus = selectEl.value;
-      const refDoc = doc(db, path);
-      await updateDoc(refDoc, { status: newStatus });
-      alert("Status updated to " + newStatus);
-      loadWithdrawals();
-    };
+    window.updateStatus = async function(selectEl) {
+      const path = selectEl.getAttribute("data-path");
+      const newStatus = selectEl.value;
+      const refDoc = doc(db, path);
+      await updateDoc(refDoc, { status: newStatus });
+      alert("Status updated to " + newStatus);
+      loadWithdrawals();
+    };
 
-    loadWithdrawals();
-  </script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 2rem;
-      background-color: #f9fff9;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-    th {
-      background-color: #d5fdd5;
-    }
-    select {
-      padding: 5px;
-      border-radius: 4px;
-    }
-    #totalAmount {
-      font-weight: bold;
-      font-size: 16px;
-      margin-bottom: 1rem;
-      color: #155724;
-    }
-  </style>
+    loadWithdrawals();
+  </script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0fff0;
+      color: #222;
+      padding: 20px;
+    }
+    h2 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+    }
+    #totalAmount {
+      background: #e8f5e9;
+      color: #1b5e20;
+      padding: 10px;
+      font-weight: bold;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #d0f0d0;
+      font-weight: 600;
+    }
+    select {
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    tr:hover {
+      background-color: #f4fff4;
+    }
+  </style>
 </head>
 <body>
-  <h2>Admin Withdrawal Records</h2>
-  <div id="totalAmount">Loading total...</div>
-  <table id="withdrawalTable">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Amount</th>
-        <th>Bank</th>
-        <th>Account Number</th>
-        <th>Account Name</th>
-        <th>Username</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td colspan="7">Loading…</td></tr>
-    </tbody>
-  </table>
+  <h2>Admin Withdrawal Records</h2>
+  <div id="totalAmount">Loading total...</div>
+  <table id="withdrawalTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Amount</th>
+        <th>Bank</th>
+        <th>Account Number</th>
+        <th>Account Name</th>
+        <th>Username</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7">Loading…</td></tr>
+    </tbody>
+  </table>
 </body>
 </html>
