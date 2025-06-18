@@ -35,57 +35,51 @@
     <input type="password" id="password" placeholder="Password" />
     <button id="loginBtn">Sign In</button>
     <p id="loginError"></p>
-  </div>  <div id="app">
+  </div>
+  <div id="app">
     <button id="logoutBtn">Sign Out</button>
     <header>EasyPay – Available Tasks</header>
     <div id="loading">Loading tasks...</div>
     <div id="taskContainer"></div>
-  </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c1e"
-    };
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
-    // DOM refs
-    const loginDiv      = document.getElementById('loginDiv');
-    const appDiv        = document.getElementById('app');
-    const loginBtn      = document.getElementById('loginBtn');
-    const logoutBtn     = document.getElementById('logoutBtn');
-    const emailEl       = document.getElementById('email');
-    const passEl        = document.getElementById('password');
-    const loginError    = document.getElementById('loginError');
-    const loadingEl     = document.getElementById('loading');
-    const taskContainer = document.getElementById('taskContainer');
+    const loginDiv = document.getElementById('loginDiv'),
+          appDiv = document.getElementById('app'),
+          loginBtn = document.getElementById('loginBtn'),
+          logoutBtn = document.getElementById('logoutBtn'),
+          emailEl = document.getElementById('email'),
+          passEl = document.getElementById('password'),
+          loginError = document.getElementById('loginError'),
+          loadingEl = document.getElementById('loading'),
+          taskContainer = document.getElementById('taskContainer');
 
-    // Sign in
     loginBtn.onclick = () => {
       loginError.textContent = '';
-      auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
-        .catch(err => loginError.textContent = err.message);
+      auth.signInWithEmailAndPassword(emailEl.value, passEl.value).catch(err => loginError.textContent = err.message);
     };
-    // Sign out
     logoutBtn.onclick = () => auth.signOut();
 
-    // Auth listener
     auth.onAuthStateChanged(async user => {
       if (user) {
         loginDiv.style.display = 'none';
-        appDiv.style.display   = 'block';
+        appDiv.style.display = 'block';
         await loadTasks(user.uid);
+        db.collection('task_submissions')
+          .where('userId', '==', user.uid)
+          .onSnapshot(() => loadTasks(user.uid));
       } else {
         loginDiv.style.display = 'block';
-        appDiv.style.display   = 'none';
+        appDiv.style.display = 'none';
       }
     });
 
-    // Load tasks skipping if pending/approved, show if rejected
     async function loadTasks(uid) {
       loadingEl.textContent = 'Loading tasks...';
       taskContainer.innerHTML = '';
@@ -94,11 +88,9 @@
           db.collection('tasks').where('status','==','approved').get(),
           db.collection('task_submissions').where('userId','==',uid).get()
         ]);
-        // tasks user has pending or approved
         const skipIds = new Set(
           userSubsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId)
         );
-        // sort desc
         const tasks = tasksSnap.docs.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
         loadingEl.style.display = 'none';
         for (let doc of tasks) {
@@ -113,7 +105,6 @@
       }
     }
 
-    // Render task with proofs
     function renderTask(id, data) {
       const price = data.costPerUser || (data.totalBudget/data.workersNeeded);
       const userPay = +(price*0.7).toFixed(2);
@@ -127,33 +118,32 @@
         <button onclick="window.open('${data.link}','_blank')" class="submit-btn">Start Task</button>
         <div class="proof">
           <label>Text Proof:</label>
-          <textarea id="text-${id}" placeholder="Enter text proof..."></textarea><label>Upload Image Proof:</label>
-      <input type="file" id="file_${id}" accept="image/*" />
-      <div class="upload-progress-container" id="upload-container-${id}">
-        <div class="upload-progress-bar" id="upload-bar-${id}"></div>
-      </div>
-      <div class="upload-progress-label" id="upload-label-${id}"></div>
-      <button id="submit-${id}" class="submit-btn">Submit Proof</button>
-    </div>
-  `;
-  taskContainer.appendChild(div);
-  document.getElementById(`submit-${id}`).onclick = () => submitProof(id,userPay);
-  db.collection('task_submissions').where('taskId','==',id).where('status','==','approved')
-    .onSnapshot(snap => {
-      const done = snap.size;
-      const pct = Math.min(100,Math.round(done/data.workersNeeded*100));
-      document.getElementById(`bar-${id}`).style.width = pct + '%';
-      document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
-      if (done>=data.workersNeeded) document.getElementById(`task-${id}`).remove();
-    });
-}
+          <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
+          <label>Upload Image Proof:</label>
+          <input type="file" id="file_${id}" accept="image/*" />
+          <div class="upload-progress-container" id="upload-container-${id}">
+            <div class="upload-progress-bar" id="upload-bar-${id}"></div>
+          </div>
+          <div class="upload-progress-label" id="upload-label-${id}"></div>
+          <button id="submit-${id}" class="submit-btn">Submit Proof</button>
+        </div>
+      `;
+      taskContainer.appendChild(div);
+      document.getElementById(`submit-${id}`).onclick = () => submitProof(id, userPay);
+      db.collection('task_submissions')
+        .where('taskId','==',id).where('status','==','approved')
+        .onSnapshot(snap => {
+          const done = snap.size;
+          const pct = Math.min(100,Math.round(done/data.workersNeeded*100));
+          document.getElementById(`bar-${id}`).style.width = pct + '%';
+          document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
+          if (done>=data.workersNeeded) document.getElementById(`task-${id}`).remove();
+        });
+    }
 
-// Imgur upload
-function uploadToImgur(file,onProgress){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const b=r.result.split(',')[1],f=new FormData();f.append('image',b);const x=new XMLHttpRequest();x.open('POST','https://api.imgur.com/3/image');x.setRequestHeader('Authorization','Client-ID fb533db21a59486');x.upload.onprogress=e=>e.lengthComputable&&onProgress(Math.round(e.loaded/e.total*100));x.onload=()=>{const j=JSON.parse(x.responseText);j.success?res(j.data.link):rej(j.data.error)};x.onerror=()=>rej('Upload failed');x.send(f)};r.onerror=()=>rej('Read error');r.readAsDataURL(file);});}
+    function uploadToImgur(file,onProgress){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const b=r.result.split(',')[1],f=new FormData();f.append('image',b);const x=new XMLHttpRequest();x.open('POST','https://api.imgur.com/3/image');x.setRequestHeader('Authorization','Client-ID fb533db21a59486');x.upload.onprogress=e=>e.lengthComputable&&onProgress(Math.round(e.loaded/e.total*100));x.onload=()=>{const j=JSON.parse(x.responseText);j.success?res(j.data.link):rej(j.data.error)};x.onerror=()=>rej('Upload failed');x.send(f)};r.onerror=()=>rej('Read error');r.readAsDataURL(file);});}
 
-// submitProof
-async function submitProof(taskId,payout){const t=document.getElementById(`text-${taskId}`),f=document.getElementById(`file_${taskId}`);const txt=t.value.trim(),file=f.files[0];if(!txt||!file)return alert('Provide text & image');const bar=document.getElementById(`upload-bar-${taskId}`),lbl=document.getElementById(`upload-label-${taskId}`),ctr=document.getElementById(`upload-container-${taskId}`);ctr.style.display=lbl.style.display='block';try{const url=await uploadToImgur(file,p=>{bar.style.width=p+'%';lbl.textContent=p+'%'});const u=auth.currentUser;await db.collection('task_submissions').add({taskId,userId:u.uid,username:u.email,textProof:txt,imageProof:url,payout,status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp()});lbl.textContent='Submitted!';setTimeout(()=>{ctr.style.display=lbl.style.display='none';bar.style.width='0%';t.value='';f.value=null},1000)}catch(e){lbl.textContent='Error: '+e}}
-
+    async function submitProof(taskId,payout){const t=document.getElementById(`text-${taskId}`),f=document.getElementById(`file_${taskId}`);const txt=t.value.trim(),file=f.files[0];if(!txt||!file)return alert('Provide text & image');const bar=document.getElementById(`upload-bar-${taskId}`),lbl=document.getElementById(`upload-label-${taskId}`),ctr=document.getElementById(`upload-container-${taskId}`);ctr.style.display=lbl.style.display='block';try{const url=await uploadToImgur(file,p=>{bar.style.width=p+'%';lbl.textContent=p+'%'});const u=auth.currentUser;await db.collection('task_submissions').add({taskId,userId:u.uid,username:u.email,textProof:txt,imageProof:url,payout,status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp()});lbl.textContent='Submitted!';document.getElementById(`task-${taskId}`).remove();setTimeout(()=>{ctr.style.display=lbl.style.display='none';bar.style.width='0%';t.value='';f.value=null},1000)}catch(e){lbl.textContent='Error: '+e}}
   </script>
 </body>
 </html>
