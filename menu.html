@@ -52,29 +52,6 @@
       flex-direction: column;
       align-items: center;
     }
-    /* Centered activate button */
-    .activate-btn {
-      background: white;
-      border: 2px solid #009f4d;
-      border-radius: 10px;
-      padding: 20px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      color: #009f4d;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      justify-content: center;
-      max-width: 300px;
-      width: 100%;
-      margin-bottom: 20px;
-    }
-    .activate-btn:hover {
-      background: #009f4d;
-      color: white;
-    }
     .menu {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -111,7 +88,7 @@
       header h2 {
         font-size: 1.5rem;
       }
-      .activate-btn, .menu button {
+      .menu button {
         padding: 24px;
         font-size: 18px;
       }
@@ -133,12 +110,6 @@
   </header>
 
   <div class="container">
-    <!-- Activate Account button (one full row) -->
-    <button class="activate-btn" onclick="location.href='verify.html'">
-      <i class="fas fa-user-check"></i> Activate Account
-    </button>
-
-    <!-- Two options per row, centered in a 600px grid -->
     <div class="menu">
       <button onclick="location.href='deposit.html'">
         <i class="fas fa-credit-card"></i> Deposit
@@ -164,9 +135,6 @@
       <button onclick="location.href='contact.html'">
         <i class="fas fa-phone-alt"></i> Contact Us
       </button>
-      <button onclick="location.href='upgrade.html'">
-        <i class="fas fa-arrow-up"></i> Upgrade
-      </button>
       <button onclick="location.href='tap.html'">
         <i class="fas fa-hand-pointer"></i> Tap to Earn
       </button>
@@ -186,7 +154,6 @@
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    // — Your Exact Firebase Configuration Below —
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -196,7 +163,6 @@
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
       measurementId: "G-2FZKDQ47FZ"
     };
-    // — End Firebase Configuration —
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -204,11 +170,9 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        // Not signed in; redirect to login
         window.location.href = 'login.html';
         return;
       }
-      // Signed in, fetch profile fields
       const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
       if (userSnap.exists()) {
@@ -218,7 +182,6 @@
         document.getElementById("profileEmail").innerText = data.email;
         document.getElementById("balance").innerText = data.balance || 0;
       } else {
-        // If there’s no Firestore document for this UID:
         alert("User record not found. Please contact support.");
       }
     });
