@@ -32,12 +32,15 @@
 <body>
   <div id="blurOverlay" class="hidden">Redirecting to upgrade page...</div>
 
-  <!-- Place your full dashboard HTML content here -->
+  <main>
+    <h1 style="text-align:center; margin-top:40px; color:#2e7d32">Welcome to EasyPay Dashboard</h1>
+    <p style="text-align:center">Loading your account...</p>
+  </main>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import {
-      getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs
+      getFirestore, doc, getDoc
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     import {
       getAuth, onAuthStateChanged, signOut
@@ -75,16 +78,6 @@
       const data = snap.data();
       const plan = data.plan || "basic";
 
-      // Restrict access to premium only with visual overlay
-      if (plan !== "premium") {
-        const blurOverlay = document.getElementById("blurOverlay");
-        blurOverlay.classList.remove("hidden");
-        setTimeout(() => {
-          window.location.href = "upgrade.html";
-        }, 2000);
-        return;
-      }
-
       // Set logout at midnight
       if (!localStorage.getItem(LOGIN_KEY)) {
         localStorage.setItem(LOGIN_KEY, getNextMidnight());
@@ -97,7 +90,14 @@
         }
       }, 60000);
 
-      // Populate UI as needed here
+      // Restrict access to premium only with visual overlay
+      if (plan !== "premium") {
+        const blurOverlay = document.getElementById("blurOverlay");
+        blurOverlay.classList.remove("hidden");
+        setTimeout(() => {
+          window.location.href = "upgrade.html";
+        }, 2000);
+      }
     });
   </script>
 </body>
