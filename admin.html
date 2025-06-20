@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel</title>
   <style>
     :root {
@@ -12,14 +12,12 @@
       --gray: #f9f9f9;
       --shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: var(--gray);
       margin: 0;
       padding: 0;
     }
-
     header {
       background-color: var(--green);
       color: var(--white);
@@ -29,12 +27,10 @@
       align-items: center;
       box-shadow: var(--shadow);
     }
-
     h1 {
       font-size: 1.5rem;
       margin: 0;
     }
-
     .top-button {
       background-color: var(--white);
       color: var(--green);
@@ -45,12 +41,10 @@
       cursor: pointer;
       box-shadow: var(--shadow);
     }
-
     .dropdown {
       position: relative;
       display: inline-block;
     }
-
     .dropdown-content {
       display: none;
       position: absolute;
@@ -61,7 +55,6 @@
       border-radius: 8px;
       margin-top: 8px;
     }
-
     .dropdown-content a {
       padding: 12px 16px;
       display: block;
@@ -69,22 +62,18 @@
       color: #333;
       font-weight: 500;
     }
-
     .dropdown-content a:hover {
       background-color: var(--light-green);
     }
-
     .container {
       padding: 2rem;
     }
-
     #userCount {
       font-size: 1.1rem;
       margin-bottom: 10px;
       font-weight: 500;
       color: #004400;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -94,18 +83,15 @@
       overflow: hidden;
       box-shadow: var(--shadow);
     }
-
     th, td {
       padding: 1rem;
       text-align: left;
       border-bottom: 1px solid #eee;
     }
-
     th {
       background-color: var(--light-green);
       font-weight: 600;
     }
-
     .btn {
       padding: 0.5rem 1rem;
       border: none;
@@ -114,17 +100,14 @@
       cursor: pointer;
       margin-right: 0.5rem;
     }
-
     .edit-btn {
       background-color: #4caf50;
       color: white;
     }
-
     .suspend-btn {
       background-color: #ff9800;
       color: white;
     }
-
     input[type="text"] {
       padding: 0.5rem;
       width: 100%;
@@ -133,7 +116,6 @@
       border-radius: 5px;
       box-shadow: var(--shadow);
     }
-
     .modal {
       display: none;
       position: fixed;
@@ -145,7 +127,6 @@
       align-items: center;
       z-index: 2000;
     }
-
     .modal-content {
       background-color: var(--white);
       padding: 2rem;
@@ -154,7 +135,6 @@
       max-width: 400px;
       box-shadow: var(--shadow);
     }
-
     .modal input {
       width: 100%;
       padding: 0.75rem;
@@ -165,7 +145,6 @@
   </style>
 </head>
 <body>
-
   <header>
     <h1>Admin Panel</h1>
     <div class="dropdown">
@@ -176,225 +155,10 @@
         <a href="admin-advertise.html">Adverts</a>
         <a href="admin-task.html">Submissions</a>
         <a href="admin-activate.html">User Records</a>
-        <!-- New option for User Activations -->
-        <a href="admin-verify.html">User Activations</a>
         <a href="admin-plans.html">User Plans</a>
         <a href="admin-upgrade.html">Upgrades</a>
-        <a href="admin-vtu.html">VTU Request</a>
       </div>
     </div>
   </header>
-
-  <div class="container">
-    <div id="userCount">Total Users:  0</div>
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search by Username or UID..."
-      oninput="searchUsers()"
-    />
-    <table>
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>UID</th>
-          <th>Balance</th>
-          <th>Referrals</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="userTableBody"></tbody>
-    </table>
-  </div>
-
-  <div class="modal" id="editModal">
-    <div class="modal-content">
-      <h3>Edit User</h3>
-      <input type="text" id="editUsername" placeholder="Username" />
-      <input type="number" id="editBalance" placeholder="Balance" />
-      <input type="number" id="editReferrals" placeholder="Referrals" />
-      <button class="btn edit-btn" onclick="saveChanges()">Save Changes</button>
-    </div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      updateDoc,
-      query,
-      where
-    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    let selectedUserId = null;
-
-    async function loadUsers() {
-      const tbody = document.getElementById("userTableBody");
-      const userCountEl = document.getElementById("userCount");
-      tbody.innerHTML = "";
-
-      // 1) Fetch all user documents
-      const snapshot = await getDocs(collection(db, "users"));
-      const totalUsers = snapshot.size;
-      userCountEl.textContent = `Total Users:  ${totalUsers}`;
-
-      // 2) Build an array of { id, data } to later get referral‐counts
-      const userDocs = [];
-      snapshot.forEach(docSnap => {
-        userDocs.push({
-          id: docSnap.id,
-          data: docSnap.data()
-        });
-      });
-
-      // 3) For each user, query how many docs have referral == thisUsername
-      const rowsWithCounts = await Promise.all(
-        userDocs.map(async ({ id, data }) => {
-          const username = data.username || "";
-          // Query Firestore: where "referral" field equals this user's username
-          const refQuery = query(
-            collection(db, "users"),
-            where("referral", "==", username)
-          );
-          const refSnap = await getDocs(refQuery);
-          const referralCount = refSnap.size;
-
-          return {
-            uid: id,
-            username: data.username || "—",
-            balance: data.balance || 0,
-            suspended: data.suspended || false,
-            referralCount
-          };
-        })
-      );
-
-      // 4) Now render each row with the computed referralCount
-      rowsWithCounts.forEach(userObj => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${userObj.username}</td>
-          <td>${userObj.uid}</td>
-          <td>₦${userObj.balance}</td>
-          <td>${userObj.referralCount}</td>
-          <td>${userObj.suspended ? "Suspended" : "Active"}</td>
-          <td>
-            <button
-              class="btn edit-btn"
-              onclick="openModal(
-                '${userObj.uid}',
-                '${userObj.username}',
-                ${userObj.balance},
-                ${userObj.referralCount}
-              )"
-            >
-              Edit
-            </button>
-            <button
-              class="btn suspend-btn"
-              onclick="toggleSuspend(
-                '${userObj.uid}',
-                ${userObj.suspended}
-              )"
-            >
-              ${userObj.suspended ? "Unsuspend" : "Suspend"}
-            </button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    window.openModal = (id, username, balance, referrals) => {
-      selectedUserId = id;
-      document.getElementById("editUsername").value = username;
-      document.getElementById("editBalance").value = balance;
-      document.getElementById("editReferrals").value = referrals;
-      document.getElementById("editModal").style.display = "flex";
-    };
-
-    window.saveChanges = async () => {
-      const username = document.getElementById("editUsername").value;
-      const balance = parseFloat(
-        document.getElementById("editBalance").value
-      );
-      const referrals = parseInt(
-        document.getElementById("editReferrals").value
-      );
-      if (selectedUserId) {
-        await updateDoc(doc(db, "users", selectedUserId), {
-          username,
-          balance,
-          referrals
-        });
-        document.getElementById("editModal").style.display = "none";
-        await loadUsers();
-      }
-    };
-
-    window.toggleSuspend = async (id, currentlySuspended) => {
-      const action = currentlySuspended ? "unsuspend" : "suspend";
-      if (
-        confirm(`Are you sure you want to ${action} this user?`)
-      ) {
-        await updateDoc(doc(db, "users", id), {
-          suspended: !currentlySuspended
-        });
-        await loadUsers();
-      }
-    };
-
-    window.searchUsers = () => {
-      const queryVal = document
-        .getElementById("searchInput")
-        .value.toLowerCase();
-      document.querySelectorAll("#userTableBody tr").forEach(row => {
-        const username = row.children[0].innerText.toLowerCase();
-        const uid = row.children[1].innerText.toLowerCase();
-        row.style.display =
-          username.includes(queryVal) || uid.includes(queryVal)
-            ? ""
-            : "none";
-      });
-    };
-
-    window.addEventListener("click", (e) => {
-      if (e.target === document.getElementById("editModal")) {
-        document.getElementById("editModal").style.display = "none";
-      }
-    });
-
-    // Initial load of users
-    loadUsers();
-  </script>
-
-  <script>
-    function toggleDropdown() {
-      const menu = document.getElementById("dropdownMenu");
-      menu.style.display =
-        menu.style.display === "block" ? "none" : "block";
-    }
-    window.addEventListener("click", (e) => {
-      if (!e.target.closest(".dropdown")) {
-        document.getElementById("dropdownMenu").style.display = "none";
-      }
-    });
-  </script>
 </body>
 </html>
