@@ -182,7 +182,7 @@
   </style>
 </head>
 <body>
-  <header>Tap to Earn ₦10</header>
+  <header>Tap to Earn ₦$</header>
 
   <main>
     <!-- Ineligible Screen for Basic Users -->
@@ -283,7 +283,7 @@
     // 3) Constants & State
     // ──────────────────────────────────────────────────────────────────────────────
     const MAX_TAP_BALANCE   = 100.0;                 // ₦100 max in tap wallet
-    const TAP_AMOUNT        = 10.0;                  // ₦10 per tap
+    const TAP_AMOUNT        = 2.0;                  // ₦2 per tap
     const TRANSFER_INTERVAL = 24 * 60 * 60 * 1000;  // 24h in ms
 
     let userRef   = null;  // points to `users/{uid}` doc
@@ -338,8 +338,8 @@
 
       if (currentTap < MAX_TAP_BALANCE) {
         tapBtn.disabled = false;
-        tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦10`;
-        tapMessage.innerText = "Tap now to add ₦10 to your tap wallet.";
+        tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦2`;
+        tapMessage.innerText = "Tap now to add ₦2 to your tap wallet.";
       } else {
         tapBtn.disabled = true;
         tapBtn.innerHTML = `Tap Wallet Full`;
@@ -377,7 +377,7 @@
             if (newTap < MAX_TAP_BALANCE) {
               tapMessage.innerText = `₦${TAP_AMOUNT.toFixed(2)} added! 🎉 Tap again—up to ₦${MAX_TAP_BALANCE.toFixed(2)}.`;
               freshTapBtn.disabled = false;
-              freshTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦10`;
+              freshTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦2`;
             } else {
               tapMessage.innerText = "Your tap wallet is full. Transfer to main balance to continue.";
               freshTapBtn.innerHTML = `Tap Wallet Full`;
@@ -396,7 +396,7 @@
           console.error("Error during tap:", err);
           tapMessage.innerText = "Error—please try again.";
           freshTapBtn.disabled = false;
-          freshTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦10`;
+          freshTapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦2`;
         }
       });
     }
