@@ -283,7 +283,7 @@
     // 3) Constants & State
     // ──────────────────────────────────────────────────────────────────────────────
     const MAX_TAP_BALANCE   = 100.0;                 // ₦100 max in tap wallet
-    const TAP_AMOUNT        = 2.0;                  // ₦2 per tap
+    const TAP_AMOUNT        = 10.0;                  // ₦10 per tap
     const TRANSFER_INTERVAL = 24 * 60 * 60 * 1000;  // 24h in ms
 
     let userRef   = null;  // points to `users/{uid}` doc
@@ -339,7 +339,7 @@
       if (currentTap < MAX_TAP_BALANCE) {
         tapBtn.disabled = false;
         tapBtn.innerHTML = `<i class="fas fa-hand-pointer"></i> Tap to Earn ₦2`;
-        tapMessage.innerText = "Tap now to add ₦2 to your tap wallet.";
+        tapMessage.innerText = "Tap now to add ₦10 to your tap wallet.";
       } else {
         tapBtn.disabled = true;
         tapBtn.innerHTML = `Tap Wallet Full`;
