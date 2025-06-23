@@ -5,46 +5,43 @@
   <title>EasyPay Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
-    header { background-color: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: relative; }
-    .profile { position: relative; cursor: pointer; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: relative; }
+    .profile { position: relative; }
     .profile-info { display: none; position: absolute; right: 0; top: 50px; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 8px; width: 220px; padding: 10px; z-index: 2; }
     .profile-info.show { display: block; }
-    .profile-info p { margin: 8px 0; font-size: 0.95rem; }
-    .profile-info button { margin-top: 10px; width: 100%; padding: 8px; background-color: #009f4d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; }
-    .container { padding: 20px; flex-grow: 1; }
+    .container { padding: 20px; flex: 1; overflow-y: auto; }
     .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
-    .card h3 { margin-top: 0; color: #006400; }
-    .copy-btn { background: #009f4d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 0.95rem; }
-    .log-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .log-table th, .log-table td { padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: left; font-size: 0.9rem; }
-    .log-table th { background-color: #f0fdf7; }
-    .no-log { text-align: center; color: #666; margin-top: 10px; }
+    .copy-btn { background: #009f4d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+    .log-container { max-height: 300px; overflow-y: auto; }
+    .log-table { width: 100%; border-collapse: collapse; }
+    .log-table th, .log-table td { padding: 8px; border-bottom: 1px solid #e0e0e0; font-size: 0.9rem; }
+    .log-table th { background: #f0fdf7; position: sticky; top: 0; }
+    .no-log { text-align: center; color: #666; }
     .nav { position: fixed; bottom: 0; width: 100%; background: #009f4d; display: flex; justify-content: space-around; padding: 10px 0; }
-    .nav a { color: white; text-decoration: none; text-align: center; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; }
+    .nav a { color: white; text-decoration: none; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; }
     .nav a i { font-size: 1.5rem; margin-bottom: 4px; }
-    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1; }
-    .modal-content { background: #fff; padding: 30px; border-radius: 12px; text-align: center; max-width: 90%; }
-    .modal-content h2 { margin-top: 0; color: #009f4d; }
-    .modal-content a { display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #009f4d; color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; }
+    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; }
+    .modal-content { background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 90%; }
+    .modal-content a { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #009f4d; color: white; border-radius: 6px; text-decoration: none; }
   </style>
 </head>
 <body>
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
     <div class="profile">
-      <i class="fas fa-user-circle fa-2x" id="profileIcon"></i>
+      <i class="fas fa-user-circle fa-2x" onclick="toggleProfile()"></i>
       <div id="profileInfo" class="profile-info">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
         <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
-        <button id="logoutBtn">Logout</button>
+        <button onclick="logout()">Logout</button>
       </div>
     </div>
-  </header>  <div id="upgradeModal" class="modal" style="display: none;">
+  </header>  <div id="upgradeModal" class="modal" style="display:none;">
     <div class="modal-content">
       <h2>Account Not Activated</h2>
-      <p>You need to upgrade your plan to access the earnings log.</p>
+      <p>Upgrade to Premium, Gold, or Elite to view your earnings log.</p>
       <a href="upgrade.html">Upgrade</a>
     </div>
   </div>  <div class="container">
@@ -56,19 +53,21 @@
     </div>
     <div class="card">
       <h3>Referral Code:</h3>
-      <p id="referralCode" style="word-break: break-all;"></p>
-      <button class="copy-btn" id="copyBtn">Copy Code</button>
+      <p id="referralCode" style="word-break:break-all;"></p>
+      <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
     </div>
     <div class="card">
       <h3>Earning Log (Last 20)</h3>
-      <table class="log-table" id="earnLogTable">
-        <thead>
-          <tr><th>ID</th><th>Date</th><th>Type</th><th>Amount</th></tr>
-        </thead>
-        <tbody id="earnLogBody">
-          <tr><td colspan="4" class="no-log">Loading...</td></tr>
-        </tbody>
-      </table>
+      <div class="log-container">
+        <table class="log-table">
+          <thead>
+            <tr><th>ID</th><th>Date</th><th>Type</th><th>Amount</th></tr>
+          </thead>
+          <tbody id="earnLogBody">
+            <tr><td colspan="4" class="no-log">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>  <div class="nav">
     <a href="menu.html"><i class="fas fa-home"></i>Menu</a>
@@ -80,84 +79,47 @@
     import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c8f1e", measurementId: "G-2FZKDQ47FZ" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
-    const profileIcon = document.getElementById('profileIcon');
-    const profileInfo = document.getElementById('profileInfo');
-    profileIcon.addEventListener('click', () => profileInfo.classList.toggle('show'));
-    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+    function toggleProfile() {
+      document.getElementById('profileInfo').classList.toggle('show');
+    }
+    function logout() { signOut(auth); }
+    function copyReferral() {
+      navigator.clipboard.writeText(document.getElementById('referralCode').innerText)
+        .then(() => alert('Referral code copied')); }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = 'login.html';
-      const uid = user.uid;
-      const userRef = doc(db, "users", uid);
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) return window.location.href = 'login.html';
-      const data = snap.data();
-      const plan = data.plan || 'basic';
-      const allowed = ['premium','gold','elite'];
-
-      document.getElementById('usernameDisplay').innerText = data.username || '';
-      document.getElementById('profileUsername').innerText = data.username || '';
-      document.getElementById('profileEmail').innerText = data.email || '';
-      document.getElementById('profileBalance').innerText = (data.balance||0).toFixed(2);
-      document.getElementById('balance').innerText = (data.balance||0).toFixed(2);
-      document.getElementById('referralCode').innerText = data.username || '';
-
-      if (!allowed.includes(plan)) {
-        document.getElementById('upgradeModal').style.display = 'flex';
-        return;
-      }
-
-      try {
-        const refQ = query(collection(db,'users'), where('referral','==', data.username));
-        const refSnap = await getDocs(refQ);
-        document.getElementById('referrals').innerText = refSnap.size;
-      } catch {
-        document.getElementById('referrals').innerText = 0;
-      }
-
-      // load last 50 transactions then filter
-      await loadEarningLog(userRef);
-
-      document.getElementById('copyBtn').addEventListener('click', () => {
-        const code = document.getElementById('referralCode').innerText;
-        navigator.clipboard.writeText(code).then(() => alert('Referral code copied: '+code));
-      });
+    onAuthStateChanged(auth, async user => {
+      if (!user) return location.href='login.html';
+      const uRef = doc(db,'users',user.uid);
+      const snap = await getDoc(uRef);
+      if (!snap.exists()) return location.href='login.html';
+      const data = snap.data(); const plan = data.plan||'basic';
+      document.getElementById('usernameDisplay').innerText=data.username;
+      document.getElementById('profileUsername').innerText=data.username;
+      document.getElementById('profileEmail').innerText=data.email;
+      document.getElementById('profileBalance').innerText=(data.balance||0).toFixed(2);
+      document.getElementById('balance').innerText=(data.balance||0).toFixed(2);
+      document.getElementById('referralCode').innerText=data.username;
+      if (!['premium','gold','elite'].includes(plan)) return document.getElementById('upgradeModal').style.display='flex';
+      loadEarningLog(uRef);
     });
 
-    async function loadEarningLog(userRef) {
-      const snap = await getDocs(query(collection(userRef,'transactionHistory'), orderBy('timestamp','desc'), limit(50)));
-      const types = ['Tap Transfer','Deposit','Task Approved','VTU Purchase','Withdrawal'];
-      const tbody = document.getElementById('earnLogBody');
-      tbody.innerHTML = '';
-      let count = 0;
-      snap.forEach(docSnap => {
-        if (count >= 20) return;
-        const data = docSnap.data();
-        if (!types.includes(data.type)) return;
-        const id = docSnap.id;
-        const date = data.timestamp?.toDate().toLocaleString() || '';
-        const sign = ['Tap Transfer','Deposit','Task Approved'].includes(data.type) ? '+' : '-';
-        const row = `<tr><td>${id}</td><td>${date}</td><td>${data.type}</td><td>${sign}₦${data.amount.toFixed(2)}</td></tr>`;
-        tbody.innerHTML += row;
-        count++;
+    async function loadEarningLog(uRef) {
+      const snaps = await getDocs(query(collection(uRef,'transactionHistory'),orderBy('timestamp','desc'),limit(50)));
+      const tbody = document.getElementById('earnLogBody'); tbody.innerHTML='';
+      const types=['Tap Transfer','Deposit','Task Approved','VTU Purchase','Withdrawal'];
+      let cnt=0;
+      snaps.forEach(d=>{
+        if (cnt>=20) return;
+        const tx=d.data(); if (!types.includes(tx.type)) return;
+        tbody.innerHTML+=`<tr><td>${d.id}</td><td>${tx.timestamp.toDate().toLocaleString()}</td><td>${tx.type}</td><td>${['Tap Transfer','Deposit','Task Approved'].includes(tx.type)?'+':'-'}₦${tx.amount.toFixed(2)}</td></tr>`;
+        cnt++;
       });
-      if (count === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="no-log">No transactions yet.</td></tr>';
-      }
+      if(!cnt) tbody.innerHTML='<tr><td colspan="4" class="no-log">No transactions yet.</td></tr>';
     }
   </script></body>
 </html>
