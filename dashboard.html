@@ -3,10 +3,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EasyPay Dashboard</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
     body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -18,6 +15,7 @@
     .container { padding: 20px; flex-grow: 1; }
     .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
     .card h3 { margin-top: 0; color: #006400; }
+    .copy-btn { background: #009f4d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 0.95rem; }
     .log-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     .log-table th, .log-table td { padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: left; font-size: 0.9rem; }
     .log-table th { background-color: #f0fdf7; }
@@ -79,13 +77,19 @@
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
   </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc,
-      collection, query, orderBy, getDocs,
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, orderBy, getDocs, where } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    const firebaseConfig = { /* same config */ };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
@@ -99,6 +103,7 @@
       const data = snap.data();
       const plan = data.plan || 'basic';
       const allowed = ['premium','gold','elite'];
+
       document.getElementById('usernameDisplay').innerText = data.username || '';
       document.getElementById('profileUsername').innerText = data.username || '';
       document.getElementById('profileEmail').innerText = data.email || '';
