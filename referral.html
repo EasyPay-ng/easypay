@@ -1,233 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Referrals – EasyPay</title>
   <style>
-    :root {
-      --green-dark: #006400;
-      --green-medium: #009f4d;
-      --green-light: #e6f4e6;
-      --bg: #f5fdf7;
-      --text-dark: #003300;
-      --text-medium: #004d00;
-      --white: #ffffff;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      background-color: var(--bg);
-      color: var(--text-dark);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    header {
-      background-color: var(--green-dark);
-      color: var(--white);
-      padding: 16px 24px;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-    .container {
-      flex-grow: 1;
-      padding: 24px;
-      max-width: 800px;
-      width: 100%;
-      margin: 0 auto;
-      box-sizing: border-box;
-      padding-bottom: 0; /* footer handled separately */
-    }
-    .section-title {
-      font-size: 1.5rem;
-      color: var(--green-dark);
-      margin-bottom: 8px;
-      text-align: center;
-    }
-    .total-referred {
-      font-size: 1rem;
-      color: var(--text-medium);
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    .table-container {
-      background: var(--white);
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 100, 0, 0.1);
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 700px;
-    }
-    th, td {
-      padding: 14px 16px;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
-      font-size: 0.9rem;
-    }
-    th {
-      background-color: var(--green-dark);
-      color: var(--white);
-      font-weight: 600;
-      font-size: 1rem;
-    }
-    tr:hover td {
-      background-color: var(--green-light);
-    }
-    .no-data {
-      text-align: center;
-      padding: 20px;
-      color: var(--text-medium);
-      font-size: 1rem;
-    }
-    footer {
-      background: var(--green-dark);
-      color: var(--white);
-      text-align: center;
-      padding: 12px 0;
-      font-size: 0.9rem;
-      margin-top: auto;
-    }
-    @media (min-width: 768px) {
-      header {
-        font-size: 1.75rem;
-        padding: 20px 24px;
-      }
-      th, td {
-        padding: 16px 20px;
-        font-size: 1rem;
-      }
-      .section-title {
-        font-size: 1.75rem;
-      }
-    }
+    :root { --green-dark:#006400; --green-medium:#009f4d; --bg:#f5fdf7; --text-dark:#003300; --blue:#007bff; --red:#dc3545; --white:#ffffff; }
+    body { margin:0; display:flex; flex-direction:column; min-height:100vh; background:var(--bg); color:var(--text-dark); font-family:'Segoe UI',sans-serif; }
+    header { background:var(--green-dark); color:var(--white); padding:16px; text-align:center; font-size:1.5rem; }
+    .tabs { display:flex; justify-content:center; margin-top:16px; }
+    .tab { padding:10px 20px; cursor:pointer; border-bottom:3px solid transparent; font-weight:bold; }
+    .tab.active { border-bottom-color:var(--green-medium); color:var(--green-medium); }
+    .container { flex:1; padding:24px; max-width:900px; margin:0 auto; box-sizing:border-box; }
+    .section-title { font-size:1.5rem; color:var(--green-dark); margin-bottom:12px; text-align:center; }
+    .table-container { background:var(--white); border-radius:8px; overflow-x:auto; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-bottom:24px; }
+    table { width:100%; border-collapse:collapse; min-width:600px; }
+    th,td { padding:12px 16px; border-bottom:1px solid #e0e0e0; text-align:left; font-size:0.95rem; }
+    th { background:var(--green-dark); color:var(--white); font-size:1rem; }
+    tr:hover td { background:#f0fff0; }
+    .status { font-weight:bold; }
+    .status-null { color:var(--blue); }
+    .status-approved { color:var(--green-medium); }
+    .status-rejected { color:var(--red); }
+    .no-data { text-align:center; padding:20px; color:#666; }
+    footer { background:var(--green-dark); color:var(--white); text-align:center; padding:12px; font-size:0.9rem; }
   </style>
 </head>
 <body>
   <header>My Referrals</header>
-
+  <div class="tabs">
+    <div class="tab active" data-tab="activated">Activated Users</div>
+    <div class="tab" data-tab="all">All Referrals</div>
+  </div>
   <div class="container">
-    <div class="section-title">Users You Referred</div>
-    <div id="totalReferred" class="total-referred">Total referred: 0</div>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Balance</th>
-            <th>Registered At</th>
-          </tr>
-        </thead>
-        <tbody id="referralBody">
-          <tr><td colspan="4" class="no-data">Loading…</td></tr>
-        </tbody>
-      </table>
+    <!-- Activated Tab -->
+    <div id="activated" class="tab-content">
+      <div class="section-title">Activated/Upgraded Referrals</div>
+      <div class="table-container">
+        <table>
+          <thead><tr><th>Username</th><th>Email</th><th>Balance</th><th>Registered At</th><th>Status</th></tr></thead>
+          <tbody id="activatedBody"><tr><td colspan="5" class="no-data">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- All Referrals Tab -->
+    <div id="all" class="tab-content" style="display:none;">
+      <div class="section-title">All Referred Users</div>
+      <div class="table-container">
+        <table>
+          <thead><tr><th>Username</th><th>Email</th><th>Balance</th><th>Registered At</th><th>Status</th></tr></thead>
+          <tbody id="allBody"><tr><td colspan="5" class="no-data">Loading…</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
-
-  <footer>EasyPay 2025</footer>
-
-  <script type="module">
+  <footer>EasyPay 2025</footer>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      query,
-      where,
-      getDocs,
-      doc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
-
-    // Initialize Firebase
+    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const referralBody = document.getElementById("referralBody");
-    const totalReferredEl = document.getElementById("totalReferred");
+    const activatedBody = document.getElementById('activatedBody');
+    const allBody = document.getElementById('allBody');
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        // Redirect to login if not authenticated
-        window.location.href = 'login.html';
+    onAuthStateChanged(auth, async user => {
+      if (!user) return location.href='login.html';
+      // get username
+      const userRef = doc(db,'users',user.uid);
+      const userSnap = await getDoc(userRef);
+      const myUsername = userSnap.data()?.username || '';
+      // fetch referred users
+      const q = query(collection(db,'users'), where('referral','==',myUsername));
+      const snap = await getDocs(q);
+      const types=['Tap Transfer','Deposit','Task Approved','VTU Purchase','Withdrawal'];
+      // clear
+      activatedBody.innerHTML=''; allBody.innerHTML='';
+      if (snap.empty) {
+        allBody.innerHTML='<tr><td colspan="5" class="no-data">No referrals found.</td></tr>';
+        activatedBody.innerHTML='<tr><td colspan="5" class="no-data">No activated referrals.</td></tr>';
         return;
       }
-
-      try {
-        // Fetch current user's Firestore doc to get their "username"
-        const userDocRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userDocRef);
-        if (!userSnap.exists()) {
-          referralBody.innerHTML = "<tr><td colspan='4' class='no-data'>User data not found.</td></tr>";
-          totalReferredEl.textContent = "Total referred: 0";
-          return;
-        }
-
-        const userData = userSnap.data();
-        const myUsername = userData.username || "";
-        if (!myUsername) {
-          referralBody.innerHTML = "<tr><td colspan='4' class='no-data'>Your username is missing.</td></tr>";
-          totalReferredEl.textContent = "Total referred: 0";
-          return;
-        }
-
-        // Query for users where "referral" == current user's username
-        const q = query(
-          collection(db, "users"),
-          where("referral", "==", myUsername)
-        );
-        const snapshot = await getDocs(q);
-
-        const count = snapshot.size;
-        totalReferredEl.textContent = `Total referred: ${count}`;
-
-        if (snapshot.empty) {
-          referralBody.innerHTML = "<tr><td colspan='4' class='no-data'>No referrals found.</td></tr>";
-        } else {
-          referralBody.innerHTML = "";
-          snapshot.forEach(docSnap => {
-            const d = docSnap.data();
-            const registeredAt = d.createdAt?.toDate?.().toLocaleString() || "N/A";
-            const balance = d.balance != null ? `₦${d.balance}` : "₦0";
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${d.username || "—"}</td>
-              <td>${d.email || "—"}</td>
-              <td>${balance}</td>
-              <td>${registeredAt}</td>
-            `;
-            referralBody.appendChild(tr);
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching referrals:", error);
-        referralBody.innerHTML = "<tr><td colspan='4' class='no-data'>Error loading data.</td></tr>";
-        totalReferredEl.textContent = "Total referred: 0";
+      for (const docSnap of snap.docs) {
+        const d = docSnap.data(); const uid=docSnap.id;
+        const reg = d.createdAt?.toDate().toLocaleString()||'N/A';
+        const bal = d.balance!=null?`₦${d.balance}`:'₦0';
+        // get upgrade status
+        const reqQ = query(collection(db,'upgradeRequests'), where('uid','==',uid));
+        const reqSnap = await getDocs(reqQ);
+        let status='Null';
+        if (!reqSnap.empty) status = reqSnap.docs[0].data().status||'Null';
+        const cls = status==='approved'?'status-approved':status==='rejected'?'status-rejected':'status-null';
+        const row=`<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td><td><span class="status ${cls}">${status}</span></td></tr>`;
+        allBody.innerHTML+=row;
+        if (status==='approved') activatedBody.innerHTML+=row;
       }
     });
 
-    // Optional logout function if needed elsewhere
-    function logout() {
-      signOut(auth);
-    }
-  </script>
-</body>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab=>{
+      tab.onclick=()=>{
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+        document.getElementById(tab.dataset.tab).style.display='block';
+      };
+    });
+
+  </script></body>
 </html>
