@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html><html lang="en">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Upgrade Your Plan - EasyPay</title>
@@ -33,7 +34,7 @@
         <div class="plan-duration">Valid for 30 days</div>
         <p class="plan-desc">Join our Premium Plan and enjoy guaranteed earnings of at least ₦100 every day for a full month. Steady and reliable income with minimal effort!</p>
       </div>
-      <button class="upgrade-btn" data-plan="premium" data-fee="1000">Activate Premium</button>
+      <button class="upgrade-btn" data-plan="premium">Activate Premium</button>
     </div>
     <div class="plan-card">
       <div>
@@ -42,7 +43,7 @@
         <div class="plan-duration">Valid for 30 days</div>
         <p class="plan-desc">Step up to Gold and earn at least ₦150 daily! Maximize your tap-to-earn potential with enhanced perks.</p>
       </div>
-      <button class="upgrade-btn" data-plan="gold" data-fee="2000">Activate Gold</button>
+      <button class="upgrade-btn" data-plan="gold">Activate Gold</button>
     </div>
     <div class="plan-card">
       <div>
@@ -51,66 +52,22 @@
         <div class="plan-duration">Valid for 30 days</div>
         <p class="plan-desc">Go Elite for a guaranteed ₦200 daily! Unlock exclusive bonuses and VIP features to supercharge your earnings.</p>
       </div>
-      <button class="upgrade-btn" data-plan="elite" data-fee="3000">Activate Elite</button>
+      <button class="upgrade-btn" data-plan="elite">Activate Elite</button>
     </div>
   </section>
   <footer>© 2025 EasyPay • Empowering your daily earnings</footer>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";const firebaseConfig = {
-  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-  authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8",
-  storageBucket: "easypay-6bce8.appspot.com",
-  messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-  measurementId: "G-2FZKDQ47FZ"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-let currentUser = null;
-
-onAuthStateChanged(auth, user => {
-  if (!user) return window.location.href = 'login.html';
-  currentUser = user;
-});
-
-const pageMap = {
-  premium: 'upgrade-1.html',
-  gold: 'upgrade-2.html',
-  elite: 'upgrade-3.html'
-};
-
-async function sendRequest(plan, fee) {
-  if (!currentUser) return alert('Please log in first.');
-  try {
-    await addDoc(collection(db, 'upgradeRequests'), {
-      uid: currentUser.uid,
-      plan,
-      fee,
-      status: 'pending',
-      referredBy: currentUser.referredBy || null,
-      requestedAt: serverTimestamp()
+  <script>
+    const pageMap = {
+      premium: 'upgrade-1.html',
+      gold: 'upgrade-2.html',
+      elite: 'upgrade-3.html'
+    };
+    document.querySelectorAll('.upgrade-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const plan = btn.dataset.plan;
+        window.location.href = pageMap[plan];
+      });
     });
-    alert(`${plan.charAt(0).toUpperCase() + plan.slice(1)} upgrade request sent!`);
-    // Redirect according to plan selected
-    window.location.href = pageMap[plan];
-  } catch (e) {
-    console.error('Request failed', e);
-    alert('Failed to send request. Try again later.');
-  }
-}
-
-document.querySelectorAll('.upgrade-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const plan = btn.dataset.plan;
-    const fee = parseInt(btn.dataset.fee, 10);
-    sendRequest(plan, fee);
-  });
-});
-
   </script>
 </body>
 </html>
