@@ -5,130 +5,102 @@
   <title>Upgrade Your Plan - EasyPay</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    header {
-      background-color: #009f4d;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    .plans {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      padding: 40px;
-      flex: 1;
-    }
-    .plan-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s ease;
-    }
-    .plan-card:hover {
-      transform: translateY(-5px);
-    }
-    .plan-header {
-      font-size: 1.5rem;
-      color: #006400;
-      margin-bottom: 10px;
-    }
-    .plan-price {
-      font-size: 2rem;
-      font-weight: bold;
-      margin: 10px 0;
-      color: #009f4d;
-    }
-    .plan-duration {
-      color: #555;
-      margin-bottom: 20px;
-    }
-    .plan-desc {
-      font-size: 0.95rem;
-      line-height: 1.5;
-      color: #444;
-      margin-bottom: 20px;
-      flex: 1;
-    }
-    .upgrade-btn {
-      text-decoration: none;
-      background-color: #009f4d;
-      color: #fff;
-      padding: 12px;
-      border-radius: 6px;
-      text-align: center;
-      font-weight: bold;
-      transition: background-color 0.2s ease;
-    }
-    .upgrade-btn:hover {
-      background-color: #007a33;
-    }
-    footer {
-      text-align: center;
-      padding: 15px;
-      font-size: 0.9rem;
-      color: #666;
-    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
+    header { background-color: #009f4d; color: white; padding: 20px; text-align: center; }
+    header h1 { margin: 0; font-size: 2rem; }
+    header p { margin-top: 8px; }
+    .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding: 40px; flex: 1; }
+    .plan-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease; }
+    .plan-card:hover { transform: translateY(-5px); }
+    .plan-header { font-size: 1.5rem; color: #006400; margin-bottom: 10px; }
+    .plan-price { font-size: 2rem; font-weight: bold; margin: 10px 0; color: #009f4d; }
+    .plan-duration { color: #555; margin-bottom: 20px; }
+    .plan-desc { font-size: 0.95rem; line-height: 1.5; color: #444; margin-bottom: 20px; flex: 1; }
+    .upgrade-btn { background-color: #009f4d; color: #fff; padding: 12px; border: none; border-radius: 6px; text-align: center; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease; }
+    .upgrade-btn:hover { background-color: #007a33; }
+    footer { text-align: center; padding: 15px; font-size: 0.9rem; color: #666; }
   </style>
 </head>
 <body>
   <header>
     <h1>Choose Your Plan</h1>
     <p>Unlock daily earnings and start growing with EasyPay!</p>
-  </header>  <section class="plans">
-    <!-- Premium Plan -->
+  </header>
+  <section class="plans">
     <div class="plan-card">
       <div>
         <div class="plan-header">Premium Plan</div>
         <div class="plan-price">₦1,000</div>
         <div class="plan-duration">Valid for 30 days</div>
-        <p class="plan-desc">
-          Join our popular Premium Plan and enjoy guaranteed earnings of at least ₦100 every day for a full month. Perfect for steady, reliable income streams with minimal effort — just tap, transfer, and watch your balance grow!
-        </p>
+        <p class="plan-desc">Join our Premium Plan and enjoy guaranteed earnings of at least ₦100 every day for a full month. Steady and reliable income with minimal effort!</p>
       </div>
-      <a href="upgrade-1.html" class="upgrade-btn">Activate Premium</a>
-    </div><!-- Gold Plan -->
-<div class="plan-card">
+      <button class="upgrade-btn" id="btnPremium">Activate Premium</button>
+    </div><div class="plan-card">
   <div>
     <div class="plan-header">Gold Plan</div>
     <div class="plan-price">₦2,000</div>
     <div class="plan-duration">Valid for 30 days</div>
-    <p class="plan-desc">
-      Step up to Gold for an even higher return — earn at least ₦150 daily! Ideal for users who want to maximize their tap-to-earn potential with enhanced perks and priority support.
-    </p>
+    <p class="plan-desc">Step up to Gold and earn at least ₦150 daily! Maximize your tap-to-earn potential with enhanced perks.</p>
   </div>
-  <a href="upgrade-2.html" class="upgrade-btn">Activate Gold</a>
+  <button class="upgrade-btn" id="btnGold">Activate Gold</button>
 </div>
 
-<!-- Elite Plan -->
 <div class="plan-card">
   <div>
     <div class="plan-header">Elite Plan</div>
     <div class="plan-price">₦3,000</div>
     <div class="plan-duration">Valid for 30 days</div>
-    <p class="plan-desc">
-      Go Elite and earn a guaranteed ₦200 daily! Our top-tier plan unlocks exclusive bonuses, fastest transfers, and VIP features so you can supercharge your earnings like never before.
-    </p>
+    <p class="plan-desc">Go Elite for a guaranteed ₦200 daily! Unlock exclusive bonuses and VIP features to supercharge your earnings.</p>
   </div>
-  <a href="upgrade-3.html" class="upgrade-btn">Activate Elite</a>
+  <button class="upgrade-btn" id="btnElite">Activate Elite</button>
 </div>
 
-  </section>  <footer>© 2025 EasyPay • Empowering your daily earnings</footer>
-</body>
+  </section>
+  <footer>© 2025 EasyPay • Empowering your daily earnings</footer>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let currentUser = null;
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return window.location.href = 'login.html';
+      currentUser = user;
+    });
+
+    // Helper to send upgrade request
+    async function sendRequest(plan, fee) {
+      if (!currentUser) return alert('Please log in first.');
+      try {
+        await addDoc(collection(db, 'upgradeRequests'), {
+          uid: currentUser.uid,
+          plan,
+          fee,
+          status: 'pending',
+          referredBy: currentUser.referredBy || null,
+          requestedAt: serverTimestamp()
+        });
+        alert(plan.charAt(0).toUpperCase() + plan.slice(1) + ' upgrade request sent! Await admin approval.');
+      } catch (e) {
+        console.error('Request failed', e);
+        alert('Failed to send request. Try again later.');
+      }
+    }
+
+    document.getElementById('btnPremium').onclick = () => sendRequest('premium', 1000);
+    document.getElementById('btnGold').onclick = () => sendRequest('gold', 2000);
+    document.getElementById('btnElite').onclick = () => sendRequest('elite', 3000);
+  </script></body>
 </html>
