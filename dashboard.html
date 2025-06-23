@@ -8,7 +8,7 @@
     body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: relative; }
     .profile { position: relative; cursor: pointer; }
-    .profile-info { display: none; position: absolute; right: 0; top: 50px; background: white; color: black; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 8px; width: 220px; padding: 10px; z-index: 2; }
+    .profile-info { display: none; position: absolute; right: 0; top: 50px; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 8px; width: 220px; padding: 10px; z-index: 2; }
     .profile-info.show { display: block; }
     .profile-info p { margin: 8px 0; font-size: 0.95rem; }
     .profile-info button { margin-top: 10px; width: 100%; padding: 8px; background-color: #009f4d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; }
@@ -23,7 +23,7 @@
     .nav { position: fixed; bottom: 0; width: 100%; background: #009f4d; display: flex; justify-content: space-around; padding: 10px 0; }
     .nav a { color: white; text-decoration: none; text-align: center; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; }
     .nav a i { font-size: 1.5rem; margin-bottom: 4px; }
-    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1; }
+    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1; }
     .modal-content { background: #fff; padding: 30px; border-radius: 12px; text-align: center; max-width: 90%; }
     .modal-content h2 { margin-top: 0; color: #009f4d; }
     .modal-content a { display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #009f4d; color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; }
@@ -77,7 +77,7 @@
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
   </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = {
@@ -96,17 +96,15 @@
 
     const profileIcon = document.getElementById('profileIcon');
     const profileInfo = document.getElementById('profileInfo');
-    profileIcon.addEventListener('click', () => {
-      profileInfo.classList.toggle('show');
-    });
+    profileIcon.addEventListener('click', () => profileInfo.classList.toggle('show'));
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = 'login.html'; return; }
+      if (!user) return window.location.href = 'login.html';
       const uid = user.uid;
       const userRef = doc(db, "users", uid);
       const snap = await getDoc(userRef);
-      if (!snap.exists()) { window.location.href = 'login.html'; return; }
+      if (!snap.exists()) return window.location.href = 'login.html';
       const data = snap.data();
       const plan = data.plan || 'basic';
       const allowed = ['premium','gold','elite'];
@@ -131,13 +129,8 @@
         document.getElementById('referrals').innerText = 0;
       }
 
-      try {
-        await loadEarningLog(userRef);
-      } catch (err) {
-        console.error('Log load error', err);
-        const tbody = document.getElementById('earnLogBody');
-        tbody.innerHTML = '<tr><td colspan="4" class="no-log">Failed to load log.</td></tr>';
-      }
+      // load last 50 transactions then filter
+      await loadEarningLog(userRef);
 
       document.getElementById('copyBtn').addEventListener('click', () => {
         const code = document.getElementById('referralCode').innerText;
@@ -146,28 +139,25 @@
     });
 
     async function loadEarningLog(userRef) {
+      const snap = await getDocs(query(collection(userRef,'transactionHistory'), orderBy('timestamp','desc'), limit(50)));
       const types = ['Tap Transfer','Deposit','Task Approved','VTU Purchase','Withdrawal'];
-      const q = query(
-        collection(userRef,'transactionHistory'),
-        where('type','in', types),
-        orderBy('timestamp','desc'),
-        limit(20)
-      );
-      const snaps = await getDocs(q);
       const tbody = document.getElementById('earnLogBody');
       tbody.innerHTML = '';
-      if (snaps.empty) {
-        tbody.innerHTML = '<tr><td colspan="4" class="no-log">No transactions yet.</td></tr>';
-        return;
-      }
-      snaps.forEach(docSnap => {
+      let count = 0;
+      snap.forEach(docSnap => {
+        if (count >= 20) return;
+        const data = docSnap.data();
+        if (!types.includes(data.type)) return;
         const id = docSnap.id;
-        const { type, amount, timestamp } = docSnap.data();
-        const date = timestamp?.toDate().toLocaleString() || '';
-        const sign = ['Tap Transfer','Deposit','Task Approved'].includes(type) ? '+' : '-';
-        const row = `<tr><td>${id}</td><td>${date}</td><td>${type}</td><td>${sign}₦${amount.toFixed(2)}</td></tr>`;
+        const date = data.timestamp?.toDate().toLocaleString() || '';
+        const sign = ['Tap Transfer','Deposit','Task Approved'].includes(data.type) ? '+' : '-';
+        const row = `<tr><td>${id}</td><td>${date}</td><td>${data.type}</td><td>${sign}₦${data.amount.toFixed(2)}</td></tr>`;
         tbody.innerHTML += row;
+        count++;
       });
+      if (count === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="no-log">No transactions yet.</td></tr>';
+      }
     }
   </script></body>
 </html>
