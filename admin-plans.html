@@ -1,153 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Admin Panel</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
-    }
-    header {
-      background-color: #009f4d;
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h2 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    header button {
-      background: white;
-      color: #009f4d;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s ease;
-    }
-    header button:hover {
-      background: #e0f6e8;
-    }
-    .container {
-      padding: 20px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    .search-group {
-      margin-bottom: 20px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .search-group input {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-    .search-group button {
-      background: #009f4d;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background 0.2s ease;
-    }
-    .search-group button:hover {
-      background: #018f45;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    thead {
-      background-color: #009f4d;
-      color: white;
-    }
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    tbody tr:hover {
-      background-color: #f0fff0;
-    }
-    select {
-      padding: 6px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    .save-btn {
-      background: #009f4d;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.2s ease;
-    }
-    .save-btn:hover {
-      background: #018f45;
-    }
-    .no-results {
-      text-align: center;
-      margin-top: 40px;
-      color: #666;
-    }
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5fdf7; color: #333; }
+    header { background-color: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    header h2 { margin: 0; font-size: 1.5rem; }
+    header button { background: white; color: #009f4d; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s ease; }
+    header button:hover { background: #e0f6e8; }
+    .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+    .search-group { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+    .search-group input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
+    .search-group button { background: #009f4d; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background 0.2s ease; }
+    .search-group button:hover { background: #018f45; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    thead { background-color: #009f4d; color: white; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+    tbody tr:hover { background-color: #f0fff0; }
+    select { padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    .save-btn { background: #009f4d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s ease; }
+    .save-btn:hover { background: #018f45; }
+    .no-results { text-align: center; margin-top: 40px; color: #666; }
   </style>
 </head>
 <body>
   <header>
     <h2>Admin Panel</h2>
     <button id="logoutBtn">Logout</button>
-  </header>
-
-  <div class="container">
+  </header>  <div class="container">
     <div class="search-group">
       <input type="text" id="searchInput" placeholder="Search users by username..." oninput="filterTable()" />
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
-    </div>
+    </div><div id="resultsContainer">
+  <p class="no-results" id="noResults" style="display: none;">No users found.</p>
+</div>
 
-    <div id="resultsContainer">
-      <!-- Table of users will be injected here -->
-      <p class="no-results" id="noResults" style="display: none;">No users found.</p>
-    </div>
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      updateDoc,
-      doc
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -158,29 +52,24 @@
       measurementId: "G-2FZKDQ47FZ"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
-    const adminEmail = "easypay27.ng@gmail.com"; // Only this email can access
-
+    const adminEmail = "easypay27.ng@gmail.com";
     const logoutBtn = document.getElementById("logoutBtn");
     const searchInput = document.getElementById("searchInput");
     const searchBtn = document.getElementById("searchBtn");
     const resultsContainer = document.getElementById("resultsContainer");
     const noResults = document.getElementById("noResults");
 
-    let allUsers = []; // Will hold the fetched user data
+    let allUsers = [];
 
-    // Check authentication and admin privileges
     onAuthStateChanged(auth, user => {
       if (!user || user.email.toLowerCase() !== adminEmail) {
-        // Not an admin: redirect to login
         signOut(auth).then(() => window.location.href = "login.html");
         return;
       }
-      // Admin is signed in: load all users
       loadAllUsers();
     });
 
@@ -188,44 +77,31 @@
       signOut(auth).then(() => window.location.href = "login.html");
     });
 
-    // Fetch all users from Firestore and render table
     async function loadAllUsers() {
-      resultsContainer.innerHTML = ""; // Clear
+      resultsContainer.innerHTML = "";
       const snapshot = await getDocs(collection(db, "users"));
-
       if (snapshot.empty) {
         noResults.style.display = "block";
         return;
       } else {
         noResults.style.display = "none";
       }
-
-      // Store data locally
       allUsers = [];
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        allUsers.push({
-          id: docSnap.id,
-          username: data.username || "",
-          email: data.email || "",
-          plan: data.plan || "basic"
-        });
+        allUsers.push({ id: docSnap.id, username: data.username||"", email: data.email||"", plan: data.plan||"basic" });
       });
-
       renderTable(allUsers);
     }
 
-    // Render a table given an array of user objects
     function renderTable(users) {
-      resultsContainer.innerHTML = ""; // Clear any existing
-
+      resultsContainer.innerHTML = "";
       if (users.length === 0) {
         noResults.style.display = "block";
         return;
       } else {
         noResults.style.display = "none";
       }
-
       const table = document.createElement("table");
       const thead = document.createElement("thead");
       thead.innerHTML = `
@@ -237,9 +113,7 @@
         </tr>
       `;
       table.appendChild(thead);
-
       const tbody = document.createElement("tbody");
-
       users.forEach(user => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -249,6 +123,8 @@
             <select id="plan-${user.id}">
               <option value="basic" ${user.plan === "basic" ? "selected" : ""}>Basic</option>
               <option value="premium" ${user.plan === "premium" ? "selected" : ""}>Premium</option>
+              <option value="gold" ${user.plan === "gold" ? "selected" : ""}>Gold</option>
+              <option value="elite" ${user.plan === "elite" ? "selected" : ""}>Elite</option>
             </select>
           </td>
           <td>
@@ -257,17 +133,13 @@
         `;
         tbody.appendChild(tr);
       });
-
       table.appendChild(tbody);
       resultsContainer.appendChild(table);
-
-      // Attach listeners to Save buttons
       document.querySelectorAll(".save-btn").forEach(button => {
-        button.addEventListener("click", async (e) => {
-          const uid = e.currentTarget.getAttribute("data-uid");
+        button.addEventListener("click", async e => {
+          const uid = e.currentTarget.dataset.uid;
           const selectEl = document.getElementById(`plan-${uid}`);
           const newPlan = selectEl.value;
-
           try {
             await updateDoc(doc(db, "users", uid), { plan: newPlan });
             alert(`Updated plan to ${newPlan} for user.`);
@@ -279,21 +151,13 @@
       });
     }
 
-    // Filter the table client-side based on search input
     function filterTable() {
       const query = searchInput.value.trim().toLowerCase();
-      if (query === "") {
-        renderTable(allUsers);
-        return;
-      }
-      const filtered = allUsers.filter(user =>
-        user.username.toLowerCase().includes(query)
-      );
+      if (!query) return renderTable(allUsers);
+      const filtered = allUsers.filter(u => u.username.toLowerCase().includes(query));
       renderTable(filtered);
     }
 
-    // Also handle clicking “Search” button
     searchBtn.addEventListener("click", filterTable);
-  </script>
-</body>
+  </script></body>
 </html>
