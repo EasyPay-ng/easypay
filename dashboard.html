@@ -30,18 +30,18 @@
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
     <div class="profile">
-      <i class="fas fa-user-circle fa-2x" onclick="toggleProfile()"></i>
+      <i class="fas fa-user-circle fa-2x" id="profileIcon"></i>
       <div id="profileInfo" class="profile-info">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
         <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
-        <button onclick="logout()">Logout</button>
+        <button id="logoutBtn">Logout</button>
       </div>
     </div>
   </header>  <div id="upgradeModal" class="modal" style="display:none;">
     <div class="modal-content">
       <h2>Account Not Activated</h2>
-      <p>Upgrade to Premium, Gold, or Elite to view your earnings log.</p>
+      <p>Upgrade your plan to view the earnings log.</p>
       <a href="upgrade.html">Upgrade</a>
     </div>
   </div>  <div class="container">
@@ -54,7 +54,7 @@
     <div class="card">
       <h3>Referral Code:</h3>
       <p id="referralCode" style="word-break:break-all;"></p>
-      <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
+      <button class="copy-btn" id="copyBtn">Copy Code</button>
     </div>
     <div class="card">
       <h3>Earning Log (Last 20)</h3>
@@ -79,43 +79,50 @@
     import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c8f1e", measurementId: "G-2FZKDQ47FZ" };
+    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e", measurementId:"G-2FZKDQ47FZ" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
-    function toggleProfile() {
-      document.getElementById('profileInfo').classList.toggle('show');
-    }
-    function logout() { signOut(auth); }
-    function copyReferral() {
+    // Profile toggle & logout
+    const profileIcon = document.getElementById('profileIcon');
+    const profileInfo = document.getElementById('profileInfo');
+    profileIcon.addEventListener('click', () => profileInfo.classList.toggle('show'));
+    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+    // Copy referral
+    document.getElementById('copyBtn').addEventListener('click', () => {
       navigator.clipboard.writeText(document.getElementById('referralCode').innerText)
-        .then(() => alert('Referral code copied')); }
+        .then(() => alert('Referral code copied'));
+    });
 
     onAuthStateChanged(auth, async user => {
       if (!user) return location.href='login.html';
       const uRef = doc(db,'users',user.uid);
       const snap = await getDoc(uRef);
       if (!snap.exists()) return location.href='login.html';
-      const data = snap.data(); const plan = data.plan||'basic';
+      const data = snap.data(); const plan=data.plan||'basic';
       document.getElementById('usernameDisplay').innerText=data.username;
       document.getElementById('profileUsername').innerText=data.username;
       document.getElementById('profileEmail').innerText=data.email;
       document.getElementById('profileBalance').innerText=(data.balance||0).toFixed(2);
       document.getElementById('balance').innerText=(data.balance||0).toFixed(2);
       document.getElementById('referralCode').innerText=data.username;
-      if (!['premium','gold','elite'].includes(plan)) return document.getElementById('upgradeModal').style.display='flex';
+
+      if (!['premium','gold','elite'].includes(plan)) {
+        document.getElementById('upgradeModal').style.display='flex';
+        return;
+      }
       loadEarningLog(uRef);
     });
 
     async function loadEarningLog(uRef) {
       const snaps = await getDocs(query(collection(uRef,'transactionHistory'),orderBy('timestamp','desc'),limit(50)));
       const tbody = document.getElementById('earnLogBody'); tbody.innerHTML='';
-      const types=['Tap Transfer','Deposit','Task Approved','VTU Purchase','Withdrawal'];
-      let cnt=0;
+      const types=['Tap Transfer','Deposit','Task Approved','VTU Purchase','Withdrawal']; let cnt=0;
       snaps.forEach(d=>{
         if (cnt>=20) return;
-        const tx=d.data(); if (!types.includes(tx.type)) return;
+        const tx=d.data(); if(!types.includes(tx.type)) return;
         tbody.innerHTML+=`<tr><td>${d.id}</td><td>${tx.timestamp.toDate().toLocaleString()}</td><td>${tx.type}</td><td>${['Tap Transfer','Deposit','Task Approved'].includes(tx.type)?'+':'-'}₦${tx.amount.toFixed(2)}</td></tr>`;
         cnt++;
       });
