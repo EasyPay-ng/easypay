@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upgrade Your Account</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    :root { --green: #2e7d32; --green-dark: #276c28; --white: #fff; --gray-light: #f5f5f5; --shadow-light: rgba(0,0,0,0.1); --radius: 12px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--gray-light); font-family: 'Poppins', sans-serif; }
+    .container { background: var(--white); width: 400px; max-width: 95vw; padding: 2.5rem 2rem 3rem; border-radius: var(--radius); box-shadow: 0 10px 30px var(--shadow-light); display: flex; flex-direction: column; gap: 1.6rem; }
+    h1 { margin: 0 0 .8rem; font-weight: 600; font-size: 1.9rem; color: var(--green); text-align: center; }
+    label { font-weight: 600; font-size: 1rem; color: var(--green-dark); margin-bottom: .4rem; display: block; }
+    input[type="text"], input[type="file"] { width: 100%; padding: 12px 16px; font-size: 1rem; border: 2px solid #cbd5d1; border-radius: var(--radius); transition: border-color .3s ease; outline-offset: 3px; }
+    input:focus { border-color: var(--green); outline: none; }
+    .info { background: #e8f5e9; padding: 1rem 1.2rem; border-radius: var(--radius); color: var(--green-dark); font-weight: 600; line-height: 1.4; }
+    .info p { margin: .3rem 0; }
+    .upload-progress-container { background: #eee; border-radius: var(--radius); overflow: hidden; height: 10px; display: none; }
+    .upload-progress-bar { height: 100%; width: 0%; background: var(--green); transition: width .2s ease; }
+    .upload-progress-label { font-size: .9rem; color: var(--green-dark); margin-top: .4rem; display: none; text-align: right; }
+    button { margin-top: 1rem; padding: 14px; font-weight: 600; font-size: 1.1rem; color: var(--white); background: var(--green); border: none; border-radius: var(--radius); cursor: pointer; box-shadow: 0 6px 16px rgba(46,125,50,0.4); transition: background .3s, box-shadow .3s; }
+    button:hover:not(:disabled) { background: var(--green-dark); box-shadow: 0 8px 24px rgba(39,108,40,0.5); }
+    button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+    .message { margin-top: 1rem; font-weight: 600; font-size: 1rem; min-height: 1.2em; text-align: center; }
+    .message.success { color: var(--green-dark); }
+    .message.error { color: #c62828; }
+  </style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="Upgrade Account Form">
+    <h1>Upgrade Your Account</h1>
+    <label for="username">Username</label>
+    <input id="username" type="text" placeholder="Enter your username" autocomplete="username" aria-required="true" />
+    <label for="senderName">Sender's Name</label>
+    <input id="senderName" type="text" placeholder="Enter sender's name" autocomplete="off" aria-required="true" />
+    <section class="info" aria-live="polite" aria-atomic="true">
+      <p><strong>Amount:</strong> ₦3,000</p>
+      <p><strong>Account Name:</strong> Onyeka Anointed Chidi</p>
+      <p><strong>Bank:</strong> Moniepoint MFB</p>
+      <p><strong>Account No:</strong> 8132425678</p>
+    </section>
+    <label for="proofFile">Upload Proof Image</label>
+    <input id="proofFile" type="file" accept="image/*" aria-required="true" />
+    <div class="upload-progress-container" id="uploadContainer">
+      <div class="upload-progress-bar" id="uploadBar"></div>
+    </div>
+    <div class="upload-progress-label" id="uploadLabel"></div>
+    <button id="submitBtn" type="button">Submit for Approval</button>
+    <div id="message" class="message" aria-live="assertive"></div>
+  </main>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    
+    // Firebase init
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // DOM refs
+    const usernameInput = document.getElementById("username");
+    const senderNameInput = document.getElementById("senderName");
+    const fileInput = document.getElementById("proofFile");
+    const submitBtn = document.getElementById("submitBtn");
+    const messageDiv = document.getElementById("message");
+    const uploadBar = document.getElementById("uploadBar");
+    const uploadLabel = document.getElementById("uploadLabel");
+    const uploadContainer = document.getElementById("uploadContainer");
+
+    // Imgur helper
+    async function uploadToImgur(file, onProgress) {
+      const clientId = 'fb533db21a59486';
+      const endpoint = 'https://api.imgur.com/3/image';
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result.split(',')[1];
+          const form = new FormData();
+          form.append('image', base64);
+          form.append('type', 'base64');
+          
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', endpoint);
+          xhr.setRequestHeader('Authorization', 'Client-ID ' + clientId);
+          xhr.upload.onprogress = evt => {
+            if (evt.lengthComputable) onProgress(Math.round(evt.loaded / evt.total * 100));
+          };
+          xhr.onload = () => {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              if (res.success) resolve(res.data.link);
+              else reject(res.data.error);
+            } catch {
+              reject('Invalid JSON');
+            }
+          };
+          xhr.onerror = () => reject('Network error');
+          xhr.send(form);
+        };
+        reader.onerror = () => reject('File read error');
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Submit handler
+    submitBtn.addEventListener('click', async () => {
+      messageDiv.textContent = '';
+      messageDiv.className = 'message';
+
+      const username = usernameInput.value.trim();
+      const senderName = senderNameInput.value.trim();
+      const file = fileInput.files[0];
+
+      if (!username) return messageDiv.textContent = 'Enter username', messageDiv.classList.add('error');
+      if (!senderName) return messageDiv.textContent = 'Enter sender name', messageDiv.classList.add('error');
+      if (!file) return messageDiv.textContent = 'Select an image proof', messageDiv.classList.add('error');
+
+      // show progress UI
+      uploadContainer.style.display = 'block';
+      uploadLabel.style.display = 'block';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      try {
+        const imageUrl = await uploadToImgur(file, pct => {
+          uploadBar.style.width = pct + '%';
+          uploadLabel.textContent = pct + '%';
+        });
+
+        // write to Firestore
+        await addDoc(collection(db, 'upgrades'), {
+          username,
+          senderName,
+          proofURL: imageUrl,
+          requestedAt: serverTimestamp()
+        });
+
+        messageDiv.textContent = 'Submission successful!';
+        messageDiv.classList.add('success');
+        usernameInput.value = '';
+        senderNameInput.value = '';
+        fileInput.value = null;
+      } catch (err) {
+        messageDiv.textContent = 'Error: ' + err;
+        messageDiv.classList.add('error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Approval';
+        setTimeout(() => {
+          uploadContainer.style.display = 'none';
+          uploadLabel.style.display = 'none';
+          uploadBar.style.width = '0%';
+        }, 1500);
+      }
+    });
+  </script></body>
+</html>
