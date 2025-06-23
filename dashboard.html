@@ -6,9 +6,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
     body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
-    header { background-color: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    header { background-color: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: relative; }
     .profile { position: relative; cursor: pointer; }
-    .profile-info { display: none; position: absolute; right: 0; top: 40px; background: white; color: black; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 8px; width: 220px; padding: 10px; z-index: 1; }
+    .profile-info { display: none; position: absolute; right: 0; top: 50px; background: white; color: black; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 8px; width: 220px; padding: 10px; z-index: 2; }
     .profile-info.show { display: block; }
     .profile-info p { margin: 8px 0; font-size: 0.95rem; }
     .profile-info button { margin-top: 10px; width: 100%; padding: 8px; background-color: #009f4d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; }
@@ -23,7 +23,7 @@
     .nav { position: fixed; bottom: 0; width: 100%; background: #009f4d; display: flex; justify-content: space-around; padding: 10px 0; }
     .nav a { color: white; text-decoration: none; text-align: center; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; }
     .nav a i { font-size: 1.5rem; margin-bottom: 4px; }
-    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1; }
     .modal-content { background: #fff; padding: 30px; border-radius: 12px; text-align: center; max-width: 90%; }
     .modal-content h2 { margin-top: 0; color: #009f4d; }
     .modal-content a { display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #009f4d; color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; }
@@ -32,13 +32,13 @@
 <body>
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
-    <div class="profile" onclick="toggleProfile()">
-      <i class="fas fa-user-circle fa-2x"></i>
+    <div class="profile">
+      <i class="fas fa-user-circle fa-2x" id="profileIcon"></i>
       <div id="profileInfo" class="profile-info">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
         <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
-        <button onclick="logout()">Logout</button>
+        <button id="logoutBtn">Logout</button>
       </div>
     </div>
   </header>  <div id="upgradeModal" class="modal" style="display: none;">
@@ -57,7 +57,7 @@
     <div class="card">
       <h3>Referral Code:</h3>
       <p id="referralCode" style="word-break: break-all;"></p>
-      <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
+      <button class="copy-btn" id="copyBtn">Copy Code</button>
     </div>
     <div class="card">
       <h3>Earning Log (Last 20)</h3>
@@ -94,6 +94,13 @@
     const db = getFirestore(app);
     const auth = getAuth();
 
+    const profileIcon = document.getElementById('profileIcon');
+    const profileInfo = document.getElementById('profileInfo');
+    profileIcon.addEventListener('click', () => {
+      profileInfo.classList.toggle('show');
+    });
+    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
       const uid = user.uid;
@@ -116,7 +123,6 @@
         return;
       }
 
-      // referrals count
       try {
         const refQ = query(collection(db,'users'), where('referral','==', data.username));
         const refSnap = await getDocs(refQ);
@@ -125,8 +131,18 @@
         document.getElementById('referrals').innerText = 0;
       }
 
-      // load earning log: only transfers, deposits, tasks, VTU, withdrawals; last 20
-      await loadEarningLog(userRef);
+      try {
+        await loadEarningLog(userRef);
+      } catch (err) {
+        console.error('Log load error', err);
+        const tbody = document.getElementById('earnLogBody');
+        tbody.innerHTML = '<tr><td colspan="4" class="no-log">Failed to load log.</td></tr>';
+      }
+
+      document.getElementById('copyBtn').addEventListener('click', () => {
+        const code = document.getElementById('referralCode').innerText;
+        navigator.clipboard.writeText(code).then(() => alert('Referral code copied: '+code));
+      });
     });
 
     async function loadEarningLog(userRef) {
@@ -153,9 +169,5 @@
         tbody.innerHTML += row;
       });
     }
-
-    function logout() { signOut(auth); }
-    function toggleProfile() { document.getElementById('profileInfo').classList.toggle('show'); }
-    function copyReferral() { const code = document.getElementById('referralCode').innerText; navigator.clipboard.writeText(code).then(() => alert('Referral code copied: '+code)); }
   </script></body>
 </html>
