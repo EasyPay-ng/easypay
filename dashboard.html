@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,138 +8,27 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
   />
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    header {
-      background-color: #009f4d;
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .profile {
-      position: relative;
-      cursor: pointer;
-    }
-    .profile-info {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 40px;
-      background: white;
-      color: black;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      width: 220px;
-      padding: 10px;
-      z-index: 1;
-    }
-    .profile-info.show {
-      display: block;
-    }
-    .profile-info p {
-      margin: 8px 0;
-      font-size: 0.95rem;
-    }
-    .profile-info button {
-      margin-top: 10px;
-      width: 100%;
-      padding: 8px;
-      background-color: #009f4d;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
-    .container {
-      padding: 20px;
-      flex-grow: 1;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .card h3 {
-      margin-top: 0;
-      color: #006400;
-    }
-    .copy-btn {
-      background: #009f4d;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-      font-size: 0.95rem;
-    }
-    .nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #009f4d;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-    }
-    .nav a {
-      color: white;
-      text-decoration: none;
-      text-align: center;
-      font-size: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .nav a i {
-      font-size: 1.5rem;
-      margin-bottom: 4px;
-    }
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-    .modal-content {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 90%;
-    }
-    .modal-content h2 {
-      margin-top: 0;
-      color: #009f4d;
-    }
-    .modal-content a {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #009f4d;
-      color: #fff;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-    }
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
+    header { background-color: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .profile { position: relative; cursor: pointer; }
+    .profile-info { display: none; position: absolute; right: 0; top: 40px; background: white; color: black; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 8px; width: 220px; padding: 10px; z-index: 1; }
+    .profile-info.show { display: block; }
+    .profile-info p { margin: 8px 0; font-size: 0.95rem; }
+    .profile-info button { margin-top: 10px; width: 100%; padding: 8px; background-color: #009f4d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; }
+    .container { padding: 20px; flex-grow: 1; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+    .card h3 { margin-top: 0; color: #006400; }
+    .log-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .log-table th, .log-table td { padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: left; font-size: 0.9rem; }
+    .log-table th { background-color: #f0fdf7; }
+    .no-log { text-align: center; color: #666; margin-top: 10px; }
+    .nav { position: fixed; bottom: 0; width: 100%; background: #009f4d; display: flex; justify-content: space-around; padding: 10px 0; }
+    .nav a { color: white; text-decoration: none; text-align: center; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; }
+    .nav a i { font-size: 1.5rem; margin-bottom: 4px; }
+    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+    .modal-content { background: #fff; padding: 30px; border-radius: 12px; text-align: center; max-width: 90%; }
+    .modal-content h2 { margin-top: 0; color: #009f4d; }
+    .modal-content a { display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #009f4d; color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -155,17 +43,13 @@
         <button onclick="logout()">Logout</button>
       </div>
     </div>
-  </header>
-
-  <div id="upgradeModal" class="modal" style="display: none;">
+  </header>  <div id="upgradeModal" class="modal" style="display: none;">
     <div class="modal-content">
       <h2>Account Not Activated</h2>
-      <p>You need to upgrade your account to access earnings.</p>
+      <p>You need to upgrade your plan to access the earnings log.</p>
       <a href="upgrade.html">Upgrade</a>
     </div>
-  </div>
-
-  <div class="container">
+  </div>  <div class="container">
     <div class="card">
       <h3>Balance: ₦<span id="balance">0.00</span></h3>
     </div>
@@ -178,168 +62,89 @@
       <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
     </div>
     <div class="card">
-      <h3>Daily Bonus</h3>
-      <p id="countdown">Loading...</p>
-      <button class="copy-btn" id="claimBtn">Claim</button>
+      <h3>Earning Log</h3>
+      <table class="log-table" id="earnLogTable">
+        <thead>
+          <tr><th>ID</th><th>Date</th><th>Type</th><th>Amount</th></tr>
+        </thead>
+        <tbody id="earnLogBody">
+          <tr><td colspan="4" class="no-log">Loading...</td></tr>
+        </tbody>
+      </table>
     </div>
-  </div>
-
-  <div class="nav">
-    <a href="menu.html">
-      <i class="fas fa-home"></i>
-      Menu
-    </a>
-    <a href="advertise.html">
-      <i class="fas fa-bullhorn"></i>
-      Advertise
-    </a>
-    <a href="earn.html">
-      <i class="fas fa-money-bill-wave"></i>
-      Earn
-    </a>
-    <a href="leaderboard.html">
-      <i class="fas fa-trophy"></i>
-      Leaderboard
-    </a>
-  </div>
-
-  <script type="module">
+  </div>  <div class="nav">
+    <a href="menu.html"><i class="fas fa-home"></i>Menu</a>
+    <a href="advertise.html"><i class="fas fa-bullhorn"></i>Advertise</a>
+    <a href="earn.html"><i class="fas fa-money-bill-wave"></i>Earn</a>
+    <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
-      getFirestore,
-      doc,
-      getDoc,
-      updateDoc,
-      collection,
-      query,
-      where,
-      getDocs
+      getFirestore, doc, getDoc,
+      collection, query, orderBy, getDocs,
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
+    const firebaseConfig = { /* same config */ };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
-    const LOGIN_TS_KEY = 'loginTimestamp';
-
-    function logoutAtMidnight() {
-      const now = new Date();
-      const millisUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
-      setTimeout(() => {
-        signOut(auth);
-      }, millisUntilMidnight);
-    }
-
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        localStorage.removeItem(LOGIN_TS_KEY);
-        window.location.href = 'login.html';
-        return;
-      }
-      if (!localStorage.getItem(LOGIN_TS_KEY)) {
-        localStorage.setItem(LOGIN_TS_KEY, Date.now());
-      }
-
-      logoutAtMidnight();
-
+      if (!user) { window.location.href = 'login.html'; return; }
       const uid = user.uid;
       const userRef = doc(db, "users", uid);
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) return;
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) { window.location.href='login.html'; return; }
+      const data = snap.data();
+      const plan = data.plan || 'basic';
+      const allowed = ['premium','gold','elite'];
+      document.getElementById('usernameDisplay').innerText = data.username || '';
+      document.getElementById('profileUsername').innerText = data.username || '';
+      document.getElementById('profileEmail').innerText = data.email || '';
+      document.getElementById('profileBalance').innerText = (data.balance||0).toFixed(2);
+      document.getElementById('balance').innerText = (data.balance||0).toFixed(2);
+      document.getElementById('referralCode').innerText = data.username || '';
 
-      const data = userSnap.data();
-      const username = data.username || "";
-      const email = data.email || "";
-      const balance = data.balance ?? 0;
-      const plan = data.plan || "basic";
-
-      document.getElementById("usernameDisplay").innerText = username;
-      document.getElementById("profileUsername").innerText = username;
-      document.getElementById("profileEmail").innerText = email;
-      document.getElementById("profileBalance").innerText = balance.toFixed(2);
-      document.getElementById("balance").innerText = balance.toFixed(2);
-      document.getElementById("referralCode").innerText = username;
-
-      if (plan === "basic") {
-        document.getElementById("upgradeModal").style.display = "flex";
-      }
-
-      try {
-        const referralsQuery = query(collection(db, "users"), where("referral", "==", username));
-        const snapshot = await getDocs(referralsQuery);
-        document.getElementById("referrals").innerText = snapshot.size;
-      } catch (e) {
-        document.getElementById("referrals").innerText = "0";
-      }
-
-      const lastTs = data.lastClaim ?? 0;
-      const claimBtn = document.getElementById("claimBtn");
-      claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
-      claimBtn.onclick = () => claimNaira(uid);
-      updateCountdown(lastTs);
-    });
-
-    window.claimNaira = async function(uid) {
-      const userRef = doc(db, "users", uid);
-      const userSnap = await getDoc(userRef);
-      const data = userSnap.data() || {};
-      const now = Date.now();
-      const lastTs = data.lastClaim ?? 0;
-      if (now - lastTs < 86400000) {
-        alert("You have to wait 24 hours before claiming again.");
+      if (!allowed.includes(plan)) {
+        document.getElementById('upgradeModal').style.display = 'flex';
         return;
       }
-      const amount = data.plan === "premium" ? 2 : 1;
-      const newBalance = (data.balance || 0) + amount;
-      await updateDoc(userRef, { balance: newBalance, lastClaim: now });
-      document.getElementById("balance").innerText = newBalance.toFixed(2);
-      document.getElementById("profileBalance").innerText = newBalance.toFixed(2);
-      alert(`Claimed ₦${amount} Successfully!`);
-      updateCountdown(now);
-    };
 
-    window.updateCountdown = function(lastClaimTs) {
-      const countdownEl = document.getElementById("countdown");
-      const tick = () => {
-        const now = Date.now();
-        const next = lastClaimTs + 86400000;
-        const diff = next - now;
-        if (diff <= 0) {
-          countdownEl.innerText = "You can now claim!";
-        } else {
-          const hrs = Math.floor(diff / 3600000);
-          const mins = Math.floor((diff % 3600000) / 60000);
-          const secs = Math.floor((diff % 60000) / 1000);
-          countdownEl.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
-        }
-      };
-      tick();
-      setInterval(tick, 1000);
-    };
+      // referrals count
+      try {
+        const refQ = query(collection(db,'users'), where('referral','==', data.username));
+        const refSnap = await getDocs(refQ);
+        document.getElementById('referrals').innerText = refSnap.size;
+      } catch {
+        document.getElementById('referrals').innerText = 0;
+      }
 
-    window.copyReferral = function() {
-      const code = document.getElementById("referralCode").innerText;
-      navigator.clipboard.writeText(code).then(() => alert("Referral code copied: " + code));
-    };
+      // load earning log
+      loadEarningLog(userRef);
+    });
 
-    window.logout = function() {
-      signOut(auth);
-    };
+    async function loadEarningLog(userRef) {
+      const q = query(collection(userRef,'transactionHistory'), orderBy('timestamp','desc'));
+      const snaps = await getDocs(q);
+      const tbody = document.getElementById('earnLogBody');
+      tbody.innerHTML = '';
+      if (snaps.empty) {
+        tbody.innerHTML = '<tr><td colspan="4" class="no-log">No transactions yet.</td></tr>';
+        return;
+      }
+      snaps.forEach(docSnap => {
+        const id = docSnap.id;
+        const { type, amount, timestamp } = docSnap.data();
+        const date = timestamp?.toDate().toLocaleString() || '';
+        const sign = ['Tap Transfer','Deposit','Task Approved'].includes(type) ? '+' : ['VTU Purchase','Withdrawal'].includes(type) ? '-' : '';
+        const row = `<tr><td>${id}</td><td>${date}</td><td>${type}</td><td>${sign}₦${amount.toFixed(2)}</td></tr>`;
+        tbody.innerHTML += row;
+      });
+    }
 
-    window.toggleProfile = function() {
-      document.getElementById("profileInfo").classList.toggle("show");
-    };
-  </script>
-</body>
+    function logout() { signOut(auth); }
+    function toggleProfile() { document.getElementById('profileInfo').classList.toggle('show'); }
+    function copyReferral() { const code = document.getElementById('referralCode').innerText; navigator.clipboard.writeText(code).then(() => alert('Referral code copied: '+code)); }
+  </script></body>
 </html>
