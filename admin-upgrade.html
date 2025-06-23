@@ -1,197 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin – Upgrade Requests</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
-    }
-    header {
-      background-color: #009f4d;
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h2 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    header button {
-      background: white;
-      color: #009f4d;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s ease;
-    }
-    header button:hover {
-      background: #e0f6e8;
-    }
-    .container {
-      padding: 20px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-top: 20px;
-    }
-    thead {
-      background-color: #009f4d;
-      color: white;
-    }
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
-      font-size: 0.95rem;
-    }
-    tbody tr:hover {
-      background-color: #f0fff0;
-    }
-    .no-data {
-      text-align: center;
-      margin-top: 40px;
-      color: #666;
-      font-size: 1rem;
-    }
-    .view-btn {
-      background: #009f4d;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.2s ease;
-    }
-    .view-btn:hover {
-      background: #018f45;
-    }
-    .timestamp {
-      font-size: 0.9rem;
-      color: #555;
-    }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:#f5fdf7; color:#333; }
+    header { background:#009f4d; color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
+    header h2 { margin:0; font-size:1.5rem; }
+    header button { background:#fff; color:#009f4d; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold; transition:background .2s; }
+    header button:hover { background:#e0f6e8; }
+    .container { padding:20px; max-width:900px; margin:auto; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-top:20px; }
+    thead { background:#009f4d; color:#fff; }
+    th,td { padding:12px 15px; text-align:left; border-bottom:1px solid #e0e0e0; font-size:0.95rem; }
+    tr:hover td { background:#f0fff0; }
+    .no-data { text-align:center; margin-top:40px; color:#666; font-size:1rem; }
+    .action-btn { padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-size:0.9rem; margin-right:8px; }
+    .approve { background:#009f4d; color:#fff; }
+    .reject { background:#e74c3c; color:#fff; }
+    .row-approved { background:#e6f4e6 !important; }
+    .row-rejected { background:#fdecea !important; }
+    .timestamp { font-size:0.9rem; color:#555; }
   </style>
 </head>
 <body>
   <header>
     <h2>Upgrade Requests</h2>
     <button id="logoutBtn">Logout</button>
-  </header>
-
-  <div class="container">
+  </header>  <div class="container">
     <div id="resultsContainer"></div>
     <p id="noDataMsg" class="no-data" style="display:none;">No upgrade requests found.</p>
-  </div>
+  </div>  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getFirestore, collection, getDocs, query, orderBy, doc, updateDoc, serverTimestamp, increment, addDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      query,
-      orderBy
-    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    const firebaseConfig = { apiKey:'AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY', authDomain:'easypay-6bce8.firebaseapp.com', projectId:'easypay-6bce8', storageBucket:'easypay-6bce8.appspot.com', messagingSenderId:'862671358267', appId:'1:862671358267:web:b243c7b69840ef918c8f1e' };
+    const app = initializeApp(firebaseConfig), db = getFirestore(app), auth = getAuth();
+    const adminEmail = 'easypay27.ng@gmail.com';
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
+    const results = document.getElementById('resultsContainer');
+    const noData = document.getElementById('noDataMsg');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
-
-    const adminEmail = "easypay27.ng@gmail.com";
-    const resultsContainer = document.getElementById("resultsContainer");
-    const noDataMsg = document.getElementById("noDataMsg");
-    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.onclick = () => signOut(auth).then(() => location.href='login.html');
 
     onAuthStateChanged(auth, user => {
-      if (!user || user.email.toLowerCase() !== adminEmail) {
-        signOut(auth).then(() => window.location.href = "login.html");
-        return;
-      }
+      if (!user || user.email.toLowerCase()!==adminEmail) return signOut(auth).then(()=>location.href='login.html');
       loadRequests();
     });
 
-    logoutBtn.addEventListener("click", () => {
-      signOut(auth).then(() => window.location.href = "login.html");
-    });
-
     async function loadRequests() {
-      const q = query(collection(db, "upgrades"), orderBy("requestedAt", "desc"));
-      const snapshot = await getDocs(q);
+      const q = query(collection(db,'upgradeRequests'), orderBy('requestedAt','desc'));
+      const snaps = await getDocs(q);
+      results.innerHTML = '';
+      if (snaps.empty) { noData.style.display='block'; return; }
+      noData.style.display='none';
 
-      if (snapshot.empty) {
-        noDataMsg.style.display = "block";
-        return;
-      }
-
-      noDataMsg.style.display = "none";
-      const table = document.createElement("table");
-      const thead = document.createElement("thead");
-      thead.innerHTML = `
-        <tr>
-          <th>Username</th>
-          <th>Sender's Name</th>
-          <th>Proof</th>
-          <th>Submitted At</th>
-        </tr>
+      const table = document.createElement('table');
+      table.innerHTML = `
+        <thead><tr>
+          <th>Username</th><th>Plan</th><th>Fee</th><th>Proof</th><th>Requested At</th><th>Action</th>
+        </tr></thead>
       `;
-      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
 
-      const tbody = document.createElement("tbody");
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const username = data.username || "";
-        const senderName = data.senderName || "";
-        const proofURL = data.proofURL || "#";
-        const ts = data.requestedAt ? data.requestedAt.toDate().toLocaleString() : "";
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${username}</td>
-          <td>${senderName}</td>
+      snaps.forEach(docSnap => {
+        const d = docSnap.data();
+        const id = docSnap.id;
+        const fee = d.plan==='premium'?1000:d.plan==='gold'?2000:3000;
+        const row = document.createElement('tr');
+        row.id = 'row-'+id;
+        if (d.status==='approved') row.classList.add('row-approved');
+        if (d.status==='rejected') row.classList.add('row-rejected');
+        row.innerHTML = `
+          <td>${d.uid}</td>
+          <td>${d.plan}</td>
+          <td>₦${fee}</td>
+          <td><button class="action-btn view-btn" onclick="window.open('${d.proofURL}','_blank')">View</button></td>
+          <td class="timestamp">${d.requestedAt.toDate().toLocaleString()}</td>
           <td>
-            <button class="view-btn" onclick="window.open('${proofURL}', '_blank')">
-              View Proof
-            </button>
+            <button class="action-btn approve" data-id="${id}">Approve</button>
+            <button class="action-btn reject" data-id="${id}">Reject</button>
           </td>
-          <td class="timestamp">${ts}</td>
         `;
-        tbody.appendChild(tr);
+        tbody.appendChild(row);
       });
-
       table.appendChild(tbody);
-      resultsContainer.appendChild(table);
+      results.appendChild(table);
+
+      document.querySelectorAll('.approve').forEach(btn=>btn.onclick=handleApprove);
+      document.querySelectorAll('.reject').forEach(btn=>btn.onclick=handleReject);
     }
-  </script>
-</body>
+
+    async function handleApprove(e) {
+      const id = e.currentTarget.dataset.id;
+      const reqRef = doc(db,'upgradeRequests',id);
+      const snap = await getDocs(collection(reqRef,'dummy')); // dummy to ensure exists
+      const d = (await getDocs(query(collection(db,'upgradeRequests'), where('__name__','==',id)))).docs[0].data();
+      // update user
+      const userRef = doc(db,'users',d.uid);
+      await updateDoc(userRef,{ plan:d.plan, updatedAt:serverTimestamp() });
+      // referral bonus
+      if (d.referredBy) {
+        const bonus = d.plan==='premium'?100:d.plan==='gold'?200:300;
+        const refRef = doc(db,'users',d.referredBy);
+        await updateDoc(refRef,{ balance:increment(bonus) });
+        await addDoc(collection(refRef,'transactionHistory'),{ type:'Referral Bonus', amount:bonus, timestamp:serverTimestamp() });
+      }
+      // mark
+      await updateDoc(reqRef,{ status:'approved', decisionAt:serverTimestamp() });
+      document.getElementById('row-'+id).classList.replace('row-rejected','row-approved');
+    }
+
+    async function handleReject(e) {
+      const id = e.currentTarget.dataset.id;
+      const reqRef = doc(db,'upgradeRequests',id);
+      await updateDoc(reqRef,{ status:'rejected', decisionAt:serverTimestamp() });
+      const row = document.getElementById('row-'+id);
+      row.classList.add('row-rejected');
+    }
+  </script></body>
 </html>
