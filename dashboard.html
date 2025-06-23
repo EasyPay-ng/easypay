@@ -1,41 +1,43 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EasyPay Dashboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
-    header { background: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: relative; }
-    .profile { position: relative; }
-    .profile-info { display: none; position: absolute; right: 0; top: 50px; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 8px; width: 220px; padding: 10px; z-index: 2; }
-    .profile-info.show { display: block; }
-    .container { padding: 20px; flex: 1; overflow-y: auto; }
-    .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
-    .copy-btn { background: #009f4d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
-    .log-container { max-height: 300px; overflow-y: auto; }
-    .log-table { width: 100%; border-collapse: collapse; }
-    .log-table th, .log-table td { padding: 8px; border-bottom: 1px solid #e0e0e0; font-size: 0.9rem; }
-    .log-table th { background: #f0fdf7; position: sticky; top: 0; }
-    .no-log { text-align: center; color: #666; }
-    .nav { position: fixed; bottom: 0; width: 100%; background: #009f4d; display: flex; justify-content: space-around; padding: 10px 0; }
-    .nav a { color: white; text-decoration: none; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; }
-    .nav a i { font-size: 1.5rem; margin-bottom: 4px; }
-    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; }
-    .modal-content { background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 90%; }
-    .modal-content a { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #009f4d; color: white; border-radius: 6px; text-decoration: none; }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:#f5fdf7; color:#333; display:flex; flex-direction:column; min-height:100vh; }
+    header { background:#009f4d; color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; position:relative; }
+    .profile { position:relative; }
+    .profile-info { display:none; position:absolute; right:0; top:50px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.2); border-radius:8px; width:220px; padding:10px; z-index:2; }
+    .profile-info.show { display:block; }
+    .profile-info p { margin:8px 0; font-size:0.95rem; }
+    .profile-info .logout-btn { width:100%; padding:8px; background:#009f4d; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.95rem; }
+    .container { padding:20px; flex:1; overflow-y:auto; }
+    .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:20px; }
+    .copy-btn { background:#009f4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; }
+    .log-container { max-height:300px; overflow-y:auto; }
+    .log-table { width:100%; border-collapse:collapse; }
+    .log-table th, .log-table td { padding:8px; border-bottom:1px solid #e0e0e0; font-size:0.9rem; }
+    .log-table th { background:#f0fdf7; position:sticky; top:0; }
+    .no-log { text-align:center; color:#666; }
+    .nav { position:fixed; bottom:0; width:100%; background:#009f4d; display:flex; justify-content:space-around; padding:10px 0; }
+    .nav a { color:#fff; text-decoration:none; font-size:0.9rem; display:flex; flex-direction:column; align-items:center; }
+    .nav a i { font-size:1.5rem; margin-bottom:4px; }
+    .modal { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; }
+    .modal-content { background:#fff; padding:30px; border-radius:12px; text-align:center; max-width:90%; }
+    .modal-content a { display:inline-block; margin-top:20px; padding:10px 20px; background:#009f4d; color:#fff; border-radius:6px; text-decoration:none; }
   </style>
 </head>
 <body>
   <header>
     <h2>Welcome back, <span id="usernameDisplay"></span></h2>
     <div class="profile">
-      <i class="fas fa-user-circle fa-2x" id="profileIcon"></i>
+      <i class="fas fa-user-circle fa-2x" onclick="toggleProfile()"></i>
       <div id="profileInfo" class="profile-info">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
         <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
-        <button id="logoutBtn">Logout</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
   </header>  <div id="upgradeModal" class="modal" style="display:none;">
@@ -54,7 +56,7 @@
     <div class="card">
       <h3>Referral Code:</h3>
       <p id="referralCode" style="word-break:break-all;"></p>
-      <button class="copy-btn" id="copyBtn">Copy Code</button>
+      <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
     </div>
     <div class="card">
       <h3>Earning Log (Last 20)</h3>
@@ -74,27 +76,29 @@
     <a href="advertise.html"><i class="fas fa-bullhorn"></i>Advertise</a>
     <a href="earn.html"><i class="fas fa-money-bill-wave"></i>Earn</a>
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
-  </div>  <script type="module">
+  </div>  <script>
+    // Global toggle & logout/copy functions
+    function toggleProfile() {
+      document.getElementById('profileInfo').classList.toggle('show');
+    }
+    function logout() {
+      import('https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js').then(({getAuth, signOut})=>{
+        signOut(getAuth());
+      });
+    }
+    function copyReferral() {
+      const code = document.getElementById('referralCode').innerText;
+      navigator.clipboard.writeText(code).then(() => alert('Referral code copied'));  
+    }
+  </script>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e", measurementId:"G-2FZKDQ47FZ" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
-
-    // Profile toggle & logout
-    const profileIcon = document.getElementById('profileIcon');
-    const profileInfo = document.getElementById('profileInfo');
-    profileIcon.addEventListener('click', () => profileInfo.classList.toggle('show'));
-    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
-
-    // Copy referral
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      navigator.clipboard.writeText(document.getElementById('referralCode').innerText)
-        .then(() => alert('Referral code copied'));
-    });
 
     onAuthStateChanged(auth, async user => {
       if (!user) return location.href='login.html';
