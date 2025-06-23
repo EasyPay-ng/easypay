@@ -60,7 +60,7 @@
       <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
     </div>
     <div class="card">
-      <h3>Earning Log</h3>
+      <h3>Earning Log (Last 20)</h3>
       <table class="log-table" id="earnLogTable">
         <thead>
           <tr><th>ID</th><th>Date</th><th>Type</th><th>Amount</th></tr>
@@ -77,7 +77,7 @@
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
   </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, query, orderBy, getDocs, where } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = {
@@ -99,7 +99,7 @@
       const uid = user.uid;
       const userRef = doc(db, "users", uid);
       const snap = await getDoc(userRef);
-      if (!snap.exists()) { window.location.href='login.html'; return; }
+      if (!snap.exists()) { window.location.href = 'login.html'; return; }
       const data = snap.data();
       const plan = data.plan || 'basic';
       const allowed = ['premium','gold','elite'];
@@ -125,12 +125,18 @@
         document.getElementById('referrals').innerText = 0;
       }
 
-      // load earning log
-      loadEarningLog(userRef);
+      // load earning log: only transfers, deposits, tasks, VTU, withdrawals; last 20
+      await loadEarningLog(userRef);
     });
 
     async function loadEarningLog(userRef) {
-      const q = query(collection(userRef,'transactionHistory'), orderBy('timestamp','desc'));
+      const types = ['Tap Transfer','Deposit','Task Approved','VTU Purchase','Withdrawal'];
+      const q = query(
+        collection(userRef,'transactionHistory'),
+        where('type','in', types),
+        orderBy('timestamp','desc'),
+        limit(20)
+      );
       const snaps = await getDocs(q);
       const tbody = document.getElementById('earnLogBody');
       tbody.innerHTML = '';
@@ -142,7 +148,7 @@
         const id = docSnap.id;
         const { type, amount, timestamp } = docSnap.data();
         const date = timestamp?.toDate().toLocaleString() || '';
-        const sign = ['Tap Transfer','Deposit','Task Approved'].includes(type) ? '+' : ['VTU Purchase','Withdrawal'].includes(type) ? '-' : '';
+        const sign = ['Tap Transfer','Deposit','Task Approved'].includes(type) ? '+' : '-';
         const row = `<tr><td>${id}</td><td>${date}</td><td>${type}</td><td>${sign}₦${amount.toFixed(2)}</td></tr>`;
         tbody.innerHTML += row;
       });
