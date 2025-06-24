@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Congratulations!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      padding: 50px;
+    }
+    .emoji {
+      font-size: 100px;
+    }
+    h1 {
+      color: #4CAF50;
+      font-size: 2.5em;
+    }
+    .reward {
+      font-size: 1.5em;
+      color: #333;
+      margin: 20px 0;
+    }
+    .task-id {
+      font-size: 1.2em;
+      color: #888;
+    }
+    .info {
+      font-size: 1.2em;
+      color: #555;
+      margin-top: 20px;
+    }
+    .button {
+      margin: 20px 10px 0;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      display: none;
+    }
+    .button:hover {
+      background-color: #45a049;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 1em;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="emoji">✅</div>
+    <h1>Congratulations!</h1>
+    <p id="rewardText" class="reward">Loading reward…</p>
+    <p class="task-id">ID: 27003</p>
+    <p class="info">Please screenshot this page for your reference purpose.</p>
+    
+    <a id="dashboardButton" href="dashboard.html" class="button">
+      Go back to Dashboard
+    </a>
+
+    <div class="footer">
+      <p>Thank you for your hard work!</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      increment,
+      arrayUnion
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const rewardText = document.getElementById('rewardText');
+    const dashboardButton = document.getElementById('dashboardButton');
+    const TASK_ID = '27003';
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        rewardText.textContent = 'Not signed in. Redirecting…';
+        setTimeout(() => location.href = 'login.html', 1500);
+        return;
+      }
+
+      // simulate loading delay
+      await new Promise(res => setTimeout(res, 5000));
+
+      try {
+        const uid = user.uid;
+        const userRef = doc(db, 'users', uid);
+        const snap = await getDoc(userRef);
+        const data = snap.exists() ? snap.data() : {};
+
+        const today = new Date().toISOString().split('T')[0];
+        const record = data.shortlinkTasks?.[TASK_ID];
+
+        if (record?.date === today) {
+          rewardText.textContent = `Reward already claimed for Task ${TASK_ID} today.`;
+        } else {
+          await updateDoc(userRef, {
+            [`shortlinkTasks.${TASK_ID}`]: { date: today },
+            balance: increment(5),
+            transactions: arrayUnion({
+              source: `Shortlink ${TASK_ID}`,
+              amount: 5,
+              date: new Date().toLocaleString()
+            })
+          });
+          rewardText.textContent = `You have earned ₦5 for completing the shortlink!`;
+        }
+      } catch (err) {
+        console.error(err);
+        rewardText.textContent = 'Error processing reward.';
+      } finally {
+        dashboardButton.style.display = 'inline-block';
+      }
+    });
+  </script>
+</body>
+</html>
