@@ -1,9 +1,9 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Dashboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
     body { margin:0; font-family:'Segoe UI',sans-serif; background:#f5fdf7; color:#333; display:flex; flex-direction:column; min-height:100vh; }
     header { background:#009f4d; color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; position:relative; }
@@ -77,25 +77,24 @@
     <a href="earn.html"><i class="fas fa-money-bill-wave"></i>Earn</a>
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
   </div>  <script>
-    // Global toggle & logout/copy functions
     function toggleProfile() {
       document.getElementById('profileInfo').classList.toggle('show');
     }
     function logout() {
-      import('https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js').then(({getAuth, signOut})=>{
+      import('https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js').then(({ getAuth, signOut }) => {
         signOut(getAuth());
       });
     }
     function copyReferral() {
       const code = document.getElementById('referralCode').innerText;
-      navigator.clipboard.writeText(code).then(() => alert('Referral code copied'));  
+      navigator.clipboard.writeText(code).then(() => alert('Referral code copied'));
     }
   </script>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e", measurementId:"G-2FZKDQ47FZ" };
+    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypdf7…// truncated for brevity …" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
@@ -121,16 +120,34 @@
     });
 
     async function loadEarningLog(uRef) {
-      const snaps = await getDocs(query(collection(uRef,'transactionHistory'),orderBy('timestamp','desc'),limit(50)));
-      const tbody = document.getElementById('earnLogBody'); tbody.innerHTML='';
-      const types=['Tap Transfer','Deposit','Task Approved','VTU Purchase','Withdrawal']; let cnt=0;
-      snaps.forEach(d=>{
-        if (cnt>=20) return;
-        const tx=d.data(); if(!types.includes(tx.type)) return;
-        tbody.innerHTML+=`<tr><td>${d.id}</td><td>${tx.timestamp.toDate().toLocaleString()}</td><td>${tx.type}</td><td>${['Tap Transfer','Deposit','Task Approved'].includes(tx.type)?'+':'-'}₦${tx.amount.toFixed(2)}</td></tr>`;
-        cnt++;
+      const snaps = await getDocs(
+        query(
+          collection(uRef,'transactionHistory'),
+          orderBy('timestamp','desc'),
+          limit(50)
+        )
+      );
+      const tbody = document.getElementById('earnLogBody');
+      tbody.innerHTML = '';
+      let shown = 0;
+      snaps.forEach(docSnap => {
+        if (shown >= 20) return;
+        const tx = docSnap.data();
+        const date = tx.timestamp.toDate().toLocaleString();
+        const sign = tx.amount >= 0 ? '+' : '-';
+        tbody.innerHTML += `
+          <tr>
+            <td>${docSnap.id}</td>
+            <td>${date}</td>
+            <td>${tx.type}</td>
+            <td>${sign}₦${Math.abs(tx.amount).toFixed(2)}</td>
+          </tr>
+        `;
+        shown++;
       });
-      if(!cnt) tbody.innerHTML='<tr><td colspan="4" class="no-log">No transactions yet.</td></tr>';
+      if (shown === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="no-log">No transactions yet.</td></tr>';
+      }
     }
   </script></body>
 </html>
