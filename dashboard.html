@@ -91,10 +91,10 @@
     }
   </script>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, serverTimestamp, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypdf7…// truncated for brevity …" };
+    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e", measurementId:"G-2FZKDQ47FZ" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
@@ -118,6 +118,15 @@
       }
       loadEarningLog(uRef);
     });
+
+    // New function to credit shortlink revenue
+    async function creditShortlink(userRef, amount) {
+      await updateDoc(userRef, { balance: increment(amount) });
+      await addDoc(
+        collection(userRef, 'transactionHistory'),
+        { type:'Shortlink Revenue', amount, timestamp: serverTimestamp() }
+      );
+    }
 
     async function loadEarningLog(uRef) {
       const snaps = await getDocs(
