@@ -53,9 +53,7 @@
       <thead>
         <tr><th>Username</th><th>UID</th><th>Balance</th><th>Referrals</th><th>Status</th><th>Actions</th></tr>
       </thead>
-      <tbody id="userTableBody">
-        <tr><td colspan="6" style="text-align:center; padding:1rem;">Loading users...</td></tr>
-      </tbody>
+      <tbody id="userTableBody"><tr><td colspan="6" style="text-align:center;padding:1rem;">Loading users...</td></tr></tbody>
     </table>
   </div>  <div class="modal" id="editModal">
     <div class="modal-content">
@@ -66,83 +64,112 @@
       <button class="btn edit-btn" onclick="saveChanges()">Save Changes</button>
     </div>
   </div>  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import {
-      getFirestore, collection, getDocs, doc, updateDoc, query, where
-    } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-    import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-    const app = initializeApp({ apiKey:'...', authDomain:'...', projectId:'...' });
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+
     let allUsers = [];
     let selectedUserId = null;
 
     async function loadUsers() {
-      const tbody = document.getElementById('userTableBody');
-      const countEl = document.getElementById('userCount');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1rem;">Loading users...</td></tr>';
+      const tbody = document.getElementById("userTableBody");
+      const countEl = document.getElementById("userCount");
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;">Loading users...</td></tr>';
 
-      const snapshot = await getDocs(collection(db,'users'));
-      allUsers = [];
+      const snapshot = await getDocs(collection(db, "users"));
       const rows = [];
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
-        const username = data.username||'—';
+        const username = data.username || "—";
         const uid = docSnap.id;
-        const balance = data.balance||0;
-        const suspended = data.suspended||false;
-        const refSnap = await getDocs(query(collection(db,'users'), where('referral','==',username)));
+        const balance = data.balance || 0;
+        const suspended = data.suspended || false;
+        const refSnap = await getDocs(query(collection(db, "users"), where("referral", "==", username)));
         const referralCount = refSnap.size;
-        rows.push({uid, username, balance, suspended, referralCount});
+        rows.push({ uid, username, balance, suspended, referralCount });
       }
-      countEl.textContent = `Total Users: ${rows.length}`;
       allUsers = rows;
+      countEl.textContent = `Total Users: ${rows.length}`;
       renderTable(allUsers);
     }
 
     function renderTable(users) {
-      const tbody = document.getElementById('userTableBody');
-      tbody.innerHTML = '';
+      const tbody = document.getElementById("userTableBody");
+      tbody.innerHTML = "";
       if (!users.length) {
         tbody.innerHTML = '<tr><td colspan="6" class="no-data">No users found.</td></tr>';
         return;
       }
       users.forEach(u => {
-        const tr = document.createElement('tr');
+        const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${u.username}</td>
           <td>${u.uid}</td>
           <td>₦${u.balance}</td>
           <td>${u.referralCount}</td>
-          <td>${u.suspended?'Suspended':'Active'}</td>
+          <td>${u.suspended ? "Suspended" : "Active"}</td>
           <td>
             <button class="btn edit-btn" onclick="openModal('${u.uid}','${u.username}',${u.balance},${u.referralCount})">Edit</button>
-            <button class="btn suspend-btn" onclick="toggleSuspend('${u.uid}',${u.suspended})">${u.suspended?'Unsuspend':'Suspend'}</button>
-          </td>`;
+            <button class="btn suspend-btn" onclick="toggleSuspend('${u.uid}',${u.suspended})">${u.suspended ? 'Unsuspend' : 'Suspend'}</button>
+          </td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
-    window.searchUsers = () => {
-      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    document.getElementById("searchBtn").onclick = () => {
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
       const filtered = allUsers.filter(u => u.username.toLowerCase().includes(q) || u.uid.toLowerCase().includes(q));
       renderTable(filtered);
     };
-    document.getElementById('searchBtn').onclick = searchUsers;
 
-    window.openModal = (id, username, balance, referrals) => {/*...*/};
-    window.saveChanges = async () => {/*...*/};
-    window.toggleSuspend = async () => {/*...*/};
+    window.openModal = (id, username, balance, referrals) => {
+      selectedUserId = id;
+      document.getElementById("editUsername").value = username;
+      document.getElementById("editBalance").value = balance;
+      document.getElementById("editReferrals").value = referrals;
+      document.getElementById("editModal").style.display = "flex";
+    };
 
-    document.addEventListener('click', e => {
-      if (!e.target.closest('.dropdown')) document.getElementById('dropdownMenu').style.display='none';
+    window.saveChanges = async () => {
+      const username = document.getElementById("editUsername").value;
+      const balance = parseFloat(document.getElementById("editBalance").value);
+      const referrals = parseInt(document.getElementById("editReferrals").value);
+      if (selectedUserId) {
+        await updateDoc(doc(db, "users", selectedUserId), { username, balance, referrals });
+        document.getElementById("editModal").style.display = "none";
+        loadUsers();
+      }
+    };
+
+    window.toggleSuspend = async (id, currently) => {
+      if (confirm(`Are you sure you want to ${currently ? 'unsuspend' : 'suspend'} this user?`)) {
+        await updateDoc(doc(db, "users", id), { suspended: !currently });
+        loadUsers();
+      }
+    };
+
+    window.addEventListener('click', e => {
+      if (!e.target.closest('.dropdown')) document.getElementById('dropdownMenu').style.display = 'none';
     });
     window.toggleDropdown = () => {
       const menu = document.getElementById('dropdownMenu');
-      menu.style.display = menu.style.display==='block'?'none':'block';
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
     };
 
     loadUsers();
+
   </script></body>
 </html>
