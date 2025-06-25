@@ -17,14 +17,7 @@
     th, td { border:1px solid #ddd; padding:8px; text-align:left; }
     th { background:#2f7a2f; color:#fff; position:sticky; top:0; }
     #loading { display:none; text-align:center; margin:10px 0; }
-    /* Status colors */
-    .status {
-      padding:4px 8px;
-      border-radius:4px;
-      color:#fff;
-      font-weight:bold;
-      display:inline-block;
-    }
+    .status { padding:4px 8px; border-radius:4px; color:#fff; font-weight:bold; display:inline-block; }
     .status-approved { background:#28a745; box-shadow:0 0 8px rgba(40,167,69,0.5); }
     .status-rejected { background:#dc3545; box-shadow:0 0 8px rgba(220,53,69,0.5); }
     .status-pending  { background:#fd7e14; box-shadow:0 0 8px rgba(253,126,20,0.5); }
@@ -38,7 +31,7 @@
       <p>📒 Account Number: <strong>8125600222</strong></p>
       <p>👤 Account Name: <strong>Onyeka Anointed Chidi</strong></p>
       <p>🏦 Bank Name: <strong>Opay/Paycom</strong></p>
-    </div><input type="hidden" id="userId" />
+    </div><!-- Hidden fields -->
 <input type="hidden" id="username" />
 
 <label for="amount">Amount</label>
@@ -70,15 +63,14 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const userIdIn    = document.getElementById('userId');
-    const usernameIn  = document.getElementById('username');
-    const amtIn       = document.getElementById('amount');
-    const senderIn    = document.getElementById('senderName');
-    const refIn       = document.getElementById('refId');
-    const btn         = document.getElementById('submitBtn');
-    const msg         = document.getElementById('msg');
-    const loadEl      = document.getElementById('loading');
-    const hist        = document.getElementById('history');
+    const usernameIn = document.getElementById('username');
+    const amtIn      = document.getElementById('amount');
+    const senderIn   = document.getElementById('senderName');
+    const refIn      = document.getElementById('refId');
+    const btn        = document.getElementById('submitBtn');
+    const msg        = document.getElementById('msg');
+    const loadEl     = document.getElementById('loading');
+    const hist       = document.getElementById('history');
 
     const genRef = () => Math.random().toString(36).substr(2,9);
     refIn.value = genRef();
@@ -87,7 +79,6 @@
       if (!user) return window.location.href='login.html';
       try {
         const snap = await db.collection('users').doc(user.uid).get();
-        userIdIn.value   = user.uid;
         usernameIn.value = (snap.data()||{}).username || user.email;
         loadHistory();
       } catch(e) { console.error(e); }
@@ -122,11 +113,13 @@
             </tr>`;
           });
         }
-      } catch(e) { console.error(e); }
+      } catch(e) {
+        console.error('History load error:', e);
+        hist.innerHTML = '<tr><td colspan="5" class="no-log">Error loading records.</td></tr>';
+      }
     }
 
     btn.addEventListener('click', async () => {
-      const uid   = userIdIn.value;
       const uname = usernameIn.value;
       const amount= parseFloat(amtIn.value);
       const sender= senderIn.value.trim();
@@ -137,15 +130,12 @@
       loadEl.style.display = 'block';
       msg.textContent = '';
       try {
-        await db.collection('deposits').add({
-          userId:uid, username:uname, amount, senderName:sender,
-          refId, status:'pending', processed:false, date:Date.now()
-        });
+        await db.collection('deposits').add({ userId:auth.currentUser.uid, username:uname, amount, senderName:sender, refId, status:'pending', processed:false, date:Date.now() });
         msg.style.color = 'green'; msg.textContent = '✅ Deposit request sent!';
         amtIn.value=''; senderIn.value=''; refIn.value=genRef();
         loadHistory();
       } catch(e) {
-        console.error(e);
+        console.error('Submission error:',e);
         msg.style.color = 'red'; msg.textContent = '❌ Submission failed.';
       } finally {
         btn.disabled=false; loadEl.style.display='none';
