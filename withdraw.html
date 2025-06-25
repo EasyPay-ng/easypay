@@ -3,111 +3,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Withdrawal Page</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";const firebaseConfig = {
-  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-  authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8",
-  storageBucket: "easypay-6bce8.firebasestorage.app",
-  messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-  measurementId: "G-2FZKDQ47FZ"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore(app);
-
-onAuthStateChanged(auth, async user => {
-  if (!user) {
-    alert("Please log in.");
-    window.location.href = "login.html";
-    return;
-  }
-
-  const userRef = doc(db, "users", user.uid);
-  const userDoc = await getDoc(userRef);
-
-  if (!userDoc.exists()) {
-    alert("User not found in Firestore.");
-    return;
-  }
-
-  const submitBtn = document.getElementById("submitBtn");
-  submitBtn.addEventListener("click", () => submitWithdrawal(user.uid));
-
-  loadWithdrawals(user.uid);
-});
-
-async function submitWithdrawal(uid) {
-  const amount = parseFloat(document.getElementById("amount").value);
-  const bank = document.getElementById("bank").value;
-  const accName = document.getElementById("accName").value;
-  const accNumber = document.getElementById("accNumber").value;
-
-  if (isNaN(amount) || amount < 200 || !bank || !accName || !accNumber) {
-    alert("Please fill all fields correctly. Minimum is ₦200.");
-    return;
-  }
-
-  const userRef = doc(db, "users", uid);
-  const userDoc = await getDoc(userRef);
-  const balance = userDoc.data().balance || 0;
-
-  if (amount > balance) {
-    alert("Insufficient balance.");
-    return;
-  }
-
-  await updateDoc(userRef, { balance: balance - amount });
-
-  const withdrawal = {
-    timestamp: new Date(),
-    amount,
-    bank,
-    accName,
-    accNumber,
-    status: "Pending"
-  };
-
-  const withdrawalRef = collection(userRef, "withdrawals");
-  await addDoc(withdrawalRef, withdrawal);
-  alert("Withdrawal submitted successfully.");
-
-  document.getElementById("amount").value = "";
-  document.getElementById("bank").value = "";
-  document.getElementById("accName").value = "";
-  document.getElementById("accNumber").value = "";
-
-  loadWithdrawals(uid);
-}
-
-async function loadWithdrawals(uid) {
-  const tbody = document.getElementById("withdrawalTable").querySelector("tbody");
-  tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
-  const withdrawalRef = collection(doc(db, "users", uid), "withdrawals");
-  const q = query(withdrawalRef, orderBy("timestamp", "desc"), limit(20));
-  const snapshot = await getDocs(q);
-
-  tbody.innerHTML = "";
-  snapshot.forEach(docSnap => {
-    const d = docSnap.data();
-    const date = new Date(d.timestamp.seconds * 1000).toLocaleString();
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${date}</td>
-      <td>₦${d.amount}</td>
-      <td>${d.bank}</td>
-      <td>${d.accNumber}</td>
-      <td>${d.status}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-  </script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -139,6 +34,7 @@ async function loadWithdrawals(uid) {
       margin-bottom: 1rem;
       border-radius: 5px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
     button {
       background-color: green;
@@ -164,6 +60,18 @@ async function loadWithdrawals(uid) {
       top: 0;
       z-index: 1;
     }
+    /* Status colors */
+    .status {
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .status-pending { background: #fd7e14; box-shadow: 0 0 8px rgba(253,126,20,0.5); }
+    .status-approved { background: #28a745; box-shadow: 0 0 8px rgba(40,167,69,0.5); }
+    .status-rejected { background: #dc3545; box-shadow: 0 0 8px rgba(220,53,69,0.5); }
+    .no-log { text-align: center; color: #666; padding: 10px; }
   </style>
 </head>
 <body>
@@ -202,6 +110,92 @@ async function loadWithdrawals(uid) {
       </thead>
       <tbody></tbody>
     </table>
-  </div>
-</body>
+  </div>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        alert("Please log in.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        alert("User not found in Firestore.");
+        return;
+      }
+
+      document.getElementById("submitBtn").addEventListener("click", () => submitWithdrawal(user.uid));
+      loadWithdrawals(user.uid);
+    });
+
+    async function submitWithdrawal(uid) {
+      const amount = parseFloat(document.getElementById("amount").value);
+      const bank = document.getElementById("bank").value;
+      const accName = document.getElementById("accName").value;
+      const accNumber = document.getElementById("accNumber").value;
+      if (isNaN(amount) || amount < 200 || !bank || !accName || !accNumber) {
+        alert("Please fill all fields correctly. Minimum is ₦200.");
+        return;
+      }
+      const userRef = doc(db, "users", uid);
+      const userDoc = await getDoc(userRef);
+      const balance = userDoc.data().balance || 0;
+      if (amount > balance) { alert("Insufficient balance."); return; }
+
+      await updateDoc(userRef, { balance: balance - amount });
+      await addDoc(collection(userRef, "withdrawals"), {
+        timestamp: new Date(),
+        amount, bank, accName, accNumber, status: "pending"
+      });
+      alert("Withdrawal submitted successfully.");
+      ["amount","bank","accName","accNumber"].forEach(id => document.getElementById(id).value = '');
+      loadWithdrawals(uid);
+    }
+
+    async function loadWithdrawals(uid) {
+      const tbody = document.querySelector("#withdrawalTable tbody");
+      tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';
+      const withdrawalRef = collection(doc(db, "users", uid), "withdrawals");
+      const q = query(withdrawalRef, orderBy("timestamp", "desc"), limit(20));
+      const snapshot = await getDocs(q);
+      tbody.innerHTML = '';
+      snapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        const date = new Date(d.timestamp.seconds * 1000).toLocaleString();
+        const cls = d.status === 'approved' ? 'status-approved'
+                  : d.status === 'rejected'? 'status-rejected'
+                  : 'status-pending';
+        tbody.innerHTML += `
+          <tr>
+            <td>${date}</td>
+            <td>₦${d.amount}</td>
+            <td>${d.bank}</td>
+            <td>${d.accNumber}</td>
+            <td><span class="status ${cls}">${d.status.charAt(0).toUpperCase() + d.status.slice(1)}</span></td>
+          </tr>`;
+      });
+      if (snapshot.empty) {
+        tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
+      }
+    }
+  </script></body>
 </html>
