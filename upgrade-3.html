@@ -29,29 +29,31 @@
 <body>
   <main class="container" role="main" aria-label="Upgrade Account Form">
     <h1>Upgrade Your Account</h1>
-    <label for="username">Username</label>
-    <input id="username" type="text" placeholder="Enter your username" autocomplete="username" aria-required="true" />
     <label for="senderName">Sender's Name</label>
-    <input id="senderName" type="text" placeholder="Enter sender's name" autocomplete="off" aria-required="true" />
-    <section class="info" aria-live="polite" aria-atomic="true">
-      <p><strong>Amount:</strong> ₦3,000</p>
-      <p><strong>Account Name:</strong> Onyeka Anointed Chidi</p>
-      <p><strong>Bank:</strong> Moniepoint MFB</p>
-      <p><strong>Account No:</strong> 8132425678</p>
-    </section>
-    <label for="proofFile">Upload Proof Image</label>
-    <input id="proofFile" type="file" accept="image/*" aria-required="true" />
-    <div class="upload-progress-container" id="uploadContainer">
-      <div class="upload-progress-bar" id="uploadBar"></div>
-    </div>
-    <div class="upload-progress-label" id="uploadLabel"></div>
-    <button id="submitBtn" type="button">Submit for Approval</button>
-    <div id="message" class="message" aria-live="assertive"></div>
+    <input id="senderName" type="text" placeholder="Enter sender's name" aria-required="true" /><section class="info" aria-live="polite" aria-atomic="true">
+  <p><strong>Amount:</strong> ₦3,000</p>
+  <p><strong>Account Name:</strong> Onyeka Anointed Chidi</p>
+  <p><strong>Bank:</strong> Moniepoint MFB</p>
+  <p><strong>Account No:</strong> 8132425678</p>
+</section>
+
+<label for="proofFile">Upload Proof Image</label>
+<input id="proofFile" type="file" accept="image/*" aria-required="true" />
+
+<div class="upload-progress-container" id="uploadContainer">
+  <div class="upload-progress-bar" id="uploadBar"></div>
+</div>
+<div class="upload-progress-label" id="uploadLabel"></div>
+
+<button id="submitBtn" type="button" disabled>Loading…</button>
+<div id="message" class="message" aria-live="assertive"></div>
+
   </main>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-    
-    // Firebase init
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -62,16 +64,30 @@
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    // DOM refs
-    const usernameInput = document.getElementById("username");
-    const senderNameInput = document.getElementById("senderName");
-    const fileInput = document.getElementById("proofFile");
-    const submitBtn = document.getElementById("submitBtn");
-    const messageDiv = document.getElementById("message");
-    const uploadBar = document.getElementById("uploadBar");
-    const uploadLabel = document.getElementById("uploadLabel");
-    const uploadContainer = document.getElementById("uploadContainer");
+    let currentUser = null;
+    let username = null;
+
+    // Wait for auth and fetch username
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUser = user;
+      // fetch username from users collection
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        alert('User data missing.');
+        return;
+      }
+      username = userDoc.data().username;
+      // enable submit once username is known
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = false;
+      btn.textContent = 'Submit for Approval';
+    });
 
     // Imgur helper
     async function uploadToImgur(file, onProgress) {
@@ -84,7 +100,7 @@
           const form = new FormData();
           form.append('image', base64);
           form.append('type', 'base64');
-          
+
           const xhr = new XMLHttpRequest();
           xhr.open('POST', endpoint);
           xhr.setRequestHeader('Authorization', 'Client-ID ' + clientId);
@@ -109,53 +125,57 @@
     }
 
     // Submit handler
-    submitBtn.addEventListener('click', async () => {
-      messageDiv.textContent = '';
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const senderName = document.getElementById('senderName').value.trim();
+      const file = document.getElementById('proofFile').files[0];
+      const messageDiv = document.getElementById('message');
       messageDiv.className = 'message';
+      messageDiv.textContent = '';
 
-      const username = usernameInput.value.trim();
-      const senderName = senderNameInput.value.trim();
-      const file = fileInput.files[0];
-
-      if (!username) return messageDiv.textContent = 'Enter username', messageDiv.classList.add('error');
-      if (!senderName) return messageDiv.textContent = 'Enter sender name', messageDiv.classList.add('error');
-      if (!file) return messageDiv.textContent = 'Select an image proof', messageDiv.classList.add('error');
+      if (!senderName) {
+        messageDiv.textContent = 'Enter sender name';
+        messageDiv.classList.add('error');
+        return;
+      }
+      if (!file) {
+        messageDiv.textContent = 'Select an image proof';
+        messageDiv.classList.add('error');
+        return;
+      }
 
       // show progress UI
-      uploadContainer.style.display = 'block';
-      uploadLabel.style.display = 'block';
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
+      document.getElementById('uploadContainer').style.display = 'block';
+      document.getElementById('uploadLabel').style.display = 'block';
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
 
       try {
         const imageUrl = await uploadToImgur(file, pct => {
-          uploadBar.style.width = pct + '%';
-          uploadLabel.textContent = pct + '%';
+          document.getElementById('uploadBar').style.width = pct + '%';
+          document.getElementById('uploadLabel').textContent = pct + '%';
         });
 
-        // write to Firestore
-        await addDoc(collection(db, 'upgrades'), {
-          username,
-          senderName,
+        // write to Firestore with auth-tracked username
+        await addDoc(collection(db, 'upgradeRequests'), {
+          username: username,
+          senderName: senderName,
           proofURL: imageUrl,
           requestedAt: serverTimestamp()
         });
 
-        messageDiv.textContent = 'Submission successful!';
+        messageDiv.textContent = 'Request submitted!';
         messageDiv.classList.add('success');
-        usernameInput.value = '';
-        senderNameInput.value = '';
-        fileInput.value = null;
       } catch (err) {
         messageDiv.textContent = 'Error: ' + err;
         messageDiv.classList.add('error');
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit for Approval';
+        btn.disabled = false;
+        btn.textContent = 'Submit for Approval';
         setTimeout(() => {
-          uploadContainer.style.display = 'none';
-          uploadLabel.style.display = 'none';
-          uploadBar.style.width = '0%';
+          document.getElementById('uploadContainer').style.display = 'none';
+          document.getElementById('uploadLabel').style.display = 'none';
+          document.getElementById('uploadBar').style.width = '0%';
         }, 1500);
       }
     });
