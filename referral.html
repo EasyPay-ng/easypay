@@ -1,10 +1,9 @@
-<!DOCTYPE html><html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Referrals – EasyPay</title>
   <style>
-    :root { --green-dark:#006400; --green-medium:#009f4d; --bg:#f5fdf7; --text-dark:#003300; --blue:#007bff; --red:#dc3545; --white:#ffffff; }
+    :root { --green-dark:#006400; --green-medium:#009f4d; --bg:#f5fdf7; --text-dark:#003300; --white:#ffffff; }
     body { margin:0; display:flex; flex-direction:column; height:100vh; background:var(--bg); color:var(--text-dark); font-family:'Segoe UI',sans-serif; }
     header { background:var(--green-dark); color:var(--white); padding:16px; text-align:center; font-size:1.5rem; flex:0 0 auto; }
     .tabs { display:flex; justify-content:center; flex:0 0 auto; }
@@ -17,10 +16,6 @@
     th,td { padding:12px 16px; border-bottom:1px solid #e0e0e0; text-align:left; font-size:0.9rem; }
     th { background:var(--green-dark); color:var(--white); font-size:1rem; }
     tr:hover td { background:#f0fff0; }
-    .status { font-weight:bold; }
-    .status-null { color:var(--blue); }
-    .status-approved { color:var(--green-medium); }
-    .status-rejected { color:var(--red); }
     .no-data { text-align:center; padding:20px; color:#666; }
     footer { background:var(--green-dark); color:var(--white); text-align:center; padding:12px; font-size:0.9rem; flex:0 0 auto; }
   </style>
@@ -33,11 +28,13 @@
   </div>
   <div class="container">
     <div id="activated" class="tab-content">
-      <div class="section-title">Activated/Upgraded Referrals</div>
+      <div class="section-title">Activated Referrals</div>
       <div class="table-container">
         <table>
-          <thead><tr><th>Username</th><th>Email</th><th>Balance</th><th>Registered At</th><th>Status</th></tr></thead>
-          <tbody id="activatedBody"><tr><td colspan="5" class="no-data">Loading…</td></tr></tbody>
+          <thead>
+            <tr><th>Username</th><th>Email</th><th>Balance</th><th>Registered At</th></tr>
+          </thead>
+          <tbody id="activatedBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -45,56 +42,60 @@
       <div class="section-title">All Referred Users</div>
       <div class="table-container">
         <table>
-          <thead><tr><th>Username</th><th>Email</th><th>Balance</th><th>Registered At</th><th>Status</th></tr></thead>
-          <tbody id="allBody"><tr><td colspan="5" class="no-data">Loading…</td></tr></tbody>
+          <thead>
+            <tr><th>Username</th><th>Email</th><th>Balance</th><th>Registered At</th></tr>
+          </thead>
+          <tbody id="allBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
-  <footer>EasyPay 2025</footer>  <script type="module">
+  <footer>EasyPay 2025</footer>
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e" };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e" };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+const activatedBody = document.getElementById('activatedBody');
+const allBody = document.getElementById('allBody');
+const allowedPlans = ['premium','gold','elite'];
 
-    const activatedBody = document.getElementById('activatedBody');
-    const allBody = document.getElementById('allBody');
-
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href='login.html';
-      const userRef = doc(db,'users',user.uid);
-      const userSnap = await getDoc(userRef);
-      const myUsername = userSnap.data()?.username || '';
-      const q = query(collection(db,'users'), where('referral','==',myUsername));
-      const snap = await getDocs(q);
-      activatedBody.innerHTML=''; allBody.innerHTML='';
-      if (snap.empty) {
-        allBody.innerHTML='<tr><td colspan="5" class="no-data">No referrals found.</td></tr>';
-        activatedBody.innerHTML='<tr><td colspan="5" class="no-data">No activated referrals.</td></tr>';
-        return;
-      }
-      for (const docSnap of snap.docs) {
-        const d = docSnap.data(); const uid=docSnap.id;
-        const reg = d.createdAt?.toDate().toLocaleString()||'N/A';
-        const bal = d.balance!=null?`₦${d.balance}`:'₦0';
-        const reqQ = query(collection(db,'upgradeRequests'), where('uid','==',uid));
-        const reqSnap = await getDocs(reqQ);
-        let status='Null'; if (!reqSnap.empty) status = reqSnap.docs[0].data().status||'Null';
-        const cls = status==='approved'?'status-approved':status==='rejected'?'status-rejected':'status-null';
-        const row = `<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td><td><span class="status ${cls}">${status}</span></td></tr>`;
-        allBody.innerHTML+=row; if (status==='approved') activatedBody.innerHTML+=row;
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href='login.html';
+  // get current user's username
+  const userDoc = await db.collection('users').doc(user.uid).get();
+  const myUsername = userDoc.data()?.username || '';
+  // fetch referrals
+  const q = query(collection(db,'users'), where('referral','==',myUsername));
+  const snap = await getDocs(q);
+  activatedBody.innerHTML=''; allBody.innerHTML='';
+  if (snap.empty) {
+    allBody.innerHTML='<tr><td colspan="4" class="no-data">No referrals found.</td></tr>';
+    activatedBody.innerHTML='<tr><td colspan="4" class="no-data">No activated referrals.</td></tr>';
+  } else {
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      const reg = d.createdAt?.toDate().toLocaleString()||'N/A';
+      const bal = d.balance!=null?`₦${d.balance}`:'₦0';
+      const row = `<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td></tr>`;
+      allBody.innerHTML += row;
+      if (allowedPlans.includes(d.plan)) {
+        activatedBody.innerHTML += row;
       }
     });
+  }
+});
 
-    document.querySelectorAll('.tab').forEach(tab=> tab.onclick=()=>{
-      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      tab.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
-      document.getElementById(tab.dataset.tab).style.display='block';
-    });
-  </script></body>
+document.querySelectorAll('.tab').forEach(tab=> tab.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+  document.getElementById(tab.dataset.tab).style.display='block';
+});
+
+  </script>
+</body>
 </html>
