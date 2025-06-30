@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Admin Panel</title>
@@ -29,135 +28,139 @@
   <header>
     <h2>Admin Panel</h2>
     <button id="logoutBtn">Logout</button>
-  </header>  <div class="container">
+  </header>
+  <div class="container">
     <div class="search-group">
       <input type="text" id="searchInput" placeholder="Search users by username..." oninput="filterTable()" />
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
-    </div><div id="resultsContainer">
-  <p class="no-results" id="noResults" style="display: none;">No users found.</p>
-</div>
-
-  </div>  <script type="module">
+    </div>
+    <div id="resultsContainer">
+      <p class="no-results" id="noResults" style="display: none;">No users found.</p>
+    </div>
+  </div>
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";const firebaseConfig = {
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.appspot.com",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+  measurementId: "G-2FZKDQ47FZ"
+};
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth();
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
+const adminEmail = "easypay27.ng@gmail.com";
+const logoutBtn = document.getElementById("logoutBtn");
+const searchInput = document.getElementById("searchInput");
+const searchBtn = document.getElementById("searchBtn");
+const resultsContainer = document.getElementById("resultsContainer");
+const noResults = document.getElementById("noResults");
 
-    const adminEmail = "easypay27.ng@gmail.com";
-    const logoutBtn = document.getElementById("logoutBtn");
-    const searchInput = document.getElementById("searchInput");
-    const searchBtn = document.getElementById("searchBtn");
-    const resultsContainer = document.getElementById("resultsContainer");
-    const noResults = document.getElementById("noResults");
+let allUsers = [];
 
-    let allUsers = [];
+onAuthStateChanged(auth, user => {
+  if (!user || user.email.toLowerCase() !== adminEmail) {
+    signOut(auth).then(() => window.location.href = "login.html");
+    return;
+  }
+  loadAllUsers();
+});
 
-    onAuthStateChanged(auth, user => {
-      if (!user || user.email.toLowerCase() !== adminEmail) {
-        signOut(auth).then(() => window.location.href = "login.html");
-        return;
+logoutBtn.addEventListener("click", () => {
+  signOut(auth).then(() => window.location.href = "login.html");
+});
+
+async function loadAllUsers() {
+  resultsContainer.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "users"));
+  if (snapshot.empty) {
+    noResults.style.display = "block";
+    return;
+  } else {
+    noResults.style.display = "none";
+  }
+  allUsers = [];
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    allUsers.push({ id: docSnap.id, username: data.username || "", email: data.email || "", plan: data.plan || "basic" });
+  });
+  renderTable(allUsers);
+}
+
+function renderTable(users) {
+  resultsContainer.innerHTML = "";
+  if (users.length === 0) {
+    noResults.style.display = "block";
+    return;
+  } else {
+    noResults.style.display = "none";
+  }
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  thead.innerHTML = `
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Plan</th>
+      <th>Action</th>
+    </tr>
+  `;
+  table.appendChild(thead);
+  const tbody = document.createElement("tbody");
+  users.forEach(user => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${user.username}</td>
+      <td>${user.email}</td>
+      <td>
+        <select id="plan-${user.id}">
+          <option value="basic" ${user.plan === "basic" ? "selected" : ""}>Basic</option>
+          <option value="premium" ${user.plan === "premium" ? "selected" : ""}>Premium</option>
+          <option value="gold" ${user.plan === "gold" ? "selected" : ""}>Gold</option>
+          <option value="elite" ${user.plan === "elite" ? "selected" : ""}>Elite</option>
+          <option value="diamond" ${user.plan === "diamond" ? "selected" : ""}>Diamond</option>
+          <option value="platinum" ${user.plan === "platinum" ? "selected" : ""}>Platinum</option>
+        </select>
+      </td>
+      <td>
+        <button class="save-btn" data-uid="${user.id}">Save</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  resultsContainer.appendChild(table);
+  document.querySelectorAll(".save-btn").forEach(button => {
+    button.addEventListener("click", async e => {
+      const uid = e.currentTarget.dataset.uid;
+      const selectEl = document.getElementById(`plan-${uid}`);
+      const newPlan = selectEl.value;
+      try {
+        await updateDoc(doc(db, "users", uid), { plan: newPlan });
+        alert(`Updated plan to ${newPlan} for user.`);
+      } catch (err) {
+        console.error("Error updating plan:", err);
+        alert("Failed to update plan: " + err.message);
       }
-      loadAllUsers();
     });
+  });
+}
 
-    logoutBtn.addEventListener("click", () => {
-      signOut(auth).then(() => window.location.href = "login.html");
-    });
+function filterTable() {
+  const query = searchInput.value.trim().toLowerCase();
+  if (!query) return renderTable(allUsers);
+  const filtered = allUsers.filter(u => u.username.toLowerCase().includes(query));
+  renderTable(filtered);
+}
 
-    async function loadAllUsers() {
-      resultsContainer.innerHTML = "";
-      const snapshot = await getDocs(collection(db, "users"));
-      if (snapshot.empty) {
-        noResults.style.display = "block";
-        return;
-      } else {
-        noResults.style.display = "none";
-      }
-      allUsers = [];
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        allUsers.push({ id: docSnap.id, username: data.username||"", email: data.email||"", plan: data.plan||"basic" });
-      });
-      renderTable(allUsers);
-    }
+searchBtn.addEventListener("click", filterTable);
 
-    function renderTable(users) {
-      resultsContainer.innerHTML = "";
-      if (users.length === 0) {
-        noResults.style.display = "block";
-        return;
-      } else {
-        noResults.style.display = "none";
-      }
-      const table = document.createElement("table");
-      const thead = document.createElement("thead");
-      thead.innerHTML = `
-        <tr>
-          <th>Username</th>
-          <th>Email</th>
-          <th>Plan</th>
-          <th>Action</th>
-        </tr>
-      `;
-      table.appendChild(thead);
-      const tbody = document.createElement("tbody");
-      users.forEach(user => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${user.username}</td>
-          <td>${user.email}</td>
-          <td>
-            <select id="plan-${user.id}">
-              <option value="basic" ${user.plan === "basic" ? "selected" : ""}>Basic</option>
-              <option value="premium" ${user.plan === "premium" ? "selected" : ""}>Premium</option>
-              <option value="gold" ${user.plan === "gold" ? "selected" : ""}>Gold</option>
-              <option value="elite" ${user.plan === "elite" ? "selected" : ""}>Elite</option>
-            </select>
-          </td>
-          <td>
-            <button class="save-btn" data-uid="${user.id}">Save</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-      resultsContainer.appendChild(table);
-      document.querySelectorAll(".save-btn").forEach(button => {
-        button.addEventListener("click", async e => {
-          const uid = e.currentTarget.dataset.uid;
-          const selectEl = document.getElementById(`plan-${uid}`);
-          const newPlan = selectEl.value;
-          try {
-            await updateDoc(doc(db, "users", uid), { plan: newPlan });
-            alert(`Updated plan to ${newPlan} for user.`);
-          } catch (err) {
-            console.error("Error updating plan:", err);
-            alert("Failed to update plan: " + err.message);
-          }
-        });
-      });
-    }
-
-    function filterTable() {
-      const query = searchInput.value.trim().toLowerCase();
-      if (!query) return renderTable(allUsers);
-      const filtered = allUsers.filter(u => u.username.toLowerCase().includes(query));
-      renderTable(filtered);
-    }
-
-    searchBtn.addEventListener("click", filterTable);
-  </script></body>
+  </script>
+</body>
 </html>
