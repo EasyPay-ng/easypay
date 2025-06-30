@@ -20,6 +20,7 @@
     .footer a { color: green; text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
   </style>
+  <!-- Firebase SDKs v8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -37,14 +38,23 @@
     <button class="btn" id="registerBtn" onclick="registerUser()">Register</button>
     <div class="footer"><p>Already registered? <a href="login.html">Login now!</a></p></div>
   </div>  <script>
-    // Firebase config & init
-    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c8f1e", measurementId: "G-2FZKDQ47FZ" };
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Autofill referral if provided
-    new URLSearchParams(window.location.search).get('ref') && (document.getElementById('referral').value = new URLSearchParams(window.location.search).get('ref'));
+    // Autofill referral if in URL
+    const urlRef = new URLSearchParams(window.location.search).get('ref');
+    if (urlRef) document.getElementById('referral').value = urlRef;
 
     async function registerUser() {
       const btn = document.getElementById('registerBtn');
@@ -56,16 +66,28 @@
       const referral = document.getElementById('referral').value.trim();
 
       if (!username || !fullname || !email || !password || !confirmPassword) {
-        return alert('Please fill in all fields.');
+        alert('Please fill in all fields.');
+        return;
       }
       if (password !== confirmPassword) {
-        return alert('Passwords do not match.');
+        alert('Passwords do not match.');
+        return;
       }
 
       // Check username uniqueness
-      const userQuery = await db.collection('users').where('username', '==', username).limit(1).get();
-      if (!userQuery.empty) {
-        return alert('Username already in use. Please choose another.');
+      try {
+        const userQuery = await db.collection('users')
+          .where('username', '==', username)
+          .limit(1)
+          .get();
+        if (!userQuery.empty) {
+          alert('Username already in use. Please choose another.');
+          return;
+        }
+      } catch (err) {
+        console.error('Username check error:', err);
+        alert('Error checking username. Try again.');
+        return;
       }
 
       // Show loading spinner
@@ -73,12 +95,12 @@
       btn.innerHTML = '<span class="spinner"></span>Registering...';
 
       try {
-        // Create auth user
-        const { user } = await auth.createUserWithEmailAndPassword(email, password);
-        await user.sendEmailVerification();
+        // Create user in Auth
+        const userCred = await auth.createUserWithEmailAndPassword(email, password);
+        await userCred.user.sendEmailVerification();
 
         // Save to Firestore
-        await db.collection('users').doc(user.uid).set({
+        await db.collection('users').doc(userCred.user.uid).set({
           username,
           fullname,
           email,
@@ -93,10 +115,10 @@
         alert('Registration successful! Verification email sent.');
         window.location.href = 'login.html';
       } catch (error) {
+        console.error('Registration error:', error);
         alert(error.message);
         btn.disabled = false;
         btn.textContent = 'Register';
       }
     }
-  </script></body>
-</html>
+  </script></body></html>
