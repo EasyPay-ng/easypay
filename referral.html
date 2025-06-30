@@ -19,8 +19,7 @@
     .no-data { text-align:center; padding:20px; color:#666; }
     footer { background:var(--green-dark); color:var(--white); text-align:center; padding:12px; font-size:0.9rem; flex:0 0 auto; }
   </style>
-</head>
-<body>
+</head><body>
   <header>My Referrals</header>
   <div class="tabs">
     <div class="tab active" data-tab="activated">Activated Users</div>
@@ -52,16 +51,17 @@
   </div>
   <footer>EasyPay 2025</footer>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
-      storageBucket: "easypdf7…",
+      storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -74,30 +74,35 @@
     onAuthStateChanged(auth, async user => {
       if (!user) return location.href = 'login.html';
       try {
-        // fetch current user
-        const usersCol = collection(db,'users');
-        const qRef = query(usersCol, where('referral','==', (await usersCol.doc(user.uid).get()).data().username));
+        // get current user doc
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        const myUsername = userSnap.data()?.username;
+
+        // query referred users
+        const qRef = query(collection(db,'users'), where('referral','==', myUsername));
         const snap = await getDocs(qRef);
         activatedBody.innerHTML = '';
         allBody.innerHTML = '';
+
         if (snap.empty) {
-          const noAll = '<tr><td colspan="4" class="no-data">No referrals found.</td></tr>';
-          allBody.innerHTML = noAll;
+          allBody.innerHTML = '<tr><td colspan="4" class="no-data">No referrals found.</td></tr>';
           activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">No activated referrals.</td></tr>';
         } else {
           snap.forEach(docSnap => {
             const d = docSnap.data();
-            const reg = d.createdAt.toDate().toLocaleString();
-            const bal = '₦' + (d.balance ?? 0).toFixed(2);
+            const reg = d.createdAt?.toDate().toLocaleString() || 'N/A';
+            const bal = '₦' + ((d.balance ?? 0).toFixed(2));
             const rowHTML = `<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td></tr>`;
             allBody.innerHTML += rowHTML;
             if (allowedPlans.includes(d.plan)) activatedBody.innerHTML += rowHTML;
           });
         }
       } catch (err) {
-        console.error(err);
-        allBody.innerHTML = '<tr><td colspan="4" class="no-data">Error loading data.</td></tr>';
-        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Error loading data.</td></tr>';
+        console.error('Fetch error:', err);
+        const msg = '<tr><td colspan="4" class="no-data">Error loading data.</td></tr>';
+        allBody.innerHTML = msg;
+        activatedBody.innerHTML = msg;
       }
     });
 
