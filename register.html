@@ -1,250 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Register</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Roboto', sans-serif;
-    }
-
-    body {
-      background: #e5f8ef;
-      color: #222;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .register-container {
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 128, 0, 0.2);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-
-    /* Logo */
-    .register-logo {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 auto 1rem;
-      display: block;
-    }
-
-    .register-container h2 {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      color: green;
-    }
-
-    .input-group {
-      margin-bottom: 1rem;
-      text-align: left;
-    }
-
-    .input-group label {
-      display: block;
-      margin-bottom: 0.3rem;
-      font-weight: bold;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    .btn {
-      background: green;
-      color: white;
-      border: none;
-      width: 100%;
-      padding: 0.7rem;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      position: relative;
-    }
-
-    .btn:disabled {
-      background: #999;
-      cursor: default;
-    }
-
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid white;
-      border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 1rem;
-    }
-
-    .footer a {
-      color: green;
-      text-decoration: none;
-    }
-
-    .footer a:hover {
-      text-decoration: underline;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+    body { background: #e5f8ef; color: #222; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .register-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 128, 0, 0.2); width: 100%; max-width: 400px; text-align: center; }
+    .register-logo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 1rem; display: block; }
+    h2 { color: green; margin-bottom: 1.5rem; }
+    .input-group { margin-bottom: 1rem; text-align: left; }
+    .input-group label { display: block; margin-bottom: 0.3rem; font-weight: bold; }
+    .input-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 5px; }
+    .btn { background: green; color: white; border: none; width: 100%; padding: 0.7rem; border-radius: 5px; cursor: pointer; font-weight: bold; position: relative; }
+    .btn:disabled { background: #999; cursor: default; }
+    .spinner { border: 3px solid #f3f3f3; border-top: 3px solid white; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .footer { text-align: center; margin-top: 1rem; }
+    .footer a { color: green; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
   </style>
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
-
 <body>
   <div class="register-container">
-    <!-- Logo Added Here -->
-    <img src="1000250298.jpg" alt="EasyPay Logo" class="register-logo">
-
+    <img src="1000250298.jpg" alt="EasyPay Logo" class="register-logo" />
     <h2>Create Account</h2>
-    <div class="input-group">
-      <label>Username</label>
-      <input type="text" id="username" />
-    </div>
-    <div class="input-group">
-      <label>Full Name</label>
-      <input type="text" id="fullname" />
-    </div>
-    <div class="input-group">
-      <label>Email</label>
-      <input type="email" id="email" />
-    </div>
-    <div class="input-group">
-      <label>Password</label>
-      <input type="password" id="password" />
-    </div>
-    <div class="input-group">
-      <label>Confirm Password</label>
-      <input type="password" id="confirm-password" />
-    </div>
-    <div class="input-group">
-      <label>Referral</label>
-      <input type="text" id="referral" />
-    </div>
+    <div class="input-group"><label>Username</label><input type="text" id="username" /></div>
+    <div class="input-group"><label>Full Name</label><input type="text" id="fullname" /></div>
+    <div class="input-group"><label>Email</label><input type="email" id="email" /></div>
+    <div class="input-group"><label>Password</label><input type="password" id="password" /></div>
+    <div class="input-group"><label>Confirm Password</label><input type="password" id="confirm-password" /></div>
+    <div class="input-group"><label>Referral</label><input type="text" id="referral" /></div>
     <button class="btn" id="registerBtn" onclick="registerUser()">Register</button>
-    <div class="footer">
-      <p>Already registered? <a href="login.html">Login now!</a></p>
-    </div>
-  </div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
+    <div class="footer"><p>Already registered? <a href="login.html">Login now!</a></p></div>
+  </div>  <script>
+    // Firebase config & init
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c8f1e", measurementId: "G-2FZKDQ47FZ" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Autofill referral if passed in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref');
-    if (ref) {
-      document.getElementById("referral").value = ref;
-    }
+    // Autofill referral if provided
+    new URLSearchParams(window.location.search).get('ref') && (document.getElementById('referral').value = new URLSearchParams(window.location.search).get('ref'));
 
     async function registerUser() {
-      const registerBtn = document.getElementById("registerBtn");
-      const username = document.getElementById("username").value.trim();
-      const fullname = document.getElementById("fullname").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const confirmPassword = document.getElementById("confirm-password").value;
-      const referral = document.getElementById("referral").value.trim();
+      const btn = document.getElementById('registerBtn');
+      const username = document.getElementById('username').value.trim();
+      const fullname = document.getElementById('fullname').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const referral = document.getElementById('referral').value.trim();
 
       if (!username || !fullname || !email || !password || !confirmPassword) {
-        alert("Please fill in all fields.");
-        return;
+        return alert('Please fill in all fields.');
       }
       if (password !== confirmPassword) {
-        alert("Passwords do not match.");
-        return;
+        return alert('Passwords do not match.');
       }
 
-      // Show loading effect
-      registerBtn.disabled = true;
-      registerBtn.innerHTML = '<span class="spinner"></span>Registering...';
+      // Check username uniqueness
+      const userQuery = await db.collection('users').where('username', '==', username).limit(1).get();
+      if (!userQuery.empty) {
+        return alert('Username already in use. Please choose another.');
+      }
+
+      // Show loading spinner
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Registering...';
 
       try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        const uid = user.uid;
-
-        // Send verification email
+        // Create auth user
+        const { user } = await auth.createUserWithEmailAndPassword(email, password);
         await user.sendEmailVerification();
 
-        // Prepare user data
-        const userData = {
+        // Save to Firestore
+        await db.collection('users').doc(user.uid).set({
           username,
           fullname,
           email,
           referral,
           balance: 10,
-          plan: "basic",
+          plan: 'basic',
           lastDailyClaim: null,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          transactions: [
-            {
-              amount: 10,
-              type: "Registration Bonus",
-              date: new Date().toLocaleString()
-            }
-          ]
-        };
+          transactions: [{ amount: 10, type: 'Registration Bonus', date: new Date().toLocaleString() }]
+        });
 
-        await db.collection("users").doc(uid).set(userData);
-
-        alert("Registration successful! A verification email has been sent. Please verify your email before logging in.");
-        window.location.href = "login.html";
-
+        alert('Registration successful! Verification email sent.');
+        window.location.href = 'login.html';
       } catch (error) {
         alert(error.message);
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'Register';
+        btn.disabled = false;
+        btn.textContent = 'Register';
       }
     }
-  </script>
-</body>
-
+  </script></body>
 </html>
