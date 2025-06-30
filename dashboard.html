@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Dashboard</title>
@@ -15,13 +14,28 @@
     .container { padding:20px; flex:1; overflow-y:auto; }
     .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:20px; }
     .copy-btn { background:#009f4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; }
+    /* Styled claim daily button */
+    #claimDailyBtn {
+      background-color: #009f4d;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      margin-top: 10px;
+    }
+    #claimDailyBtn:hover:not(:disabled) { background-color: #007a33; }
+    #claimDailyBtn:disabled { background-color: #7dbd94; cursor: default; }
     .nav { position:fixed; bottom:0; width:100%; background:#009f4d; display:flex; justify-content:space-around; padding:10px 0; }
     .nav a { color:#fff; text-decoration:none; font-size:0.9rem; display:flex; flex-direction:column; align-items:center; }
     .nav a i { font-size:1.5rem; margin-bottom:4px; }
     .modal { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; }
     .modal-content { background:#fff; padding:30px; border-radius:12px; text-align:center; max-width:90%; }
     .modal-content a { display:inline-block; margin-top:20px; padding:10px 20px; background:#009f4d; color:#fff; border-radius:6px; text-decoration:none; }
-    button:disabled { opacity:0.6; cursor:default; }
+    button:disabled { opacity:0.6; }
   </style>
 </head>
 <body>
@@ -53,13 +67,13 @@
       <h3>Referral Code:</h3>
       <p id="referralCode" style="word-break:break-all;"></p>
       <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
-    </div><!-- Daily Credit Card -->
-<div class="card" id="dailyCreditCard">
-  <h3>Daily Credit</h3>
-  <p id="creditMessage">Loading...</p>
-  <button id="claimDailyBtn" disabled>Claim ₦1</button>
-</div>
-
+    </div>
+    <!-- Daily Credit Card -->
+    <div class="card" id="dailyCreditCard">
+      <h3>Daily Credit</h3>
+      <p id="creditMessage">Loading...</p>
+      <button id="claimDailyBtn" disabled>Claim ₦1</button>
+    </div>
   </div>  <!-- Bottom nav -->  <div class="nav" id="bottomNav">
     <a href="menu.html"><i class="fas fa-home"></i>Menu</a>
     <a href="advertise.html"><i class="fas fa-bullhorn"></i>Advertise</a>
@@ -77,11 +91,10 @@
     }
   </script>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import { increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypdf7…", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e" };
+    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
@@ -107,7 +120,8 @@
       document.getElementById('referralCode').innerText = userData.username;
 
       // show/hide based on plan
-      if (!['premium','gold','elite'].includes(userData.plan)) {
+      const allowed = ['premium','gold','elite','diamond','platinum'];
+      if (!allowed.includes(userData.plan)) {
         document.getElementById('upgradeModal').style.display='flex';
         document.getElementById('mainContent').style.display='none';
         document.getElementById('bottomNav').style.display='none';
@@ -119,7 +133,7 @@
       }
     });
 
-    function setupDailyCredit() {
+    async function setupDailyCredit() {
       const last = userData.lastCredit?.toDate().getTime() || 0;
       const now = Date.now();
       const diff = now - last;
@@ -145,9 +159,7 @@
             balance: increment(1),
             lastCredit: serverTimestamp()
           });
-          // add log entry
           await addDoc(collection(userRef,'transactionHistory'), { type:'Daily Credit', amount:1, timestamp: serverTimestamp() });
-          // refresh
           const fresh = await getDoc(userRef);
           userData = fresh.data();
           document.getElementById('balance').innerText = (userData.balance||0).toFixed(2);
