@@ -50,52 +50,62 @@
       </div>
     </div>
   </div>
-  <footer>EasyPay 2025</footer>
-  <script type="module">
+  <footer>EasyPay 2025</footer>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e" };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-const activatedBody = document.getElementById('activatedBody');
-const allBody = document.getElementById('allBody');
-const allowedPlans = ['premium','gold','elite'];
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypdf7…",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-onAuthStateChanged(auth, async user => {
-  if (!user) return location.href='login.html';
-  // get current user's username
-  const userDoc = await db.collection('users').doc(user.uid).get();
-  const myUsername = userDoc.data()?.username || '';
-  // fetch referrals
-  const q = query(collection(db,'users'), where('referral','==',myUsername));
-  const snap = await getDocs(q);
-  activatedBody.innerHTML=''; allBody.innerHTML='';
-  if (snap.empty) {
-    allBody.innerHTML='<tr><td colspan="4" class="no-data">No referrals found.</td></tr>';
-    activatedBody.innerHTML='<tr><td colspan="4" class="no-data">No activated referrals.</td></tr>';
-  } else {
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      const reg = d.createdAt?.toDate().toLocaleString()||'N/A';
-      const bal = d.balance!=null?`₦${d.balance}`:'₦0';
-      const row = `<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td></tr>`;
-      allBody.innerHTML += row;
-      if (allowedPlans.includes(d.plan)) {
-        activatedBody.innerHTML += row;
+    const activatedBody = document.getElementById('activatedBody');
+    const allBody = document.getElementById('allBody');
+    const allowedPlans = ['premium','gold','elite'];
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) return location.href = 'login.html';
+      try {
+        // fetch current user
+        const usersCol = collection(db,'users');
+        const qRef = query(usersCol, where('referral','==', (await usersCol.doc(user.uid).get()).data().username));
+        const snap = await getDocs(qRef);
+        activatedBody.innerHTML = '';
+        allBody.innerHTML = '';
+        if (snap.empty) {
+          const noAll = '<tr><td colspan="4" class="no-data">No referrals found.</td></tr>';
+          allBody.innerHTML = noAll;
+          activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">No activated referrals.</td></tr>';
+        } else {
+          snap.forEach(docSnap => {
+            const d = docSnap.data();
+            const reg = d.createdAt.toDate().toLocaleString();
+            const bal = '₦' + (d.balance ?? 0).toFixed(2);
+            const rowHTML = `<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td></tr>`;
+            allBody.innerHTML += rowHTML;
+            if (allowedPlans.includes(d.plan)) activatedBody.innerHTML += rowHTML;
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        allBody.innerHTML = '<tr><td colspan="4" class="no-data">Error loading data.</td></tr>';
+        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Error loading data.</td></tr>';
       }
     });
-  }
-});
 
-document.querySelectorAll('.tab').forEach(tab=> tab.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  tab.classList.add('active');
-  document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
-  document.getElementById(tab.dataset.tab).style.display='block';
-});
-
-  </script>
-</body>
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      document.getElementById(tab.dataset.tab).style.display = 'block';
+    }));
+  </script></body>
 </html>
