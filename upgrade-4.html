@@ -1,506 +1,183 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VTU – EasyPay</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upgrade Your Account</title>
   <style>
-    /* ─── Body & Container ─────────────────────────────────────────────────── */
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
-      display: flex;
-      justify-content: center;
-      padding: 20px;
-    }
-    .container {
-      width: 400px;
-      max-width: 100%;
-    }
-
-    /* ─── Card (Form) ───────────────────────────────────────────────────────── */
-    .card {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    h2 {
-      margin-bottom: 20px;
-      color: #009f4d;
-    }
-    .balance {
-      font-size: 18px;
-      margin-bottom: 20px;
-      color: #004400;
-      font-weight: 500;
-    }
-    .input-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
-    .input-group label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
-    }
-    .input-group select,
-    .input-group input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.2s;
-      box-sizing: border-box;
-    }
-    .input-group select:focus,
-    .input-group input:focus {
-      border-color: #009f4d;
-      outline: none;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background-color: #009f4d;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-      margin-top: 10px;
-    }
-    .btn:hover {
-      background-color: #00803b;
-    }
-    .message {
-      margin-top: 15px;
-      font-size: 14px;
-      min-height: 20px;
-    }
-    .message.success { color: #2f855a; }
-    .message.error   { color: #c53030; }
-    .back-link {
-      display: block;
-      margin-top: 20px;
-      color: #009f4d;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    .back-link:hover {
-      text-decoration: underline;
-    }
-
-    /* ─── Transactions Table ───────────────────────────────────────────────── */
-    .transactions-section {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    .transactions-section h3 {
-      margin-bottom: 15px;
-      color: #009f4d;
-      text-align: center;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    th, td {
-      padding: 8px 6px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-    th {
-      background-color: #f0fff0;
-      color: #004400;
-    }
-    tbody tr:nth-child(even) {
-      background-color: #fafafa;
-    }
-    .status-pending {
-      color: #c59a00;
-      font-weight: 500;
-    }
-    .status-successful {
-      color: #2f855a;
-      font-weight: 500;
-    }
-    .status-rejected {
-      color: #c53030;
-      font-weight: 500;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    :root { --green: #2e7d32; --green-dark: #276c28; --white: #fff; --gray-light: #f5f5f5; --shadow-light: rgba(0,0,0,0.1); --radius: 12px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--gray-light); font-family: 'Poppins', sans-serif; }
+    .container { background: var(--white); width: 400px; max-width: 95vw; padding: 2.5rem 2rem 3rem; border-radius: var(--radius); box-shadow: 0 10px 30px var(--shadow-light); display: flex; flex-direction: column; gap: 1.6rem; }
+    h1 { margin: 0 0 .8rem; font-weight: 600; font-size: 1.9rem; color: var(--green); text-align: center; }
+    label { font-weight: 600; font-size: 1rem; color: var(--green-dark); margin-bottom: .4rem; display: block; }
+    input[type="text"], input[type="file"] { width: 100%; padding: 12px 16px; font-size: 1rem; border: 2px solid #cbd5d1; border-radius: var(--radius); transition: border-color .3s ease; outline-offset: 3px; }
+    input:focus { border-color: var(--green); outline: none; }
+    .info { background: #e8f5e9; padding: 1rem 1.2rem; border-radius: var(--radius); color: var(--green-dark); font-weight: 600; line-height: 1.4; }
+    .info p { margin: .3rem 0; }
+    .upload-progress-container { background: #eee; border-radius: var(--radius); overflow: hidden; height: 10px; display: none; }
+    .upload-progress-bar { height: 100%; width: 0%; background: var(--green); transition: width .2s ease; }
+    .upload-progress-label { font-size: .9rem; color: var(--green-dark); margin-top: .4rem; display: none; text-align: right; }
+    button { margin-top: 1rem; padding: 14px; font-weight: 600; font-size: 1.1rem; color: var(--white); background: var(--green); border: none; border-radius: var(--radius); cursor: pointer; box-shadow: 0 6px 16px rgba(46,125,50,0.4); transition: background .3s, box-shadow .3s; }
+    button:hover:not(:disabled) { background: var(--green-dark); box-shadow: 0 8px 24px rgba(39,108,40,0.5); }
+    button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+    .message { margin-top: 1rem; font-weight: 600; font-size: 1rem; min-height: 1.2em; text-align: center; }
+    .message.success { color: var(--green-dark); }
+    .message.error { color: #c62828; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- ─── VTU Card ───────────────────────────────────────────────────────────── -->
-    <div class="card">
-      <h2><i class="fas fa-phone-volume"></i> Buy Data</h2>
-      <div id="balance" class="balance">Loading balance...</div>
+  <main class="container" role="main" aria-label="Upgrade Account Form">
+    <h1>Upgrade Your Account</h1>
+    <label for="senderName">Sender's Name</label>
+    <input id="senderName" type="text" placeholder="Enter sender's name" aria-required="true" /><section class="info" aria-live="polite" aria-atomic="true">
+  <p><strong>Amount:</strong> ₦4,000</p>
+  <p><strong>Account Name:</strong> Onyeka Anointed Chidi</p>
+  <p><strong>Bank:</strong> Moniepoint MFB</p>
+  <p><strong>Account No:</strong> 8132425678</p>
+</section>
 
-      <!-- Network Dropdown -->
-      <div class="input-group">
-        <label for="network">Select Network</label>
-        <select id="network">
-          <option value="" disabled selected>-- Choose Network --</option>
-          <option value="MTN">MTN</option>
-          <option value="AIRTEL">Airtel</option>
-          <option value="GLO">Glo</option>
-          <option value="9MOBILE">9mobile</option>
-        </select>
-      </div>
+<label for="proofFile">Upload Proof Image</label>
+<input id="proofFile" type="file" accept="image/*" aria-required="true" />
 
-      <!-- Plan Dropdown (hidden until network chosen) -->
-      <div class="input-group" id="plan-group" style="display: none;">
-        <label for="planSelect">Select Plan</label>
-        <select id="planSelect">
-          <!-- JS will inject options -->
-        </select>
-        <p style="font-size:12px; color:#666; margin-top:4px;">
-          *All plans valid for 30 days (unless noted).
-        </p>
-      </div>
+<div class="upload-progress-container" id="uploadContainer">
+  <div class="upload-progress-bar" id="uploadBar"></div>
+</div>
+<div class="upload-progress-label" id="uploadLabel"></div>
 
-      <!-- Phone Number Input -->
-      <div class="input-group">
-        <label for="phone">Phone Number</label>
-        <input type="tel" id="phone" placeholder="0803xxxxxxx" maxlength="11" />
-      </div>
+<button id="submitBtn" type="button" disabled>Loading…</button>
+<div id="message" class="message" aria-live="assertive"></div>
 
-      <!-- Purchase Button -->
-      <button class="btn" onclick="submitVTU()">Purchase</button>
+  </main>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-      <!-- Status Message -->
-      <p id="msg" class="message"></p>
-
-      <!-- Back Link -->
-      <a href="dashboard.html" class="back-link">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
-      </a>
-    </div>
-
-    <!-- ─── Transactions Table ───────────────────────────────────────────────── -->
-    <div class="transactions-section">
-      <h3>Your VTU Transactions</h3>
-      <table id="txnTable">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Network</th>
-            <th>Phone</th>
-            <th>Plan</th>
-            <th>Amount (₦)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Rows populated by JS -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      updateDoc,
-      collection,
-      addDoc,
-      serverTimestamp,
-      query,
-      where,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-
-    // ─── 1. Initialize Firebase ───────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
     const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
     const auth = getAuth(app);
-    const db   = getFirestore(app);
 
-    // ─── 2. DOM References ──────────────────────────────────────────────────────
-    const balanceEl    = document.getElementById("balance");
-    const networkEl    = document.getElementById("network");
-    const planGroupEl  = document.getElementById("plan-group");
-    const planSelectEl = document.getElementById("planSelect");
-    const phoneEl      = document.getElementById("phone");
-    const msgEl        = document.getElementById("msg");
-    const txnTableBody = document.querySelector("#txnTable tbody");
+    let currentUser = null;
+    let username = null;
 
-    let currentUserId  = null;
-    let currentBalance = 0;
-
-    // ─── 3. Hard-Coded Plans by Network ────────────────────────────────────────
-    const plans = {
-      MTN: [
-        { text: "2GB @ N1,400",   amount: 1400 },
-        { text: "3GB @ N1,910",   amount: 1910 },
-        { text: "5GB @ N2,800",   amount: 2800 },
-        { text: "20GB @ N7,500",  amount: 7500 },
-        { text: "36GB @ N11,500", amount: 11500 },
-        { text: "75GB @ N18,000", amount: 18000 }
-      ],
-      AIRTEL: [
-        { text: "2GB @ N1,500",  amount: 1500 },
-        { text: "3GB @ N2,000",  amount: 2000 },
-        { text: "8GB @ N3,100",  amount: 3100 },
-        { text: "25GB @ N8,000", amount: 8000 }
-      ],
-      GLO: [
-        { text: "2.5GB (2 days) @ N520",  amount: 520 },
-        { text: "10GB (7 days) @ N2,000", amount: 2000 }
-      ],
-      "9MOBILE": [
-        { text: "1GB @ N300",   amount: 300 },
-        { text: "2GB @ N600",   amount: 600 },
-        { text: "3GB @ N900",   amount: 900 },
-        { text: "4GB @ N1,200", amount: 1200 },
-        { text: "5GB @ N1,500", amount: 1500 }
-      ]
-    };
-
-    // ─── 4. Populate Plan Dropdown on Network Change ───────────────────────────
-    networkEl.addEventListener("change", () => {
-      const net = networkEl.value;
-      planSelectEl.innerHTML = "";   // Clear existing options
-
-      if (net && plans[net]) {
-        planGroupEl.style.display = "block";
-
-        // Add placeholder option
-        const placeholder = document.createElement("option");
-        placeholder.value = "";
-        placeholder.textContent = "-- Choose Plan --";
-        placeholder.disabled = true;
-        placeholder.selected = true;
-        planSelectEl.appendChild(placeholder);
-
-        // Populate plans
-        plans[net].forEach(item => {
-          const opt = document.createElement("option");
-          // Store JSON so we can read both text & amount later
-          opt.value = JSON.stringify({ text: item.text, amount: item.amount });
-          opt.textContent = item.text;
-          planSelectEl.appendChild(opt);
-        });
-      } else {
-        planGroupEl.style.display = "none";
+    // Wait for auth and fetch username
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
       }
+      currentUser = user;
+      // fetch username from users collection
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        alert('User data missing.');
+        return;
+      }
+      username = userDoc.data().username;
+      // enable submit once username is known
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = false;
+      btn.textContent = 'Submit for Approval';
     });
 
-    // ─── 5. Watch Auth State → Fetch Balance & Start Listening to Transactions ─
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        currentUserId = user.uid;
-        fetchUserBalance(user.uid);
-        loadTransactions(user.uid);
-      } else {
-        window.location.href = "login.html";
-      }
-    });
+    // Imgur helper
+    async function uploadToImgur(file, onProgress) {
+      const clientId = 'fb533db21a59486';
+      const endpoint = 'https://api.imgur.com/3/image';
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result.split(',')[1];
+          const form = new FormData();
+          form.append('image', base64);
+          form.append('type', 'base64');
 
-    // ─── Fetch User Balance ────────────────────────────────────────────────────
-    async function fetchUserBalance(uid) {
-      try {
-        const userRef = doc(db, "users", uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          currentBalance = Number(userSnap.data().balance || 0);
-          balanceEl.textContent = `Current Balance: ₦${currentBalance.toLocaleString("en-NG")}`;
-        } else {
-          balanceEl.textContent = "User data not found.";
-        }
-      } catch (err) {
-        console.error("Error fetching balance:", err);
-        balanceEl.textContent = "Error loading balance.";
-      }
-    }
-
-    // ─── 6. Load & Render User’s VTU Transactions (Real-Time) ──────────────────
-    function loadTransactions(uid) {
-      const txQuery = query(
-        collection(db, "transactions"),
-        where("userId", "==", uid),
-        where("type", "==", "VTU")
-      );
-
-      onSnapshot(txQuery, snapshot => {
-        console.log("loadTransactions: snapshot received. Number of docs =", snapshot.size);
-
-        // If the snapshot is empty, log that as well
-        if (snapshot.empty) {
-          console.log("loadTransactions: No VTU docs found for user:", uid);
-        }
-
-        // Collect all docs into an array for sorting
-        const allDocs = [];
-        snapshot.forEach(docSnap => {
-          allDocs.push({ id: docSnap.id, ...docSnap.data() });
-        });
-
-        // Sort descending by timestamp (newest first). If no timestamp, treat as very old.
-        allDocs.sort((a, b) => {
-          const tA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
-          const tB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
-          return tB - tA;
-        });
-
-        // Clear existing rows
-        txnTableBody.innerHTML = "";
-
-        // Render each sorted doc
-        allDocs.forEach(data => {
-          console.log("loadTransactions: Rendering doc:", data);
-
-          const ts = data.timestamp?.toDate();
-          const dateStr = ts
-            ? ts.toLocaleString("en-NG", {
-                year: "numeric",
-                month: "short",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit"
-              })
-            : "—";
-
-          let statusClass = "";
-          if (data.status === "pending") {
-            statusClass = "status-pending";
-          } else if (data.status === "successful") {
-            statusClass = "status-successful";
-          } else if (data.status === "rejected") {
-            statusClass = "status-rejected";
-          }
-
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${dateStr}</td>
-            <td>${data.network || "—"}</td>
-            <td>${data.phone || "—"}</td>
-            <td>${data.plan || "—"}</td>
-            <td>${Math.abs(data.amount || 0)}</td>
-            <td class="${statusClass}">${data.status || "—"}</td>
-          `;
-          txnTableBody.appendChild(row);
-        });
-      }, err => {
-        console.error("Error loading transactions:", err);
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', endpoint);
+          xhr.setRequestHeader('Authorization', 'Client-ID ' + clientId);
+          xhr.upload.onprogress = evt => {
+            if (evt.lengthComputable) onProgress(Math.round(evt.loaded / evt.total * 100));
+          };
+          xhr.onload = () => {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              if (res.success) resolve(res.data.link);
+              else reject(res.data.error);
+            } catch {
+              reject('Invalid JSON');
+            }
+          };
+          xhr.onerror = () => reject('Network error');
+          xhr.send(form);
+        };
+        reader.onerror = () => reject('File read error');
+        reader.readAsDataURL(file);
       });
     }
 
-    // ─── 7. Submit VTU (With Balance Check & Firestore Write) ─────────────────
-    async function submitVTU() {
-      msgEl.textContent = "";
-      msgEl.className = "message";
+    // Submit handler
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const senderName = document.getElementById('senderName').value.trim();
+      const file = document.getElementById('proofFile').files[0];
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = 'message';
+      messageDiv.textContent = '';
 
-      const netOption  = networkEl.value;
-      const planOption = planSelectEl.value;
-      const phone      = phoneEl.value.trim();
-
-      // 7.1 Basic validation
-      if (!netOption) {
-        msgEl.textContent = "❌ Please select a network.";
-        msgEl.classList.add("error");
+      if (!senderName) {
+        messageDiv.textContent = 'Enter sender name';
+        messageDiv.classList.add('error');
         return;
       }
-      if (!planOption) {
-        msgEl.textContent = "❌ Please choose a plan.";
-        msgEl.classList.add("error");
-        return;
-      }
-      if (!/^0\d{10}$/.test(phone)) {
-        msgEl.textContent = "❌ Enter a valid 11-digit phone number.";
-        msgEl.classList.add("error");
+      if (!file) {
+        messageDiv.textContent = 'Select an image proof';
+        messageDiv.classList.add('error');
         return;
       }
 
-      // 7.2 Parse selected plan JSON
-      let planData;
-      try {
-        planData = JSON.parse(planOption);
-      } catch {
-        msgEl.textContent = "❌ Plan data is invalid.";
-        msgEl.classList.add("error");
-        return;
-      }
-      const planText = planData.text;
-      const amount   = Number(planData.amount);
+      // show progress UI
+      document.getElementById('uploadContainer').style.display = 'block';
+      document.getElementById('uploadLabel').style.display = 'block';
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
 
       try {
-        // 7.3 Re-fetch latest balance
-        const userRef  = doc(db, "users", currentUserId);
-        const userSnap = await getDoc(userRef);
-        const latestBal = Number(userSnap.data().balance || 0);
-
-        if (latestBal < amount) {
-          msgEl.textContent = "❌ Insufficient balance. Please fund your account.";
-          msgEl.classList.add("error");
-          return;
-        }
-
-        // 7.4 Deduct amount from balance
-        const newBalance = latestBal - amount;
-        await updateDoc(userRef, { balance: newBalance });
-        currentBalance = newBalance;
-        balanceEl.textContent = `Current Balance: ₦${currentBalance.toLocaleString("en-NG")}`;
-
-        // 7.5 Create pending transaction (with serverTimestamp)
-        await addDoc(collection(db, "transactions"), {
-          userId: currentUserId,
-          type: "VTU",
-          network: netOption,
-          phone: phone,
-          plan: planText,
-          amount: -amount,
-          status: "pending",
-          timestamp: serverTimestamp()
+        const imageUrl = await uploadToImgur(file, pct => {
+          document.getElementById('uploadBar').style.width = pct + '%';
+          document.getElementById('uploadLabel').textContent = pct + '%';
         });
 
-        // 7.6 Success message
-        msgEl.textContent = `✅ You purchased "${planText}" for ₦${amount.toLocaleString("en-NG")} to ${phone}. Awaiting approval.`;
-        msgEl.classList.add("success");
+        // write to Firestore with auth-tracked username
+        await addDoc(collection(db, 'upgradeRequests'), {
+          username: username,
+          senderName: senderName,
+          proofURL: imageUrl,
+          requestedAt: serverTimestamp()
+        });
 
-        // 7.7 Reset form
-        networkEl.value = "";
-        planGroupEl.style.display = "none";
-        planSelectEl.innerHTML = "";
-        phoneEl.value = "";
+        messageDiv.textContent = 'Request submitted!';
+        messageDiv.classList.add('success');
+      } catch (err) {
+        messageDiv.textContent = 'Error: ' + err;
+        messageDiv.classList.add('error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit for Approval';
+        setTimeout(() => {
+          document.getElementById('uploadContainer').style.display = 'none';
+          document.getElementById('uploadLabel').style.display = 'none';
+          document.getElementById('uploadBar').style.width = '0%';
+        }, 1500);
       }
-      catch (err) {
-        console.error("Error during VTU purchase:", err);
-        msgEl.textContent = "❌ Failed to process your request. Try again.";
-        msgEl.classList.add("error");
-      }
-    }
-
-    // Expose to global scope so the inline onclick can call it
-    window.submitVTU = submitVTU;
-  </script>
-</body>
+    });
+  </script></body>
 </html>
