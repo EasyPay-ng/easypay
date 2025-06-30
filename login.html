@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -112,17 +111,14 @@
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="••••••••" required>
     </div>
-    <button id="loginBtn" class="btn">Login</button>
+    <button id="loginBtn" class="btn">Login</button><div class="footer-text">
+  <p><a href="reset-password.html">Forgot your password?</a></p>
+</div>
+<div class="footer-text">
+  <p>Don't have an account? <a href="register.html">Register now!</a></p>
+</div>
 
-    <div class="footer-text">
-      <p><a href="reset-password.html">Forgot your password?</a></p>
-    </div>
-    <div class="footer-text">
-      <p>Don't have an account? <a href="register.html">Register now!</a></p>
-    </div>
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
@@ -162,7 +158,8 @@
           // Emails allowed to log in without verification
           const bypassEmails = [
             "samuelsanusi1111@gmail.com",
-            "mazi77mazi77@gmail.com"
+            "mazi77mazi77@gmail.com",
+            "tatianaibulu07@gmail.com"  // Added bypass for Tatiana
           ].map(e => e.toLowerCase());
 
           // Only block if not admin, not in bypass list, and email not verified
@@ -205,6 +202,5 @@
         }
       });
     });
-  </script>
-</body>
+  </script></body>
 </html>
