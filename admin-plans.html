@@ -9,14 +9,14 @@
     header h2 { margin: 0; font-size: 1.5rem; }
     header button { background: white; color: #009f4d; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s ease; }
     header button:hover { background: #e0f6e8; }
-    .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+    .container { padding: 20px; max-width: 900px; margin: 0 auto; }
     .search-group { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
     .search-group input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
     .search-group button { background: #009f4d; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background 0.2s ease; }
     .search-group button:hover { background: #018f45; }
     table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     thead { background-color: #009f4d; color: white; }
-    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; font-size: 0.95rem; }
     tbody tr:hover { background-color: #f0fff0; }
     select { padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
     .save-btn { background: #009f4d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s ease; }
@@ -31,7 +31,7 @@
   </header>
   <div class="container">
     <div class="search-group">
-      <input type="text" id="searchInput" placeholder="Search users by username..." oninput="filterTable()" />
+      <input type="text" id="searchInput" placeholder="Search users by username..." />
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
     </div>
     <div id="resultsContainer">
@@ -54,13 +54,7 @@
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
-
 const adminEmail = "easypay27.ng@gmail.com";
-const logoutBtn = document.getElementById("logoutBtn");
-const searchInput = document.getElementById("searchInput");
-const searchBtn = document.getElementById("searchBtn");
-const resultsContainer = document.getElementById("resultsContainer");
-const noResults = document.getElementById("noResults");
 
 let allUsers = [];
 
@@ -72,34 +66,47 @@ onAuthStateChanged(auth, user => {
   loadAllUsers();
 });
 
-logoutBtn.addEventListener("click", () => {
+document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "login.html");
 });
 
+document.getElementById("searchBtn").addEventListener("click", filterTable);
+document.getElementById("searchInput").addEventListener("keypress", e => {
+  if (e.key === 'Enter') filterTable();
+});
+
 async function loadAllUsers() {
-  resultsContainer.innerHTML = "";
+  const container = document.getElementById("resultsContainer");
+  container.innerHTML = "";
   const snapshot = await getDocs(collection(db, "users"));
   if (snapshot.empty) {
-    noResults.style.display = "block";
+    document.getElementById("noResults").style.display = "block";
     return;
   } else {
-    noResults.style.display = "none";
+    document.getElementById("noResults").style.display = "none";
   }
   allUsers = [];
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
-    allUsers.push({ id: docSnap.id, username: data.username || "", email: data.email || "", plan: data.plan || "basic" });
+    allUsers.push({
+      id: docSnap.id,
+      username: data.username || "",
+      email: data.email || "",
+      plan: data.plan || "basic",
+      planStart: data.planStart?.toMillis() || null
+    });
   });
   renderTable(allUsers);
 }
 
 function renderTable(users) {
-  resultsContainer.innerHTML = "";
+  const container = document.getElementById("resultsContainer");
+  container.innerHTML = "";
   if (users.length === 0) {
-    noResults.style.display = "block";
+    document.getElementById("noResults").style.display = "block";
     return;
   } else {
-    noResults.style.display = "none";
+    document.getElementById("noResults").style.display = "none";
   }
   const table = document.createElement("table");
   const thead = document.createElement("thead");
@@ -108,41 +115,58 @@ function renderTable(users) {
       <th>Username</th>
       <th>Email</th>
       <th>Plan</th>
+      <th>Activated On</th>
+      <th>Days Left</th>
       <th>Action</th>
     </tr>
   `;
   table.appendChild(thead);
   const tbody = document.createElement("tbody");
+
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
   users.forEach(user => {
+    const { id, username, email, plan, planStart } = user;
+    let activatedOn = '-';
+    let daysLeft = '-';
+    if (plan !== 'basic' && planStart) {
+      const startDate = new Date(planStart);
+      activatedOn = startDate.toLocaleDateString();
+      const elapsed = Date.now() - planStart;
+      daysLeft = Math.max(0, 30 - Math.floor(elapsed / MS_PER_DAY));
+    }
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${user.username}</td>
-      <td>${user.email}</td>
+      <td>${username}</td>
+      <td>${email}</td>
       <td>
-        <select id="plan-${user.id}">
-          <option value="basic" ${user.plan === "basic" ? "selected" : ""}>Basic</option>
-          <option value="premium" ${user.plan === "premium" ? "selected" : ""}>Premium</option>
-          <option value="gold" ${user.plan === "gold" ? "selected" : ""}>Gold</option>
-          <option value="elite" ${user.plan === "elite" ? "selected" : ""}>Elite</option>
-          <option value="diamond" ${user.plan === "diamond" ? "selected" : ""}>Diamond</option>
-          <option value="platinum" ${user.plan === "platinum" ? "selected" : ""}>Platinum</option>
+        <select id="plan-${id}">
+          <option value="basic" ${plan === "basic" ? "selected" : ""}>Basic</option>
+          <option value="premium" ${plan === "premium" ? "selected" : ""}>Premium</option>
+          <option value="gold" ${plan === "gold" ? "selected" : ""}>Gold</option>
+          <option value="elite" ${plan === "elite" ? "selected" : ""}>Elite</option>
         </select>
       </td>
-      <td>
-        <button class="save-btn" data-uid="${user.id}">Save</button>
-      </td>
+      <td>${activatedOn}</td>
+      <td>${daysLeft === '-' ? '-' : daysLeft + ' day' + (daysLeft === 1 ? '' : 's')}</td>
+      <td><button class="save-btn" data-uid="${id}">Save</button></td>
     `;
     tbody.appendChild(tr);
   });
+
   table.appendChild(tbody);
-  resultsContainer.appendChild(table);
+  container.appendChild(table);
+
   document.querySelectorAll(".save-btn").forEach(button => {
     button.addEventListener("click", async e => {
       const uid = e.currentTarget.dataset.uid;
       const selectEl = document.getElementById(`plan-${uid}`);
       const newPlan = selectEl.value;
+      const updateData = { plan: newPlan };
+      if (newPlan !== 'basic') updateData.planStart = Date.now();
       try {
-        await updateDoc(doc(db, "users", uid), { plan: newPlan });
+        await updateDoc(doc(db, "users", uid), updateData);
         alert(`Updated plan to ${newPlan} for user.`);
       } catch (err) {
         console.error("Error updating plan:", err);
@@ -153,13 +177,11 @@ function renderTable(users) {
 }
 
 function filterTable() {
-  const query = searchInput.value.trim().toLowerCase();
-  if (!query) return renderTable(allUsers);
-  const filtered = allUsers.filter(u => u.username.toLowerCase().includes(query));
+  const queryVal = document.getElementById("searchInput").value.trim().toLowerCase();
+  if (!queryVal) return renderTable(allUsers);
+  const filtered = allUsers.filter(u => u.username.toLowerCase().includes(queryVal));
   renderTable(filtered);
 }
-
-searchBtn.addEventListener("click", filterTable);
 
   </script>
 </body>
