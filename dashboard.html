@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta charset="UTF-8" />
+<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -14,21 +13,11 @@
     .container { padding:20px; flex:1; overflow-y:auto; }
     .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:20px; }
     .copy-btn { background:#009f4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; }
-    /* Styled claim daily button */
-    #claimDailyBtn {
-      background-color: #009f4d;
-      color: #fff;
-      border: none;
-      padding: 12px 20px;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      margin-top: 10px;
-    }
+    #claimDailyBtn { background-color: #009f4d; color: #fff; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease; margin-top: 10px; }
     #claimDailyBtn:hover:not(:disabled) { background-color: #007a33; }
     #claimDailyBtn:disabled { background-color: #7dbd94; cursor: default; }
+    .plan-info { background:#e8f5e9; padding:12px; border-radius:8px; margin-bottom:20px; font-size:0.95rem; }
+    .plan-info p { margin:4px 0; }
     .nav { position:fixed; bottom:0; width:100%; background:#009f4d; display:flex; justify-content:space-around; padding:10px 0; }
     .nav a { color:#fff; text-decoration:none; font-size:0.9rem; display:flex; flex-direction:column; align-items:center; }
     .nav a i { font-size:1.5rem; margin-bottom:4px; }
@@ -50,13 +39,18 @@
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
-  </header>  <!-- Upgrade prompt for basic users -->  <div id="upgradeModal" class="modal" style="display:none;">
+  </header>  <div id="upgradeModal" class="modal" style="display:none;">
     <div class="modal-content">
       <h2>Account Not Activated</h2>
       <p>Upgrade your plan to access features.</p>
       <a href="upgrade.html">Upgrade</a>
     </div>
-  </div>  <!-- Main content -->  <div class="container" id="mainContent" style="display:none;">
+  </div>  <div class="container" id="mainContent" style="display:none;">
+    <div class="plan-info">
+      <p><strong>Current Plan:</strong> <span id="planName"></span></p>
+      <p><strong>Activated On:</strong> <span id="planActivatedOn">-</span></p>
+      <p><strong>Days Remaining:</strong> <span id="planDaysLeft">-</span></p>
+    </div>
     <div class="card">
       <h3>Balance: ₦<span id="balance">0.00</span></h3>
     </div>
@@ -68,27 +62,20 @@
       <p id="referralCode" style="word-break:break-all;"></p>
       <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
     </div>
-    <!-- Daily Credit Card -->
     <div class="card" id="dailyCreditCard">
       <h3>Daily Credit</h3>
       <p id="creditMessage">Loading...</p>
       <button id="claimDailyBtn" disabled>Claim ₦1</button>
     </div>
-  </div>  <!-- Bottom nav -->  <div class="nav" id="bottomNav">
+  </div>  <div class="nav" id="bottomNav">
     <a href="menu.html"><i class="fas fa-home"></i>Menu</a>
     <a href="advertise.html"><i class="fas fa-bullhorn"></i>Advertise</a>
     <a href="earn.html"><i class="fas fa-money-bill-wave"></i>Earn</a>
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
   </div>  <script>
-    function toggleProfile() {
-      document.getElementById('profileInfo').classList.toggle('show');
-    }
-    function logout() {
-      import('https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js').then(({ getAuth, signOut }) => signOut(getAuth()));
-    }
-    function copyReferral() {
-      navigator.clipboard.writeText(document.getElementById('referralCode').innerText);
-    }
+    function toggleProfile() { document.getElementById('profileInfo').classList.toggle('show'); }
+    function logout() { import('https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js').then(({ getAuth, signOut }) => signOut(getAuth())); }
+    function copyReferral() { navigator.clipboard.writeText(document.getElementById('referralCode').innerText); }
   </script>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -110,7 +97,7 @@
       if (!snap.exists()) return location.href='login.html';
       userData = snap.data();
 
-      // populate header and stats
+      // populate header
       document.getElementById('usernameDisplay').innerText = userData.username;
       document.getElementById('profileUsername').innerText = userData.username;
       document.getElementById('profileEmail').innerText = user.email;
@@ -119,9 +106,20 @@
       document.getElementById('referrals').innerText = userData.referralCount||0;
       document.getElementById('referralCode').innerText = userData.username;
 
-      // show/hide based on plan
+      // plan info
+      const plan = userData.plan || 'basic';
+      document.getElementById('planName').innerText = plan.charAt(0).toUpperCase() + plan.slice(1);
+      if (plan !== 'basic' && userData.planStart) {
+        const startMs = userData.planStart.toMillis();
+        const activatedOn = new Date(startMs).toLocaleDateString();
+        const daysElapsed = Math.floor((Date.now() - startMs)/(24*3600*1000));
+        const daysLeft = Math.max(0,30 - daysElapsed);
+        document.getElementById('planActivatedOn').innerText = activatedOn;
+        document.getElementById('planDaysLeft').innerText = daysLeft + ' day' + (daysLeft===1?'':'s');
+      }
+
       const allowed = ['premium','gold','elite','diamond','platinum'];
-      if (!allowed.includes(userData.plan)) {
+      if (!allowed.includes(plan)) {
         document.getElementById('upgradeModal').style.display='flex';
         document.getElementById('mainContent').style.display='none';
         document.getElementById('bottomNav').style.display='none';
@@ -134,31 +132,25 @@
     });
 
     async function setupDailyCredit() {
-      const last = userData.lastCredit?.toDate().getTime() || 0;
-      const now = Date.now();
-      const diff = now - last;
+      const last = userData.lastCredit?.toMillis() || 0;
+      const diff = Date.now() - last;
       if (diff >= 24*3600*1000) {
-        creditMsg.innerText = 'You can claim ₦1 now!';
-        claimBtn.disabled = false;
+        creditMsg.innerText = 'You can claim ₦1 now!'; claimBtn.disabled = false;
       } else {
         let remaining = 24*3600*1000 - diff;
         updateTimer(remaining);
         claimBtn.disabled = true;
         const interval = setInterval(() => {
           remaining -= 1000;
-          if (remaining <= 0) {
-            clearInterval(interval);
-            setupDailyCredit();
-          } else updateTimer(remaining);
-        }, 1000);
+          if (remaining <= 0) { clearInterval(interval); setupDailyCredit(); }
+          else updateTimer(remaining);
+        },1000);
       }
+
       claimBtn.onclick = async () => {
         claimBtn.disabled = true;
         try {
-          await updateDoc(userRef, {
-            balance: increment(1),
-            lastCredit: serverTimestamp()
-          });
+          await updateDoc(userRef, { balance: increment(1), lastCredit: serverTimestamp() });
           await addDoc(collection(userRef,'transactionHistory'), { type:'Daily Credit', amount:1, timestamp: serverTimestamp() });
           const fresh = await getDoc(userRef);
           userData = fresh.data();
@@ -177,4 +169,4 @@
       creditMsg.innerText = `Next credit in ${h}:${m}:${s}`;
     }
   </script></body>
-</html>
+      </html>
