@@ -52,7 +52,7 @@
       collection,
       getDocs,
       updateDoc,
-      doc
+      doc          // <-- make sure to import `doc`
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import {
       getAuth,
@@ -60,7 +60,6 @@
       signOut
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    // --- your Firebase config ---
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -71,16 +70,16 @@
       measurementId: "G-2FZKDQ47FZ"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
-    const auth= getAuth();
-
+    const app   = initializeApp(firebaseConfig);
+    const db    = getFirestore(app);
+    const auth  = getAuth();
     const adminEmail = "easypay27.ng@gmail.com";
     let allUsers = [];
 
     onAuthStateChanged(auth, user => {
       if (!user || user.email.toLowerCase() !== adminEmail) {
-        return signOut(auth).then(() => window.location.href = "login.html");
+        signOut(auth).then(() => window.location.href = "login.html");
+        return;
       }
       loadAllUsers();
     });
@@ -100,9 +99,8 @@
       if (snap.empty) {
         document.getElementById("noResults").style.display = "block";
         return;
-      } else {
-        document.getElementById("noResults").style.display = "none";
       }
+      document.getElementById("noResults").style.display = "none";
 
       allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderTable(allUsers);
@@ -115,24 +113,23 @@
       if (users.length === 0) {
         document.getElementById("noResults").style.display = "block";
         return;
-      } else {
-        document.getElementById("noResults").style.display = "none";
       }
+      document.getElementById("noResults").style.display = "none";
 
       const MS_PER_DAY = 24*60*60*1000;
-      const rowsHtml = users.map(u => {
-        let activatedOn = "-", daysLeft = "-";
+      const rows = users.map(u => {
+        let actOn = "-", daysLeft = "-";
         if (u.plan !== "basic" && u.planStart) {
-          const start = new Date(u.planStart);
-          activatedOn = start.toLocaleDateString();
+          const sd = new Date(u.planStart);
+          actOn = sd.toLocaleDateString();
           const elapsed = Date.now() - u.planStart;
-          const left = Math.max(0, 30 - Math.floor(elapsed / MS_PER_DAY));
-          daysLeft = `${left} day${left===1?"":"s"}`;
+          const left = Math.max(0, 30 - Math.floor(elapsed/MS_PER_DAY));
+          daysLeft = left + " day" + (left===1?"":"s");
         }
         return `
           <tr>
-            <td>${u.username || "—"}</td>
-            <td>${u.email || "—"}</td>
+            <td>${u.username||"—"}</td>
+            <td>${u.email||"—"}</td>
             <td>
               <select id="plan-${u.id}">
                 <option value="basic"  ${u.plan==="basic"  ?"selected":""}>Basic</option>
@@ -141,7 +138,7 @@
                 <option value="elite"   ${u.plan==="elite"  ?"selected":""}>Elite</option>
               </select>
             </td>
-            <td>${activatedOn}</td>
+            <td>${actOn}</td>
             <td>${daysLeft}</td>
             <td><button class="save-btn" data-uid="${u.id}">Save</button></td>
           </tr>`;
@@ -151,30 +148,23 @@
         <table>
           <thead>
             <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Plan</th>
-              <th>Activated On</th>
-              <th>Days Left</th>
-              <th>Action</th>
+              <th>Username</th><th>Email</th><th>Plan</th>
+              <th>Activated On</th><th>Days Left</th><th>Action</th>
             </tr>
           </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      `;
+          <tbody>${rows}</tbody>
+        </table>`;
 
-      // wire up each Save button
+      // now wire up the Save buttons
       container.querySelectorAll(".save-btn").forEach(btn => {
         btn.onclick = async () => {
           const uid = btn.dataset.uid;
-          const select = document.getElementById(`plan-${uid}`);
-          const newPlan = select.value;
+          const sel = document.getElementById(`plan-${uid}`);
+          const newPlan = sel.value;
           const data = { plan: newPlan };
           if (newPlan !== "basic") data.planStart = Date.now();
           await updateDoc(doc(db, "users", uid), data);
-          alert(`User ${uid} set to ${newPlan}`);
+          alert(`User ${u.id} set to ${newPlan}`);
           loadAllUsers();
         };
       });
@@ -182,7 +172,10 @@
 
     function filterTable() {
       const q = document.getElementById("searchInput").value.trim().toLowerCase();
-      renderTable(q ? allUsers.filter(u => (u.username||"").toLowerCase().includes(q)) : allUsers);
+      renderTable(q
+        ? allUsers.filter(u => (u.username||"").toLowerCase().includes(q))
+        : allUsers
+      );
     }
   </script>
 </body>
