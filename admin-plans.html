@@ -1,26 +1,31 @@
-<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay Admin Panel</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
   <style>
-    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5fdf7; color: #333; }
-    header { background-color: #009f4d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-    header h2 { margin: 0; font-size: 1.5rem; }
-    header button { background: white; color: #009f4d; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s ease; }
-    header button:hover { background: #e0f6e8; }
-    .container { padding: 20px; max-width: 900px; margin: 0 auto; }
-    .search-group { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
-    .search-group input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
-    .search-group button { background: #009f4d; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background 0.2s ease; }
-    .search-group button:hover { background: #018f45; }
-    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    thead { background-color: #009f4d; color: white; }
-    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; font-size: 0.95rem; }
-    tbody tr:hover { background-color: #f0fff0; }
-    select { padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
-    .save-btn { background: #009f4d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s ease; }
-    .save-btn:hover { background: #018f45; }
-    .no-results { text-align: center; margin-top: 40px; color: #666; }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:#f5fdf7; color:#333; }
+    header { background:#009f4d; color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
+    header h2 { margin:0; font-size:1.5rem; }
+    header button { background:#fff; color:#009f4d; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold; }
+    header button:hover { background:#e0f6e8; }
+    .container { padding:20px; max-width:900px; margin:0 auto; }
+    .search-group { display:flex; gap:10px; margin-bottom:20px; }
+    .search-group input { flex:1; padding:10px; border:1px solid #ccc; border-radius:8px; }
+    .search-group button { background:#009f4d; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; }
+    .search-group button:hover { background:#018f45; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+    thead { background:#009f4d; color:#fff; }
+    th, td { padding:12px 15px; border-bottom:1px solid #e0e0e0; text-align:left; }
+    tbody tr:hover { background:#f0fff0; }
+    .no-results { text-align:center; color:#666; margin-top:40px; }
+    .save-btn { background:#009f4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; }
+    .save-btn:hover { background:#018f45; }
   </style>
 </head>
 <body>
@@ -28,160 +33,157 @@
     <h2>Admin Panel</h2>
     <button id="logoutBtn">Logout</button>
   </header>
+
   <div class="container">
     <div class="search-group">
       <input type="text" id="searchInput" placeholder="Search users by username..." />
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
     </div>
+
     <div id="resultsContainer">
-      <p class="no-results" id="noResults" style="display: none;">No users found.</p>
+      <p id="noResults" class="no-results" style="display:none;">No users found.</p>
     </div>
   </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";const firebaseConfig = {
-  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-  authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8",
-  storageBucket: "easypay-6bce8.appspot.com",
-  messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-  measurementId: "G-2FZKDQ47FZ"
-};
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      updateDoc,
+      doc
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth();
-const adminEmail = "easypay27.ng@gmail.com";
+    // --- your Firebase config ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
 
-let allUsers = [];
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    const auth= getAuth();
 
-onAuthStateChanged(auth, user => {
-  if (!user || user.email.toLowerCase() !== adminEmail) {
-    signOut(auth).then(() => window.location.href = "login.html");
-    return;
-  }
-  loadAllUsers();
-});
+    const adminEmail = "easypay27.ng@gmail.com";
+    let allUsers = [];
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  signOut(auth).then(() => window.location.href = "login.html");
-});
-
-document.getElementById("searchBtn").addEventListener("click", filterTable);
-document.getElementById("searchInput").addEventListener("keypress", e => {
-  if (e.key === 'Enter') filterTable();
-});
-
-async function loadAllUsers() {
-  const container = document.getElementById("resultsContainer");
-  container.innerHTML = "";
-  const snapshot = await getDocs(collection(db, "users"));
-  if (snapshot.empty) {
-    document.getElementById("noResults").style.display = "block";
-    return;
-  } else {
-    document.getElementById("noResults").style.display = "none";
-  }
-  allUsers = [];
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    allUsers.push({
-      id: docSnap.id,
-      username: data.username || "",
-      email: data.email || "",
-      plan: data.plan || "basic",
-      planStart: data.planStart?.toMillis() || null
+    onAuthStateChanged(auth, user => {
+      if (!user || user.email.toLowerCase() !== adminEmail) {
+        return signOut(auth).then(() => window.location.href = "login.html");
+      }
+      loadAllUsers();
     });
-  });
-  renderTable(allUsers);
-}
 
-function renderTable(users) {
-  const container = document.getElementById("resultsContainer");
-  container.innerHTML = "";
-  if (users.length === 0) {
-    document.getElementById("noResults").style.display = "block";
-    return;
-  } else {
-    document.getElementById("noResults").style.display = "none";
-  }
-  const table = document.createElement("table");
-  const thead = document.createElement("thead");
-  thead.innerHTML = `
-    <tr>
-      <th>Username</th>
-      <th>Email</th>
-      <th>Plan</th>
-      <th>Activated On</th>
-      <th>Days Left</th>
-      <th>Action</th>
-    </tr>
-  `;
-  table.appendChild(thead);
-  const tbody = document.createElement("tbody");
+    document.getElementById("logoutBtn").onclick = () =>
+      signOut(auth).then(() => window.location.href = "login.html");
 
-  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+    document.getElementById("searchBtn").onclick = filterTable;
+    document.getElementById("searchInput").onkeypress = e => {
+      if (e.key === "Enter") filterTable();
+    };
 
-  users.forEach(user => {
-    const { id, username, email, plan, planStart } = user;
-    let activatedOn = '-';
-    let daysLeft = '-';
-    if (plan !== 'basic' && planStart) {
-      const startDate = new Date(planStart);
-      activatedOn = startDate.toLocaleDateString();
-      const elapsed = Date.now() - planStart;
-      daysLeft = Math.max(0, 30 - Math.floor(elapsed / MS_PER_DAY));
+    async function loadAllUsers() {
+      const container = document.getElementById("resultsContainer");
+      container.innerHTML = "";
+      const snap = await getDocs(collection(db, "users"));
+      if (snap.empty) {
+        document.getElementById("noResults").style.display = "block";
+        return;
+      } else {
+        document.getElementById("noResults").style.display = "none";
+      }
+
+      allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTable(allUsers);
     }
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${username}</td>
-      <td>${email}</td>
-      <td>
-        <select id="plan-${id}">
-          <option value="basic" ${plan === "basic" ? "selected" : ""}>Basic</option>
-          <option value="premium" ${plan === "premium" ? "selected" : ""}>Premium</option>
-          <option value="gold" ${plan === "gold" ? "selected" : ""}>Gold</option>
-          <option value="elite" ${plan === "elite" ? "selected" : ""}>Elite</option>
-        </select>
-      </td>
-      <td>${activatedOn}</td>
-      <td>${daysLeft === '-' ? '-' : daysLeft + ' day' + (daysLeft === 1 ? '' : 's')}</td>
-      <td><button class="save-btn" data-uid="${id}">Save</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
+    function renderTable(users) {
+      const container = document.getElementById("resultsContainer");
+      container.innerHTML = "";
 
-  table.appendChild(tbody);
-  container.appendChild(table);
-
-  document.querySelectorAll(".save-btn").forEach(button => {
-    button.addEventListener("click", async e => {
-      const uid = e.currentTarget.dataset.uid;
-      const selectEl = document.getElementById(`plan-${uid}`);
-      const newPlan = selectEl.value;
-      const updateData = { plan: newPlan };
-      if (newPlan !== 'basic') updateData.planStart = Date.now();
-      try {
-        await updateDoc(doc(db, "users", uid), updateData);
-        alert(`Updated plan to ${newPlan} for user.`);
-      } catch (err) {
-        console.error("Error updating plan:", err);
-        alert("Failed to update plan: " + err.message);
+      if (users.length === 0) {
+        document.getElementById("noResults").style.display = "block";
+        return;
+      } else {
+        document.getElementById("noResults").style.display = "none";
       }
-    });
-  });
-}
 
-function filterTable() {
-  const queryVal = document.getElementById("searchInput").value.trim().toLowerCase();
-  if (!queryVal) return renderTable(allUsers);
-  const filtered = allUsers.filter(u => u.username.toLowerCase().includes(queryVal));
-  renderTable(filtered);
-}
+      const MS_PER_DAY = 24*60*60*1000;
+      const rowsHtml = users.map(u => {
+        let activatedOn = "-", daysLeft = "-";
+        if (u.plan !== "basic" && u.planStart) {
+          const start = new Date(u.planStart);
+          activatedOn = start.toLocaleDateString();
+          const elapsed = Date.now() - u.planStart;
+          const left = Math.max(0, 30 - Math.floor(elapsed / MS_PER_DAY));
+          daysLeft = `${left} day${left===1?"":"s"}`;
+        }
+        return `
+          <tr>
+            <td>${u.username || "—"}</td>
+            <td>${u.email || "—"}</td>
+            <td>
+              <select id="plan-${u.id}">
+                <option value="basic"  ${u.plan==="basic"  ?"selected":""}>Basic</option>
+                <option value="premium" ${u.plan==="premium"?"selected":""}>Premium</option>
+                <option value="gold"    ${u.plan==="gold"   ?"selected":""}>Gold</option>
+                <option value="elite"   ${u.plan==="elite"  ?"selected":""}>Elite</option>
+              </select>
+            </td>
+            <td>${activatedOn}</td>
+            <td>${daysLeft}</td>
+            <td><button class="save-btn" data-uid="${u.id}">Save</button></td>
+          </tr>`;
+      }).join("");
 
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Plan</th>
+              <th>Activated On</th>
+              <th>Days Left</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+
+      // wire up each Save button
+      container.querySelectorAll(".save-btn").forEach(btn => {
+        btn.onclick = async () => {
+          const uid = btn.dataset.uid;
+          const select = document.getElementById(`plan-${uid}`);
+          const newPlan = select.value;
+          const data = { plan: newPlan };
+          if (newPlan !== "basic") data.planStart = Date.now();
+          await updateDoc(doc(db, "users", uid), data);
+          alert(`User ${uid} set to ${newPlan}`);
+          loadAllUsers();
+        };
+      });
+    }
+
+    function filterTable() {
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+      renderTable(q ? allUsers.filter(u => (u.username||"").toLowerCase().includes(q)) : allUsers);
+    }
   </script>
 </body>
 </html>
