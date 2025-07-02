@@ -12,19 +12,18 @@
     .profile-info .logout-btn { width:100%; padding:8px; background:#009f4d; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.95rem; }
     .container { padding:20px; flex:1; overflow-y:auto; }
     .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:20px; }
+    .plan-info { background:#e8f5e9; padding:12px; border-radius:8px; margin-bottom:20px; font-size:0.95rem; }
+    .plan-info p { margin:4px 0; }
     .copy-btn { background:#009f4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; }
     #claimDailyBtn { background-color: #009f4d; color: #fff; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease; margin-top: 10px; }
     #claimDailyBtn:hover:not(:disabled) { background-color: #007a33; }
     #claimDailyBtn:disabled { background-color: #7dbd94; cursor: default; }
-    .plan-info { background:#e8f5e9; padding:12px; border-radius:8px; margin-bottom:20px; font-size:0.95rem; }
-    .plan-info p { margin:4px 0; }
-    .nav { position:fixed; bottom:0; width:100%; background:#009f4d; display:flex; justify-content:space-around; padding:10px 0; }
+    .nav { position:fixed; bottom:0; left:0; width:100%; background:#009f4d; display:flex; justify-content:space-around; padding:10px 0; }
     .nav a { color:#fff; text-decoration:none; font-size:0.9rem; display:flex; flex-direction:column; align-items:center; }
     .nav a i { font-size:1.5rem; margin-bottom:4px; }
     .modal { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; }
     .modal-content { background:#fff; padding:30px; border-radius:12px; text-align:center; max-width:90%; }
     .modal-content a { display:inline-block; margin-top:20px; padding:10px 20px; background:#009f4d; color:#fff; border-radius:6px; text-decoration:none; }
-    button:disabled { opacity:0.6; }
   </style>
 </head>
 <body>
@@ -78,44 +77,54 @@
     function copyReferral() { navigator.clipboard.writeText(document.getElementById('referralCode').innerText); }
   </script>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, Timestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
     const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e" };
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
+    const db  = getFirestore(app);
+    const auth= getAuth();
 
     let userRef, userData;
     const claimBtn = document.getElementById('claimDailyBtn');
-    const creditMsg = document.getElementById('creditMessage');
+    const creditMsg= document.getElementById('creditMessage');
 
     onAuthStateChanged(auth, async user => {
       if (!user) return location.href='login.html';
       userRef = doc(db,'users',user.uid);
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) return location.href='login.html';
+      const snap=await getDoc(userRef);
+      if(!snap.exists()) return location.href='login.html';
       userData = snap.data();
 
-      // populate header
+      // header & stats
       document.getElementById('usernameDisplay').innerText = userData.username;
       document.getElementById('profileUsername').innerText = userData.username;
-      document.getElementById('profileEmail').innerText = user.email;
-      document.getElementById('profileBalance').innerText = (userData.balance||0).toFixed(2);
-      document.getElementById('balance').innerText = (userData.balance||0).toFixed(2);
-      document.getElementById('referrals').innerText = userData.referralCount||0;
-      document.getElementById('referralCode').innerText = userData.username;
+      document.getElementById('profileEmail').innerText    = user.email;
+      document.getElementById('profileBalance').innerText  = (userData.balance||0).toFixed(2);
+      document.getElementById('balance').innerText         = (userData.balance||0).toFixed(2);
+      document.getElementById('referrals').innerText       = userData.referralCount||0;
+      document.getElementById('referralCode').innerText    = userData.username;
 
-      // plan info
+      // plan info patch
       const plan = userData.plan || 'basic';
-      document.getElementById('planName').innerText = plan.charAt(0).toUpperCase() + plan.slice(1);
-      if (plan !== 'basic' && userData.planStart) {
-        const startMs = userData.planStart.toMillis();
+      document.getElementById('planName').innerText = plan.charAt(0).toUpperCase()+plan.slice(1);
+
+      let startMs = null;
+      if (userData.planStart != null) {
+        if (userData.planStart.toMillis) startMs = userData.planStart.toMillis();
+        else startMs = userData.planStart;
+      }
+
+      if (plan!=='basic' && startMs) {
         const activatedOn = new Date(startMs).toLocaleDateString();
-        const daysElapsed = Math.floor((Date.now() - startMs)/(24*3600*1000));
-        const daysLeft = Math.max(0,30 - daysElapsed);
         document.getElementById('planActivatedOn').innerText = activatedOn;
-        document.getElementById('planDaysLeft').innerText = daysLeft + ' day' + (daysLeft===1?'':'s');
+        const MS_PER_DAY = 24*3600*1000;
+        const elapsed = Date.now() - startMs;
+        const left = Math.max(0, 30 - Math.floor(elapsed/MS_PER_DAY));
+        document.getElementById('planDaysLeft').innerText = left+' day'+(left===1?'':'s');
+      } else {
+        document.getElementById('planActivatedOn').innerText = '-';
+        document.getElementById('planDaysLeft').innerText    = '-';
       }
 
       const allowed = ['premium','gold','elite','diamond','platinum'];
@@ -132,41 +141,37 @@
     });
 
     async function setupDailyCredit() {
-      const last = userData.lastCredit?.toMillis() || 0;
+      const last = userData.lastCredit && userData.lastCredit.toMillis ? userData.lastCredit.toMillis() : (userData.lastCredit||0);
       const diff = Date.now() - last;
-      if (diff >= 24*3600*1000) {
-        creditMsg.innerText = 'You can claim ₦1 now!'; claimBtn.disabled = false;
+      if (diff>=24*3600*1000) {
+        creditMsg.innerText='You can claim ₦1 now!'; claimBtn.disabled=false;
       } else {
-        let remaining = 24*3600*1000 - diff;
-        updateTimer(remaining);
-        claimBtn.disabled = true;
-        const interval = setInterval(() => {
-          remaining -= 1000;
-          if (remaining <= 0) { clearInterval(interval); setupDailyCredit(); }
-          else updateTimer(remaining);
+        let rem=24*3600*1000 - diff;
+        updateTimer(rem);
+        claimBtn.disabled=true;
+        const iv=setInterval(()=>{
+          rem-=1000;
+          if(rem<=0){ clearInterval(iv); setupDailyCredit(); }
+          else updateTimer(rem);
         },1000);
       }
-
-      claimBtn.onclick = async () => {
-        claimBtn.disabled = true;
-        try {
-          await updateDoc(userRef, { balance: increment(1), lastCredit: serverTimestamp() });
-          await addDoc(collection(userRef,'transactionHistory'), { type:'Daily Credit', amount:1, timestamp: serverTimestamp() });
-          const fresh = await getDoc(userRef);
-          userData = fresh.data();
-          document.getElementById('balance').innerText = (userData.balance||0).toFixed(2);
+      claimBtn.onclick=async()=>{
+        claimBtn.disabled=true;
+        try{
+          await updateDoc(userRef,{ balance:increment(1), lastCredit: serverTimestamp() });
+          await addDoc(collection(userRef,'transactionHistory'),{ type:'Daily Credit', amount:1, timestamp: serverTimestamp() });
+          const fresh=await getDoc(userRef);
+          userData=fresh.data();
+          document.getElementById('balance').innerText=(userData.balance||0).toFixed(2);
           setupDailyCredit();
-        } catch {
-          creditMsg.innerText = 'Error—try again later.';
-        }
+        }catch{ creditMsg.innerText='Error—try again later.'; }
       };
     }
-
     function updateTimer(ms) {
-      const h = String(Math.floor(ms/3600000)).padStart(2,'0');
-      const m = String(Math.floor((ms%3600000)/60000)).padStart(2,'0');
-      const s = String(Math.floor((ms%60000)/1000)).padStart(2,'0');
-      creditMsg.innerText = `Next credit in ${h}:${m}:${s}`;
+      const h=String(Math.floor(ms/3600000)).padStart(2,'0');
+      const m=String(Math.floor((ms%3600000)/60000)).padStart(2,'0');
+      const s=String(Math.floor((ms%60000)/1000)).padStart(2,'0');
+      creditMsg.innerText=`Next credit in ${h}:${m}:${s}`;
     }
   </script></body>
-      </html>
+            </html>
