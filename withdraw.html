@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -77,9 +78,13 @@
 <body>
   <div class="important-message">
     Ensure your account is activated before proceeding with withdrawals. This process is completely irreversible.
-  </div>  <div class="form-box">
+  </div>
+
+  <div class="form-box">
     <h2>Make a Withdrawal</h2>
     <input type="number" id="amount" placeholder="Amount (min ₦200)" />
+
+    <!-- Updated bank list -->
     <select id="bank">
       <option value="">Select Bank</option>
       <option value="Access Bank">Access Bank</option>
@@ -92,11 +97,16 @@
       <option value="UBA">UBA</option>
       <option value="Zenith Bank">Zenith Bank</option>
       <option value="Wema Bank">Wema Bank</option>
+      <option value="SmartCash PSB">SmartCash PSB</option>
+      <option value="Momo PSB">Momo PSB</option>
     </select>
+
     <input type="text" id="accName" placeholder="Account Name" />
     <input type="number" id="accNumber" placeholder="Account Number" />
     <button id="submitBtn">Submit Withdrawal</button>
-  </div>  <div class="table-box">
+  </div>
+
+  <div class="table-box">
     <h3>Recent Withdrawals</h3>
     <table id="withdrawalTable">
       <thead>
@@ -110,7 +120,9 @@
       </thead>
       <tbody></tbody>
     </table>
-  </div>  <script type="module">
+  </div>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
@@ -197,5 +209,6 @@
         tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
       }
     }
-  </script></body>
+  </script>
+</body>
 </html>
