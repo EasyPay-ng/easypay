@@ -1,168 +1,168 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay Admin – Manage Plans</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-  />
-  <style>
-    body { margin:0; font-family:SegoeUI,sans-serif; background:#f5fdf7; }
-    header { background:#009f4d; color:#fff; padding:1rem; display:flex; justify-content:space-between; align-items:center; }
-    header h1 { margin:0; font-size:1.25rem; }
-    header button { background:#fff; color:#009f4d; border:none; padding:.5rem 1rem; border-radius:4px; cursor:pointer; }
-    header button:hover { background:#e0f6e8; }
-    .container { max-width:900px; margin:2rem auto; }
-    .search { display:flex; gap:.5rem; margin-bottom:1rem; }
-    .search input { flex:1; padding:.5rem; border:1px solid #ccc; border-radius:4px; }
-    .search button { padding:.5rem 1rem; background:#009f4d; color:#fff; border:none; border-radius:4px; cursor:pointer; }
-    .search button:hover { background:#018f45; }
-    table { width:100%; border-collapse:collapse; background:#fff; border-radius:6px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-    th, td { padding:.75rem 1rem; border-bottom:1px solid #eee; text-align:left; font-size:.9rem; }
-    thead { background:#009f4d; color:#fff; }
-    tbody tr:hover { background:#f0fff0; }
-    .save { padding:.4rem .8rem; background:#009f4d; color:#fff; border:none; border-radius:4px; cursor:pointer; }
-    .save:hover { background:#018f45; }
-    .no-data { text-align:center; padding:2rem; color:#666; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Manage User Plans</h1>
-    <button id="logout">Logout</button>
-  </header>
-
-  <div class="container">
-    <div class="search">
-      <input id="q" type="text" placeholder="Search by username…" />
-      <button id="btnSearch"><i class="fas fa-search"></i> Search</button>
-    </div>
-    <div id="tableWrap"></div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      updateDoc
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
-
-    const app  = initializeApp(firebaseConfig);
-    const db   = getFirestore(app);
-    const auth = getAuth(app);
-    const ADMIN = "easypay27.ng@gmail.com";
-    let allUsers = [];
-
-    onAuthStateChanged(auth, u => {
-      if (!u || u.email.toLowerCase() !== ADMIN) {
-        return signOut(auth).then(() => location.href="login.html");
-      }
-      loadUsers();
-    });
-
-    document.getElementById("logout").onclick = () =>
-      signOut(auth).then(() => location.href="login.html");
-
-    document.getElementById("btnSearch").onclick = filter;
-    document.getElementById("q").onkeypress = e => {
-      if (e.key === "Enter") filter();
-    };
-
-    async function loadUsers() {
-      const wrap = document.getElementById("tableWrap");
-      wrap.innerHTML = "<p class='no-data'>Loading…</p>";
-      const snap = await getDocs(collection(db, "users"));
-      allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      render(allUsers);
-    }
-
-    function render(list) {
-      const wrap = document.getElementById("tableWrap");
-      if (list.length === 0) {
-        wrap.innerHTML = "<p class='no-data'>No users found.</p>";
-        return;
-      }
-
-      const MS_DAY = 24*60*60*1000;
-      let html = `<table>
-        <thead><tr>
-          <th>Username</th><th>Email</th><th>Plan</th>
-          <th>Activated On</th><th>Days Left</th><th>Action</th>
-        </tr></thead><tbody>`;
-
-      for (let u of list) {
-        let activated = "-", daysLeft = "-";
-        if (u.plan!=="basic" && u.planStart) {
-          const sd = new Date(u.planStart);
-          activated = sd.toLocaleDateString();
-          const elapsed = Date.now() - u.planStart;
-          const left = Math.max(0, 30 - Math.floor(elapsed / MS_DAY));
-          daysLeft = `${left} day${left===1?"":"s"}`;
-        }
-
-        html += `<tr>
-          <td>${u.username||"—"}</td>
-          <td>${u.email||"—"}</td>
-          <td>
-            <select id="plan-${u.id}">
-              <option value="basic"  ${u.plan==="basic"  ?"selected":""}>Basic</option>
-              <option value="premium" ${u.plan==="premium"?"selected":""}>Premium</option>
-              <option value="gold"    ${u.plan==="gold"   ?"selected":""}>Gold</option>
-              <option value="elite"   ${u.plan==="elite"  ?"selected":""}>Elite</option>
-              <option value="platinum" ${u.plan==="platinum"?"selected":""}>Platinum</option>
-              <option value="diamond" ${u.plan==="diamond"?"selected":""}>Diamond</option>
-            </select>
-          </td>
-          <td>${activated}</td>
-          <td>${daysLeft}</td>
-          <td><button class="save" data-id="${u.id}">Save</button></td>
-        </tr>`;
-      }
-
-      html += `</tbody></table>`;
-      wrap.innerHTML = html;
-
-      // wire up
-      wrap.querySelectorAll(".save").forEach(b => {
-        b.onclick = async () => {
-          const id = b.dataset.id;
-          const sel = document.getElementById(`plan-${id}`);
-          const plan = sel.value;
-          const data = { plan };
-          if (plan !== "basic") data.planStart = Date.now();
-          await updateDoc(doc(db,"users",id), data);
-          alert("Updated.");
-          loadUsers();
-        };
-      });
-    }
-
-    function filter() {
-      const q = document.getElementById("q").value.trim().toLowerCase();
-      render(q
-        ? allUsers.filter(u => (u.username||"").toLowerCase().includes(q))
-        : allUsers
-      );
-    }
-  </script>
-</body>
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>  
+  <title>EasyPay Admin – Manage Plans</title>  
+  <link  
+    rel="stylesheet"  
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"  
+  />  
+  <style>  
+    body { margin:0; font-family:SegoeUI,sans-serif; background:#f5fdf7; }  
+    header { background:#009f4d; color:#fff; padding:1rem; display:flex; justify-content:space-between; align-items:center; }  
+    header h1 { margin:0; font-size:1.25rem; }  
+    header button { background:#fff; color:#009f4d; border:none; padding:.5rem 1rem; border-radius:4px; cursor:pointer; }  
+    header button:hover { background:#e0f6e8; }  
+    .container { max-width:900px; margin:2rem auto; }  
+    .search { display:flex; gap:.5rem; margin-bottom:1rem; }  
+    .search input { flex:1; padding:.5rem; border:1px solid #ccc; border-radius:4px; }  
+    .search button { padding:.5rem 1rem; background:#009f4d; color:#fff; border:none; border-radius:4px; cursor:pointer; }  
+    .search button:hover { background:#018f45; }  
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:6px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1); }  
+    th, td { padding:.75rem 1rem; border-bottom:1px solid #eee; text-align:left; font-size:.9rem; }  
+    thead { background:#009f4d; color:#fff; }  
+    tbody tr:hover { background:#f0fff0; }  
+    .save { padding:.4rem .8rem; background:#009f4d; color:#fff; border:none; border-radius:4px; cursor:pointer; }  
+    .save:hover { background:#018f45; }  
+    .no-data { text-align:center; padding:2rem; color:#666; }  
+  </style>  
+</head>  
+<body>  
+  <header>  
+    <h1>Manage User Plans</h1>  
+    <button id="logout">Logout</button>  
+  </header>  
+  
+  <div class="container">  
+    <div class="search">  
+      <input id="q" type="text" placeholder="Search by username…" />  
+      <button id="btnSearch"><i class="fas fa-search"></i> Search</button>  
+    </div>  
+    <div id="tableWrap"></div>  
+  </div>  
+  
+  <script type="module">  
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";  
+    import {  
+      getFirestore,  
+      collection,  
+      getDocs,  
+      doc,  
+      updateDoc  
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";  
+    import {  
+      getAuth,  
+      onAuthStateChanged,  
+      signOut  
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";  
+  
+    const firebaseConfig = {  
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",  
+      authDomain: "easypay-6bce8.firebaseapp.com",  
+      projectId: "easypay-6bce8",  
+      storageBucket: "easypay-6bce8.appspot.com",  
+      messagingSenderId: "862671358267",  
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"  
+    };  
+  
+    const app  = initializeApp(firebaseConfig);  
+    const db   = getFirestore(app);  
+    const auth = getAuth(app);  
+    const ADMIN = "easypay27.ng@gmail.com";  
+    let allUsers = [];  
+  
+    onAuthStateChanged(auth, u => {  
+      if (!u || u.email.toLowerCase() !== ADMIN) {  
+        return signOut(auth).then(() => location.href="login.html");  
+      }  
+      loadUsers();  
+    });  
+  
+    document.getElementById("logout").onclick = () =>  
+      signOut(auth).then(() => location.href="login.html");  
+  
+    document.getElementById("btnSearch").onclick = filter;  
+    document.getElementById("q").onkeypress = e => {  
+      if (e.key === "Enter") filter();  
+    };  
+  
+    async function loadUsers() {  
+      const wrap = document.getElementById("tableWrap");  
+      wrap.innerHTML = "<p class='no-data'>Loading…</p>";  
+      const snap = await getDocs(collection(db, "users"));  
+      allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));  
+      render(allUsers);  
+    }  
+  
+    function render(list) {  
+      const wrap = document.getElementById("tableWrap");  
+      if (list.length === 0) {  
+        wrap.innerHTML = "<p class='no-data'>No users found.</p>";  
+        return;  
+      }  
+  
+      const MS_DAY = 24*60*60*1000;  
+      let html = `<table>  
+        <thead><tr>  
+          <th>Username</th><th>Email</th><th>Plan</th>  
+          <th>Activated On</th><th>Days Left</th><th>Action</th>  
+        </tr></thead><tbody>`;  
+  
+      for (let u of list) {  
+        let activated = "-", daysLeft = "-";  
+        if (u.plan!=="basic" && u.planStart) {  
+          const sd = new Date(u.planStart);  
+          activated = sd.toLocaleDateString();  
+          const elapsed = Date.now() - u.planStart;  
+          const left = Math.max(0, 30 - Math.floor(elapsed / MS_DAY));  
+          daysLeft = `${left} day${left===1?"":"s"}`;  
+        }  
+  
+        html += `<tr>  
+          <td>${u.username||"—"}</td>  
+          <td>${u.email||"—"}</td>  
+          <td>  
+            <select id="plan-${u.id}">  
+              <option value="basic"  ${u.plan==="basic"  ?"selected":""}>Basic</option>  
+              <option value="premium" ${u.plan==="premium"?"selected":""}>Premium</option>  
+              <option value="gold"    ${u.plan==="gold"   ?"selected":""}>Gold</option>  
+              <option value="elite"   ${u.plan==="elite"  ?"selected":""}>Elite</option>  
+              <option value="diamond" ${u.plan==="diamond"?"selected":""}>Diamond</option>  
+              <option value="platinum" ${u.plan==="platinum"?"selected":""}>Platinum</option>  
+            </select>  
+          </td>  
+          <td>${activated}</td>  
+          <td>${daysLeft}</td>  
+          <td><button class="save" data-id="${u.id}">Save</button></td>  
+        </tr>`;  
+      }  
+  
+      html += `</tbody></table>`;  
+      wrap.innerHTML = html;  
+  
+      // wire up  
+      wrap.querySelectorAll(".save").forEach(b => {  
+        b.onclick = async () => {  
+          const id = b.dataset.id;  
+          const sel = document.getElementById(`plan-${id}`);  
+          const plan = sel.value;  
+          const data = { plan };  
+          if (plan !== "basic") data.planStart = Date.now();  
+          await updateDoc(doc(db,"users",id), data);  
+          alert("Updated.");  
+          loadUsers();  
+        };  
+      });  
+    }  
+  
+    function filter() {  
+      const q = document.getElementById("q").value.trim().toLowerCase();  
+      render(q  
+        ? allUsers.filter(u => (u.username||"").toLowerCase().includes(q))  
+        : allUsers  
+      );  
+    }  
+  </script>  
+</body>  
 </html>
