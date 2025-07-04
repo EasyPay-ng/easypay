@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay Dashboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
   <style>
     body { margin:0; font-family:'Segoe UI',sans-serif; background:#f5fdf7; color:#333; display:flex; flex-direction:column; min-height:100vh; }
     header { background:#009f4d; color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; position:relative; }
@@ -14,20 +14,23 @@
     .profile-info p { margin:8px 0; font-size:0.95rem; }
     .profile-info .logout-btn { width:100%; padding:8px; background:#009f4d; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.95rem; }
     .container { padding:20px; flex:1; overflow-y:auto; }
-    .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:20px; }
     .plan-info { background:#e8f5e9; padding:12px; border-radius:8px; margin-bottom:20px; font-size:0.95rem; }
     .plan-info p { margin:4px 0; }
+    .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:20px; }
     .copy-btn { background:#009f4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; }
-    #claimDailyBtn { background-color: #009f4d; color: #fff; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease; margin-top: 10px; }
-    #claimDailyBtn:hover:not(:disabled) { background-color: #007a33; }
-    #claimDailyBtn:disabled { background-color: #7dbd94; cursor: default; }
+    #claimDailyBtn { background-color:#009f4d; color:#fff; border:none; padding:12px 20px; font-size:1rem; font-weight:bold; border-radius:8px; cursor:pointer; transition:background-color .2s ease; margin-top:10px; }
+    #claimDailyBtn:hover:not(:disabled) { background-color:#007a33; }
+    #claimDailyBtn:disabled { background-color:#7dbd94; cursor:default; }
     .nav { position:fixed; bottom:0; left:0; width:100%; background:#009f4d; display:flex; justify-content:space-around; padding:10px 0; }
     .nav a { color:#fff; text-decoration:none; font-size:0.9rem; display:flex; flex-direction:column; align-items:center; }
     .nav a i { font-size:1.5rem; margin-bottom:4px; }
-    .modal { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; z-index:1000; }
-    .modal-content { background:#fff; padding:30px; border-radius:12px; text-align:center; max-width:90%; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
-    .modal-content a { display:inline-block; margin-top:20px; padding:10px 20px; background:#009f4d; color:#fff; border-radius:6px; text-decoration:none; }
-    .modal-content .close-btn { position:absolute; top:10px; right:10px; background:transparent; border:none; font-size:1.2rem; cursor:pointer; }
+    /* WhatsApp popup */
+    #whatsappPopup { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:2000; }
+    #whatsappContent { background:#fff; padding:2rem; border-radius:12px; text-align:center; position:relative; width:90%; max-width:320px; }
+    #whatsappContent .closeBtn { position:absolute; top:8px; right:12px; font-size:1.2rem; cursor:pointer; }
+    #whatsappContent .emoji { font-size:3rem; margin-bottom:1rem; }
+    #whatsappContent h3 { margin-bottom:1rem; }
+    #whatsappContent a { display:inline-block; margin-top:1rem; padding:10px 20px; background:#25D366; color:#fff; border-radius:6px; text-decoration:none; font-weight:bold; }
   </style>
 </head>
 <body>
@@ -44,15 +47,21 @@
     </div>
   </header>
 
-  <!-- Upgrade modal omitted for brevity -->
+  <!-- WhatsApp Popup -->
+  <div id="whatsappPopup">
+    <div id="whatsappContent">
+      <span class="closeBtn" onclick="closePopup()">×</span>
+      <div class="emoji">🤓</div>
+      <h3>Join our official WhatsApp Group</h3>
+      <a href="https://chat.whatsapp.com/IcA53x5NB0f2osN7rqancp" target="_blank">Join</a>
+    </div>
+  </div>
 
-  <!-- WhatsApp invite popup -->
-  <div id="whatsappModal" class="modal" style="display:none;">
+  <div id="upgradeModal" class="modal" style="display:none;">
     <div class="modal-content">
-      <button class="close-btn" onclick="closeWhatsApp()">×</button>
-      <div style="font-size:3rem;">🤓</div>
-      <h2>Join our official WhatsApp Group</h2>
-      <a href="https://chat.whatsapp.com/CDxiZPmG4TSF37T9nsr5yQ?mode=r_t" target="_blank">Join</a>
+      <h2>Account Not Activated</h2>
+      <p>Upgrade your plan to access features.</p>
+      <a href="upgrade.html">Upgrade</a>
     </div>
   </div>
 
@@ -100,15 +109,19 @@
         document.getElementById('referralCode').innerText
       );
     }
-    function closeWhatsApp() {
-      document.getElementById('whatsappModal').style.display = 'none';
+    function closePopup() {
+      document.getElementById('whatsappPopup').style.display = 'none';
+      sessionStorage.setItem('wh-popup-closed', '1');
+    }
+    // hide if already closed
+    if (sessionStorage.getItem('wh-popup-closed') === '1') {
+      document.getElementById('whatsappPopup').style.display = 'none';
     }
   </script>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
-      getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, addDoc, collection, Timestamp
+      getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, collection, addDoc
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
@@ -120,43 +133,40 @@
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
-    const app  = initializeApp(firebaseConfig);
-    const db   = getFirestore(app);
-    const auth = getAuth();
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    const auth= getAuth();
 
     let userRef, userData;
-    const claimBtn = document.getElementById('claimDailyBtn');
-    const creditMsg= document.getElementById('creditMessage');
+    const claimBtn  = document.getElementById('claimDailyBtn');
+    const creditMsg = document.getElementById('creditMessage');
 
     onAuthStateChanged(auth, async user => {
       if (!user) return location.href='login.html';
       userRef = doc(db,'users',user.uid);
-      const snap=await getDoc(userRef);
-      if(!snap.exists()) return location.href='login.html';
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) return location.href='login.html';
       userData = snap.data();
 
-      // Populate header & stats
+      // header & stats
       document.getElementById('usernameDisplay').innerText = userData.username;
-      document.getElementById('profileUsername').innerText    = userData.username;
-      document.getElementById('profileEmail').innerText       = user.email;
-      document.getElementById('profileBalance').innerText     = (userData.balance||0).toFixed(2);
-      document.getElementById('balance').innerText            = (userData.balance||0).toFixed(2);
-      document.getElementById('referrals').innerText          = userData.referralCount||0;
-      document.getElementById('referralCode').innerText       = userData.username;
+      document.getElementById('profileUsername').innerText  = userData.username;
+      document.getElementById('profileEmail').innerText     = user.email;
+      document.getElementById('profileBalance').innerText   = (userData.balance||0).toFixed(2);
+      document.getElementById('balance').innerText          = (userData.balance||0).toFixed(2);
+      document.getElementById('referrals').innerText        = userData.referralCount||0;
+      document.getElementById('referralCode').innerText     = userData.username;
 
-      // Plan info
-      const plan = userData.plan || 'basic';
+      // plan info
+      const plan = userData.plan||'basic';
       document.getElementById('planName').innerText = plan.charAt(0).toUpperCase()+plan.slice(1);
-
       let startMs = null;
-      if (userData.planStart != null) {
-        startMs = userData.planStart.toMillis ? userData.planStart.toMillis() : userData.planStart;
-      }
+      if (userData.planStart?.toMillis) startMs = userData.planStart.toMillis();
+      else if (userData.planStart) startMs = userData.planStart;
       if (plan!=='basic' && startMs) {
         document.getElementById('planActivatedOn').innerText = new Date(startMs).toLocaleDateString();
-        const elapsed = Date.now() - startMs;
-        const left    = Math.max(0, 30 - Math.floor(elapsed/(24*3600*1000)));
-        document.getElementById('planDaysLeft').innerText   = left+' day'+(left===1?'':'s');
+        const left = Math.max(0,30 - Math.floor((Date.now()-startMs)/(24*3600*1000)));
+        document.getElementById('planDaysLeft').innerText = left+' day'+(left===1?'':'s');
       }
 
       const allowed = ['premium','gold','elite','diamond','platinum'];
@@ -165,54 +175,44 @@
         document.getElementById('mainContent').style.display='none';
         document.getElementById('bottomNav').style.display='none';
       } else {
-        document.getElementById('whatsappModal').style.display='none'; // hide initially
+        document.getElementById('upgradeModal').style.display='none';
         document.getElementById('mainContent').style.display='block';
         document.getElementById('bottomNav').style.display='flex';
         setupDailyCredit();
-        // show WhatsApp invite after 3s
-        setTimeout(()=> {
-          document.getElementById('whatsappModal').style.display='flex';
-        }, 3000);
       }
     });
 
-    async function setupDailyCredit() {
-      const last = userData.lastCredit?.toMillis ? userData.lastCredit.toMillis() : (userData.lastCredit||0);
-      const diff = Date.now() - last;
-      if (diff>=24*3600*1000) {
+    async function setupDailyCredit(){
+      const last = userData.lastCredit?.toMillis?userData.lastCredit.toMillis():userData.lastCredit||0;
+      const diff = Date.now()-last;
+      if (diff>=24*3600*1000){
         creditMsg.innerText='You can claim ₦1 now!'; claimBtn.disabled=false;
       } else {
-        let rem=24*3600*1000 - diff;
+        let rem = 24*3600*1000 - diff;
         updateTimer(rem);
         claimBtn.disabled=true;
-        const iv=setInterval(()=>{
+        const iv = setInterval(()=>{
           rem-=1000;
-          if(rem<=0){ clearInterval(iv); setupDailyCredit(); }
+          if (rem<=0){ clearInterval(iv); setupDailyCredit(); }
           else updateTimer(rem);
         },1000);
       }
-      claimBtn.onclick=async()=>{
+      claimBtn.onclick=async ()=>{
         claimBtn.disabled=true;
-        try{
-          await updateDoc(userRef,{
-            balance: increment(1),
-            lastCredit: serverTimestamp()
-          });
-          await addDoc(collection(userRef,'transactionHistory'),{
-            type:'Daily Credit',
-            amount:1,
-            timestamp: serverTimestamp()
-          });
-          const fresh=await getDoc(userRef);
-          userData=fresh.data();
+        try {
+          await updateDoc(userRef,{ balance:increment(1), lastCredit:serverTimestamp() });
+          await addDoc(collection(userRef,'transactionHistory'),{ type:'Daily Credit', amount:1, timestamp:serverTimestamp() });
+          const fresh = await getDoc(userRef);
+          userData = fresh.data();
           document.getElementById('balance').innerText=(userData.balance||0).toFixed(2);
           setupDailyCredit();
-        }catch{
+        } catch {
           creditMsg.innerText='Error—try again later.';
         }
       };
     }
-    function updateTimer(ms) {
+
+    function updateTimer(ms){
       const h=String(Math.floor(ms/3600000)).padStart(2,'0');
       const m=String(Math.floor((ms%3600000)/60000)).padStart(2,'0');
       const s=String(Math.floor((ms%60000)/1000)).padStart(2,'0');
