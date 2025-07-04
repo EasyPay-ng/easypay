@@ -3,396 +3,197 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel</title>
+  <title>EasyPay Admin Dashboard</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
   <style>
     :root {
-      --green: #2e7d32;
-      --light-green: #e8f5e9;
-      --white: #ffffff;
-      --gray: #f9f9f9;
-      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+      --green: #009f4d;
+      --dark: #006400;
+      --light: #f5fdf7;
+      --white: #fff;
+      --shadow: rgba(0, 0, 0, 0.1);
     }
-
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--gray);
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background: var(--light); color: #333; }
     header {
-      background-color: var(--green);
+      background: var(--green);
       color: var(--white);
       padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow);
+      box-shadow: 0 2px 6px var(--shadow);
     }
-
-    h1 {
-      font-size: 1.5rem;
-      margin: 0;
-    }
-
-    .top-button {
-      background-color: var(--white);
+    header h1 { font-size: 1.5rem; }
+    header button {
+      background: var(--white);
       color: var(--green);
       border: none;
       padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-    }
-
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: var(--white);
-      min-width: 180px;
-      box-shadow: var(--shadow);
-      z-index: 1000;
-      border-radius: 8px;
-      margin-top: 8px;
-    }
-
-    .dropdown-content a {
-      padding: 12px 16px;
-      display: block;
-      text-decoration: none;
-      color: #333;
-      font-weight: 500;
-    }
-
-    .dropdown-content a:hover {
-      background-color: var(--light-green);
-    }
-
-    .container {
-      padding: 2rem;
-    }
-
-    #userCount {
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-      font-weight: 500;
-      color: #004400;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1.5rem;
-      background-color: var(--white);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-
-    th {
-      background-color: var(--light-green);
-      font-weight: 600;
-    }
-
-    .btn {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-right: 0.5rem;
-    }
-
-    .edit-btn {
-      background-color: #4caf50;
-      color: white;
-    }
-
-    .suspend-btn {
-      background-color: #ff9800;
-      color: white;
-    }
-
-    input[type="text"] {
-      padding: 0.5rem;
-      width: 100%;
-      max-width: 300px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: var(--shadow);
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.4);
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    .modal-content {
-      background-color: var(--white);
-      padding: 2rem;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: var(--shadow);
-    }
-
-    .modal input {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
       border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 6px var(--shadow);
     }
+    header button:hover { background: var(--light); }
+    .container { padding: 2rem; max-width: 1000px; margin: auto; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: var(--white);
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px var(--shadow);
+      text-align: center;
+    }
+    .card h2 { font-size: 2rem; color: var(--dark); }
+    .card p { margin-top: 0.5rem; color: #555; }
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+    }
+    .admin-link {
+      background: var(--white);
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px var(--shadow);
+      text-decoration: none;
+      color: var(--dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s ease;
+    }
+    .admin-link:hover { transform: translateY(-4px); }
+    .admin-link i {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--green);
+    }
+    .admin-link span { font-size: 0.9rem; text-align: center; }
   </style>
 </head>
 <body>
-
   <header>
-    <h1>Admin Panel</h1>
-    <div class="dropdown">
-      <button class="top-button" onclick="toggleDropdown()">Menu</button>
-      <div class="dropdown-content" id="dropdownMenu">
-        <a href="admin-withdraw.html">Withdrawals</a>
-        <a href="admin-deposit.html">Deposits</a>
-        <a href="admin-advertise.html">Adverts</a>
-        <a href="admin-task.html">Submissions</a>
-        <a href="admin-activate.html">User Records</a>
-        <!-- New option for User Activations -->
-        <a href="admin-plans.html">User Plans</a>
-        <a href="admin-upgrade.html">Upgrades</a>
-      </div>
-    </div>
+    <h1>EasyPay Admin Dashboard</h1>
+    <button id="logoutBtn">Logout</button>
   </header>
+  <main class="container">
+    <section class="stats-grid">
+      <div class="card">
+        <h2 id="totalUsers">—</h2>
+        <p>Total Users</p>
+      </div>
+      <div class="card">
+        <h2 id="totalDeposits">—</h2>
+        <p>Deposit Requests</p>
+      </div>
+      <div class="card">
+        <h2 id="totalUpgrades">—</h2>
+        <p>Upgrade Requests</p>
+      </div>
+      <div class="card">
+        <h2 id="totalAdverts">—</h2>
+        <p>Advertisements</p>
+      </div>
+      <div class="card">
+        <h2 id="totalTasks">—</h2>
+        <p>Task Submissions</p>
+      </div>
+    </section>
 
-  <div class="container">
-    <div id="userCount">Total Users:  0</div>
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search by Username or UID..."
-      oninput="searchUsers()"
-    />
-    <table>
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>UID</th>
-          <th>Balance</th>
-          <th>Referrals</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="userTableBody"></tbody>
-    </table>
-  </div>
-
-  <div class="modal" id="editModal">
-    <div class="modal-content">
-      <h3>Edit User</h3>
-      <input type="text" id="editUsername" placeholder="Username" />
-      <input type="number" id="editBalance" placeholder="Balance" />
-      <input type="number" id="editReferrals" placeholder="Referrals" />
-      <button class="btn edit-btn" onclick="saveChanges()">Save Changes</button>
-    </div>
-  </div>
+    <section class="links-grid">
+      <a href="admin-advertise.html" class="admin-link">
+        <i class="fas fa-bullhorn"></i>
+        <span>Adverts</span>
+      </a>
+      <a href="admin-deposit.html" class="admin-link">
+        <i class="fas fa-wallet"></i>
+        <span>Deposits</span>
+      </a>
+      <a href="admin-plans.html" class="admin-link">
+        <i class="fas fa-clipboard-list"></i>
+        <span>Upgrades / Activate</span>
+      </a>
+      <a href="admin-record.html" class="admin-link">
+        <i class="fas fa-database"></i>
+        <span>Users</span>
+      </a>
+      <a href="admin-users.html" class="admin-link">
+        <i class="fas fa-users"></i>
+        <span>Manage Users</span>
+      </a>
+      <a href="admin-task.html" class="admin-link">
+        <i class="fas fa-tasks"></i>
+        <span>Task Submissions</span>
+      </a>
+      <a href="admin-upgrade.html" class="admin-link">
+        <i class="fas fa-arrow-up"></i>
+        <span>Upgrade Requests</span>
+      </a>
+      <a href="admin-withdraw.html" class="admin-link">
+        <i class="fas fa-hand-holding-usd"></i>
+        <span>Withdrawals</span>
+      </a>
+    </section>
+  </main>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      updateDoc,
-      query,
-      where
-    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getFirestore, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
+    // your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const ADMIN_EMAIL = "easypay27.ng@gmail.com";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    let selectedUserId = null;
+    document.getElementById("logoutBtn").onclick = () =>
+      signOut(auth).then(() => window.location.href = "login.html");
 
-    async function loadUsers() {
-      const tbody = document.getElementById("userTableBody");
-      const userCountEl = document.getElementById("userCount");
-      tbody.innerHTML = "";
-
-      // 1) Fetch all user documents
-      const snapshot = await getDocs(collection(db, "users"));
-      const totalUsers = snapshot.size;
-      userCountEl.textContent = `Total Users:  ${totalUsers}`;
-
-      // 2) Build an array of { id, data } to later get referral‐counts
-      const userDocs = [];
-      snapshot.forEach(docSnap => {
-        userDocs.push({
-          id: docSnap.id,
-          data: docSnap.data()
-        });
-      });
-
-      // 3) For each user, query how many docs have referral == thisUsername
-      const rowsWithCounts = await Promise.all(
-        userDocs.map(async ({ id, data }) => {
-          const username = data.username || "";
-          // Query Firestore: where "referral" field equals this user's username
-          const refQuery = query(
-            collection(db, "users"),
-            where("referral", "==", username)
-          );
-          const refSnap = await getDocs(refQuery);
-          const referralCount = refSnap.size;
-
-          return {
-            uid: id,
-            username: data.username || "—",
-            balance: data.balance || 0,
-            suspended: data.suspended || false,
-            referralCount
-          };
-        })
-      );
-
-      // 4) Now render each row with the computed referralCount
-      rowsWithCounts.forEach(userObj => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${userObj.username}</td>
-          <td>${userObj.uid}</td>
-          <td>₦${userObj.balance}</td>
-          <td>${userObj.referralCount}</td>
-          <td>${userObj.suspended ? "Suspended" : "Active"}</td>
-          <td>
-            <button
-              class="btn edit-btn"
-              onclick="openModal(
-                '${userObj.uid}',
-                '${userObj.username}',
-                ${userObj.balance},
-                ${userObj.referralCount}
-              )"
-            >
-              Edit
-            </button>
-            <button
-              class="btn suspend-btn"
-              onclick="toggleSuspend(
-                '${userObj.uid}',
-                ${userObj.suspended}
-              )"
-            >
-              ${userObj.suspended ? "Unsuspend" : "Suspend"}
-            </button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    window.openModal = (id, username, balance, referrals) => {
-      selectedUserId = id;
-      document.getElementById("editUsername").value = username;
-      document.getElementById("editBalance").value = balance;
-      document.getElementById("editReferrals").value = referrals;
-      document.getElementById("editModal").style.display = "flex";
-    };
-
-    window.saveChanges = async () => {
-      const username = document.getElementById("editUsername").value;
-      const balance = parseFloat(
-        document.getElementById("editBalance").value
-      );
-      const referrals = parseInt(
-        document.getElementById("editReferrals").value
-      );
-      if (selectedUserId) {
-        await updateDoc(doc(db, "users", selectedUserId), {
-          username,
-          balance,
-          referrals
-        });
-        document.getElementById("editModal").style.display = "none";
-        await loadUsers();
+    onAuthStateChanged(auth, user => {
+      if (!user || user.email.toLowerCase() !== ADMIN_EMAIL) {
+        return signOut(auth).then(() => window.location.href = "login.html");
       }
-    };
-
-    window.toggleSuspend = async (id, currentlySuspended) => {
-      const action = currentlySuspended ? "unsuspend" : "suspend";
-      if (
-        confirm(`Are you sure you want to ${action} this user?`)
-      ) {
-        await updateDoc(doc(db, "users", id), {
-          suspended: !currentlySuspended
-        });
-        await loadUsers();
-      }
-    };
-
-    window.searchUsers = () => {
-      const queryVal = document
-        .getElementById("searchInput")
-        .value.toLowerCase();
-      document.querySelectorAll("#userTableBody tr").forEach(row => {
-        const username = row.children[0].innerText.toLowerCase();
-        const uid = row.children[1].innerText.toLowerCase();
-        row.style.display =
-          username.includes(queryVal) || uid.includes(queryVal)
-            ? ""
-            : "none";
-      });
-    };
-
-    window.addEventListener("click", (e) => {
-      if (e.target === document.getElementById("editModal")) {
-        document.getElementById("editModal").style.display = "none";
-      }
+      loadStats();
     });
 
-    // Initial load of users
-    loadUsers();
-  </script>
+    async function loadStats() {
+      // helper to count a collection
+      const count = async (col) => (await getDocs(collection(db, col))).size;
 
-  <script>
-    function toggleDropdown() {
-      const menu = document.getElementById("dropdownMenu");
-      menu.style.display =
-        menu.style.display === "block" ? "none" : "block";
+      // root-level collections
+      const [u, d, uReq, adv, t] = await Promise.all([
+        count("users"),
+        count("deposits"),
+        count("upgrades"),
+        count("adverts"),
+        count("submissions")
+      ]);
+
+      document.getElementById("totalUsers"  ).innerText = u;
+      document.getElementById("totalDeposits").innerText = d;
+      document.getElementById("totalUpgrades").innerText = uReq;
+      document.getElementById("totalAdverts" ).innerText = adv;
+      document.getElementById("totalTasks"   ).innerText = t;
     }
-    window.addEventListener("click", (e) => {
-      if (!e.target.closest(".dropdown")) {
-        document.getElementById("dropdownMenu").style.display = "none";
-      }
-    });
   </script>
 </body>
 </html>
