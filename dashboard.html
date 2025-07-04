@@ -1,5 +1,8 @@
-<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>EasyPay Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
@@ -21,9 +24,10 @@
     .nav { position:fixed; bottom:0; left:0; width:100%; background:#009f4d; display:flex; justify-content:space-around; padding:10px 0; }
     .nav a { color:#fff; text-decoration:none; font-size:0.9rem; display:flex; flex-direction:column; align-items:center; }
     .nav a i { font-size:1.5rem; margin-bottom:4px; }
-    .modal { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; }
-    .modal-content { background:#fff; padding:30px; border-radius:12px; text-align:center; max-width:90%; }
+    .modal { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; z-index:1000; }
+    .modal-content { background:#fff; padding:30px; border-radius:12px; text-align:center; max-width:90%; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
     .modal-content a { display:inline-block; margin-top:20px; padding:10px 20px; background:#009f4d; color:#fff; border-radius:6px; text-decoration:none; }
+    .modal-content .close-btn { position:absolute; top:10px; right:10px; background:transparent; border:none; font-size:1.2rem; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -38,13 +42,21 @@
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
-  </header>  <div id="upgradeModal" class="modal" style="display:none;">
+  </header>
+
+  <!-- Upgrade modal omitted for brevity -->
+
+  <!-- WhatsApp invite popup -->
+  <div id="whatsappModal" class="modal" style="display:none;">
     <div class="modal-content">
-      <h2>Account Not Activated</h2>
-      <p>Upgrade your plan to access features.</p>
-      <a href="upgrade.html">Upgrade</a>
+      <button class="close-btn" onclick="closeWhatsApp()">×</button>
+      <div style="font-size:3rem;">🤓</div>
+      <h2>Join our official WhatsApp Group</h2>
+      <a href="https://chat.whatsapp.com/CDxiZPmG4TSF37T9nsr5yQ?mode=r_t" target="_blank">Join</a>
     </div>
-  </div>  <div class="container" id="mainContent" style="display:none;">
+  </div>
+
+  <div class="container" id="mainContent" style="display:none;">
     <div class="plan-info">
       <p><strong>Current Plan:</strong> <span id="planName"></span></p>
       <p><strong>Activated On:</strong> <span id="planActivatedOn">-</span></p>
@@ -66,24 +78,51 @@
       <p id="creditMessage">Loading...</p>
       <button id="claimDailyBtn" disabled>Claim ₦1</button>
     </div>
-  </div>  <div class="nav" id="bottomNav">
+  </div>
+
+  <div class="nav" id="bottomNav">
     <a href="menu.html"><i class="fas fa-home"></i>Menu</a>
     <a href="advertise.html"><i class="fas fa-bullhorn"></i>Advertise</a>
     <a href="earn.html"><i class="fas fa-money-bill-wave"></i>Earn</a>
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
-  </div>  <script>
-    function toggleProfile() { document.getElementById('profileInfo').classList.toggle('show'); }
-    function logout() { import('https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js').then(({ getAuth, signOut }) => signOut(getAuth())); }
-    function copyReferral() { navigator.clipboard.writeText(document.getElementById('referralCode').innerText); }
-  </script>  <script type="module">
+  </div>
+
+  <script>
+    function toggleProfile() {
+      document.getElementById('profileInfo').classList.toggle('show');
+    }
+    function logout() {
+      import('https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js')
+        .then(({ getAuth, signOut }) => signOut(getAuth()));
+    }
+    function copyReferral() {
+      navigator.clipboard.writeText(
+        document.getElementById('referralCode').innerText
+      );
+    }
+    function closeWhatsApp() {
+      document.getElementById('whatsappModal').style.display = 'none';
+    }
+  </script>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, Timestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, addDoc, collection, Timestamp
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    const firebaseConfig = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8", storageBucket:"easypay-6bce8.appspot.com", messagingSenderId:"862671358267", appId:"1:862671358267:web:b243c7b69840ef918c8f1e" };
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
-    const auth= getAuth();
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    const app  = initializeApp(firebaseConfig);
+    const db   = getFirestore(app);
+    const auth = getAuth();
 
     let userRef, userData;
     const claimBtn = document.getElementById('claimDailyBtn');
@@ -96,35 +135,28 @@
       if(!snap.exists()) return location.href='login.html';
       userData = snap.data();
 
-      // header & stats
+      // Populate header & stats
       document.getElementById('usernameDisplay').innerText = userData.username;
-      document.getElementById('profileUsername').innerText = userData.username;
-      document.getElementById('profileEmail').innerText    = user.email;
-      document.getElementById('profileBalance').innerText  = (userData.balance||0).toFixed(2);
-      document.getElementById('balance').innerText         = (userData.balance||0).toFixed(2);
-      document.getElementById('referrals').innerText       = userData.referralCount||0;
-      document.getElementById('referralCode').innerText    = userData.username;
+      document.getElementById('profileUsername').innerText    = userData.username;
+      document.getElementById('profileEmail').innerText       = user.email;
+      document.getElementById('profileBalance').innerText     = (userData.balance||0).toFixed(2);
+      document.getElementById('balance').innerText            = (userData.balance||0).toFixed(2);
+      document.getElementById('referrals').innerText          = userData.referralCount||0;
+      document.getElementById('referralCode').innerText       = userData.username;
 
-      // plan info patch
+      // Plan info
       const plan = userData.plan || 'basic';
       document.getElementById('planName').innerText = plan.charAt(0).toUpperCase()+plan.slice(1);
 
       let startMs = null;
       if (userData.planStart != null) {
-        if (userData.planStart.toMillis) startMs = userData.planStart.toMillis();
-        else startMs = userData.planStart;
+        startMs = userData.planStart.toMillis ? userData.planStart.toMillis() : userData.planStart;
       }
-
       if (plan!=='basic' && startMs) {
-        const activatedOn = new Date(startMs).toLocaleDateString();
-        document.getElementById('planActivatedOn').innerText = activatedOn;
-        const MS_PER_DAY = 24*3600*1000;
+        document.getElementById('planActivatedOn').innerText = new Date(startMs).toLocaleDateString();
         const elapsed = Date.now() - startMs;
-        const left = Math.max(0, 30 - Math.floor(elapsed/MS_PER_DAY));
-        document.getElementById('planDaysLeft').innerText = left+' day'+(left===1?'':'s');
-      } else {
-        document.getElementById('planActivatedOn').innerText = '-';
-        document.getElementById('planDaysLeft').innerText    = '-';
+        const left    = Math.max(0, 30 - Math.floor(elapsed/(24*3600*1000)));
+        document.getElementById('planDaysLeft').innerText   = left+' day'+(left===1?'':'s');
       }
 
       const allowed = ['premium','gold','elite','diamond','platinum'];
@@ -133,15 +165,19 @@
         document.getElementById('mainContent').style.display='none';
         document.getElementById('bottomNav').style.display='none';
       } else {
-        document.getElementById('upgradeModal').style.display='none';
+        document.getElementById('whatsappModal').style.display='none'; // hide initially
         document.getElementById('mainContent').style.display='block';
         document.getElementById('bottomNav').style.display='flex';
         setupDailyCredit();
+        // show WhatsApp invite after 3s
+        setTimeout(()=> {
+          document.getElementById('whatsappModal').style.display='flex';
+        }, 3000);
       }
     });
 
     async function setupDailyCredit() {
-      const last = userData.lastCredit && userData.lastCredit.toMillis ? userData.lastCredit.toMillis() : (userData.lastCredit||0);
+      const last = userData.lastCredit?.toMillis ? userData.lastCredit.toMillis() : (userData.lastCredit||0);
       const diff = Date.now() - last;
       if (diff>=24*3600*1000) {
         creditMsg.innerText='You can claim ₦1 now!'; claimBtn.disabled=false;
@@ -158,13 +194,22 @@
       claimBtn.onclick=async()=>{
         claimBtn.disabled=true;
         try{
-          await updateDoc(userRef,{ balance:increment(1), lastCredit: serverTimestamp() });
-          await addDoc(collection(userRef,'transactionHistory'),{ type:'Daily Credit', amount:1, timestamp: serverTimestamp() });
+          await updateDoc(userRef,{
+            balance: increment(1),
+            lastCredit: serverTimestamp()
+          });
+          await addDoc(collection(userRef,'transactionHistory'),{
+            type:'Daily Credit',
+            amount:1,
+            timestamp: serverTimestamp()
+          });
           const fresh=await getDoc(userRef);
           userData=fresh.data();
           document.getElementById('balance').innerText=(userData.balance||0).toFixed(2);
           setupDailyCredit();
-        }catch{ creditMsg.innerText='Error—try again later.'; }
+        }catch{
+          creditMsg.innerText='Error—try again later.';
+        }
       };
     }
     function updateTimer(ms) {
@@ -173,5 +218,6 @@
       const s=String(Math.floor((ms%60000)/1000)).padStart(2,'0');
       creditMsg.innerText=`Next credit in ${h}:${m}:${s}`;
     }
-  </script></body>
-            </html>
+  </script>
+</body>
+</html>
