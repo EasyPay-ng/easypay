@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>EasyPay Admin – Manage Users</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
+  <style>
+    :root {
+      --green: #009f4d;
+      --light: #f5fdf7;
+      --white: #fff;
+      --shadow: rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin:0; padding:0; font-family:'Segoe UI',sans-serif; }
+    body { background:var(--light); color:#333; }
+    header {
+      background:var(--green);
+      color:var(--white);
+      padding:1rem 2rem;
+      display:flex; justify-content:space-between; align-items:center;
+      box-shadow:0 2px 6px var(--shadow);
+    }
+    header h1 { font-size:1.5rem; }
+    header button {
+      background:var(--white); color:var(--green);
+      border:none; padding:.5rem 1rem; border-radius:6px;
+      cursor:pointer; font-weight:bold; box-shadow:0 2px 6px var(--shadow);
+    }
+    header button:hover { background:#e0f6e8; }
+    .container { padding:2rem; max-width:1000px; margin:auto; }
+    .search-bar {
+      display:flex; gap:.5rem; margin-bottom:1rem;
+    }
+    .search-bar input {
+      flex:1; padding:.5rem; border:1px solid #ccc; border-radius:4px;
+    }
+    .search-bar button {
+      background:var(--green); color:var(--white);
+      border:none; padding:.5rem 1rem; border-radius:4px; cursor:pointer;
+    }
+    .search-bar button:hover { background:#018f45; }
+    table {
+      width:100%; border-collapse:collapse;
+      background:var(--white); border-radius:6px; overflow:hidden;
+      box-shadow:0 2px 6px var(--shadow);
+    }
+    th, td {
+      padding:.75rem 1rem; border-bottom:1px solid #eee; font-size:.9rem;
+      text-align:left;
+    }
+    thead { background:var(--green); color:var(--white); }
+    tbody tr:hover { background:#f0fff0; }
+    .btn {
+      padding:.4rem .8rem; border:none; border-radius:4px; cursor:pointer; font-size:.85rem;
+      color:#fff;
+    }
+    .edit { background:#4caf50; }
+    .suspend { background:#dc3545; }
+    .history { background:#007bff; }
+    .btn + .btn { margin-left:.3rem; }
+    /* Modal */
+    .modal-backdrop {
+      position:fixed; top:0; left:0; width:100vw; height:100vh;
+      background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center;
+      z-index:1000;
+    }
+    .modal {
+      background:var(--white); padding:1.5rem; border-radius:8px;
+      max-width:400px; width:90%; box-shadow:0 2px 8px var(--shadow);
+    }
+    .modal h2 { margin-bottom:1rem; }
+    .modal label { display:block; margin:.5rem 0 .2rem; font-weight:bold; }
+    .modal input { width:100%; padding:.5rem; border:1px solid #ccc; border-radius:4px; }
+    .modal .actions { margin-top:1rem; text-align:right; }
+    .modal .actions button { margin-left:.5rem; }
+    .no-data { text-align:center; padding:2rem; color:#666; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Manage Users</h1>
+    <button id="logoutBtn">Logout</button>
+  </header>
+  <main class="container">
+    <div class="search-bar">
+      <input id="searchInput" placeholder="Username or UID…"/>
+      <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
+    </div>
+    <div id="tableWrap">
+      <p class="no-data">Loading users…</p>
+    </div>
+  </main>
+
+  <!-- Edit Modal -->
+  <div class="modal-backdrop" id="editModal">
+    <div class="modal">
+      <h2>Edit User</h2>
+      <label>Username</label>
+      <input id="editUsername" />
+      <label>Balance</label>
+      <input id="editBalance" type="number" />
+      <div class="actions">
+        <button id="cancelEdit">Cancel</button>
+        <button id="saveEdit" class="btn edit">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-backdrop" id="historyModal">
+    <div class="modal">
+      <h2>Transaction History</h2>
+      <ul id="historyList" style="list-style:none;padding:0;max-height:300px;overflow:auto;"></ul>
+      <div class="actions">
+        <button id="closeHistory">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, signOut
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import {
+      getFirestore, collection, getDocs, doc, updateDoc, query, orderBy, limit, getDocs as getSubDocs
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+    // config
+    const cfg = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+
+    const app  = initializeApp(cfg);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const ADMIN_EMAIL = "easypay27.ng@gmail.com";
+
+    const wrap = document.getElementById("tableWrap");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+
+    let users = [], editingUid = null;
+
+    // Modals
+    const editModal = document.getElementById("editModal");
+    const historyModal = document.getElementById("historyModal");
+    const editUsername = document.getElementById("editUsername");
+    const editBalance  = document.getElementById("editBalance");
+    const saveEdit     = document.getElementById("saveEdit");
+    const cancelEdit   = document.getElementById("cancelEdit");
+    const historyList  = document.getElementById("historyList");
+    const closeHistory = document.getElementById("closeHistory");
+
+    logoutBtn.onclick = () =>
+      signOut(auth).then(() => location.href="login.html");
+
+    onAuthStateChanged(auth, u => {
+      if (!u || u.email.toLowerCase() !== ADMIN_EMAIL) {
+        return signOut(auth).then(() => location.href="login.html");
+      }
+      loadUsers();
+    });
+
+    searchBtn.onclick = filterTable;
+    searchInput.onkeypress = e => { if (e.key==="Enter") filterTable(); };
+
+    async function loadUsers(){
+      wrap.innerHTML = `<p class="no-data">Loading users…</p>`;
+      const snap = await getDocs(collection(db,"users"));
+      users = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      render(users);
+    }
+
+    function render(list){
+      if (!list.length) {
+        wrap.innerHTML = `<p class="no-data">No users found.</p>`;
+        return;
+      }
+      let html = `<table><thead>
+        <tr>
+          <th>Username</th><th>UID</th><th>Balance</th><th>Actions</th>
+        </tr></thead><tbody>`;
+      for(let u of list){
+        html += `<tr>
+          <td>${u.username||'—'}</td>
+          <td>${u.id}</td>
+          <td>₦${(u.balance||0).toFixed(2)}</td>
+          <td>
+            <button class="btn edit" data-id="${u.id}">Edit</button>
+            <button class="btn suspend" data-id="${u.id}">
+              ${u.suspended? 'Unsuspend':'Suspend'}
+            </button>
+            <button class="btn history" data-id="${u.id}">History</button>
+          </td>
+        </tr>`;
+      }
+      html += `</tbody></table>`;
+      wrap.innerHTML = html;
+
+      wrap.querySelectorAll(".edit").forEach(b=>
+        b.onclick = () => openEdit(b.dataset.id)
+      );
+      wrap.querySelectorAll(".suspend").forEach(b=>
+        b.onclick = () => toggleSuspend(b.dataset.id)
+      );
+      wrap.querySelectorAll(".history").forEach(b=>
+        b.onclick = () => viewHistory(b.dataset.id)
+      );
+    }
+
+    function filterTable(){
+      const q = searchInput.value.trim().toLowerCase();
+      render(q
+        ? users.filter(u=>
+            (u.username||'').toLowerCase().includes(q)
+         || u.id.toLowerCase().includes(q)
+          )
+        : users
+      );
+    }
+
+    // --- Edit flow ---
+    function openEdit(uid){
+      editingUid = uid;
+      const u = users.find(x=>x.id===uid);
+      editUsername.value = u.username;
+      editBalance.value  = u.balance||0;
+      editModal.style.display = "flex";
+    }
+    cancelEdit.onclick = ()=> editModal.style.display="none";
+    saveEdit.onclick = async ()=>{
+      const data = {
+        username: editUsername.value.trim(),
+        balance: parseFloat(editBalance.value)||0
+      };
+      await updateDoc(doc(db,"users",editingUid),data);
+      editModal.style.display="none";
+      loadUsers();
+    };
+
+    // --- Suspend flow ---
+    async function toggleSuspend(uid){
+      const u = users.find(x=>x.id===uid);
+      await updateDoc(doc(db,"users",uid),{ suspended: !u.suspended });
+      loadUsers();
+    }
+
+    // --- History flow ---
+    async function viewHistory(uid){
+      historyList.innerHTML = `<li>Loading…</li>`;
+      historyModal.style.display="flex";
+      const histRef = collection(db,"users",uid,"transactionHistory");
+      const q = query(histRef, orderBy("timestamp","desc"), limit(10));
+      const snap = await getSubDocs(q);
+      if (snap.empty){
+        historyList.innerHTML = `<li class="no-data">No transactions.</li>`;
+      } else {
+        historyList.innerHTML = "";
+        snap.forEach(d=>{
+          const tx = d.data();
+          const time = tx.timestamp?.toDate().toLocaleString()||"";
+          historyList.innerHTML += `<li>
+            <strong>${tx.type}</strong>: ₦${tx.amount.toFixed(2)}
+            <br><small>${time}</small>
+          </li>`;
+        });
+      }
+    }
+    closeHistory.onclick = ()=> historyModal.style.display="none";
+  </script>
+</body>
+</html>
