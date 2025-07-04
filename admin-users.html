@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -93,25 +92,21 @@
     <div id="tableWrap">
       <p class="no-data">Loading users…</p>
     </div>
-  </main>
-
-  <!-- Edit Modal -->
-  <div class="modal-backdrop" id="editModal">
+  </main>  <!-- Edit Modal -->  <div class="modal-backdrop" id="editModal">
     <div class="modal">
       <h2>Edit User</h2>
       <label>Username</label>
       <input id="editUsername" />
       <label>Balance</label>
       <input id="editBalance" type="number" />
+      <label>Remark</label>
+      <input id="editRemark" placeholder="Adjustment note…" />
       <div class="actions">
         <button id="cancelEdit">Cancel</button>
         <button id="saveEdit" class="btn edit">Save</button>
       </div>
     </div>
-  </div>
-
-  <!-- History Modal -->
-  <div class="modal-backdrop" id="historyModal">
+  </div>  <!-- History Modal -->  <div class="modal-backdrop" id="historyModal">
     <div class="modal">
       <h2>Transaction History</h2>
       <ul id="historyList" style="list-style:none;padding:0;max-height:300px;overflow:auto;"></ul>
@@ -119,88 +114,72 @@
         <button id="closeHistory">Close</button>
       </div>
     </div>
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
     import {
-      getAuth, onAuthStateChanged, signOut
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import {
-      getFirestore, collection, getDocs, doc, updateDoc, query, orderBy, limit, getDocs as getSubDocs
+      getFirestore, collection, getDocs, doc, updateDoc,
+      query, orderBy, limit, getDocs as getSubDocs, addDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    // config
-    const cfg = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
-
+    const cfg = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8" };
     const app  = initializeApp(cfg);
     const auth = getAuth(app);
     const db   = getFirestore(app);
     const ADMIN_EMAIL = "easypay27.ng@gmail.com";
 
-    const wrap = document.getElementById("tableWrap");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const searchInput = document.getElementById("searchInput");
-    const searchBtn = document.getElementById("searchBtn");
+    const wrap          = document.getElementById("tableWrap");
+    const logoutBtn     = document.getElementById("logoutBtn");
+    const searchInput   = document.getElementById("searchInput");
+    const searchBtn     = document.getElementById("searchBtn");
 
     let users = [], editingUid = null;
 
     // Modals
-    const editModal = document.getElementById("editModal");
-    const historyModal = document.getElementById("historyModal");
-    const editUsername = document.getElementById("editUsername");
-    const editBalance  = document.getElementById("editBalance");
-    const saveEdit     = document.getElementById("saveEdit");
-    const cancelEdit   = document.getElementById("cancelEdit");
-    const historyList  = document.getElementById("historyList");
-    const closeHistory = document.getElementById("closeHistory");
+    const editModal     = document.getElementById("editModal");
+    const historyModal  = document.getElementById("historyModal");
+    const editUsername  = document.getElementById("editUsername");
+    const editBalance   = document.getElementById("editBalance");
+    const editRemark    = document.getElementById("editRemark");
+    const saveEdit      = document.getElementById("saveEdit");
+    const cancelEdit    = document.getElementById("cancelEdit");
+    const historyList   = document.getElementById("historyList");
+    const closeHistory  = document.getElementById("closeHistory");
 
-    logoutBtn.onclick = () =>
-      signOut(auth).then(() => location.href="login.html");
+    logoutBtn.onclick = () => signOut(auth).then(()=> location.href="login.html");
 
     onAuthStateChanged(auth, u => {
-      if (!u || u.email.toLowerCase() !== ADMIN_EMAIL) {
-        return signOut(auth).then(() => location.href="login.html");
+      if(!u || u.email.toLowerCase()!== ADMIN_EMAIL) {
+        return signOut(auth).then(()=> location.href="login.html");
       }
       loadUsers();
     });
 
     searchBtn.onclick = filterTable;
-    searchInput.onkeypress = e => { if (e.key==="Enter") filterTable(); };
+    searchInput.onkeypress = e => { if(e.key==="Enter") filterTable(); };
 
-    async function loadUsers(){
+    async function loadUsers() {
       wrap.innerHTML = `<p class="no-data">Loading users…</p>`;
       const snap = await getDocs(collection(db,"users"));
-      users = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      users = snap.docs.map(d => ({ id:d.id, ...d.data() }));
       render(users);
     }
 
-    function render(list){
-      if (!list.length) {
+    function render(list) {
+      if(!list.length) {
         wrap.innerHTML = `<p class="no-data">No users found.</p>`;
         return;
       }
-      let html = `<table><thead>
-        <tr>
-          <th>Username</th><th>UID</th><th>Balance</th><th>Actions</th>
-        </tr></thead><tbody>`;
-      for(let u of list){
+      const MS_DAY = 24*60*60*1000;
+      let html = `<table><thead><tr><th>Username</th><th>UID</th><th>Balance</th><th>Actions</th></tr></thead><tbody>`;
+      for(const u of list){
         html += `<tr>
-          <td>${u.username||'—'}</td>
+          <td>${u.username|| '—'}</td>
           <td>${u.id}</td>
           <td>₦${(u.balance||0).toFixed(2)}</td>
           <td>
             <button class="btn edit" data-id="${u.id}">Edit</button>
-            <button class="btn suspend" data-id="${u.id}">
-              ${u.suspended? 'Unsuspend':'Suspend'}
-            </button>
+            <button class="btn suspend" data-id="${u.id}">${u.suspended? 'Unsuspend':'Suspend'}</button>
             <button class="btn history" data-id="${u.id}">History</button>
           </td>
         </tr>`;
@@ -208,76 +187,79 @@
       html += `</tbody></table>`;
       wrap.innerHTML = html;
 
-      wrap.querySelectorAll(".edit").forEach(b=>
-        b.onclick = () => openEdit(b.dataset.id)
-      );
-      wrap.querySelectorAll(".suspend").forEach(b=>
-        b.onclick = () => toggleSuspend(b.dataset.id)
-      );
-      wrap.querySelectorAll(".history").forEach(b=>
-        b.onclick = () => viewHistory(b.dataset.id)
-      );
+      wrap.querySelectorAll(".edit").forEach(b => b.onclick = ()=> openEdit(b.dataset.id));
+      wrap.querySelectorAll(".suspend").forEach(b => b.onclick = ()=> toggleSuspend(b.dataset.id));
+      wrap.querySelectorAll(".history").forEach(b => b.onclick = ()=> viewHistory(b.dataset.id));
     }
 
-    function filterTable(){
+    function filterTable() {
       const q = searchInput.value.trim().toLowerCase();
-      render(q
-        ? users.filter(u=>
-            (u.username||'').toLowerCase().includes(q)
-         || u.id.toLowerCase().includes(q)
-          )
-        : users
+      render(
+        q ? users.filter(u => (u.username||"").toLowerCase().includes(q) || u.id.toLowerCase().includes(q))
+          : users
       );
     }
 
-    // --- Edit flow ---
-    function openEdit(uid){
+    // Edit
+    function openEdit(uid) {
       editingUid = uid;
       const u = users.find(x=>x.id===uid);
       editUsername.value = u.username;
       editBalance.value  = u.balance||0;
-      editModal.style.display = "flex";
+      editRemark.value   = '';
+      editModal.style.display = 'flex';
     }
-    cancelEdit.onclick = ()=> editModal.style.display="none";
+    cancelEdit.onclick = ()=> editModal.style.display = 'none';
     saveEdit.onclick = async ()=>{
-      const data = {
-        username: editUsername.value.trim(),
-        balance: parseFloat(editBalance.value)||0
-      };
-      await updateDoc(doc(db,"users",editingUid),data);
-      editModal.style.display="none";
+      const newName = editUsername.value.trim();
+      const newBal  = parseFloat(editBalance.value)||0;
+      const remark  = editRemark.value.trim() || 'Admin Adjustment';
+      // get old balance
+      const uBefore = users.find(x=>x.id===editingUid);
+      const delta   = newBal - (uBefore.balance||0);
+      // update user doc
+      await updateDoc(doc(db,'users',editingUid),{ username:newName, balance:newBal });
+      // record transaction
+      await addDoc(collection(db,'users',editingUid,'transactionHistory'),{
+        type: 'Admin Adjustment',
+        amount: delta,
+        remark,
+        timestamp: serverTimestamp()
+      });
+      editModal.style.display = 'none';
       loadUsers();
     };
 
-    // --- Suspend flow ---
-    async function toggleSuspend(uid){
+    // Suspend
+    async function toggleSuspend(uid) {
       const u = users.find(x=>x.id===uid);
-      await updateDoc(doc(db,"users",uid),{ suspended: !u.suspended });
+      await updateDoc(doc(db,'users',uid),{ suspended: !u.suspended });
       loadUsers();
     }
 
-    // --- History flow ---
-    async function viewHistory(uid){
-      historyList.innerHTML = `<li>Loading…</li>`;
-      historyModal.style.display="flex";
-      const histRef = collection(db,"users",uid,"transactionHistory");
-      const q = query(histRef, orderBy("timestamp","desc"), limit(10));
+    // History
+    async function viewHistory(uid) {
+      historyList.innerHTML = `<li class="no-data">Loading…</li>`;
+      historyModal.style.display = 'flex';
+      const q = query(
+        collection(db,'users',uid,'transactionHistory'),
+        orderBy('timestamp','desc'), limit(10)
+      );
       const snap = await getSubDocs(q);
-      if (snap.empty){
-        historyList.innerHTML = `<li class="no-data">No transactions.</li>`;
-      } else {
-        historyList.innerHTML = "";
+      if(snap.empty) historyList.innerHTML = `<li class="no-data">No transactions.</li>`;
+      else {
+        historyList.innerHTML = '';
         snap.forEach(d=>{
-          const tx = d.data();
-          const time = tx.timestamp?.toDate().toLocaleString()||"";
+          const t = d.data();
+          const time = t.timestamp?.toDate().toLocaleString()||'';
           historyList.innerHTML += `<li>
-            <strong>${tx.type}</strong>: ₦${tx.amount.toFixed(2)}
-            <br><small>${time}</small>
+            <strong>${t.type}</strong>: ₦${t.amount.toFixed(2)}<br>
+            <em>${t.remark||''}</em><br>
+            <small>${time}</small>
           </li>`;
         });
       }
     }
-    closeHistory.onclick = ()=> historyModal.style.display="none";
-  </script>
-</body>
+    closeHistory.onclick = ()=> historyModal.style.display='none';
+  </script></body>
 </html>
