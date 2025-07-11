@@ -1,233 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EasyPay Premium Offers</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – Create Quiz</title>
   <style>
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f8fff8;
+      background-color: #f9fff9;
+      padding: 20px;
       color: #003300;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
     }
-    header {
-      background-color: #006400;
-      color: white;
-      width: 100%;
-      padding: 16px 20px;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: normal;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    h1 {
+      color: #006400;
     }
     .container {
       max-width: 800px;
-      width: 100%;
-      margin: 20px auto;
-      padding: 0 16px;
-      flex-grow: 1;
-    }
-    .offer-card {
+      margin: auto;
+      padding: 20px;
       background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,100,0,0.1);
-      overflow: hidden;
-      margin-bottom: 20px;
-      transition: transform 0.2s, box-shadow 0.2s;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 100, 0, 0.1);
     }
-    .offer-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 15px rgba(0,100,0,0.2);
-    }
-    .offer-header {
-      display: flex;
-      align-items: center;
-      padding: 16px;
-      background-color: #e6f4e6;
-    }
-    .offer-header .emoji {
-      font-size: 2rem;
-      margin-right: 12px;
-    }
-    .offer-header h2 {
-      margin: 0;
-      font-size: 1.25rem;
-      color: #006400;
-    }
-    .offer-body {
-      padding: 16px;
-      line-height: 1.5;
-      color: #004400;
-    }
-    .requirements {
-      margin: 16px 0;
-      padding-left: 20px;
-    }
-    .requirements li {
-      margin-bottom: 8px;
+    label {
+      display: block;
+      margin-top: 10px;
       font-weight: bold;
     }
-    .crypto-info {
-      background: #f0fff0;
-      border: 1px solid #a3d9a5;
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 20px;
-      color: #004400;
-    }
-    .crypto-info p {
-      margin: 6px 0;
-    }
-    .ltc-address {
-      font-family: monospace;
-      background: #fff;
-      border: 1px dashed #006400;
+    input[type="text"], select {
+      width: 100%;
       padding: 8px;
-      border-radius: 4px;
-      word-break: break-all;
+      border: 1px solid #ccc;
+      border-radius: 6px;
       margin-top: 4px;
     }
-    .action-button {
-      display: block;
-      text-align: center;
-      background: #007700;
-      color: #fff;
-      padding: 12px 0;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 1rem;
-      margin: 0 16px 20px;
-      transition: background 0.2s;
+    .question-block {
+      margin-top: 20px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f4fff4;
     }
-    .action-button:hover {
-      background: #005f00;
+    button {
+      margin-top: 20px;
+      padding: 10px 16px;
+      background-color: #006400;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
     }
-    /* Access Denied Styles */
-    #accessDenied {
-      display: none;
+    table {
       width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
       text-align: center;
-      padding: 40px 20px;
-      box-sizing: border-box;
-      flex-grow: 1;
     }
-    #accessDenied .emoji-large {
-      font-size: 4rem;
-      margin-bottom: 20px;
-    }
-    #accessDenied h2 {
-      font-size: 1.75rem;
-      color: #cc0000;
-      margin-bottom: 12px;
-    }
-    #accessDenied p {
-      font-size: 1.1rem;
-      color: #555;
-      margin-bottom: 20px;
-    }
-    #upgradeButton {
-      display: inline-block;
-      background: #006400;
-      color: #fff;
-      padding: 12px 24px;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 1rem;
-      transition: background 0.2s;
-    }
-    #upgradeButton:hover {
-      background: #004d00;
-    }
-    @media (max-width: 600px) {
-      header { font-size: 1.25rem; padding: 12px; }
-      .offer-header .emoji { font-size: 1.75rem; }
-      #accessDenied .emoji-large { font-size: 3rem; }
-      #accessDenied h2 { font-size: 1.5rem; }
+    th {
+      background-color: #e6ffe6;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Create Daily Quiz</h1>
+    <label>Select Category</label>
+    <select id="category">
+      <option value="">-- Choose Category --</option>
+      <option value="Science">Science</option>
+      <option value="Nature">Nature</option>
+      <option value="Food">Food</option>
+      <option value="History">History</option>
+      <option value="Technology">Technology</option>
+      <option value="Health">Health</option>
+    </select><div id="questions"></div>
 
-  <!-- HEADER -->
-  <header>EasyPay Nigeria</header>
+<button onclick="submitQuiz()">Submit Quiz</button>
 
-  <!-- Access Denied Container -->
-  <div id="accessDenied">
-    <div class="emoji-large">😓</div>
-    <h2>Premium Members Only</h2>
-    <p>This page can only be viewed by our premium members.</p>
-    <p>Upgrade now to gain access to exclusive offers and earn more rewards!</p>
-    <a
-      id="upgradeButton"
-      href="https://easypay-ng.github.io/easypay/upgrade.html"
-      target="_blank"
-    >
-      Upgrade to Premium
-    </a>
-  </div>
+<h2>Today's Attempts</h2>
+<table>
+  <thead>
+    <tr><th>Category</th><th>Attempts</th></tr>
+  </thead>
+  <tbody id="statsBody"></tbody>
+</table>
 
-  <!-- Premium Content Container -->
-  <div class="container" id="premiumContent">
-    <!-- FIRST OFFER: FreeCash -->
-    <div class="offer-card">
-      <div class="offer-header">
-        <div class="emoji">💰</div>
-        <h2>FreeCash Offer</h2>
-      </div>
-      <div class="offer-body">
-        <p>
-          Earn rewards from completing offers and surveys. Payment will be
-          made to your local bank account as long as you follow these
-          requirements:
-        </p>
-        <ul class="requirements">
-          <li>Must be an active EasyPay user</li>
-          <li>Complete each offer or survey in full</li>
-          <li>Provide valid personal and banking information</li>
-          <li>Only one EasyPay account per user</li>
-        </ul>
-        <div class="crypto-info">
-          <p>
-            Anytime you want to cash out your money, withdraw via
-            cryptocurrency—specifically Litecoin. Send the funds to the
-            address below:
-          </p>
-          <div class="ltc-address">
-            LQk9uT3YB2TZeLx4FYCxvR7kVgy7nNRuCK
-          </div>
-          <p>
-            It will be moved to your EasyPay account at the rate of ₦1400 per
-            $.
-          </p>
-        </div>
-        <a
-          href="https://freecash.com/r/EasyPay22"
-          target="_blank"
-          class="action-button"
-        >
-          Start Offer on FreeCash
-        </a>
-      </div>
-    </div>
-
-    <!-- You can add more offer cards here -->
-  </div>
-
-  <!-- Firebase SDKs (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <script>
-    // Initialize Firebase
+  </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -236,48 +98,72 @@
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
+
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const accessDeniedDiv = document.getElementById("accessDenied");
-    const premiumContentDiv = document.getElementById("premiumContent");
+    const qDiv = document.getElementById('questions');
+    for (let i = 1; i <= 10; i++) {
+      const block = document.createElement('div');
+      block.className = 'question-block';
+      block.innerHTML = `
+        <label>Question ${i}</label>
+        <input type="text" id="q${i}" placeholder="Enter question" />
+        <label>Option A</label><input type="text" id="q${i}a" />
+        <label>Option B</label><input type="text" id="q${i}b" />
+        <label>Option C</label><input type="text" id="q${i}c" />
+        <label>Option D</label><input type="text" id="q${i}d" />
+        <label>Correct Answer</label>
+        <select id="q${i}correct">
+          <option value="">Select</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
+      `;
+      qDiv.appendChild(block);
+    }
 
-    // Hide both sections initially
-    accessDeniedDiv.style.display = "none";
-    premiumContentDiv.style.display = "none";
+    async function submitQuiz() {
+      const category = document.getElementById('category').value;
+      if (!category) return alert("Select a category");
 
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        // Not logged in → show "Premium Members Only"
-        accessDeniedDiv.style.display = "block";
-        premiumContentDiv.style.display = "none";
-        return;
+      const today = new Date().toISOString().split('T')[0];
+      const quizRef = db.collection("quizzes").doc(category).collection("dates").doc(today);
+      const doc = await quizRef.get();
+      if (doc.exists) return alert("Quiz already exists for this category today!");
+
+      const questions = [];
+      for (let i = 1; i <= 10; i++) {
+        const q = document.getElementById(`q${i}`).value.trim();
+        const a = document.getElementById(`q${i}a`).value.trim();
+        const b = document.getElementById(`q${i}b`).value.trim();
+        const c = document.getElementById(`q${i}c`).value.trim();
+        const d = document.getElementById(`q${i}d`).value.trim();
+        const correct = document.getElementById(`q${i}correct`).value;
+        if (!q || !a || !b || !c || !d || !correct) return alert(`Fill all fields for question ${i}`);
+        questions.push({ question: q, options: { A: a, B: b, C: c, D: d }, correct });
       }
 
-      try {
-        const userDoc = await db.collection("users").doc(user.uid).get();
-        const userData = userDoc.data() || {};
+      await quizRef.set({ questions, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      alert("Quiz created successfully!");
+    }
 
-        // Read the "plan" field (basic vs. premium)
-        const plan = (userData.plan || "basic").toLowerCase();
-
-        if (plan === "premium") {
-          // Premium user → show premium offers
-          accessDeniedDiv.style.display = "none";
-          premiumContentDiv.style.display = "block";
-        } else {
-          // Basic user → still show access denied
-          accessDeniedDiv.style.display = "block";
-          premiumContentDiv.style.display = "none";
-        }
-      } catch (err) {
-        console.error("Error checking user plan:", err);
-        // On any error, hide premium content and show access denied
-        accessDeniedDiv.style.display = "block";
-        premiumContentDiv.style.display = "none";
+    async function loadStats() {
+      const today = new Date().toISOString().split('T')[0];
+      const statsBody = document.getElementById("statsBody");
+      const cats = ["Science", "Nature", "Food", "History", "Technology", "Health"];
+      for (let cat of cats) {
+        const snapshot = await db.collection("quiz_attempts")
+          .where("category", "==", cat)
+          .where("date", "==", today).get();
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${cat}</td><td>${snapshot.size}</td>`;
+        statsBody.appendChild(row);
       }
-    });
-  </script>
-</body>
+    }
+
+    loadStats();
+  </script></body>
 </html>
