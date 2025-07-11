@@ -72,18 +72,18 @@
   <div class="wheel-container">
     <div class="pointer"></div>
     <div class="wheel" id="wheel">
-      <!-- Wheel segments dynamically injected -->
+      <!-- Segments dynamically added -->
     </div>
   </div>
   <button onclick="spinWheel()" id="spinBtn">Spin</button>
   <div id="result"></div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <script>
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -97,29 +97,43 @@
     const db = firebase.firestore();
 
     const rewards = [50, 100, 40, 70, 80];
-    const rewardProbabilities = [0.25, 0.175, 0.2, 0.2, 0.175]; // total = 1
+    const probabilities = [0.25, 0.175, 0.2, 0.2, 0.175];
 
-    // Render wheel
     const wheel = document.getElementById("wheel");
     const totalSegments = rewards.length;
-    rewards.forEach((r, i) => {
+    rewards.forEach((reward, i) => {
       const angle = 360 / totalSegments;
       const span = document.createElement("span");
       span.style.transform = `rotate(${i * angle}deg) skewY(-${90 - angle}deg)`;
-      span.textContent = `₦${r}`;
+      span.textContent = `₦${reward}`;
       span.style.background = i % 2 === 0 ? "#caffca" : "#e6ffe6";
       wheel.appendChild(span);
     });
 
     let spinning = false;
 
-    function spinWheel() {
+    async function spinWheel() {
       if (spinning) return;
+
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in first.");
+
+      const userDoc = await db.collection("users").doc(user.uid).get();
+      const lastSpin = userDoc.data()?.lastSpin?.toDate();
+      const now = new Date();
+
+      if (lastSpin && now - lastSpin < 86400000) {
+        const nextSpinTime = new Date(lastSpin.getTime() + 86400000);
+        const hours = nextSpinTime.getHours().toString().padStart(2, '0');
+        const mins = nextSpinTime.getMinutes().toString().padStart(2, '0');
+        return alert(`You’ve already spun today. Try again after ${hours}:${mins}.`);
+      }
+
       spinning = true;
       document.getElementById("spinBtn").disabled = true;
       document.getElementById("result").textContent = "";
 
-      const selectedIndex = getWeightedRandomIndex(rewardProbabilities);
+      const selectedIndex = getWeightedRandomIndex(probabilities);
       const anglePerSegment = 360 / totalSegments;
       const rotateTo = (360 * 5) + (360 - selectedIndex * anglePerSegment - anglePerSegment / 2);
 
@@ -129,15 +143,10 @@
       const wonAmount = rewards[selectedIndex];
 
       setTimeout(async () => {
-        const user = firebase.auth().currentUser;
-        if (!user) {
-          alert("User not logged in");
-          spinning = false;
-          return;
-        }
-
-        const userRef = db.collection("users").doc(user.uid);
-        await userRef.update({ balance: firebase.firestore.FieldValue.increment(wonAmount) });
+        await db.collection("users").doc(user.uid).update({
+          balance: firebase.firestore.FieldValue.increment(wonAmount),
+          lastSpin: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
         await db.collection("transactions").add({
           userId: user.uid,
@@ -153,14 +162,14 @@
       }, 4200);
     }
 
-    function getWeightedRandomIndex(probabilities) {
-      const rand = Math.random();
-      let sum = 0;
-      for (let i = 0; i < probabilities.length; i++) {
-        sum += probabilities[i];
-        if (rand <= sum) return i;
+    function getWeightedRandomIndex(prob) {
+      const r = Math.random();
+      let acc = 0;
+      for (let i = 0; i < prob.length; i++) {
+        acc += prob[i];
+        if (r <= acc) return i;
       }
-      return probabilities.length - 1;
+      return prob.length - 1;
     }
   </script>
 </body>
