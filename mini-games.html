@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay | Games Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #2e7d32;
+      --green-light: #e8f5e9;
+      --text-dark: #222;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f6fff6;
+      color: var(--text-dark);
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: var(--green);
+      margin-bottom: 30px;
+    }
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--green-light);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .emoji {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    .title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .description {
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+    .reward {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 15px;
+    }
+    .start-btn {
+      background-color: var(--green);
+      color: white;
+      padding: 10px;
+      text-align: center;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .start-btn:hover {
+      background-color: #256a27;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎮 EasyPay Games Hub</h1>
+<div class="game-grid">
+  <!-- Game Cards -->
+  <div class="card">
+    <div class="emoji">🧠</div>
+    <div class="title">Memory Flip</div>
+    <div class="description">Match all pairs under 60 seconds to win!</div>
+    <div class="reward">Reward: ₦15</div>
+    <button onclick="goTo('game-1.html')" class="start-btn">Start Now</button>
+  </div>
+
+  <div class="card">
+    <div class="emoji">💣</div>
+    <div class="title">Avoid the Bomb</div>
+    <div class="description">Dodge falling bombs and survive 30 seconds!</div>
+    <div class="reward">Reward: ₦10</div>
+    <button onclick="goTo('game-2.html')" class="start-btn">Start Now</button>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🎨</div>
+    <div class="title">Color Match Tap</div>
+    <div class="description">Tap only when colors match. Focus fast!</div>
+    <div class="reward">Reward: ₦10</div>
+    <button onclick="goTo('game-3.html')" class="start-btn">Start Now</button>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🍎</div>
+    <div class="title">Fruit Catcher</div>
+    <div class="description">Catch 20 fruits before missing 3!</div>
+    <div class="reward">Reward: ₦10</div>
+    <button onclick="goTo('game-4.html')" class="start-btn">Start Now</button>
+  </div>
+
+  <div class="card">
+    <div class="emoji">⚡</div>
+    <div class="title">Reaction Speed</div>
+    <div class="description">Tap the screen as fast as you can when it turns green!</div>
+    <div class="reward">Reward: ₦10</div>
+    <button onclick="goTo('game-5.html')" class="start-btn">Start Now</button>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🔢</div>
+    <div class="title">Number Sort</div>
+    <div class="description">Arrange numbers in order under 45 seconds!</div>
+    <div class="reward">Reward: ₦15</div>
+    <button onclick="goTo('game-6.html')" class="start-btn">Start Now</button>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🪙</div>
+    <div class="title">Coin Collector</div>
+    <div class="description">Tap and collect 25 moving coins!</div>
+    <div class="reward">Reward: ₦10</div>
+    <button onclick="goTo('game-7.html')" class="start-btn">Start Now</button>
+  </div>
+
+  <div class="card">
+    <div class="emoji">➕</div>
+    <div class="title">Quick Math</div>
+    <div class="description">Solve 10 math questions fast and accurately!</div>
+    <div class="reward">Reward: ₦15</div>
+    <button onclick="goTo('game-8.html')" class="start-btn">Start Now</button>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🏃‍♂️</div>
+    <div class="title">Jump & Dodge</div>
+    <div class="description">Keep running and avoid obstacles. Reach 300+ score!</div>
+    <div class="reward">Reward: ₦10</div>
+    <button onclick="goTo('game-9.html')" class="start-btn">Start Now</button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+    authDomain: "easypay-6bce8.firebaseapp.com",
+    projectId: "easypay-6bce8",
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  firebase.auth().onAuthStateChanged((user) => {
+    if (!user) {
+      window.location.href = "login.html"; // redirect if not logged in
+    }
+  });
+
+  function goTo(page) {
+    window.location.href = page;
+  }
+</script>
+
+</body>
+      </html>
