@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memory Flip – EasyPay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #2e7d32;
+      --green-light: #e8f5e9;
+      --card-bg: #fff;
+      --card-back: #a5d6a7;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0fff0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      color: var(--green);
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(6, 60px);
+      grid-gap: 15px;
+      margin-top: 20px;
+    }
+    .card {
+      width: 60px;
+      height: 60px;
+      perspective: 1000px;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .card-front {
+      background-color: var(--card-bg);
+      transform: rotateY(180deg);
+    }
+    .card-back {
+      background-color: var(--card-back);
+      color: white;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+    .win {
+      color: var(--green);
+    }
+  </style>
+</head>
+<body>
+
+<h1>🧠 Memory Flip Game</h1>
+<p>Match all 30 cards to win ₦30</p>
+<div id="status">Flips: 0</div>
+<div class="board" id="board"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+    authDomain: "easypay-6bce8.firebaseapp.com",
+    projectId: "easypay-6bce8"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUser;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return location.href = "login.html";
+    currentUser = user;
+    const doc = await db.collection("users").doc(user.uid).get();
+    const lastPlayed = doc.data()?.lastMemoryFlip;
+    const now = Date.now();
+
+    if (lastPlayed && now - lastPlayed < 86400000) {
+      document.body.innerHTML = "<h2 style='color:red;'>You can only play this game once every 24 hours.</h2>";
+    } else {
+      initGame();
+    }
+  });
+
+  const emojis = ['🍎','🍌','🍇','🍓','🍉','🥝','🍑','🍍','🥥','🥭','🍋','🍒','🍈','🍐','🍊'];
+
+  let flippedCards = [];
+  let matched = 0;
+  let flips = 0;
+
+  function initGame() {
+    const board = document.getElementById("board");
+    const pairs = [...emojis, ...emojis]; // 15 pairs = 30 cards
+    shuffle(pairs);
+
+    pairs.forEach((emoji, idx) => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.innerHTML = `
+        <div class="card-inner" data-emoji="${emoji}">
+          <div class="card-front">${emoji}</div>
+          <div class="card-back">❓</div>
+        </div>`;
+      card.addEventListener("click", () => flipCard(card));
+      board.appendChild(card);
+    });
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function flipCard(card) {
+    if (card.classList.contains("flipped") || flippedCards.length === 2) return;
+    card.classList.add("flipped");
+    flippedCards.push(card);
+
+    if (flippedCards.length === 2) {
+      flips++;
+      document.getElementById("status").innerText = `Flips: ${flips}`;
+      const [card1, card2] = flippedCards;
+      const emoji1 = card1.querySelector(".card-inner").dataset.emoji;
+      const emoji2 = card2.querySelector(".card-inner").dataset.emoji;
+
+      if (emoji1 === emoji2) {
+        matched += 2;
+        flippedCards = [];
+        if (matched === 30) {
+          winGame();
+        }
+      } else {
+        setTimeout(() => {
+          card1.classList.remove("flipped");
+          card2.classList.remove("flipped");
+          flippedCards = [];
+        }, 1000);
+      }
+    }
+  }
+
+  async function winGame() {
+    document.getElementById("status").innerHTML = `<span class='win'>✅ You won ₦30!</span>`;
+
+    // Update last played
+    await db.collection("users").doc(currentUser.uid).update({
+      lastMemoryFlip: Date.now()
+    });
+
+    // Credit user
+    const userRef = db.collection("users").doc(currentUser.uid);
+    const userDoc = await userRef.get();
+    const newBalance = (userDoc.data().balance || 0) + 30;
+
+    await userRef.update({ balance: newBalance });
+
+    // Log transaction
+    await db.collection("users")
+      .doc(currentUser.uid)
+      .collection("transactions")
+      .add({
+        source: "Memory Flip Game",
+        amount: 30,
+        date: new Date().toISOString()
+      });
+  }
+</script>
+
+</body>
+</html>
