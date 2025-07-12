@@ -26,7 +26,7 @@
     }
     .board {
       display: grid;
-      grid-template-columns: repeat(6, 60px);
+      grid-template-columns: repeat(5, 60px);
       grid-gap: 15px;
       margin-top: 20px;
     }
@@ -68,9 +68,14 @@
       color: white;
     }
     #status {
-      margin-top: 20px;
+      margin-top: 10px;
       font-weight: bold;
       color: #333;
+    }
+    #timer {
+      margin-top: 5px;
+      font-size: 16px;
+      color: red;
     }
     .win {
       color: var(--green);
@@ -80,8 +85,9 @@
 <body>
 
 <h1>🧠 Memory Flip Game</h1>
-<p>Match all 30 cards to win ₦30</p>
+<p>Match all 10 pairs under 60 seconds to earn ₦40</p>
 <div id="status">Flips: 0</div>
+<div id="timer">Time left: 60s</div>
 <div class="board" id="board"></div>
 
 <!-- Firebase -->
@@ -101,6 +107,9 @@
   const db = firebase.firestore();
 
   let currentUser;
+  let timerInterval;
+  let timeLeft = 60;
+
   auth.onAuthStateChanged(async (user) => {
     if (!user) return location.href = "login.html";
     currentUser = user;
@@ -109,13 +118,13 @@
     const now = Date.now();
 
     if (lastPlayed && now - lastPlayed < 86400000) {
-      document.body.innerHTML = "<h2 style='color:red;'>You can only play this game once every 24 hours.</h2>";
+      document.body.innerHTML = "<h2 style='color:red;'>⏳ You can only play this game once every 24 hours.</h2>";
     } else {
       initGame();
     }
   });
 
-  const emojis = ['🍎','🍌','🍇','🍓','🍉','🥝','🍑','🍍','🥥','🥭','🍋','🍒','🍈','🍐','🍊'];
+  const emojis = ['🍎','🍌','🍇','🍓','🍉','🥝','🍑','🍍','🍋','🍒']; // 10 pairs
 
   let flippedCards = [];
   let matched = 0;
@@ -123,10 +132,10 @@
 
   function initGame() {
     const board = document.getElementById("board");
-    const pairs = [...emojis, ...emojis]; // 15 pairs = 30 cards
+    const pairs = [...emojis, ...emojis];
     shuffle(pairs);
 
-    pairs.forEach((emoji, idx) => {
+    pairs.forEach((emoji) => {
       const card = document.createElement("div");
       card.classList.add("card");
       card.innerHTML = `
@@ -137,6 +146,8 @@
       card.addEventListener("click", () => flipCard(card));
       board.appendChild(card);
     });
+
+    startTimer();
   }
 
   function shuffle(array) {
@@ -161,7 +172,8 @@
       if (emoji1 === emoji2) {
         matched += 2;
         flippedCards = [];
-        if (matched === 30) {
+        if (matched === 20) {
+          clearInterval(timerInterval);
           winGame();
         }
       } else {
@@ -169,13 +181,25 @@
           card1.classList.remove("flipped");
           card2.classList.remove("flipped");
           flippedCards = [];
-        }, 1000);
+        }, 800);
       }
     }
   }
 
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      document.getElementById("timer").innerText = `Time left: ${timeLeft}s`;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById("timer").innerHTML = "<span style='color:red;'>⛔ Time's up! Try again tomorrow.</span>";
+        document.querySelectorAll(".card").forEach(c => c.removeEventListener("click", flipCard));
+      }
+    }, 1000);
+  }
+
   async function winGame() {
-    document.getElementById("status").innerHTML = `<span class='win'>✅ You won ₦30!</span>`;
+    document.getElementById("timer").innerHTML = `<span class='win'>✅ You matched all cards! ₦40 has been credited.</span>`;
 
     // Update last played
     await db.collection("users").doc(currentUser.uid).update({
@@ -185,7 +209,7 @@
     // Credit user
     const userRef = db.collection("users").doc(currentUser.uid);
     const userDoc = await userRef.get();
-    const newBalance = (userDoc.data().balance || 0) + 30;
+    const newBalance = (userDoc.data().balance || 0) + 40;
 
     await userRef.update({ balance: newBalance });
 
@@ -195,7 +219,7 @@
       .collection("transactions")
       .add({
         source: "Memory Flip Game",
-        amount: 30,
+        amount: 40,
         date: new Date().toISOString()
       });
   }
