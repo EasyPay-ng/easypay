@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -55,11 +54,7 @@
 <body>
   <div class="info-banner">
     <strong>Important!</strong> Your browser must have JavaScript enabled, your ad blocker must be disabled, you must stay on the final page for about 10 seconds, you must have cookies enabled, and you must not use VPN.
-  </div>
-
-  <div class="tasks-container" id="tasksContainer"></div>
-
-  <script>
+  </div>  <div class="tasks-container" id="tasksContainer"></div>  <script>
     // --- Firebase init ---
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -74,22 +69,19 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Map of task IDs to their destination shortlinks
     const shrinkLinks = {
       27001: 'https://tpi.li/yXUwlkTj',
       27002: 'https://shrinkme.ink/9GrK',
     };
 
-    // Map of task IDs to their cooldown durations (ms)
     const cooldowns = {
-      27001: 24 * 60 * 60 * 1000, // 24 hours
-      27002: 24 * 60 * 60 * 1000, // 24 hours
+      27001: 24 * 60 * 60 * 1000,
+      27002: 24 * 60 * 60 * 1000,
     };
 
     const container = document.getElementById("tasksContainer");
     const buttons = {};
 
-    // Create a card and button for each shortlink ID
     for (let id in shrinkLinks) {
       const card = document.createElement("div");
       card.className = "card";
@@ -116,7 +108,6 @@
         const cooldown = cooldowns[id];
         const localKey = `shortlink_${uid}_${id}`;
 
-        // Determine nextAvailable from Firestore record if present
         let nextAvailable = parseInt(localStorage.getItem(localKey)) || 0;
         const record = data.shortlinkTasks?.[id];
         if (!nextAvailable && record?.date) {
@@ -125,47 +116,49 @@
           localStorage.setItem(localKey, nextAvailable);
         }
 
-        // If still in cooldown, disable button with countdown
         if (Date.now() < nextAvailable) {
-          disableWithCountdown(btn, nextAvailable, cooldown);
+          disableWithCountdown(btn, nextAvailable);
         }
 
-        // Button click handler
         btn.onclick = async () => {
           const now = Date.now();
           if (now < nextAvailable) return;
 
           const expire = now + cooldown;
+          localStorage.setItem(localKey, expire);
+
           await userRef.set({
             shortlinkTasks: {
+              ...data.shortlinkTasks,
               [id]: { date: new Date().toISOString() }
             }
           }, { merge: true });
-          localStorage.setItem(localKey, expire);
-          disableWithCountdown(btn, expire, cooldown);
+
           window.open(link, '_blank');
+          disableWithCountdown(btn, expire);
         };
       }
     });
 
-    function disableWithCountdown(btn, availableTime, cooldown) {
+    function disableWithCountdown(btn, availableTime) {
       btn.disabled = true;
+
       const update = () => {
         const diff = availableTime - Date.now();
         if (diff <= 0) {
+          clearInterval(interval);
           btn.disabled = false;
           btn.textContent = 'Start Task';
-          clearInterval(interval);
         } else {
-          // Compute hours, minutes, seconds
           const h = Math.floor(diff / 3600000);
           const m = Math.floor((diff % 3600000) / 60000);
+          const s = Math.floor((diff % 60000) / 1000);
           btn.textContent = `Wait ${h}h ${m}m ${s}s`;
         }
       };
+
       update();
       const interval = setInterval(update, 1000);
     }
-  </script>
-</body>
+  </script></body>
 </html>
