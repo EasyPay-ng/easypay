@@ -1,44 +1,131 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
   <style>
-    body { margin:0; font-family:'Segoe UI',sans-serif; background:#f5fdf7; color:#333; display:flex; flex-direction:column; min-height:100vh; }
-    header { background:#009f4d; color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; position:relative; }
-    .profile { position:relative; }
-    .profile-info { display:none; position:absolute; right:0; top:50px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.2); border-radius:8px; width:220px; padding:10px; z-index:2; }
-    .profile-info.show { display:block; }
-    .profile-info p { margin:8px 0; font-size:0.95rem; }
-    .profile-info .logout-btn { width:100%; padding:8px; background:#009f4d; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.95rem; }
-    .container { padding:20px; flex:1; overflow-y:auto; }
-    .plan-info { background:#e8f5e9; padding:12px; border-radius:8px; margin-bottom:20px; font-size:0.95rem; }
-    .plan-info p { margin:4px 0; }
-    .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:20px; }
-    .copy-btn { background:#009f4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; }
-    #claimDailyBtn { background-color:#009f4d; color:#fff; border:none; padding:12px 20px; font-size:1rem; font-weight:bold; border-radius:8px; cursor:pointer; transition:background-color .2s ease; margin-top:10px; }
-    #claimDailyBtn:hover:not(:disabled) { background-color:#007a33; }
-    #claimDailyBtn:disabled { background-color:#7dbd94; cursor:default; }
-    .nav { position:fixed; bottom:0; left:0; width:100%; background:#009f4d; display:flex; justify-content:space-around; padding:10px 0; }
-    .nav a { color:#fff; text-decoration:none; font-size:0.9rem; display:flex; flex-direction:column; align-items:center; }
-    .nav a i { font-size:1.5rem; margin-bottom:4px; }
-    /* WhatsApp popup */
-    #whatsappPopup { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:2000; }
-    #whatsappContent { background:#fff; padding:2rem; border-radius:12px; text-align:center; position:relative; width:90%; max-width:320px; }
-    #whatsappContent .closeBtn { position:absolute; top:8px; right:12px; font-size:1.2rem; cursor:pointer; }
-    #whatsappContent .emoji { font-size:3rem; margin-bottom:1rem; }
-    #whatsappContent h3 { margin-bottom:1rem; }
-    #whatsappContent a { display:inline-block; margin-top:1rem; padding:10px 20px; background:#25D366; color:#fff; border-radius:6px; text-decoration:none; font-weight:bold; }
+    :root {
+      --primary: #009f4d;
+      --primary-dark: #007a33;
+      --bg: #f2fdf6;
+      --text: #333;
+      --card: #ffffff;
+      --border: #e0e0e0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+    .profile-icon {
+      font-size: 1.8rem;
+      cursor: pointer;
+    }
+    .profile-info {
+      display: none;
+      position: absolute;
+      top: 70px;
+      right: 20px;
+      background: white;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+      min-width: 220px;
+    }
+    .profile-info.show { display: block; }
+    .profile-info p {
+      margin: 0.5rem 0;
+      font-size: 0.95rem;
+    }
+    .logout-btn {
+      margin-top: 0.8rem;
+      padding: 0.6rem;
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      width: 100%;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .container {
+      flex: 1;
+      padding: 1.5rem;
+    }
+    .card {
+      background: var(--card);
+      padding: 1.2rem 1.5rem;
+      border-radius: 14px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+      margin-bottom: 1.5rem;
+    }
+    .card h3 {
+      margin-bottom: 0.6rem;
+      font-size: 1.1rem;
+    }
+    .copy-btn, #claimDailyBtn {
+      padding: 0.5rem 1rem;
+      background-color: var(--primary);
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 0.8rem;
+    }
+    #claimDailyBtn:disabled {
+      background-color: #b0e3c1;
+      cursor: default;
+    }
+    .nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: var(--primary);
+      display: flex;
+      justify-content: space-around;
+      padding: 0.6rem 0;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .nav a {
+      text-decoration: none;
+      color: #fff;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    .nav a i {
+      display: block;
+      font-size: 1.3rem;
+      margin-bottom: 2px;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h2>Welcome back, <span id="usernameDisplay"></span></h2>
+    <h1>Hi, <span id="usernameDisplay"></span> 👋</h1>
     <div class="profile">
-      <i class="fas fa-user-circle fa-2x" onclick="toggleProfile()"></i>
-      <div id="profileInfo" class="profile-info">
+      <i class="fas fa-user-circle profile-icon" onclick="toggleProfile()"></i>
+      <div class="profile-info" id="profileInfo">
         <p><strong>Username:</strong> <span id="profileUsername"></span></p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
         <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
@@ -46,56 +133,32 @@
       </div>
     </div>
   </header>
-
-  <!-- WhatsApp Popup -->
-  <div id="whatsappPopup">
-    <div id="whatsappContent">
-      <span class="closeBtn" onclick="closePopup()">×</span>
-      <div class="emoji">🤓</div>
-      <h3>Join our official WhatsApp Group</h3>
-      <a href="https://chat.whatsapp.com/IcA53x5NB0f2osN7rqancp" target="_blank">Join</a>
-    </div>
-  </div>
-
-  <div id="upgradeModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <h2>Account Not Activated</h2>
-      <p>Upgrade your plan to access features.</p>
-      <a href="upgrade.html">Upgrade</a>
-    </div>
-  </div>
-
-  <div class="container" id="mainContent" style="display:none;">
-    <div class="plan-info">
-      <p><strong>Current Plan:</strong> <span id="planName"></span></p>
-      <p><strong>Activated On:</strong> <span id="planActivatedOn">-</span></p>
-      <p><strong>Days Remaining:</strong> <span id="planDaysLeft">-</span></p>
+  <div class="container">
+    <div class="card">
+      <h3>Balance</h3>
+      <p>₦<span id="balance">0.00</span></p>
     </div>
     <div class="card">
-      <h3>Balance: ₦<span id="balance">0.00</span></h3>
+      <h3>Total Referrals</h3>
+      <p><span id="referrals">0</span></p>
     </div>
     <div class="card">
-      <h3>Total Referrals: <span id="referrals">0</span></h3>
-    </div>
-    <div class="card">
-      <h3>Referral Code:</h3>
-      <p id="referralCode" style="word-break:break-all;"></p>
+      <h3>Your Referral Code</h3>
+      <p id="referralCode"></p>
       <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
     </div>
-    <div class="card" id="dailyCreditCard">
+    <div class="card">
       <h3>Daily Credit</h3>
       <p id="creditMessage">Loading...</p>
       <button id="claimDailyBtn" disabled>Claim ₦1</button>
     </div>
   </div>
-
-  <div class="nav" id="bottomNav">
-    <a href="menu.html"><i class="fas fa-home"></i>Menu</a>
+  <div class="nav">
+    <a href="menu.html"><i class="fas fa-home"></i>Home</a>
     <a href="advertise.html"><i class="fas fa-bullhorn"></i>Advertise</a>
-    <a href="earn.html"><i class="fas fa-money-bill-wave"></i>Earn</a>
-    <a href="leaderboard.html"><i class="fas fa-trophy"></i>Leaderboard</a>
+    <a href="earn.html"><i class="fas fa-coins"></i>Earn</a>
+    <a href="leaderboard.html"><i class="fas fa-trophy"></i>Ranks</a>
   </div>
-
   <script>
     function toggleProfile() {
       document.getElementById('profileInfo').classList.toggle('show');
@@ -109,115 +172,7 @@
         document.getElementById('referralCode').innerText
       );
     }
-    function closePopup() {
-      document.getElementById('whatsappPopup').style.display = 'none';
-      sessionStorage.setItem('wh-popup-closed', '1');
-    }
-    // hide if already closed
-    if (sessionStorage.getItem('wh-popup-closed') === '1') {
-      document.getElementById('whatsappPopup').style.display = 'none';
-    }
   </script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, collection, addDoc
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
-    const auth= getAuth();
-
-    let userRef, userData;
-    const claimBtn  = document.getElementById('claimDailyBtn');
-    const creditMsg = document.getElementById('creditMessage');
-
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href='login.html';
-      userRef = doc(db,'users',user.uid);
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) return location.href='login.html';
-      userData = snap.data();
-
-      // header & stats
-      document.getElementById('usernameDisplay').innerText = userData.username;
-      document.getElementById('profileUsername').innerText  = userData.username;
-      document.getElementById('profileEmail').innerText     = user.email;
-      document.getElementById('profileBalance').innerText   = (userData.balance||0).toFixed(2);
-      document.getElementById('balance').innerText          = (userData.balance||0).toFixed(2);
-      document.getElementById('referrals').innerText        = userData.referralCount||0;
-      document.getElementById('referralCode').innerText     = userData.username;
-
-      // plan info
-      const plan = userData.plan||'basic';
-      document.getElementById('planName').innerText = plan.charAt(0).toUpperCase()+plan.slice(1);
-      let startMs = null;
-      if (userData.planStart?.toMillis) startMs = userData.planStart.toMillis();
-      else if (userData.planStart) startMs = userData.planStart;
-      if (plan!=='basic' && startMs) {
-        document.getElementById('planActivatedOn').innerText = new Date(startMs).toLocaleDateString();
-        const left = Math.max(0,30 - Math.floor((Date.now()-startMs)/(24*3600*1000)));
-        document.getElementById('planDaysLeft').innerText = left+' day'+(left===1?'':'s');
-      }
-
-      const allowed = ['premium','gold','elite','diamond','platinum'];
-      if (!allowed.includes(plan)) {
-        document.getElementById('upgradeModal').style.display='flex';
-        document.getElementById('mainContent').style.display='none';
-        document.getElementById('bottomNav').style.display='none';
-      } else {
-        document.getElementById('upgradeModal').style.display='none';
-        document.getElementById('mainContent').style.display='block';
-        document.getElementById('bottomNav').style.display='flex';
-        setupDailyCredit();
-      }
-    });
-
-    async function setupDailyCredit(){
-      const last = userData.lastCredit?.toMillis?userData.lastCredit.toMillis():userData.lastCredit||0;
-      const diff = Date.now()-last;
-      if (diff>=24*3600*1000){
-        creditMsg.innerText='You can claim ₦1 now!'; claimBtn.disabled=false;
-      } else {
-        let rem = 24*3600*1000 - diff;
-        updateTimer(rem);
-        claimBtn.disabled=true;
-        const iv = setInterval(()=>{
-          rem-=1000;
-          if (rem<=0){ clearInterval(iv); setupDailyCredit(); }
-          else updateTimer(rem);
-        },1000);
-      }
-      claimBtn.onclick=async ()=>{
-        claimBtn.disabled=true;
-        try {
-          await updateDoc(userRef,{ balance:increment(1), lastCredit:serverTimestamp() });
-          await addDoc(collection(userRef,'transactionHistory'),{ type:'Daily Credit', amount:1, timestamp:serverTimestamp() });
-          const fresh = await getDoc(userRef);
-          userData = fresh.data();
-          document.getElementById('balance').innerText=(userData.balance||0).toFixed(2);
-          setupDailyCredit();
-        } catch {
-          creditMsg.innerText='Error—try again later.';
-        }
-      };
-    }
-
-    function updateTimer(ms){
-      const h=String(Math.floor(ms/3600000)).padStart(2,'0');
-      const m=String(Math.floor((ms%3600000)/60000)).padStart(2,'0');
-      const s=String(Math.floor((ms%60000)/1000)).padStart(2,'0');
-      creditMsg.innerText=`Next credit in ${h}:${m}:${s}`;
-    }
-  </script>
+  <!-- Firebase logic can be placed here or linked from an external file -->
 </body>
 </html>
