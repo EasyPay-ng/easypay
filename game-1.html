@@ -187,13 +187,20 @@
   }
 
   function startTimer() {
-    timerInterval = setInterval(() => {
+    timerInterval = setInterval(async () => {
       timeLeft--;
       document.getElementById("timer").innerText = `Time left: ${timeLeft}s`;
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         document.getElementById("timer").innerHTML = "<span style='color:red;'>⛔ Time's up! Try again tomorrow.</span>";
-        document.querySelectorAll(".card").forEach(c => c.removeEventListener("click", flipCard));
+        document.querySelectorAll(".card").forEach(c => c.style.pointerEvents = "none");
+
+        // Lock the game for 24hrs even on failure
+        if (currentUser) {
+          await db.collection("users").doc(currentUser.uid).update({
+            lastMemoryFlip: Date.now()
+          });
+        }
       }
     }, 1000);
   }
