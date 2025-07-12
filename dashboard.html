@@ -159,20 +159,103 @@
     <a href="earn.html"><i class="fas fa-coins"></i>Earn</a>
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Ranks</a>
   </div>
-  <script>
-    function toggleProfile() {
-      document.getElementById('profileInfo').classList.toggle('show');
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";const firebaseConfig = {
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.appspot.com",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth();
+
+let userRef, userData;
+
+const claimBtn = document.getElementById('claimDailyBtn');
+const creditMsg = document.getElementById('creditMessage');
+
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href = 'login.html';
+  userRef = doc(db, 'users', user.uid);
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) return location.href = 'login.html';
+  userData = snap.data();
+
+  document.getElementById('usernameDisplay').innerText = userData.username;
+  document.getElementById('profileUsername').innerText = userData.username;
+  document.getElementById('profileEmail').innerText = user.email;
+  document.getElementById('profileBalance').innerText = (userData.balance || 0).toFixed(2);
+  document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
+  document.getElementById('referrals').innerText = userData.referralCount || 0;
+  document.getElementById('referralCode').innerText = userData.username;
+
+  setupDailyCredit();
+});
+
+async function setupDailyCredit() {
+  const last = userData.lastCredit?.toMillis ? userData.lastCredit.toMillis() : userData.lastCredit || 0;
+  const diff = Date.now() - last;
+  if (diff >= 24 * 3600 * 1000) {
+    creditMsg.innerText = 'You can claim ₦1 now!';
+    claimBtn.disabled = false;
+  } else {
+    let rem = 24 * 3600 * 1000 - diff;
+    updateTimer(rem);
+    claimBtn.disabled = true;
+    const iv = setInterval(() => {
+      rem -= 1000;
+      if (rem <= 0) { clearInterval(iv); setupDailyCredit(); }
+      else updateTimer(rem);
+    }, 1000);
+  }
+
+  claimBtn.onclick = async () => {
+    claimBtn.disabled = true;
+    try {
+      await updateDoc(userRef, {
+        balance: increment(1),
+        lastCredit: serverTimestamp()
+      });
+      await addDoc(collection(userRef, 'transactionHistory'), {
+        type: 'Daily Credit',
+        amount: 1,
+        timestamp: serverTimestamp()
+      });
+      const fresh = await getDoc(userRef);
+      userData = fresh.data();
+      document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
+      setupDailyCredit();
+    } catch {
+      creditMsg.innerText = 'Error—try again later.';
     }
-    function logout() {
-      import('https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js')
-        .then(({ getAuth, signOut }) => signOut(getAuth()));
-    }
-    function copyReferral() {
-      navigator.clipboard.writeText(
-        document.getElementById('referralCode').innerText
-      );
-    }
+  };
+}
+
+function updateTimer(ms) {
+  const h = String(Math.floor(ms / 3600000)).padStart(2, '0');
+  const m = String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0');
+  const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
+  creditMsg.innerText = `Next credit in ${h}:${m}:${s}`;
+}
+
+window.toggleProfile = () => {
+  document.getElementById('profileInfo').classList.toggle('show');
+};
+
+window.logout = () => {
+  signOut(auth);
+};
+
+window.copyReferral = () => {
+  navigator.clipboard.writeText(document.getElementById('referralCode').innerText);
+};
+
   </script>
-  <!-- Firebase logic can be placed here or linked from an external file -->
 </body>
 </html>
