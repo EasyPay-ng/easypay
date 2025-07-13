@@ -1,0 +1,184 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upgrade Your Account</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    :root { --green: #2e7d32; --green-dark: #276c28; --white: #fff; --gray-light: #f5f5f5; --shadow-light: rgba(0,0,0,0.1); --radius: 12px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--gray-light); font-family: 'Poppins', sans-serif; }
+    .container { background: var(--white); width: 400px; max-width: 95vw; padding: 2.5rem 2rem 3rem; border-radius: var(--radius); box-shadow: 0 10px 30px var(--shadow-light); display: flex; flex-direction: column; gap: 1.6rem; }
+    h1 { margin: 0 0 .8rem; font-weight: 600; font-size: 1.9rem; color: var(--green); text-align: center; }
+    label { font-weight: 600; font-size: 1rem; color: var(--green-dark); margin-bottom: .4rem; display: block; }
+    input[type="text"], input[type="file"] { width: 100%; padding: 12px 16px; font-size: 1rem; border: 2px solid #cbd5d1; border-radius: var(--radius); transition: border-color .3s ease; outline-offset: 3px; }
+    input:focus { border-color: var(--green); outline: none; }
+    .info { background: #e8f5e9; padding: 1rem 1.2rem; border-radius: var(--radius); color: var(--green-dark); font-weight: 600; line-height: 1.4; }
+    .info p { margin: .3rem 0; }
+    .upload-progress-container { background: #eee; border-radius: var(--radius); overflow: hidden; height: 10px; display: none; }
+    .upload-progress-bar { height: 100%; width: 0%; background: var(--green); transition: width .2s ease; }
+    .upload-progress-label { font-size: .9rem; color: var(--green-dark); margin-top: .4rem; display: none; text-align: right; }
+    button { margin-top: 1rem; padding: 14px; font-weight: 600; font-size: 1.1rem; color: var(--white); background: var(--green); border: none; border-radius: var(--radius); cursor: pointer; box-shadow: 0 6px 16px rgba(46,125,50,0.4); transition: background .3s, box-shadow .3s; }
+    button:hover:not(:disabled) { background: var(--green-dark); box-shadow: 0 8px 24px rgba(39,108,40,0.5); }
+    button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+    .message { margin-top: 1rem; font-weight: 600; font-size: 1rem; min-height: 1.2em; text-align: center; }
+    .message.success { color: var(--green-dark); }
+    .message.error { color: #c62828; }
+  </style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="Upgrade Account Form">
+    <h1>Upgrade Your Account</h1>
+    <label for="senderName">Sender's Name</label>
+    <input id="senderName" type="text" placeholder="Enter sender's name" aria-required="true" /><section class="info" aria-live="polite" aria-atomic="true">
+  <p><strong>Amount:</strong> ₦7,000</p>
+  <p><strong>Account Name:</strong> Onyeka Anointed Chidi</p>
+  <p><strong>Bank:</strong> Moniepoint MFB</p>
+  <p><strong>Account No:</strong> 8132425678</p>
+      <p><strong>AVOID SENDING THIS REQUEST MULTIPLE TIMES TO AVOID LOSS OF FUNDS!</strong></p>
+</section>
+
+<label for="proofFile">Upload Proof Image</label>
+<input id="proofFile" type="file" accept="image/*" aria-required="true" />
+
+<div class="upload-progress-container" id="uploadContainer">
+  <div class="upload-progress-bar" id="uploadBar"></div>
+</div>
+<div class="upload-progress-label" id="uploadLabel"></div>
+
+<button id="submitBtn" type="button" disabled>Loading…</button>
+<div id="message" class="message" aria-live="assertive"></div>
+
+  </main>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUser = null;
+    let username = null;
+
+    // Wait for auth and fetch username
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUser = user;
+      // fetch username from users collection
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        alert('User data missing.');
+        return;
+      }
+      username = userDoc.data().username;
+      // enable submit once username is known
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = false;
+      btn.textContent = 'Submit for Approval';
+    });
+
+    // Imgur helper
+    async function uploadToImgur(file, onProgress) {
+      const clientId = 'fb533db21a59486';
+      const endpoint = 'https://api.imgur.com/3/image';
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result.split(',')[1];
+          const form = new FormData();
+          form.append('image', base64);
+          form.append('type', 'base64');
+
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', endpoint);
+          xhr.setRequestHeader('Authorization', 'Client-ID ' + clientId);
+          xhr.upload.onprogress = evt => {
+            if (evt.lengthComputable) onProgress(Math.round(evt.loaded / evt.total * 100));
+          };
+          xhr.onload = () => {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              if (res.success) resolve(res.data.link);
+              else reject(res.data.error);
+            } catch {
+              reject('Invalid JSON');
+            }
+          };
+          xhr.onerror = () => reject('Network error');
+          xhr.send(form);
+        };
+        reader.onerror = () => reject('File read error');
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Submit handler
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const senderName = document.getElementById('senderName').value.trim();
+      const file = document.getElementById('proofFile').files[0];
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = 'message';
+      messageDiv.textContent = '';
+
+      if (!senderName) {
+        messageDiv.textContent = 'Enter sender name';
+        messageDiv.classList.add('error');
+        return;
+      }
+      if (!file) {
+        messageDiv.textContent = 'Select an image proof';
+        messageDiv.classList.add('error');
+        return;
+      }
+
+      // show progress UI
+      document.getElementById('uploadContainer').style.display = 'block';
+      document.getElementById('uploadLabel').style.display = 'block';
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        const imageUrl = await uploadToImgur(file, pct => {
+          document.getElementById('uploadBar').style.width = pct + '%';
+          document.getElementById('uploadLabel').textContent = pct + '%';
+        });
+
+        // write to Firestore with auth-tracked username
+        await addDoc(collection(db, 'upgradeRequests'), {
+          username: username,
+          senderName: senderName,
+          proofURL: imageUrl,
+          requestedAt: serverTimestamp()
+        });
+
+        messageDiv.textContent = 'Request submitted!';
+        messageDiv.classList.add('success');
+      } catch (err) {
+        messageDiv.textContent = 'Error: ' + err;
+        messageDiv.classList.add('error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit for Approval';
+        setTimeout(() => {
+          document.getElementById('uploadContainer').style.display = 'none';
+          document.getElementById('uploadLabel').style.display = 'none';
+          document.getElementById('uploadBar').style.width = '0%';
+        }, 1500);
+      }
+    });
+  </script></body>
+</html>
