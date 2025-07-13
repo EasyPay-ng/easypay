@@ -122,33 +122,196 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: none;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.6);
+      display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 10000;
+      z-index: 9999;
     }
     #upgradeModal .modal-content {
-      background: white;
+      background: #fff;
       padding: 2rem;
-      border-radius: 12px;
-      max-width: 350px;
+      border-radius: 10px;
       text-align: center;
+      max-width: 300px;
     }
-    #upgradeModal h2 {
-      color: #009f4d;
+    #upgradeModal button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div id="upgradeModal">
+  <div id="upgradeModal" style="display:none;">
     <div class="modal-content">
-      <h2>Upgrade Required</h2>
-      <p>Your account is on the <strong>Basic Plan</strong>. Upgrade to access dashboard features.</p>
-      <a href="upgrade.html" style="background:#009f4d; color:#fff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold; display:inline-block; margin-top:10px;">Upgrade Now</a>
+      <p>Your current plan is <strong>Basic</strong> and has limited access.</p>
+      <button onclick="location.href='upgrade.html'">Upgrade Now</button>
     </div>
   </div>
+  <header>
+    <h1>Hi, <span id="usernameDisplay"></span> 👋</h1>
+    <div class="profile">
+      <i class="fas fa-user-circle profile-icon" onclick="toggleProfile()"></i>
+      <div class="profile-info" id="profileInfo">
+        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+  <div class="container">
+    <div class="card">
+      <h3>Balance</h3>
+      <p>₦<span id="balance">0.00</span></p>
+    </div>
+    <div class="card">
+      <h3>Total Referrals</h3>
+      <p><span id="referrals">0</span></p>
+    </div>
+    <div class="card">
+      <h3>Your Referral Code</h3>
+      <p id="referralCode"></p>
+      <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
+    </div>
+    <div class="card">
+      <h3>Daily Credit</h3>
+      <p id="creditMessage">Loading...</p>
+      <button id="claimDailyBtn" disabled>Claim ₦1</button>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="menu.html"><i class="fas fa-home"></i>Home</a>
+    <a href="advertise.html"><i class="fas fa-bullhorn"></i>Advertise</a>
+    <a href="earn.html"><i class="fas fa-coins"></i>Earn</a>
+    <a href="leaderboard.html"><i class="fas fa-trophy"></i>Ranks</a>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";const firebaseConfig = {
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.appspot.com",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth();
+
+let userRef, userData;
+
+const claimBtn = document.getElementById('claimDailyBtn');
+const creditMsg = document.getElementById('creditMessage');
+const upgradeModal = document.getElementById('upgradeModal');
+
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href = 'login.html';
+  userRef = doc(db, 'users', user.uid);
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) return location.href = 'login.html';
+  userData = snap.data();
+
+  if (userData.status === 'suspended') {
+    alert('Your account has been suspended.');
+    await signOut(auth);
+    return;
+  }
+
+  const now = Date.now();
+  const planStart = userData.planStart?.toMillis ? userData.planStart.toMillis() : userData.planStart || 0;
+  const plan = userData.plan || 'basic';
+
+  if (plan !== 'basic' && now - planStart > 30 * 86400000) {
+    await updateDoc(userRef, { plan: 'basic', planStart: null });
+    userData.plan = 'basic';
+  }
+
+  if (userData.plan === 'basic') {
+    upgradeModal.style.display = 'flex';
+    return;
+  }
+
+  document.getElementById('usernameDisplay').innerText = userData.username;
+  document.getElementById('profileUsername').innerText = userData.username;
+  document.getElementById('profileEmail').innerText = user.email;
+  document.getElementById('profileBalance').innerText = (userData.balance || 0).toFixed(2);
+  document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
+  document.getElementById('referrals').innerText = userData.referralCount || 0;
+  document.getElementById('referralCode').innerText = userData.username;
+
+  setupDailyCredit();
+});
+
+async function setupDailyCredit() {
+  const last = userData.lastCredit?.toMillis ? userData.lastCredit.toMillis() : userData.lastCredit || 0;
+  const diff = Date.now() - last;
+  if (diff >= 86400000) {
+    creditMsg.innerText = 'You can claim ₦1 now!';
+    claimBtn.disabled = false;
+  } else {
+    let rem = 86400000 - diff;
+    updateTimer(rem);
+    claimBtn.disabled = true;
+    const iv = setInterval(() => {
+      rem -= 1000;
+      if (rem <= 0) { clearInterval(iv); setupDailyCredit(); }
+      else updateTimer(rem);
+    }, 1000);
+  }
+
+  claimBtn.onclick = async () => {
+    claimBtn.disabled = true;
+    try {
+      await updateDoc(userRef, {
+        balance: increment(1),
+        lastCredit: serverTimestamp()
+      });
+      await addDoc(collection(userRef, 'transactionHistory'), {
+        type: 'Daily Credit',
+        amount: 1,
+        timestamp: serverTimestamp()
+      });
+      const fresh = await getDoc(userRef);
+      userData = fresh.data();
+      document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
+      setupDailyCredit();
+    } catch {
+      creditMsg.innerText = 'Error—try again later.';
+    }
+  };
+}
+
+function updateTimer(ms) {
+  const h = String(Math.floor(ms / 3600000)).padStart(2, '0');
+  const m = String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0');
+  const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
+  creditMsg.innerText = `Next credit in ${h}:${m}:${s}`;
+}
+
+window.toggleProfile = () => {
+  document.getElementById('profileInfo').classList.toggle('show');
+};
+
+window.logout = () => {
+  signOut(auth);
+};
+
+window.copyReferral = () => {
+  navigator.clipboard.writeText(document.getElementById('referralCode').innerText);
+};
+
+  </script>
 </body>
 </html>
