@@ -1,32 +1,117 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Upgrade Your Plan - EasyPay</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #f5fdf7; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
-    header { background-color: #009f4d; color: white; padding: 20px; text-align: center; }
-    header h1 { margin: 0; font-size: 2rem; }
-    header p { margin-top: 8px; }
-    .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding: 40px; flex: 1; }
-    .plan-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease; }
-    .plan-card:hover { transform: translateY(-5px); }
-    .plan-header { font-size: 1.5rem; color: #006400; margin-bottom: 10px; }
-    .plan-price { font-size: 2rem; font-weight: bold; margin: 10px 0; color: #009f4d; }
-    .plan-duration { color: #555; margin-bottom: 20px; }
-    .plan-desc { font-size: 0.95rem; line-height: 1.5; color: #444; margin-bottom: 20px; flex: 1; }
-    .upgrade-btn { background-color: #009f4d; color: #fff; padding: 12px; border: none; border-radius: 6px; text-align: center; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease; }
-    .upgrade-btn:hover { background-color: #007a33; }
-    footer { text-align: center; padding: 15px; font-size: 0.9rem; color: #666; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5fdf7;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background-color: #009f4d;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    header p {
+      margin-top: 8px;
+    }
+    .important-warning {
+      background: #fff8e1;
+      color: #856404;
+      border: 1px solid #ffe58f;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 18px auto 0;
+      max-width: 90%;
+      font-weight: 500;
+    }
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 40px;
+      flex: 1;
+    }
+    .plan-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease;
+    }
+    .plan-card:hover {
+      transform: translateY(-5px);
+    }
+    .plan-header {
+      font-size: 1.5rem;
+      color: #006400;
+      margin-bottom: 10px;
+    }
+    .plan-price {
+      font-size: 2rem;
+      font-weight: bold;
+      margin: 10px 0;
+      color: #009f4d;
+    }
+    .plan-duration {
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .plan-desc {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #444;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+    .upgrade-btn {
+      background-color: #009f4d;
+      color: #fff;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .upgrade-btn:hover {
+      background-color: #007a33;
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9rem;
+      color: #666;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Choose Your Plan</h1>
     <p>Unlock daily earnings and start growing with EasyPay!</p>
-    <p>AVOID SENDING A REQUEST MULTIPLE TIMES TO AVOID LOSS OF FUNDS!</p>
   </header>
+
+  <div class="important-warning">
+    ⚠️ <strong>Important:</strong> Avoid sending a request multiple times to prevent loss of funds.
+  </div>
+
   <section class="plans">
     <div class="plan-card">
       <div>
@@ -37,6 +122,7 @@
       </div>
       <button class="upgrade-btn" data-plan="premium">Activate Premium</button>
     </div>
+
     <div class="plan-card">
       <div>
         <div class="plan-header">Gold Plan</div>
@@ -46,6 +132,7 @@
       </div>
       <button class="upgrade-btn" data-plan="gold">Activate Gold</button>
     </div>
+
     <div class="plan-card">
       <div>
         <div class="plan-header">Elite Plan</div>
@@ -55,6 +142,7 @@
       </div>
       <button class="upgrade-btn" data-plan="elite">Activate Elite</button>
     </div>
+
     <div class="plan-card">
       <div>
         <div class="plan-header">Diamond Plan</div>
@@ -64,6 +152,7 @@
       </div>
       <button class="upgrade-btn" data-plan="diamond">Activate Diamond</button>
     </div>
+
     <div class="plan-card">
       <div>
         <div class="plan-header">Platinum Plan</div>
@@ -73,15 +162,62 @@
       </div>
       <button class="upgrade-btn" data-plan="platinum">Activate Platinum</button>
     </div>
+
+    <!-- Newly Added Plans -->
+    <div class="plan-card">
+      <div>
+        <div class="plan-header">Sapphire Plan</div>
+        <div class="plan-price">₦6,000</div>
+        <div class="plan-duration">Valid for 30 days</div>
+        <p class="plan-desc">Earn between ₦370 – ₦430 daily with the Sapphire Plan. A smart choice for users leveling up from the starter packs.</p>
+      </div>
+      <button class="upgrade-btn" data-plan="sapphire">Activate Sapphire</button>
+    </div>
+
+    <div class="plan-card">
+      <div>
+        <div class="plan-header">Emerald Plan</div>
+        <div class="plan-price">₦7,000</div>
+        <div class="plan-duration">Valid for 30 days</div>
+        <p class="plan-desc">Enjoy daily returns of ₦460 – ₦500 with the Emerald Plan. A reliable and growing tier to boost your earnings daily.</p>
+      </div>
+      <button class="upgrade-btn" data-plan="emerald">Activate Emerald</button>
+    </div>
+
+    <div class="plan-card">
+      <div>
+        <div class="plan-header">Titanium Plan</div>
+        <div class="plan-price">₦8,000</div>
+        <div class="plan-duration">Valid for 30 days</div>
+        <p class="plan-desc">Earn ₦510 – ₦560 daily with the Titanium Plan. Designed for consistent, high-yield income.</p>
+      </div>
+      <button class="upgrade-btn" data-plan="titanium">Activate Titanium</button>
+    </div>
+
+    <div class="plan-card">
+      <div>
+        <div class="plan-header">Supreme Plan</div>
+        <div class="plan-price">₦9,000</div>
+        <div class="plan-duration">Valid for 30 days</div>
+        <p class="plan-desc">Climb to daily earnings of ₦570 – ₦620 with our Supreme Plan. A high-value choice for serious earners.</p>
+      </div>
+      <button class="upgrade-btn" data-plan="supreme">Activate Supreme</button>
+    </div>
   </section>
+
   <footer>© 2025 EasyPay • Empowering your daily earnings</footer>
+
   <script>
     const pageMap = {
       premium: 'upgrade-1.html',
-      gold:    'upgrade-2.html',
-      elite:   'upgrade-3.html',
+      gold: 'upgrade-2.html',
+      elite: 'upgrade-3.html',
       diamond: 'upgrade-4.html',
-      platinum:'upgrade-5.html'
+      platinum: 'upgrade-5.html',
+      sapphire: 'upgrade-6.html',
+      emerald: 'upgrade-7.html',
+      titanium: 'upgrade-8.html',
+      supreme: 'upgrade-9.html'
     };
     document.querySelectorAll('.upgrade-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -91,4 +227,4 @@
     });
   </script>
 </body>
-          </html>
+                                                      </html>
