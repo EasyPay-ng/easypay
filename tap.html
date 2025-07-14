@@ -1,10 +1,10 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html><html lang="en">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Tap2Earn</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    /* Global Styles */
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,119 +36,48 @@
       font-size: 0.9rem;
       color: #888;
     }
-    #notEligibleContainer {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
-      flex: 1;
-      background-color: #f5fdf7;
-    }
-    #notEligibleContainer .emoji {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-    }
-    #notEligibleContainer h2 {
-      font-size: 1.5rem;
-      color: #333;
-      margin-bottom: 0.5rem;
-    }
-    #notEligibleContainer p {
-      font-size: 1rem;
-      color: #555;
-      max-width: 400px;
-      line-height: 1.4;
-    }
-    #notEligibleContainer .upgradeBtn {
-      margin-top: 1.5rem;
-      padding: 12px 24px;
-      background-color: #009f4d;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    #notEligibleContainer .upgradeBtn:hover {
-      background-color: #00803a;
-    }
-    #tap2earnContainer {
+    #notEligibleContainer, #tap2earnContainer {
       display: none;
       width: 100%;
       max-width: 450px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 1.5rem;
-      margin: 1rem;
     }
     .balanceCard {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       margin-bottom: 2rem;
-      font-size: 1rem;
     }
-    .balanceCard .label {
-      font-weight: 500;
-    }
-    .balanceCard .amount {
+    .amount {
       font-size: 1.2rem;
-      margin-top: 0.25rem;
-      transition: all 0.4s ease-in-out;
-    }
-    #tapSection, #transferSection {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 2rem;
+      transition: all 0.3s ease-in-out;
     }
     #tapBtn, #transferBtn {
       width: 100%;
       max-width: 300px;
-      padding: 15px 30px;
-      font-size: 1.2rem;
-      font-weight: bold;
+      padding: 15px;
+      border: none;
       border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      transition: all 0.2s ease;
     }
     #tapBtn {
-      background-color: #009f4d;
+      background: #009f4d;
       color: #fff;
-      border: none;
     }
     #tapBtn:disabled {
-      background-color: #7dbd94;
-      cursor: default;
-    }
-    #tapBtn:hover:not(:disabled) {
-      background-color: #00803a;
+      background: #ccc;
+      cursor: not-allowed;
     }
     #transferBtn {
-      background-color: #fff;
-      color: #009f4d;
+      background: #fff;
       border: 2px solid #009f4d;
+      color: #009f4d;
     }
     #transferBtn:disabled {
-      background-color: #f0f0f0;
+      border-color: #ccc;
       color: #aaa;
-      border-color: #aaa;
-      cursor: default;
-    }
-    #transferBtn:hover:not(:disabled) {
-      background-color: #009f4d;
-      color: #fff;
-    }
-    #tapMessage, #transferMessage {
-      margin-top: 1rem;
-      font-size: 0.95rem;
-      color: #555;
-      text-align: center;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -156,12 +85,7 @@
   <header>Tap to Earn 💰</header>
   <main>
     <div id="notEligibleContainer">
-      <div class="emoji">😓</div>
-      <h2>Sorry, you’re not eligible for this feature.</h2>
-      <p>
-        Tap to Earn is available only for upgraded users. Upgrade today to enjoy daily tapping rewards based on your plan.
-      </p>
-      <button class="upgradeBtn" onclick="location.href='upgrade.html'">Upgrade Plan</button>
+      <p style="text-align:center;">You are not eligible for this feature. Upgrade your plan to unlock it.</p>
     </div>
     <div id="tap2earnContainer">
       <div class="balanceCard">
@@ -174,17 +98,121 @@
           <div class="amount">₦<span id="mainBalance">0.00</span></div>
         </div>
       </div>
-      <div id="tapSection">
-        <button id="tapBtn" disabled>Loading…</button>
-        <div id="tapMessage">Checking eligibility…</div>
-      </div>
-      <div id="transferSection">
-        <button id="transferBtn" disabled>Transfer to Main Balance</button>
-        <div id="transferMessage">Checking transfer eligibility…</div>
-      </div>
+      <button id="tapBtn" disabled>Checking eligibility…</button>
+      <p id="tapMessage"></p>
+      <button id="transferBtn" disabled>Transfer to Main Balance</button>
+      <p id="transferMessage"></p>
     </div>
   </main>
   <footer>© 2025 EasyPay</footer>
-  <script type="module" src="tap2earn-logic.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";const app = initializeApp({
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8"
+});
+
+const db = getFirestore();
+const auth = getAuth();
+
+const plans = {
+  premium: 80,
+  gold: 150,
+  elite: 200,
+  diamond: 300,
+  platinum: 350,
+  sapphire: 370,
+  emerald: 460,
+  titanium: 510,
+  supreme: 570,
+  royalty: 650
+};
+
+const eligiblePlans = Object.keys(plans);
+
+const notEligibleContainer = document.getElementById("notEligibleContainer");
+const tap2earnContainer = document.getElementById("tap2earnContainer");
+const tapBtn = document.getElementById("tapBtn");
+const tapMessage = document.getElementById("tapMessage");
+const transferBtn = document.getElementById("transferBtn");
+const transferMessage = document.getElementById("transferMessage");
+const tapBalanceSpan = document.getElementById("tapBalance");
+const mainBalanceSpan = document.getElementById("mainBalance");
+const maxTapSpan = document.getElementById("maxTap");
+
+let userRef, userData;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return location.href = "login.html";
+  userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) return;
+  userData = snap.data();
+
+  const plan = userData.plan;
+  if (!eligiblePlans.includes(plan)) {
+    notEligibleContainer.style.display = "block";
+    return;
+  }
+
+  const maxTap = plans[plan];
+  maxTapSpan.textContent = maxTap;
+  tapBalanceSpan.textContent = (userData.tapBalance || 0).toFixed(2);
+  mainBalanceSpan.textContent = (userData.balance || 0).toFixed(2);
+  tap2earnContainer.style.display = "block";
+
+  const today = new Date().toDateString();
+  const lastTapDate = userData.lastTapDate || "";
+  const currentTap = parseFloat(userData.tapBalance || 0);
+
+  if (lastTapDate !== today) {
+    tapBtn.disabled = false;
+    tapBtn.textContent = `Tap to Earn ₦${maxTap}`;
+    tapBtn.onclick = async () => {
+      tapBtn.disabled = true;
+      tapMessage.textContent = "Crediting...";
+
+      await updateDoc(userRef, {
+        tapBalance: maxTap,
+        lastTapDate: today
+      });
+
+      await addDoc(collection(userRef, "transactionHistory"), {
+        type: "Tap Earnings",
+        amount: maxTap,
+        timestamp: serverTimestamp()
+      });
+
+      tapBalanceSpan.textContent = maxTap.toFixed(2);
+      tapMessage.textContent = `₦${maxTap} credited! Come back tomorrow.`;
+    };
+  } else {
+    tapBtn.disabled = true;
+    tapBtn.textContent = "Already tapped today";
+    tapMessage.textContent = "Come back at 12:00 AM tomorrow.";
+  }
+
+  transferBtn.disabled = currentTap <= 0;
+  transferBtn.onclick = async () => {
+    transferBtn.disabled = true;
+    transferMessage.textContent = "Transferring...";
+    await updateDoc(userRef, {
+      tapBalance: 0,
+      balance: increment(currentTap)
+    });
+    await addDoc(collection(userRef, "transactionHistory"), {
+      type: "Tap Transfer",
+      amount: currentTap,
+      timestamp: serverTimestamp()
+    });
+    mainBalanceSpan.textContent = (parseFloat(userData.balance || 0) + currentTap).toFixed(2);
+    tapBalanceSpan.textContent = "0.00";
+    transferMessage.textContent = `₦${currentTap} transferred to main balance.`;
+  };
+});
+
+  </script>
 </body>
 </html>
