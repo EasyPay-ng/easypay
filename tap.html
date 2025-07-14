@@ -157,9 +157,7 @@
     <div id="notEligibleContainer">
       <div class="emoji">😓</div>
       <h2>Sorry, you’re not eligible for this feature.</h2>
-      <p>
-        Tap to Earn is available to Premium, Gold, Elite, Diamond, Platinum, Sapphire, Emerald, Titanium, and Supreme members only. Upgrade today to unlock daily rewards and grow your earnings.
-      </p>
+      <p>Tap to Earn is available to Premium, Gold, Elite, Diamond, Platinum, Sapphire, Emerald, Titanium, and Supreme members only. Upgrade today to unlock daily rewards and grow your earnings.</p>
       <button class="upgradeBtn" onclick="location.href='upgrade.html'">Upgrade Plan</button>
     </div>
     <div id="tap2earnContainer">
@@ -183,79 +181,32 @@
       </div>
     </div>
   </main>
-  <footer>© 2025 EasyPay</footer>
-  <script type="module">
+  <footer>© 2025 EasyPay</footer>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, collection, addDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";const firebaseConfig = {
-  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-  authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8",
-  storageBucket: "easypay-6bce8.appspot.com",
-  messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-  measurementId: "G-2FZKDQ47FZ"
-};
-initializeApp(firebaseConfig);
-const db = getFirestore();
-const auth = getAuth();
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-const notEligibleContainer = document.getElementById("notEligibleContainer");
-const tap2earnContainer = document.getElementById("tap2earnContainer");
-const tapBalanceSpan = document.getElementById("tapBalance");
-const mainBalanceSpan = document.getElementById("mainBalance");
-const maxTapSpan = document.getElementById("maxTap");
-const tapBtn = document.getElementById("tapBtn");
-const tapMessage = document.getElementById("tapMessage");
-const transferBtn = document.getElementById("transferBtn");
-const transferMessage = document.getElementById("transferMessage");
+    const firebaseConfig = { /* your config */ };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-const TAP_AMOUNT = 10.0;
-const TRANSFER_INTERVAL = 86400000;
+    const tapBalanceSpan = document.getElementById("tapBalance");
+    const mainBalanceSpan = document.getElementById("mainBalance");
+    const maxTapSpan = document.getElementById("maxTap");
 
-let userRef = null;
-let userData = null;
-let countdownInterval = null;
+    function animateBalanceUpdate(element, from, to, duration = 800) {
+      const startTime = performance.now();
+      function update(time) {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = from + (to - from) * progress;
+        element.innerText = current.toFixed(2);
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return window.location.href = "login.html";
-  userRef = doc(db, "users", user.uid);
-  const snap = await getDoc(userRef);
-  if (!snap.exists()) return window.location.href = "login.html";
-  userData = snap.data();
-
-  const allowed = ["premium", "gold", "elite", "diamond", "platinum", "sapphire", "emerald", "titanium", "supreme"];
-  if (!allowed.includes(userData.plan)) {
-    notEligibleContainer.style.display = "flex";
-    return;
-  }
-
-  notEligibleContainer.style.display = "none";
-  tap2earnContainer.style.display = "block";
-
-  let maxTap;
-  switch (userData.plan) {
-    case 'gold': maxTap = 150; break;
-    case 'elite': maxTap = 200; break;
-    case 'diamond': maxTap = 250; break;
-    case 'platinum': maxTap = 300; break;
-    case 'sapphire': maxTap = 370; break;
-    case 'emerald': maxTap = 460; break;
-    case 'titanium': maxTap = 510; break;
-    case 'supreme': maxTap = 570; break;
-    default: maxTap = 80; // premium
-  }
-
-  maxTapSpan.innerText = maxTap;
-  mainBalanceSpan.innerText = (userData.balance || 0).toFixed(2);
-  tapBalanceSpan.innerText = (userData.tapBalance || 0).toFixed(2);
-
-  setupTapSection(maxTap);
-  setupTransferSection();
-});
-
-// setupTapSection, handleTap, setupTransferSection, handleTransfer, startCountdown, updateCountdown, refreshData remain unchanged
-
-  </script>
-</body>
+    // Your remaining tap logic will go here with animateBalanceUpdate()
+  </script></body>
 </html>
