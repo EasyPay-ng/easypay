@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -106,17 +105,13 @@
   <header>
     <h1>Manage User Plans</h1>
     <button id="logout">Logout</button>
-  </header>
-
-  <div class="container">
+  </header>  <div class="container">
     <div class="search">
       <input id="q" type="text" placeholder="Search by username…" />
       <button id="btnSearch"><i class="fas fa-search"></i> Search</button>
     </div>
     <div id="tableWrap"></div>
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
       getFirestore,
@@ -208,6 +203,7 @@
               <option value="emerald"   ${u.plan === "emerald"   ? "selected" : ""}>Emerald</option>
               <option value="titanium"  ${u.plan === "titanium"  ? "selected" : ""}>Titanium</option>
               <option value="supreme"   ${u.plan === "supreme"   ? "selected" : ""}>Supreme</option>
+              <option value="royalty"   ${u.plan === "royalty"   ? "selected" : ""}>Royalty</option>
             </select>
           </td>
           <td>${activated}</td>
@@ -239,6 +235,5 @@
         q ? allUsers.filter(u => (u.username || "").toLowerCase().includes(q)) : allUsers
       );
     }
-  </script>
-</body>
-  </html>
+  </script></body>
+</html>
