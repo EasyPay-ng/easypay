@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -125,25 +126,28 @@
       <div class="emoji">😓</div>
       <h2>You’re not eligible for Tap2Earn.</h2>
       <p>Only upgraded plans like Premium, Gold, Elite, Diamond, etc. can access this feature. Upgrade your plan to unlock it.</p>
-    </div><div id="tap2earnContainer">
-  <div class="balanceCard">
-    <div>
-      <div>Tap Wallet</div>
-      <div class="amount">₦<span id="tapBalance">0.00</span> / <span id="maxTap">0</span></div>
     </div>
-    <div>
-      <div>Main Balance</div>
-      <div class="amount">₦<span id="mainBalance">0.00</span></div>
-    </div>
-  </div>
-  <button id="tapBtn">Loading…</button>
-  <div class="msg" id="tapMessage">Checking eligibility…</div>
-  <button id="transferBtn" disabled>Transfer to Main</button>
-  <div class="msg" id="transferMessage"></div>
-</div>
 
+    <div id="tap2earnContainer">
+      <div class="balanceCard">
+        <div>
+          <div>Tap Wallet</div>
+          <div class="amount">₦<span id="tapBalance">0.00</span> / <span id="maxTap">0</span></div>
+        </div>
+        <div>
+          <div>Main Balance</div>
+          <div class="amount">₦<span id="mainBalance">0.00</span></div>
+        </div>
+      </div>
+      <button id="tapBtn">Loading…</button>
+      <div class="msg" id="tapMessage">Checking eligibility…</div>
+      <button id="transferBtn" disabled>Transfer to Main</button>
+      <div class="msg" id="transferMessage"></div>
+    </div>
   </main>
-  <footer>© 2025 EasyPay</footer>  <script type="module">
+  <footer>© 2025 EasyPay</footer>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
       getFirestore, doc, getDoc, updateDoc,
@@ -173,9 +177,11 @@
       sapphire: 370,
       emerald: 460,
       titanium: 510,
-      supreme: 650,
-      royalty: 700
+      supreme: 570,
+      royalty: 620
     };
+
+    const TAP_AMOUNT = 10;
 
     const tapBtn = document.getElementById("tapBtn");
     const tapBalanceSpan = document.getElementById("tapBalance");
@@ -187,7 +193,6 @@
     const tap2earnContainer = document.getElementById("tap2earnContainer");
     const notEligibleContainer = document.getElementById("notEligibleContainer");
 
-    const TAP_AMOUNT = 10;
     let userRef, userData;
 
     onAuthStateChanged(auth, async user => {
@@ -217,7 +222,7 @@
       if (current < max) {
         tapBtn.disabled = false;
         tapBtn.textContent = `Tap to Earn ₦${TAP_AMOUNT}`;
-        tapMsg.textContent = `Tap repeatedly until you reach ₦${max}`;
+        tapMsg.textContent = `Tap until you reach ₦${max}`;
       } else {
         tapBtn.disabled = true;
         tapBtn.textContent = "Tap Wallet Full";
@@ -247,14 +252,15 @@
 
     function setupTransfer() {
       const now = new Date();
-      const hours = now.getHours();
-      if (hours !== 0) {
+      const hrs = now.getHours();
+
+      const tapBal = parseFloat(userData.tapBalance || 0);
+      if (hrs !== 0) {
         transferBtn.disabled = true;
         transferMsg.textContent = "Transfer available after 12am.";
         return;
       }
 
-      const tapBal = parseFloat(userData.tapBalance || 0);
       if (tapBal > 0) {
         transferBtn.disabled = false;
         transferMsg.textContent = `You can transfer ₦${tapBal.toFixed(2)} now.`;
@@ -284,5 +290,6 @@
         transferMsg.textContent = "Nothing to transfer.";
       }
     }
-  </script></body>
+  </script>
+</body>
 </html>
