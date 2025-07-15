@@ -151,7 +151,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
       getFirestore, doc, getDoc, updateDoc,
-      collection, addDoc, serverTimestamp, increment
+      collection, addDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
@@ -251,13 +251,13 @@
     };
 
     function setupTransfer() {
-      const now = new Date();
-      const hrs = now.getHours();
-
       const tapBal = parseFloat(userData.tapBalance || 0);
-      if (hrs !== 0) {
+      const lastTransfer = userData.lastTapTransfer;
+      const lastDate = lastTransfer?.toDate ? lastTransfer.toDate() : new Date(lastTransfer || 0);
+      const today = new Date();
+      if (lastDate.toDateString() === today.toDateString()) {
         transferBtn.disabled = true;
-        transferMsg.textContent = "Transfer available after 12am.";
+        transferMsg.textContent = "You've already transferred today. Come back tomorrow.";
         return;
       }
 
@@ -273,7 +273,8 @@
           const mainBalNow = parseFloat(d.balance || 0);
           await updateDoc(userRef, {
             tapBalance: 0,
-            balance: mainBalNow + tapBalNow
+            balance: mainBalNow + tapBalNow,
+            lastTapTransfer: serverTimestamp()
           });
           await addDoc(collection(userRef, "transactionHistory"), {
             type: "Tap Transfer",
@@ -283,6 +284,9 @@
           tapBalanceSpan.innerText = "0.00";
           mainBalanceSpan.innerText = (mainBalNow + tapBalNow).toFixed(2);
           transferMsg.textContent = "Transfer complete.";
+          userData.tapBalance = 0;
+          userData.balance = mainBalNow + tapBalNow;
+          userData.lastTapTransfer = new Date(); // Update locally to prevent re-transfer
           updateTapButton(planLimits[userData.plan]);
         };
       } else {
