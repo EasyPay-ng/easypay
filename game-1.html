@@ -20,6 +20,7 @@
       flex-direction: column;
       align-items: center;
       padding: 20px;
+      text-align: center;
     }
     h1 {
       color: var(--green);
@@ -67,25 +68,37 @@
       background-color: var(--card-back);
       color: white;
     }
-    #status {
+    #status, #timer {
       margin-top: 10px;
       font-weight: bold;
-      color: #333;
-    }
-    #timer {
-      margin-top: 5px;
-      font-size: 16px;
-      color: red;
     }
     .win {
       color: var(--green);
+    }
+    .error {
+      font-size: 1.1rem;
+      color: #c00;
+      margin-top: 40px;
+    }
+    .emoji-big {
+      font-size: 5rem;
+    }
+    .upgrade-btn {
+      margin-top: 20px;
+      background: var(--green);
+      color: white;
+      padding: 12px 25px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
 <h1>🧠 Memory Flip Game</h1>
-<p>Match all 10 pairs under 60 seconds to earn ₦40</p>
+<p>Match all 10 pairs under 60 seconds to earn ₦20</p>
 <div id="status">Flips: 0</div>
 <div id="timer">Time left: 60s</div>
 <div class="board" id="board"></div>
@@ -96,7 +109,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <script>
-  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
     authDomain: "easypay-6bce8.firebaseapp.com",
@@ -106,35 +118,61 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  let currentUser;
-  let timerInterval;
-  let timeLeft = 60;
+  const emojis = ['🍎','🍌','🍇','🍓','🍉','🥝','🍑','🍍','🍋','🍒'];
+  let flippedCards = [], matched = 0, flips = 0, currentUser;
+  let timerInterval, timeLeft = 60;
 
   auth.onAuthStateChanged(async (user) => {
     if (!user) return location.href = "login.html";
     currentUser = user;
-    const doc = await db.collection("users").doc(user.uid).get();
-    const lastPlayed = doc.data()?.lastMemoryFlip;
-    const now = Date.now();
 
-    if (lastPlayed && now - lastPlayed < 86400000) {
-      document.body.innerHTML = "<h2 style='color:red;'>⏳ You can only play this game once every 24 hours.</h2>";
-    } else {
-      initGame();
+    const userRef = db.collection("users").doc(user.uid);
+    const userDoc = await userRef.get();
+    const data = userDoc.data();
+    const plan = data?.plan?.toLowerCase();
+    const allowedPlans = ["emerald", "titanium", "supreme", "royalty"];
+
+    if (!allowedPlans.includes(plan)) {
+      document.body.innerHTML = `
+        <div class="emoji-big">😓</div>
+        <div class="error">You're not eligible to access this page.<br>You must be on at least the <strong>Emerald</strong> plan.</div>
+        <button class="upgrade-btn" onclick="location.href='upgrade.html'">Upgrade Now</button>
+      `;
+      return;
     }
+
+    const lastPlayed = data?.lastMemoryFlip;
+    const now = Date.now();
+    const cooldown = 86400000; // 24 hrs
+
+    if (lastPlayed && now - lastPlayed < cooldown) {
+      const nextPlay = new Date(lastPlayed + cooldown);
+      const countdownDiv = document.createElement("div");
+      countdownDiv.innerHTML = `<h2>⏳ You can play again in:</h2><div id="countdown" style="font-size: 1.5rem; font-weight: bold;"></div>`;
+      document.body.innerHTML = "";
+      document.body.appendChild(countdownDiv);
+
+      const countdown = () => {
+        const now = new Date().getTime();
+        const distance = nextPlay - now;
+        if (distance <= 0) return location.reload();
+        const hrs = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((distance % (1000 * 60)) / 1000);
+        document.getElementById("countdown").innerText = `${hrs}h ${mins}m ${secs}s`;
+      };
+      countdown();
+      setInterval(countdown, 1000);
+      return;
+    }
+
+    initGame();
   });
-
-  const emojis = ['🍎','🍌','🍇','🍓','🍉','🥝','🍑','🍍','🍋','🍒']; // 10 pairs
-
-  let flippedCards = [];
-  let matched = 0;
-  let flips = 0;
 
   function initGame() {
     const board = document.getElementById("board");
     const pairs = [...emojis, ...emojis];
     shuffle(pairs);
-
     pairs.forEach((emoji) => {
       const card = document.createElement("div");
       card.classList.add("card");
@@ -146,7 +184,6 @@
       card.addEventListener("click", () => flipCard(card));
       board.appendChild(card);
     });
-
     startTimer();
   }
 
@@ -187,17 +224,15 @@
   }
 
   function startTimer() {
-    timerInterval = setInterval(async () => {
+    timerInterval = setInterval(() => {
       timeLeft--;
       document.getElementById("timer").innerText = `Time left: ${timeLeft}s`;
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         document.getElementById("timer").innerHTML = "<span style='color:red;'>⛔ Time's up! Try again tomorrow.</span>";
         document.querySelectorAll(".card").forEach(c => c.style.pointerEvents = "none");
-
-        // Lock the game for 24hrs even on failure
         if (currentUser) {
-          await db.collection("users").doc(currentUser.uid).update({
+          db.collection("users").doc(currentUser.uid).update({
             lastMemoryFlip: Date.now()
           });
         }
@@ -206,31 +241,20 @@
   }
 
   async function winGame() {
-    document.getElementById("timer").innerHTML = `<span class='win'>✅ You matched all cards! ₦40 has been credited.</span>`;
-
-    // Update last played
-    await db.collection("users").doc(currentUser.uid).update({
-      lastMemoryFlip: Date.now()
-    });
-
-    // Credit user
+    document.getElementById("timer").innerHTML = `<span class='win'>✅ You matched all cards! ₦20 has been credited.</span>`;
     const userRef = db.collection("users").doc(currentUser.uid);
-    const userDoc = await userRef.get();
-    const newBalance = (userDoc.data().balance || 0) + 40;
+    await userRef.update({ lastMemoryFlip: Date.now() });
 
+    const userDoc = await userRef.get();
+    const newBalance = (userDoc.data().balance || 0) + 20;
     await userRef.update({ balance: newBalance });
 
-    // Log transaction
-    await db.collection("users")
-      .doc(currentUser.uid)
-      .collection("transactions")
-      .add({
-        source: "Memory Flip Game",
-        amount: 40,
-        date: new Date().toISOString()
-      });
+    await db.collection("users").doc(currentUser.uid).collection("transactions").add({
+      source: "Memory Flip Game",
+      amount: 20,
+      date: new Date().toISOString()
+    });
   }
 </script>
-
 </body>
 </html>
