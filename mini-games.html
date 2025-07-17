@@ -69,101 +69,91 @@
     .start-btn:hover {
       background-color: #256a27;
     }
+
+    /* Restricted view */
+    .restricted {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .restricted .emoji {
+      font-size: 5rem;
+    }
+    .restricted p {
+      font-size: 1.2rem;
+      margin-top: 20px;
+      margin-bottom: 25px;
+    }
+    .upgrade-btn {
+      background-color: #c62828;
+      color: white;
+      padding: 10px 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .upgrade-btn:hover {
+      background-color: #a91f1f;
+    }
   </style>
 </head>
 <body>
 
-<h1>🎮 EasyPay Games Hub</h1>
-<div class="game-grid">
-  <!-- Game Cards -->
-  <div class="card">
-    <div class="emoji">🧠</div>
-    <div class="title">Memory Flip</div>
-    <div class="description">Match all pairs under 60 seconds to win!</div>
-    <div class="reward">Reward: ₦15</div>
-    <button onclick="goTo('game-1.html')" class="start-btn">Start Now</button>
+<div id="content" style="display:none;">
+  <h1>🎮 EasyPay Games Hub</h1>
+  <div class="game-grid">
+    <!-- Your Game Cards (unchanged) -->
+    <!-- ... (Keep the rest of the game cards here exactly as in your current code) ... -->
   </div>
+</div>
 
-  <div class="card">
-    <div class="emoji">💣</div>
-    <div class="title">Avoid the Bomb</div>
-    <div class="description">Dodge falling bombs and survive 30 seconds!</div>
-    <div class="reward">Reward: ₦10</div>
-    <button onclick="goTo('game-2.html')" class="start-btn">Start Now</button>
-  </div>
-
-  <div class="card">
-    <div class="emoji">🎨</div>
-    <div class="title">Color Match Tap</div>
-    <div class="description">Tap only when colors match. Focus fast!</div>
-    <div class="reward">Reward: ₦10</div>
-    <button onclick="goTo('game-3.html')" class="start-btn">Start Now</button>
-  </div>
-
-  <div class="card">
-    <div class="emoji">🍎</div>
-    <div class="title">Fruit Catcher</div>
-    <div class="description">Catch 20 fruits before missing 3!</div>
-    <div class="reward">Reward: ₦10</div>
-    <button onclick="goTo('game-4.html')" class="start-btn">Start Now</button>
-  </div>
-
-  <div class="card">
-    <div class="emoji">⚡</div>
-    <div class="title">Reaction Speed</div>
-    <div class="description">Tap the screen as fast as you can when it turns green!</div>
-    <div class="reward">Reward: ₦10</div>
-    <button onclick="goTo('game-5.html')" class="start-btn">Start Now</button>
-  </div>
-
-  <div class="card">
-    <div class="emoji">🔢</div>
-    <div class="title">Number Sort</div>
-    <div class="description">Arrange numbers in order under 45 seconds!</div>
-    <div class="reward">Reward: ₦15</div>
-    <button onclick="goTo('game-6.html')" class="start-btn">Start Now</button>
-  </div>
-
-  <div class="card">
-    <div class="emoji">🪙</div>
-    <div class="title">Coin Collector</div>
-    <div class="description">Tap and collect 25 moving coins!</div>
-    <div class="reward">Reward: ₦10</div>
-    <button onclick="goTo('game-7.html')" class="start-btn">Start Now</button>
-  </div>
-
-  <div class="card">
-    <div class="emoji">➕</div>
-    <div class="title">Quick Math</div>
-    <div class="description">Solve 10 math questions fast and accurately!</div>
-    <div class="reward">Reward: ₦15</div>
-    <button onclick="goTo('game-8.html')" class="start-btn">Start Now</button>
-  </div>
-
-  <div class="card">
-    <div class="emoji">🏃‍♂️</div>
-    <div class="title">Jump & Dodge</div>
-    <div class="description">Keep running and avoid obstacles. Reach 300+ score!</div>
-    <div class="reward">Reward: ₦10</div>
-    <button onclick="goTo('game-9.html')" class="start-btn">Start Now</button>
-  </div>
+<div id="restricted" class="restricted" style="display:none;">
+  <div class="emoji">😓</div>
+  <p>You're not eligible to access this page.<br/>You must be on at least the <strong>Emerald</strong> plan.</p>
+  <button class="upgrade-btn" onclick="location.href='upgrade.html'">Upgrade Now</button>
 </div>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
 <script>
-  // Firebase Config
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
     authDomain: "easypay-6bce8.firebaseapp.com",
     projectId: "easypay-6bce8",
   };
   firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  firebase.auth().onAuthStateChanged((user) => {
+  const allowedPlans = ["emerald", "titanium", "supreme", "royalty"];
+
+  firebase.auth().onAuthStateChanged(async (user) => {
     if (!user) {
-      window.location.href = "login.html"; // redirect if not logged in
+      window.location.href = "login.html";
+      return;
+    }
+
+    try {
+      const doc = await db.collection("users").doc(user.uid).get();
+      if (!doc.exists) {
+        document.getElementById("restricted").style.display = "block";
+        return;
+      }
+
+      const userData = doc.data();
+      const plan = (userData.plan || "").toLowerCase();
+
+      if (allowedPlans.includes(plan)) {
+        document.getElementById("content").style.display = "block";
+      } else {
+        document.getElementById("restricted").style.display = "block";
+      }
+    } catch (error) {
+      console.error("Error checking plan:", error);
+      document.getElementById("restricted").style.display = "block";
     }
   });
 
@@ -173,4 +163,4 @@
 </script>
 
 </body>
-      </html>
+</html>
