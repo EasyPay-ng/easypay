@@ -109,6 +109,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <script>
+  // --- Firebase config & init ---
   const firebaseConfig = {
     apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
     authDomain: "easypay-6bce8.firebaseapp.com",
@@ -116,145 +117,144 @@
   };
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
-  const db = firebase.firestore();
+  const db   = firebase.firestore();
 
+  // --- Constants ---
   const emojis = ['🍎','🍌','🍇','🍓','🍉','🥝','🍑','🍍','🍋','🍒'];
-  let flippedCards = [], matched = 0, flips = 0, currentUser;
-  let timerInterval, timeLeft = 60;
+  const REWARD    = 20;
+  const COOLDOWN  = 86400000; // 24h
+  const ALLOWED   = ["emerald", "titanium", "supreme", "royalty"];
 
-  auth.onAuthStateChanged(async (user) => {
-    if (!user) return location.href = "login.html";
-    currentUser = user;
+  // --- State ---
+  let flippedCards = [], matched = 0, flips = 0, timeLeft = 60, timerInterval;
+  let currentUser, userRef, userData;
 
-    const userRef = db.collection("users").doc(user.uid);
-    const userDoc = await userRef.get();
-    const data = userDoc.data();
-    const plan = data?.plan?.toLowerCase();
-    const allowedPlans = ["emerald", "titanium", "supreme", "royalty"];
-
-    if (!allowedPlans.includes(plan)) {
-      document.body.innerHTML = `
-        <div class="emoji-big">😓</div>
-        <div class="error">You're not eligible to access this page.<br>You must be on at least the <strong>Emerald</strong> plan.</div>
-        <button class="upgrade-btn" onclick="location.href='upgrade.html'">Upgrade Now</button>
-      `;
-      return;
+  // --- Helper: shuffle ---
+  function shuffle(array) {
+    for (let i=array.length-1; i>0; i--) {
+      let j = Math.floor(Math.random()* (i+1));
+      [array[i], array[j]] = [array[j], array[i]];
     }
+  }
 
-    const lastPlayed = data?.lastMemoryFlip;
-    const now = Date.now();
-    const cooldown = 86400000; // 24 hrs
-
-    if (lastPlayed && now - lastPlayed < cooldown) {
-      const nextPlay = new Date(lastPlayed + cooldown);
-      const countdownDiv = document.createElement("div");
-      countdownDiv.innerHTML = `<h2>⏳ You can play again in:</h2><div id="countdown" style="font-size: 1.5rem; font-weight: bold;"></div>`;
-      document.body.innerHTML = "";
-      document.body.appendChild(countdownDiv);
-
-      const countdown = () => {
-        const now = new Date().getTime();
-        const distance = nextPlay - now;
-        if (distance <= 0) return location.reload();
-        const hrs = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const secs = Math.floor((distance % (1000 * 60)) / 1000);
-        document.getElementById("countdown").innerText = `${hrs}h ${mins}m ${secs}s`;
-      };
-      countdown();
-      setInterval(countdown, 1000);
-      return;
+  // --- Show countdown to next play ---
+  function showCooldown(ms) {
+    document.body.innerHTML = `
+      <div class="emoji-big">😓</div>
+      <div class="error">You're on cooldown.<br/>Next play in:</div>
+      <div id="cd" style="font-size:1.5rem;margin-top:10px;"></div>`;
+    const nextPlay = Date.now() + ms;
+    function tick(){
+      let d = nextPlay - Date.now();
+      if (d<=0) return location.reload();
+      let h = Math.floor(d/3600000), m = Math.floor((d%3600000)/60000), s = Math.floor((d%60000)/1000);
+      document.getElementById('cd').innerText = `${h}h ${m}m ${s}s`;
     }
+    tick(); setInterval(tick,1000);
+  }
 
-    initGame();
-  });
-
+  // --- Initialize game board ---
   function initGame() {
     const board = document.getElementById("board");
     const pairs = [...emojis, ...emojis];
     shuffle(pairs);
-    pairs.forEach((emoji) => {
-      const card = document.createElement("div");
-      card.classList.add("card");
+    board.innerHTML = "";
+    pairs.forEach(e => {
+      let card = document.createElement("div");
+      card.className = "card";
       card.innerHTML = `
-        <div class="card-inner" data-emoji="${emoji}">
-          <div class="card-front">${emoji}</div>
+        <div class="card-inner" data-emoji="${e}">
+          <div class="card-front">${e}</div>
           <div class="card-back">❓</div>
         </div>`;
-      card.addEventListener("click", () => flipCard(card));
+      card.onclick = () => flipCard(card);
       board.appendChild(card);
     });
     startTimer();
   }
 
-  function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-  }
-
+  // --- Flip logic ---
   function flipCard(card) {
-    if (card.classList.contains("flipped") || flippedCards.length === 2) return;
+    if (card.classList.contains("flipped") || flippedCards.length===2) return;
     card.classList.add("flipped");
     flippedCards.push(card);
-
-    if (flippedCards.length === 2) {
+    if (flippedCards.length===2) {
       flips++;
       document.getElementById("status").innerText = `Flips: ${flips}`;
-      const [card1, card2] = flippedCards;
-      const emoji1 = card1.querySelector(".card-inner").dataset.emoji;
-      const emoji2 = card2.querySelector(".card-inner").dataset.emoji;
-
-      if (emoji1 === emoji2) {
-        matched += 2;
-        flippedCards = [];
-        if (matched === 20) {
-          clearInterval(timerInterval);
-          winGame();
-        }
+      const [c1,c2] = flippedCards;
+      const e1 = c1.querySelector(".card-inner").dataset.emoji;
+      const e2 = c2.querySelector(".card-inner").dataset.emoji;
+      if (e1===e2) {
+        matched += 2; flippedCards = [];
+        if (matched===20) { clearInterval(timerInterval); winGame(); }
       } else {
-        setTimeout(() => {
-          card1.classList.remove("flipped");
-          card2.classList.remove("flipped");
+        setTimeout(()=>{
+          c1.classList.remove("flipped");
+          c2.classList.remove("flipped");
           flippedCards = [];
-        }, 800);
+        },800);
       }
     }
   }
 
+  // --- Timer ---
   function startTimer() {
-    timerInterval = setInterval(() => {
+    document.getElementById("timer").innerText = `Time left: ${timeLeft}s`;
+    timerInterval = setInterval(()=>{
       timeLeft--;
       document.getElementById("timer").innerText = `Time left: ${timeLeft}s`;
-      if (timeLeft <= 0) {
+      if (timeLeft<=0) {
         clearInterval(timerInterval);
-        document.getElementById("timer").innerHTML = "<span style='color:red;'>⛔ Time's up! Try again tomorrow.</span>";
-        document.querySelectorAll(".card").forEach(c => c.style.pointerEvents = "none");
-        if (currentUser) {
-          db.collection("users").doc(currentUser.uid).update({
-            lastMemoryFlip: Date.now()
-          });
-        }
+        document.getElementById("timer").innerHTML = "<span style='color:red'>⛔ Time's up! Try again tomorrow.</span>";
+        document.querySelectorAll(".card").forEach(c=>c.style.pointerEvents="none");
+        // set cooldown even on failure
+        db.collection("users").doc(currentUser.uid).update({ lastMemoryFlip: Date.now() });
       }
-    }, 1000);
+    },1000);
   }
 
+  // --- Win & credit ---
   async function winGame() {
-    document.getElementById("timer").innerHTML = `<span class='win'>✅ You matched all cards! ₦20 has been credited.</span>`;
-    const userRef = db.collection("users").doc(currentUser.uid);
-    await userRef.update({ lastMemoryFlip: Date.now() });
-
-    const userDoc = await userRef.get();
-    const newBalance = (userDoc.data().balance || 0) + 20;
-    await userRef.update({ balance: newBalance });
-
-    await db.collection("users").doc(currentUser.uid).collection("transactions").add({
-      source: "Memory Flip Game",
-      amount: 20,
+    document.getElementById("timer").innerHTML = `<span class='win'>✅ You matched all cards! ₦${REWARD} credited.</span>`;
+    // record play time
+    await userRef.update({ lastMemoryFlip: firebase.firestore.FieldValue.serverTimestamp() });
+    // credit
+    let snap = await userRef.get();
+    let newBal = (snap.data().balance||0) + REWARD;
+    await userRef.update({ balance: newBal });
+    // log txn
+    await userRef.collection("transactions").add({
+      source: "Memory Flip",
+      amount: REWARD,
       date: new Date().toISOString()
     });
   }
+
+  // --- Auth & plan & cooldown check ---
+  auth.onAuthStateChanged(async u => {
+    if (!u) return location.href = "login.html";
+    currentUser = u;
+    userRef = db.collection("users").doc(u.uid);
+    let snap = await userRef.get();
+    if (!snap.exists) return location.href="login.html";
+    userData = snap.data();
+    let plan = (userData.plan||"").toLowerCase();
+    if (!ALLOWED.includes(plan)) {
+      document.body.innerHTML = `
+        <div class="emoji-big">😓</div>
+        <div class="error">You're not eligible.<br/>Upgrade to Emerald+ to play.</div>
+        <button class="upgrade-btn" onclick="location.href='upgrade.html'">Upgrade Now</button>`;
+      return;
+    }
+    // cooldown
+    let last = userData.lastMemoryFlip?.toMillis?.() || userData.lastMemoryFlip || 0;
+    let since = Date.now() - last;
+    if (since < COOLDOWN) {
+      showCooldown(COOLDOWN - since);
+    } else {
+      initGame();
+    }
+  });
 </script>
 </body>
-</html>
+    </html>
