@@ -5,91 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Reaction Speed – EasyPay</title>
   <style>
-    :root {
-      --primary: #2e7d32;
-      --light: #e8f5e9;
-      --bg: #f0fff0;
-      --text: #1a1a1a;
-      --card: #fff;
-    }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-    #gameCard {
-      background: var(--card);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 320px;
-      text-align: center;
-      padding: 2rem;
-    }
-    #status {
-      margin: 1rem 0;
-      font-size: 1.1rem;
-      min-height: 1.4em;
-    }
-    button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    button:hover:not(:disabled) {
-      background: #256427;
-    }
-    #footer {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.9rem;
-      background: var(--light);
-    }
+    /* … your existing styles … */
   </style>
 </head>
 <body>
   <header><h1>Reaction Speed</h1></header>
+
   <main>
-    <div id="gameCard">
+    <div id="gameCard" style="display:none;">
       <div id="status">Press “Start” when ready</div>
-      <button id="startBtn">Start</button>
+      <button id="startBtn" disabled>Start</button>
       <button id="reactBtn" disabled>Tap!</button>
     </div>
+    <div id="loading">
+      <p>Checking authentication…</p>
+    </div>
   </main>
+
   <div id="footer">© 2025 EasyPay</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, updateDoc,
-      serverTimestamp, increment
+      getAuth,
+      setPersistence,
+      browserLocalPersistence,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import {
+      getFirestore,
+      doc, getDoc,
+      updateDoc, serverTimestamp, increment
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     // --- Firebase init ---
@@ -102,69 +48,80 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    // --- Constants ---
+    // Force local persistence
+    await setPersistence(auth, browserLocalPersistence);
+
+    // UI refs
+    const loadingEl  = document.getElementById('loading');
+    const gameCard   = document.getElementById('gameCard');
+    const statusEl   = document.getElementById("status");
+    const startBtn   = document.getElementById("startBtn");
+    const reactBtn   = document.getElementById("reactBtn");
+
+    // Constants
     const ALLOWED   = ["emerald","titanium","supreme","royalty"];
     const REWARD    = 20;
-    const COOLDOWN  = 24 * 60 * 60 * 1000; // ms
-
-    // --- UI refs ---
-    const statusEl  = document.getElementById("status");
-    const startBtn  = document.getElementById("startBtn");
-    const reactBtn  = document.getElementById("reactBtn");
+    const COOLDOWN  = 24 * 60 * 60 * 1000;
 
     let userRef, userData, timeoutId, startTime;
 
-    // --- Helper: show cooldown until next play ---
-    function showCooldown(ms) {
-      startBtn.disabled = true;
-      reactBtn.disabled = true;
-      const hrs = Math.floor(ms/3600000);
-      const mins= Math.floor((ms%3600000)/60000);
-      statusEl.textContent = `⏳ Try again in ${hrs}h ${mins}m`;
-    }
-
-    // --- Load fresh userData & enforce cooldown ---
+    // Helper: enforce cooldown
     async function refreshUserData() {
       const snap = await getDoc(userRef);
       userData = snap.data();
       const last = userData.lastReaction?.toMillis?.() || userData.lastReaction || 0;
       const since= Date.now() - last;
       if (since < COOLDOWN) {
-        showCooldown(COOLDOWN - since);
+        startBtn.disabled = true;
+        reactBtn.disabled = true;
+        const hrs = Math.floor((COOLDOWN - since)/3600000);
+        const mins= Math.floor(((COOLDOWN - since)%3600000)/60000);
+        statusEl.textContent = `⏳ Try again in ${hrs}h ${mins}m`;
         return false;
       }
-      // ready to play
       startBtn.disabled = false;
+      reactBtn.disabled = true;
       statusEl.textContent = 'Press “Start” when ready';
       return true;
     }
 
-    // --- Auth + plan check + initial cooldown ---
+    // Wait for auth to initialize
     onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = "login.html";
+      // hide loading
+      loadingEl.style.display = 'none';
+
+      if (!user) {
+        // only redirect *after* we've hidden the loader
+        return location.href = "login.html";
+      }
+
+      // load user doc
       userRef = doc(db, "users", user.uid);
       const snap = await getDoc(userRef);
-      if (!snap.exists()) return location.href = "login.html";
+      if (!snap.exists()) {
+        return location.href = "login.html";
+      }
       userData = snap.data();
+
       // plan check
       if (!ALLOWED.includes((userData.plan||"").toLowerCase())) {
         alert("You must be on at least Titanium plan to play.");
         return location.href = "upgrade.html";
       }
-      // initial loading & cooldown
+
+      // show game UI
+      gameCard.style.display = 'block';
+      // enforce cooldown
       await refreshUserData();
     });
 
-    // --- Game start ---
+    // Game logic stays the same, but always call refreshUserData() before awarding
     startBtn.onclick = async () => {
-      // re-check cooldown server‐side
-      const ok = await refreshUserData();
-      if (!ok) return;
+      if (!await refreshUserData()) return;
 
       startBtn.disabled = true;
       statusEl.textContent = "Get Ready...";
-      // random 2–5s delay
-      const delay = 2000 + Math.random() * 3000;
+      const delay = 2000 + Math.random()*3000;
       timeoutId = setTimeout(() => {
         navigator.vibrate?.(100);
         new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg").play();
@@ -174,30 +131,27 @@
       }, delay);
     };
 
-    // --- Reaction press ---
     reactBtn.onclick = async () => {
       reactBtn.disabled = true;
       clearTimeout(timeoutId);
       const reaction = Math.round(performance.now() - startTime);
 
       if (reaction <= 350) {
-        statusEl.innerHTML = `✅ Congratulations! Reaction: ${reaction}ms. You earned ₦${REWARD}.`;
+        statusEl.innerHTML = `✅ Congrats! ${reaction}ms. You earned ₦${REWARD}.`;
         navigator.vibrate?.([50,50,50]);
         new Audio("https://actions.google.com/sounds/v1/cartoon/clang.ogg").play();
-
-        // credit + record timestamp
+        // credit + timestamp
         await updateDoc(userRef, {
           balance: increment(REWARD),
           lastReaction: serverTimestamp()
         });
-        // reload data & enforce cooldown
-        await refreshUserData();
       } else {
         statusEl.innerHTML = `<span style="color:red">⏱ Too slow (${reaction}ms). Try again tomorrow.</span>`;
         navigator.vibrate?.([100,50]);
-        // start cooldown countdown
-        await refreshUserData();
       }
+
+      // re-enforce cooldown
+      setTimeout(refreshUserData, 100);
     };
   </script>
 </body>
