@@ -1,106 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Safe Cracker - EasyPay</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>Word Code Challenge – EasyPay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --green: #2e7d32;
+      --green-light: #4caf50;
+      --bg: #f0fff5;
+    }
     body {
+      font-family: 'Poppins', sans-serif;
       margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0fff0;
+      background: var(--bg);
+      color: #222;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      padding: 20px;
     }
     h1 {
-      color: #2e7d32;
+      color: var(--green);
     }
-    .safe-container {
-      margin-top: 20px;
+    #gameBox {
       background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
       text-align: center;
     }
     input[type="text"] {
-      padding: 10px;
-      font-size: 20px;
-      width: 120px;
-      letter-spacing: 10px;
-      text-align: center;
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid var(--green);
+      border-radius: 8px;
+      font-size: 16px;
     }
     button {
-      margin-top: 20px;
-      padding: 10px 30px;
-      font-size: 16px;
-      background-color: #2e7d32;
-      color: white;
+      background: var(--green);
+      color: #fff;
       border: none;
-      border-radius: 5px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
       cursor: pointer;
+      margin-top: 10px;
     }
     .message {
       margin-top: 15px;
-      font-size: 18px;
-      color: #2e7d32;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>🔒 Crack the Safe</h1>
-  <div class="safe-container">
-    <p>Enter the 4-digit code to unlock the safe</p>
-    <input type="text" maxlength="4" id="pinInput" placeholder="----" />
-    <br />
-    <button onclick="checkCode()">Unlock</button>
-    <div class="message" id="msg"></div>
-  </div>
+  <h1>🧠 Word Code Challenge</h1>
+  <div id="gameBox">
+    <p>Decode the 4-letter word within 3 tries. You’ll earn ₦20 if you crack it!</p>
+    <input type="text" id="guess" maxlength="4" placeholder="Enter 4-letter code" />
+    <button onclick="submitGuess()">Submit</button>
+    <div class="message" id="message"></div>
+    <div id="countdown" style="margin-top:10px; color:#888;"></div>
+  </div><audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-notification-alert-896.mp3"></audio> <audio id="failSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
 
-  <script>
-    const correctCode = "5824";
-    const user = JSON.parse(localStorage.getItem("easypay_current_user"));
-    const userData = JSON.parse(localStorage.getItem("easypay_users")) || {};
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    const today = new Date().toDateString();
-    const lastPlayed = localStorage.getItem(`safecracker_played_${user.username}`);
+    const correctCode = "EASY";
+    let tries = 3;
+    let currentUser = null;
 
-    if (lastPlayed === today) {
-      document.getElementById("msg").innerText = "You've already played today. Try again tomorrow.";
-      document.querySelector("button").disabled = true;
-    }
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "login.html";
+      else {
+        currentUser = user;
+        checkGameStatus();
+      }
+    });
 
-    function checkCode() {
-      const input = document.getElementById("pinInput").value;
-      if (input === correctCode) {
-        if (lastPlayed === today) {
-          document.getElementById("msg").innerText = "You already played today.";
-          return;
-        }
-        navigator.vibrate(200);
-        new Audio("https://www.soundjay.com/button/beep-07.wav").play();
-        document.getElementById("msg").innerText = "✅ Safe unlocked! ₦20 added to your balance.";
+    async function checkGameStatus() {
+      const doc = await db.collection("users").doc(currentUser.uid).get();
+      const data = doc.data();
+      const lastPlayed = data.lastWordGameTime;
+      const now = Date.now();
 
-        userData[user.username].balance = (userData[user.username].balance || 0) + 20;
-        const tx = { source: "Safe Cracker", amount: "+₦20", date: new Date().toLocaleString() };
-        userData[user.username].transactions = [tx, ...(userData[user.username].transactions || [])].slice(0, 10);
-
-        localStorage.setItem("easypay_users", JSON.stringify(userData));
-        localStorage.setItem(`safecracker_played_${user.username}`, today);
-
-        document.querySelector("button").disabled = true;
-      } else {
-        new Audio("https://www.soundjay.com/button/beep-10.wav").play();
-        navigator.vibrate([100, 100, 100]);
-        document.getElementById("msg").innerText = "❌ Incorrect code. Try again!";
+      if (lastPlayed && now - lastPlayed < 86400000) {
+        const timeLeft = 86400000 - (now - lastPlayed);
+        startCountdown(timeLeft);
+        document.getElementById("gameBox").innerHTML = "<h3>You've already played today. Try again in:</h3><div id='countdown'></div>";
       }
     }
-  </script>
-</body>
+
+    function startCountdown(ms) {
+      const countdown = document.getElementById("countdown");
+      const interval = setInterval(() => {
+        ms -= 1000;
+        const h = Math.floor(ms / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        countdown.innerText = `${h}h ${m}m ${s}s`;
+        if (ms <= 0) clearInterval(interval);
+      }, 1000);
+    }
+
+    function submitGuess() {
+      const guess = document.getElementById("guess").value.toUpperCase();
+      const msg = document.getElementById("message");
+
+      if (guess.length !== 4) {
+        msg.textContent = "Please enter a 4-letter word.";
+        navigator.vibrate(200);
+        return;
+      }
+
+      if (guess === correctCode) {
+        document.getElementById("successSound").play();
+        creditUser();
+        msg.textContent = "🎉 Correct! ₦20 has been added to your balance.";
+      } else {
+        document.getElementById("failSound").play();
+        tries--;
+        if (tries > 0) {
+          msg.textContent = `Wrong! You have ${tries} tries left.`;
+          navigator.vibrate(300);
+        } else {
+          msg.textContent = "❌ Game over. Try again in 24 hours.";
+          db.collection("users").doc(currentUser.uid).update({ lastWordGameTime: Date.now() });
+          navigator.vibrate([200, 100, 200]);
+        }
+      }
+    }
+
+    async function creditUser() {
+      const userRef = db.collection("users").doc(currentUser.uid);
+      const userSnap = await userRef.get();
+      const user = userSnap.data();
+      const newBal = (user.balance || 0) + 20;
+
+      await userRef.update({
+        balance: newBal,
+        lastWordGameTime: Date.now()
+      });
+
+      await db.collection("transactions").add({
+        userId: currentUser.uid,
+        amount: 20,
+        source: "Word Code Game",
+        date: new Date().toISOString()
+      });
+    }
+  </script></body>
 </html>
