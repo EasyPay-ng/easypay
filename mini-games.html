@@ -53,43 +53,111 @@
     .start-btn:hover {
       background-color: #256427;
     }
+
+    /* Restricted view */
+    .restricted {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .restricted .emoji {
+      font-size: 5rem;
+      margin-bottom: 20px;
+    }
+    .restricted p {
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+    }
+    .upgrade-btn {
+      background-color: #c62828;
+      color: white;
+      padding: 10px 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .upgrade-btn:hover {
+      background-color: #a91f1f;
+    }
   </style>
 </head>
 <body>
 
-  <h1>🎮 EasyPay Game Hub</h1>
-
-  <div class="game-list">
-    <div class="game">
-      <h2>🃏 Memory Flip</h2>
-      <p>Match all cards in 60 seconds to win ₦20.</p>
-      <a href="game-1.html" class="start-btn">Start Game</a>
-    </div>
-
-    <div class="game">
-      <h2>🔐 Safe Cracker</h2>
-      <p>Guess the correct 4-digit PIN to win ₦20.</p>
-      <a href="game-2.html" class="start-btn">Start Game</a>
-    </div>
-
-    <div class="game">
-      <h2>🎡 Lucky Spin</h2>
-      <p>Spin the wheel and land right to earn ₦20.</p>
-      <a href="game-3.html" class="start-btn">Start Game</a>
-    </div>
-
-    <div class="game">
-      <h2>❓ Guess Game</h2>
-      <p>Guess the word correctly to earn ₦20.</p>
-      <a href="game-4.html" class="start-btn">Start Game</a>
-    </div>
-
-    <div class="game">
-      <h2>🧠 Quiz Area</h2>
-      <p>Answer 5 questions and earn ₦20.</p>
-      <a href="game-5.html" class="start-btn">Start Game</a>
+  <!-- content shown only if plan OK -->
+  <div id="content" style="display:none;">
+    <h1>🎮 EasyPay Game Hub</h1>
+    <div class="game-list">
+      <div class="game">
+        <h2>🃏 Memory Flip</h2>
+        <p>Match all cards in 60 seconds to win ₦20.</p>
+        <a href="game-1.html" class="start-btn">Start Game</a>
+      </div>
+      <div class="game">
+        <h2>⚡ Reaction Speed</h2>
+        <p>Tap as fast as you can when the screen turns green—beat the clock for ₦20!</p>
+        <a href="game-2.html" class="start-btn">Start Game</a>
+      </div>
+      <div class="game">
+        <h2>🎡 Lucky Spin</h2>
+        <p>Spin the wheel—land on a winning slot to earn ₦20.</p>
+        <a href="game-3.html" class="start-btn">Start Game</a>
+      </div>
+      <div class="game">
+        <h2>🍎 Fruit Catcher</h2>
+        <p>Catch 20 falling fruits without missing—rack up ₦20.</p>
+        <a href="game-4.html" class="start-btn">Start Game</a>
+      </div>
+      <div class="game">
+        <h2>🎯 Quick Draw</h2>
+        <p>Tap the target as it appears—hit 10 in a row to win ₦20.</p>
+        <a href="game-5.html" class="start-btn">Start Game</a>
+      </div>
     </div>
   </div>
+
+  <!-- restricted view -->
+  <div id="restricted" class="restricted" style="display:none;">
+    <div class="emoji">😓</div>
+    <p>You’re not eligible to access this page.<br/>
+       You must be on at least the <strong>Emerald</strong>, <strong>Sapphire</strong>, <strong>Supreme</strong> or <strong>Royalty</strong> plan.</p>
+    <button class="upgrade-btn" onclick="location.href='upgrade.html'">Upgrade Now</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script>
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // allowed plans
+    const allowedPlans = ["emerald", "sapphire", "supreme", "royalty"];
+
+    firebase.auth().onAuthStateChanged(async user => {
+      if (!user) {
+        return window.location.href = "login.html";
+      }
+      try {
+        const doc = await db.collection("users").doc(user.uid).get();
+        const plan = (doc.data()?.plan || "").toLowerCase();
+        if (allowedPlans.includes(plan)) {
+          document.getElementById("content").style.display = "block";
+        } else {
+          document.getElementById("restricted").style.display = "block";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("restricted").style.display = "block";
+      }
+    });
+  </script>
 
 </body>
 </html>
