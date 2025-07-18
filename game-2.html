@@ -2,162 +2,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Word Code Challenge – EasyPay</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+  <title>Decode Game – EasyPay</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --green: #2e7d32;
-      --green-light: #4caf50;
-      --bg: #f0fff5;
-    }
     body {
       font-family: 'Poppins', sans-serif;
+      background-color: #f0fff4;
       margin: 0;
-      background: var(--bg);
+      padding: 20px;
       color: #222;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
     }
-    h1 {
-      color: var(--green);
-    }
-    #gameBox {
-      background: #fff;
-      padding: 20px;
+    .container {
+      max-width: 400px;
+      margin: auto;
+      padding: 30px;
+      background: white;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      max-width: 400px;
-      width: 100%;
       text-align: center;
     }
-    input[type="text"] {
+    h2 {
+      color: #2e7d32;
+    }
+    input {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
-      border: 2px solid var(--green);
+      margin: 15px 0;
       border-radius: 8px;
+      border: 1px solid #ccc;
       font-size: 16px;
     }
     button {
-      background: var(--green);
-      color: #fff;
-      border: none;
+      background-color: #2e7d32;
+      color: white;
       padding: 12px 20px;
+      border: none;
       border-radius: 8px;
-      font-size: 16px;
       cursor: pointer;
-      margin-top: 10px;
-    }
-    .message {
-      margin-top: 15px;
       font-weight: bold;
+    }
+    #resultMessage {
+      margin-top: 15px;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
-  <h1>🧠 Word Code Challenge</h1>
-  <div id="gameBox">
-    <p>Decode the 4-letter word within 3 tries. You’ll earn ₦20 if you crack it!</p>
-    <input type="text" id="guess" maxlength="4" placeholder="Enter 4-letter code" />
-    <button onclick="submitGuess()">Submit</button>
-    <div class="message" id="message"></div>
-    <div id="countdown" style="margin-top:10px; color:#888;"></div>
-  </div><audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-notification-alert-896.mp3"></audio> <audio id="failSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+  <div class="container">
+    <h2>🧠 Decode the Word</h2>
+    <p id="scrambled-word">🔒 Word: <strong id="encodedWordDisplay"></strong></p>
+    <input type="text" id="userGuess" placeholder="Enter the correct word" />
+    <button id="submitBtn">Submit</button>
+    <p id="resultMessage"></p>
+  </div><audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3" preload="auto"></audio> <audio id="failSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    const correctCode = "EASY";
-    let tries = 3;
-    let currentUser = null;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore();
 
-    auth.onAuthStateChanged(user => {
-      if (!user) window.location.href = "login.html";
-      else {
-        currentUser = user;
-        checkGameStatus();
-      }
-    });
+    const words = ['EARNER', 'BALANCE', 'LOGIN', 'CREDIT', 'REFERRAL', 'WITHDRAW', 'FIREBASE', 'NAIRA', 'WINNER'];
 
-    async function checkGameStatus() {
-      const doc = await db.collection("users").doc(currentUser.uid).get();
-      const data = doc.data();
-      const lastPlayed = data.lastWordGameTime;
-      const now = Date.now();
-
-      if (lastPlayed && now - lastPlayed < 86400000) {
-        const timeLeft = 86400000 - (now - lastPlayed);
-        startCountdown(timeLeft);
-        document.getElementById("gameBox").innerHTML = "<h3>You've already played today. Try again in:</h3><div id='countdown'></div>";
-      }
+    function scramble(word) {
+      return word.split('').sort(() => 0.5 - Math.random()).join('');
     }
 
-    function startCountdown(ms) {
-      const countdown = document.getElementById("countdown");
-      const interval = setInterval(() => {
-        ms -= 1000;
-        const h = Math.floor(ms / 3600000);
-        const m = Math.floor((ms % 3600000) / 60000);
-        const s = Math.floor((ms % 60000) / 1000);
-        countdown.innerText = `${h}h ${m}m ${s}s`;
-        if (ms <= 0) clearInterval(interval);
-      }, 1000);
-    }
+    const originalWord = words[Math.floor(Math.random() * words.length)];
+    const scrambledWord = scramble(originalWord);
+    document.getElementById('encodedWordDisplay').textContent = scrambledWord;
 
-    function submitGuess() {
-      const guess = document.getElementById("guess").value.toUpperCase();
-      const msg = document.getElementById("message");
+    const successSound = document.getElementById("successSound");
+    const failSound = document.getElementById("failSound");
 
-      if (guess.length !== 4) {
-        msg.textContent = "Please enter a 4-letter word.";
-        navigator.vibrate(200);
-        return;
-      }
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const guess = document.getElementById('userGuess').value.trim().toUpperCase();
+      const resultEl = document.getElementById("resultMessage");
 
-      if (guess === correctCode) {
-        document.getElementById("successSound").play();
-        creditUser();
-        msg.textContent = "🎉 Correct! ₦20 has been added to your balance.";
-      } else {
-        document.getElementById("failSound").play();
-        tries--;
-        if (tries > 0) {
-          msg.textContent = `Wrong! You have ${tries} tries left.`;
-          navigator.vibrate(300);
-        } else {
-          msg.textContent = "❌ Game over. Try again in 24 hours.";
-          db.collection("users").doc(currentUser.uid).update({ lastWordGameTime: Date.now() });
-          navigator.vibrate([200, 100, 200]);
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          alert("You must be logged in.");
+          return;
         }
-      }
-    }
 
-    async function creditUser() {
-      const userRef = db.collection("users").doc(currentUser.uid);
-      const userSnap = await userRef.get();
-      const user = userSnap.data();
-      const newBal = (user.balance || 0) + 20;
+        const userId = user.uid;
+        const userRef = doc(db, "users", userId);
+        const gameRef = doc(db, "decodeGame", userId);
+        const gameSnap = await getDoc(gameRef);
+        const now = Date.now();
 
-      await userRef.update({
-        balance: newBal,
-        lastWordGameTime: Date.now()
+        if (gameSnap.exists() && now - gameSnap.data().lastPlayed < 86400000) {
+          resultEl.textContent = "⏳ Try again in 24 hours.";
+          return;
+        }
+
+        if (guess === originalWord) {
+          navigator.vibrate(200);
+          successSound.play();
+
+          await runTransaction(db, async (transaction) => {
+            const userSnap = await transaction.get(userRef);
+            const currentBal = userSnap.data().balance || 0;
+            transaction.update(userRef, { balance: currentBal + 20 });
+            transaction.set(gameRef, { lastPlayed: now });
+            const txRef = doc(collection(userRef, "transactions"));
+            transaction.set(txRef, {
+              source: "Decode Game",
+              amount: 20,
+              date: new Date().toISOString()
+            });
+          });
+
+          resultEl.textContent = "✅ Correct! ₦20 credited.";
+          document.getElementById("submitBtn").disabled = true;
+        } else {
+          navigator.vibrate([100, 50, 100]);
+          failSound.play();
+          resultEl.textContent = "❌ Incorrect. Try again.";
+        }
       });
-
-      await db.collection("transactions").add({
-        userId: currentUser.uid,
-        amount: 20,
-        source: "Word Code Game",
-        date: new Date().toISOString()
-      });
-    }
+    });
   </script></body>
 </html>
