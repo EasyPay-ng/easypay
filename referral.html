@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta charset="UTF-8" />
+<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Referrals – EasyPay</title>
   <style>
@@ -49,68 +48,66 @@
       </div>
     </div>
   </div>
-  <footer>EasyPay 2025</footer>  <script type="module">
+  <footer>EasyPay 2025</footer>
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";const firebaseConfig = {
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.appspot.com",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+  measurementId: "G-2FZKDQ47FZ"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+const activatedBody = document.getElementById('activatedBody');
+const allBody = document.getElementById('allBody');
+const allowedPlans = ['premium','gold','elite','diamond','platinum','sapphire','emerald','titanium','supreme','royalty'];
 
-    const activatedBody = document.getElementById('activatedBody');
-    const allBody = document.getElementById('allBody');
-    const allowedPlans = ['premium','gold','elite'];
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href = 'login.html';
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    const myUsername = userSnap.data()?.username;
 
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = 'login.html';
-      try {
-        // get current user doc
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        const myUsername = userSnap.data()?.username;
+    const qRef = query(collection(db,'users'), where('referral','==', myUsername));
+    const snap = await getDocs(qRef);
+    activatedBody.innerHTML = '';
+    allBody.innerHTML = '';
 
-        // query referred users
-        const qRef = query(collection(db,'users'), where('referral','==', myUsername));
-        const snap = await getDocs(qRef);
-        activatedBody.innerHTML = '';
-        allBody.innerHTML = '';
+    if (snap.empty) {
+      allBody.innerHTML = '<tr><td colspan="4" class="no-data">No referrals found.</td></tr>';
+      activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">No activated referrals.</td></tr>';
+    } else {
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        const reg = d.createdAt?.toDate().toLocaleString() || 'N/A';
+        const bal = '₦' + ((d.balance ?? 0).toFixed(2));
+        const rowHTML = `<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td></tr>`;
+        allBody.innerHTML += rowHTML;
+        if (allowedPlans.includes((d.plan||'').toLowerCase())) activatedBody.innerHTML += rowHTML;
+      });
+    }
+  } catch (err) {
+    console.error('Fetch error:', err);
+    const msg = '<tr><td colspan="4" class="no-data">Error loading data.</td></tr>';
+    allBody.innerHTML = msg;
+    activatedBody.innerHTML = msg;
+  }
+});
 
-        if (snap.empty) {
-          allBody.innerHTML = '<tr><td colspan="4" class="no-data">No referrals found.</td></tr>';
-          activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">No activated referrals.</td></tr>';
-        } else {
-          snap.forEach(docSnap => {
-            const d = docSnap.data();
-            const reg = d.createdAt?.toDate().toLocaleString() || 'N/A';
-            const bal = '₦' + ((d.balance ?? 0).toFixed(2));
-            const rowHTML = `<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td></tr>`;
-            allBody.innerHTML += rowHTML;
-            if (allowedPlans.includes(d.plan)) activatedBody.innerHTML += rowHTML;
-          });
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        const msg = '<tr><td colspan="4" class="no-data">Error loading data.</td></tr>';
-        allBody.innerHTML = msg;
-        activatedBody.innerHTML = msg;
-      }
-    });
+document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  document.getElementById(tab.dataset.tab).style.display = 'block';
+}));
 
-    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-      document.getElementById(tab.dataset.tab).style.display = 'block';
-    }));
-  </script></body>
-</html>
+  </script>
+</body></html>
