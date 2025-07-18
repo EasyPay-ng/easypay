@@ -2,139 +2,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decode Game – EasyPay</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>Word Decoder Game</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f0fff4;
-      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4fff4;
       padding: 20px;
-      color: #222;
-    }
-    .container {
-      max-width: 400px;
-      margin: auto;
-      padding: 30px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       text-align: center;
     }
-    h2 {
-      color: #2e7d32;
+    .game-box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: auto;
     }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 15px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    input, button {
+      padding: 10px;
       font-size: 16px;
+      margin: 10px 0;
+      width: 100%;
     }
-    button {
-      background-color: #2e7d32;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
+    #result {
+      font-size: 18px;
+      margin-top: 10px;
+      color: green;
     }
-    #resultMessage {
-      margin-top: 15px;
-      font-weight: 600;
+    #cooldown {
+      color: red;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🧠 Decode the Word</h2>
-    <p id="scrambled-word">🔒 Word: <strong id="encodedWordDisplay"></strong></p>
-    <input type="text" id="userGuess" placeholder="Enter the correct word" />
-    <button id="submitBtn">Submit</button>
-    <p id="resultMessage"></p>
-  </div><audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3" preload="auto"></audio> <audio id="failSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+  <div class="game-box">
+    <h2>🧠 Word Decoder</h2>
+    <p id="scrambled"></p>
+    <div id="game-area">
+      <input type="text" id="userInput" placeholder="Type the correct word...">
+      <button onclick="submitWord()">Submit</button>
+    </div>
+    <p id="result"></p>
+    <p id="cooldown"></p>
+  </div><audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
     };
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const db = getFirestore();
-
-    const words = ['EARNER', 'BALANCE', 'LOGIN', 'CREDIT', 'REFERRAL', 'WITHDRAW', 'FIREBASE', 'NAIRA', 'WINNER'];
+    let correctWord = "";
+    const words = ["money", "green", "bonus", "eagle", "smart", "trade", "value", "light"];
 
     function scramble(word) {
       return word.split('').sort(() => 0.5 - Math.random()).join('');
     }
 
-    const originalWord = words[Math.floor(Math.random() * words.length)];
-    const scrambledWord = scramble(originalWord);
-    document.getElementById('encodedWordDisplay').textContent = scrambledWord;
+    function showScrambledWord() {
+      correctWord = words[Math.floor(Math.random() * words.length)];
+      document.getElementById("scrambled").textContent = `Decode this: ${scramble(correctWord)}`;
+    }
 
-    const successSound = document.getElementById("successSound");
-    const failSound = document.getElementById("failSound");
+    function vibrate() {
+      if (navigator.vibrate) navigator.vibrate(200);
+    }
 
-    document.getElementById('submitBtn').addEventListener('click', async () => {
-      const guess = document.getElementById('userGuess').value.trim().toUpperCase();
-      const resultEl = document.getElementById("resultMessage");
+    function submitWord() {
+      const input = document.getElementById("userInput").value.trim().toLowerCase();
+      if (input === correctWord) {
+        document.getElementById("result").textContent = "✅ Congratulations, you decoded the word!!";
+        document.getElementById("game-area").style.display = "none";
+        vibrate();
+        document.getElementById("successSound").play();
 
-      onAuthStateChanged(auth, async (user) => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const userRef = db.collection("users").doc(user.uid);
+        const now = new Date();
+        userRef.update({
+          balance: firebase.firestore.FieldValue.increment(20),
+          lastWordGame: now
+        });
+
+        userRef.collection("transactions").add({
+          source: "Word Decoder",
+          amount: 20,
+          timestamp: now
+        });
+      } else {
+        document.getElementById("result").textContent = "❌ Incorrect, try again.";
+      }
+    }
+
+    function checkCooldown() {
+      auth.onAuthStateChanged(async user => {
         if (!user) {
-          alert("You must be logged in.");
+          location.href = "/login.html";
           return;
         }
+        const doc = await db.collection("users").doc(user.uid).get();
+        const data = doc.data();
 
-        const userId = user.uid;
-        const userRef = doc(db, "users", userId);
-        const gameRef = doc(db, "decodeGame", userId);
-        const gameSnap = await getDoc(gameRef);
-        const now = Date.now();
+        if (data && data.lastWordGame) {
+          const last = data.lastWordGame.toDate();
+          const now = new Date();
+          const diff = now - last;
+          const hours = 24 * 60 * 60 * 1000;
 
-        if (gameSnap.exists() && now - gameSnap.data().lastPlayed < 86400000) {
-          resultEl.textContent = "⏳ Try again in 24 hours.";
-          return;
+          if (diff < hours) {
+            const remain = new Date(last.getTime() + hours - now.getTime());
+            const h = Math.floor((remain / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((remain / (1000 * 60)) % 60);
+            document.getElementById("game-area").style.display = "none";
+            document.getElementById("cooldown").textContent = `⏳ Try again in ${h}h ${m}m`;
+            return;
+          }
         }
-
-        if (guess === originalWord) {
-          navigator.vibrate(200);
-          successSound.play();
-
-          await runTransaction(db, async (transaction) => {
-            const userSnap = await transaction.get(userRef);
-            const currentBal = userSnap.data().balance || 0;
-            transaction.update(userRef, { balance: currentBal + 20 });
-            transaction.set(gameRef, { lastPlayed: now });
-            const txRef = doc(collection(userRef, "transactions"));
-            transaction.set(txRef, {
-              source: "Decode Game",
-              amount: 20,
-              date: new Date().toISOString()
-            });
-          });
-
-          resultEl.textContent = "✅ Correct! ₦20 credited.";
-          document.getElementById("submitBtn").disabled = true;
-        } else {
-          navigator.vibrate([100, 50, 100]);
-          failSound.play();
-          resultEl.textContent = "❌ Incorrect. Try again.";
-        }
+        showScrambledWord();
       });
-    });
+    }
+
+    checkCooldown();
   </script></body>
 </html>
