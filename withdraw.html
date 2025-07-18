@@ -42,6 +42,26 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
+      position: relative;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     .table-box {
       max-height: 300px;
@@ -77,30 +97,27 @@
 </head>
 <body>
   <div class="important-message">
-     withdrawals takes within 24hrs to be completed, refrain from complaining within the timeframe to avoid penalties!
+    Withdrawals take up to 24hrs to complete. Please avoid multiple requests to prevent penalties!
   </div>
 
   <div class="form-box">
     <h2>Make a Withdrawal</h2>
     <input type="number" id="amount" placeholder="Amount (min ₦200)" />
-
-    <!-- Updated bank list -->
     <select id="bank">
       <option value="">Select Bank</option>
-      <option value="Access Bank">Access Bank</option>
-      <option value="Kuda">Kuda</option>
-      <option value="PalmPay">PalmPay</option>
-      <option value="Moniepoint">Moniepoint</option>
-      <option value="Opay">Opay</option>
-      <option value="GTBank">GTBank</option>
-      <option value="First Bank">First Bank</option>
-      <option value="UBA">UBA</option>
-      <option value="Zenith Bank">Zenith Bank</option>
-      <option value="Wema Bank">Wema Bank</option>
-      <option value="SmartCash PSB">SmartCash PSB</option>
-      <option value="Momo PSB">Momo PSB</option>
+      <option>Access Bank</option>
+      <option>Kuda</option>
+      <option>PalmPay</option>
+      <option>Moniepoint</option>
+      <option>Opay</option>
+      <option>GTBank</option>
+      <option>First Bank</option>
+      <option>UBA</option>
+      <option>Zenith Bank</option>
+      <option>Wema Bank</option>
+      <option>SmartCash PSB</option>
+      <option>Momo PSB</option>
     </select>
-
     <input type="text" id="accName" placeholder="Account Name" />
     <input type="number" id="accNumber" placeholder="Account Number" />
     <button id="submitBtn">Submit Withdrawal</button>
@@ -125,7 +142,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc,
+      collection, addDoc, query, orderBy, limit, getDocs
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -133,7 +153,7 @@
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.firebasestorage.app",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      appId: "1:862671358267:web:b243c7b69840ef918c1e",
       measurementId: "G-2FZKDQ47FZ"
     };
 
@@ -147,40 +167,60 @@
         window.location.href = "login.html";
         return;
       }
-
-      const userRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userRef);
-      if (!userDoc.exists()) {
-        alert("User not found in Firestore.");
-        return;
-      }
-
-      document.getElementById("submitBtn").addEventListener("click", () => submitWithdrawal(user.uid));
-      loadWithdrawals(user.uid);
+      const uid = user.uid;
+      document.getElementById("submitBtn")
+        .addEventListener("click", () => submitWithdrawal(uid));
+      loadWithdrawals(uid);
     });
 
     async function submitWithdrawal(uid) {
-      const amount = parseFloat(document.getElementById("amount").value);
-      const bank = document.getElementById("bank").value;
-      const accName = document.getElementById("accName").value;
-      const accNumber = document.getElementById("accNumber").value;
-      if (isNaN(amount) || amount < 200 || !bank || !accName || !accNumber) {
-        alert("Please fill all fields correctly. Minimum is ₦200.");
-        return;
-      }
-      const userRef = doc(db, "users", uid);
-      const userDoc = await getDoc(userRef);
-      const balance = userDoc.data().balance || 0;
-      if (amount > balance) { alert("Insufficient balance."); return; }
+      const btn = document.getElementById("submitBtn");
+      const originalText = btn.textContent;
 
-      await updateDoc(userRef, { balance: balance - amount });
-      await addDoc(collection(userRef, "withdrawals"), {
-        timestamp: new Date(),
-        amount, bank, accName, accNumber, status: "pending"
-      });
-      alert("Withdrawal submitted successfully.");
-      ["amount","bank","accName","accNumber"].forEach(id => document.getElementById(id).value = '');
-      loadWithdrawals(uid);
+      // disable & show spinner
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span>Processing...`;
+
+      try {
+        const amount   = parseFloat(document.getElementById("amount").value);
+        const bank     = document.getElementById("bank").value;
+        const accName  = document.getElementById("accName").value.trim();
+        const accNumber = document.getElementById("accNumber").value.trim();
+
+        if (isNaN(amount) || amount < 200 || !bank || !accName || !accNumber) {
+          alert("Please fill all fields correctly. Minimum is ₦200.");
+          return;
+        }
+
+        const userRef = doc(db, "users", uid);
+        const userDoc = await getDoc(userRef);
+        const balance = userDoc.data().balance || 0;
+
+        if (amount > balance) {
+          alert("Insufficient balance.");
+          return;
+        }
+
+        // update balance & log
+        await updateDoc(userRef, { balance: balance - amount });
+        await addDoc(collection(userRef, "withdrawals"), {
+          timestamp: new Date(),
+          amount, bank, accName, accNumber, status: "pending"
+        });
+
+        alert("Withdrawal submitted successfully.");
+        ["amount","bank","accName","accNumber"].forEach(id => document.getElementById(id).value = '');
+        loadWithdrawals(uid);
+
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please try again.");
+
+      } finally {
+        // restore button
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     }
 
     async function loadWithdrawals(uid) {
@@ -189,7 +229,13 @@
       const withdrawalRef = collection(doc(db, "users", uid), "withdrawals");
       const q = query(withdrawalRef, orderBy("timestamp", "desc"), limit(20));
       const snapshot = await getDocs(q);
+
       tbody.innerHTML = '';
+      if (snapshot.empty) {
+        tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
+        return;
+      }
+
       snapshot.forEach(docSnap => {
         const d = docSnap.data();
         const date = new Date(d.timestamp.seconds * 1000).toLocaleString();
@@ -205,9 +251,6 @@
             <td><span class="status ${cls}">${d.status.charAt(0).toUpperCase() + d.status.slice(1)}</span></td>
           </tr>`;
       });
-      if (snapshot.empty) {
-        tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
-      }
     }
   </script>
 </body>
