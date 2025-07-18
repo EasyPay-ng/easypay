@@ -48,7 +48,7 @@
       font-size: 1.1rem;
       min-height: 1.4em;
     }
-    #startBtn, #reactBtn {
+    button {
       background: var(--primary);
       color: white;
       border: none;
@@ -58,12 +58,11 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    #startBtn:disabled, #reactBtn:disabled {
+    button:disabled {
       background: #aaa;
       cursor: not-allowed;
     }
-    #startBtn:hover:not(:disabled),
-    #reactBtn:hover:not(:disabled) {
+    button:hover:not(:disabled) {
       background: #256427;
     }
     #footer {
@@ -75,9 +74,7 @@
   </style>
 </head>
 <body>
-  <header>
-    <h1>Reaction Speed</h1>
-  </header>
+  <header><h1>Reaction Speed</h1></header>
   <main>
     <div id="gameCard">
       <div id="status">Press “Start” when ready</div>
@@ -87,67 +84,87 @@
   </main>
   <div id="footer">© 2025 EasyPay</div>
 
-  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc,
+      serverTimestamp, increment
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    // --- Firebase config & init ---
+    // --- Firebase init ---
     const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      apiKey: "...",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
     };
-    const app = initializeApp(firebaseConfig);
+    const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db   = getFirestore(app);
 
-    // --- Allowed plans & constants ---
-    const ALLOWED = ["emerald","titanium","supreme","royalty"];
-    const REWARD = 20;
-    const COOLDOWN = 24 * 60 * 60 * 1000;
+    // --- Constants ---
+    const ALLOWED   = ["emerald","titanium","supreme","royalty"];
+    const REWARD    = 20;
+    const COOLDOWN  = 24 * 60 * 60 * 1000; // ms
 
-    // --- UI elements ---
-    const statusEl = document.getElementById("status");
-    const startBtn = document.getElementById("startBtn");
-    const reactBtn = document.getElementById("reactBtn");
+    // --- UI refs ---
+    const statusEl  = document.getElementById("status");
+    const startBtn  = document.getElementById("startBtn");
+    const reactBtn  = document.getElementById("reactBtn");
 
-    let userRef, userData;
-    let timeoutId, startTime;
+    let userRef, userData, timeoutId, startTime;
 
-    // --- Auth & plan check ---
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href="login.html";
-      userRef = doc(db,"users",user.uid);
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) return location.href="login.html";
-      userData = snap.data();
-
-      if (!ALLOWED.includes((userData.plan||"").toLowerCase())) {
-        alert("You must be on at least Emerald plan to play.");
-        return location.href="upgrade.html";
-      }
-      // cooldown check
-      const last = userData.lastReaction?.toMillis?.() || userData.lastReaction || 0;
-      if (Date.now() - last < COOLDOWN) {
-        const left = COOLDOWN - (Date.now() - last);
-        return showCooldown(left);
-      }
-    });
-
+    // --- Helper: show cooldown until next play ---
     function showCooldown(ms) {
       startBtn.disabled = true;
-      const hrs = Math.floor(ms/3600000), mins = Math.floor((ms%3600000)/60000);
+      reactBtn.disabled = true;
+      const hrs = Math.floor(ms/3600000);
+      const mins= Math.floor((ms%3600000)/60000);
       statusEl.textContent = `⏳ Try again in ${hrs}h ${mins}m`;
     }
 
-    // --- Game flow ---
-    startBtn.onclick = () => {
+    // --- Load fresh userData & enforce cooldown ---
+    async function refreshUserData() {
+      const snap = await getDoc(userRef);
+      userData = snap.data();
+      const last = userData.lastReaction?.toMillis?.() || userData.lastReaction || 0;
+      const since= Date.now() - last;
+      if (since < COOLDOWN) {
+        showCooldown(COOLDOWN - since);
+        return false;
+      }
+      // ready to play
+      startBtn.disabled = false;
+      statusEl.textContent = 'Press “Start” when ready';
+      return true;
+    }
+
+    // --- Auth + plan check + initial cooldown ---
+    onAuthStateChanged(auth, async user => {
+      if (!user) return location.href = "login.html";
+      userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) return location.href = "login.html";
+      userData = snap.data();
+      // plan check
+      if (!ALLOWED.includes((userData.plan||"").toLowerCase())) {
+        alert("You must be on at least Titanium plan to play.");
+        return location.href = "upgrade.html";
+      }
+      // initial loading & cooldown
+      await refreshUserData();
+    });
+
+    // --- Game start ---
+    startBtn.onclick = async () => {
+      // re-check cooldown server‐side
+      const ok = await refreshUserData();
+      if (!ok) return;
+
       startBtn.disabled = true;
       statusEl.textContent = "Get Ready...";
-      // random delay 2–5s
-      const delay = 2000 + Math.random()*3000;
+      // random 2–5s delay
+      const delay = 2000 + Math.random() * 3000;
       timeoutId = setTimeout(() => {
         navigator.vibrate?.(100);
         new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg").play();
@@ -157,30 +174,30 @@
       }, delay);
     };
 
+    // --- Reaction press ---
     reactBtn.onclick = async () => {
-      const reaction = Math.round(performance.now() - startTime);
       reactBtn.disabled = true;
       clearTimeout(timeoutId);
+      const reaction = Math.round(performance.now() - startTime);
 
       if (reaction <= 350) {
         statusEl.innerHTML = `✅ Congratulations! Reaction: ${reaction}ms. You earned ₦${REWARD}.`;
         navigator.vibrate?.([50,50,50]);
         new Audio("https://actions.google.com/sounds/v1/cartoon/clang.ogg").play();
 
-        // credit user & set cooldown
+        // credit + record timestamp
         await updateDoc(userRef, {
           balance: increment(REWARD),
           lastReaction: serverTimestamp()
         });
+        // reload data & enforce cooldown
+        await refreshUserData();
       } else {
         statusEl.innerHTML = `<span style="color:red">⏱ Too slow (${reaction}ms). Try again tomorrow.</span>`;
         navigator.vibrate?.([100,50]);
+        // start cooldown countdown
+        await refreshUserData();
       }
-
-      // after result, disable and schedule re-enable
-      setTimeout(() => {
-        showCooldown(COOLDOWN);
-      }, 1000);
     };
   </script>
 </body>
