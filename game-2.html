@@ -2,192 +2,105 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Avoid the Bomb – EasyPay</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Safe Cracker - EasyPay</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --green: #2e7d32;
-      --red: #d32f2f;
-      --bg: #f0fff0;
-    }
     body {
       margin: 0;
-      background: var(--bg);
-      font-family: 'Poppins', sans-serif;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0fff0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px;
+      justify-content: center;
+      height: 100vh;
     }
     h1 {
-      color: var(--green);
+      color: #2e7d32;
     }
-    #gameArea {
-      position: relative;
-      width: 300px;
-      height: 400px;
-      background: white;
-      border: 2px solid var(--green);
-      overflow: hidden;
-      margin-top: 15px;
+    .safe-container {
+      margin-top: 20px;
+      background: #fff;
+      padding: 30px;
       border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
     }
-    #player {
-      position: absolute;
-      width: 40px;
-      height: 40px;
-      bottom: 10px;
-      background: var(--green);
-      border-radius: 8px;
+    input[type="text"] {
+      padding: 10px;
+      font-size: 20px;
+      width: 120px;
+      letter-spacing: 10px;
+      text-align: center;
     }
-    .bomb {
-      position: absolute;
-      width: 30px;
-      height: 30px;
-      background: var(--red);
-      top: 0;
-      border-radius: 50%;
-      animation: fall 3s linear infinite;
+    button {
+      margin-top: 20px;
+      padding: 10px 30px;
+      font-size: 16px;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
-    @keyframes fall {
-      to { top: 400px; }
-    }
-    #status {
+    .message {
       margin-top: 15px;
+      font-size: 18px;
+      color: #2e7d32;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
+  <h1>🔒 Crack the Safe</h1>
+  <div class="safe-container">
+    <p>Enter the 4-digit code to unlock the safe</p>
+    <input type="text" maxlength="4" id="pinInput" placeholder="----" />
+    <br />
+    <button onclick="checkCode()">Unlock</button>
+    <div class="message" id="msg"></div>
+  </div>
 
-<h1>💣 Avoid the Bomb</h1>
-<p>Survive 30 seconds to earn ₦20</p>
-<div id="status">Time left: 30s</div>
-<div id="gameArea">
-  <div id="player"></div>
-</div>
+  <script>
+    const correctCode = "5824";
+    const user = JSON.parse(localStorage.getItem("easypay_current_user"));
+    const userData = JSON.parse(localStorage.getItem("easypay_users")) || {};
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    const today = new Date().toDateString();
+    const lastPlayed = localStorage.getItem(`safecracker_played_${user.username}`);
 
-<script>
-  // Firebase Setup
-  const firebaseConfig = {
-    apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-    authDomain: "easypay-6bce8.firebaseapp.com",
-    projectId: "easypay-6bce8"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  let user, timer, timeLeft = 30, gameRunning = true;
-  let gameArea, player;
-
-  auth.onAuthStateChanged(async (u) => {
-    if (!u) return location.href = "login.html";
-    user = u;
-    const doc = await db.collection("users").doc(user.uid).get();
-    const last = doc.data()?.lastAvoidTheBomb;
-    if (last && Date.now() - last < 86400000) {
-      document.body.innerHTML = "<h2 style='color:red;'>⏳ You can only play this game once every 24 hours.</h2>";
-    } else {
-      startGame();
+    if (lastPlayed === today) {
+      document.getElementById("msg").innerText = "You've already played today. Try again tomorrow.";
+      document.querySelector("button").disabled = true;
     }
-  });
 
-  function startGame() {
-    gameArea = document.getElementById("gameArea");
-    player = document.getElementById("player");
-    let pos = 130;
-    player.style.left = pos + "px";
+    function checkCode() {
+      const input = document.getElementById("pinInput").value;
+      if (input === correctCode) {
+        if (lastPlayed === today) {
+          document.getElementById("msg").innerText = "You already played today.";
+          return;
+        }
+        navigator.vibrate(200);
+        new Audio("https://www.soundjay.com/button/beep-07.wav").play();
+        document.getElementById("msg").innerText = "✅ Safe unlocked! ₦20 added to your balance.";
 
-    // Move control
-    document.addEventListener("keydown", e => {
-      if (!gameRunning) return;
-      if (e.key === "ArrowLeft" && pos > 0) pos -= 20;
-      if (e.key === "ArrowRight" && pos < 260) pos += 20;
-      player.style.left = pos + "px";
-    });
+        userData[user.username].balance = (userData[user.username].balance || 0) + 20;
+        const tx = { source: "Safe Cracker", amount: "+₦20", date: new Date().toLocaleString() };
+        userData[user.username].transactions = [tx, ...(userData[user.username].transactions || [])].slice(0, 10);
 
-    // Touch control
-    gameArea.addEventListener("touchstart", e => {
-      if (!gameRunning) return;
-      const x = e.touches[0].clientX - gameArea.getBoundingClientRect().left;
-      pos = Math.max(0, Math.min(260, x - 20));
-      player.style.left = pos + "px";
-    });
+        localStorage.setItem("easypay_users", JSON.stringify(userData));
+        localStorage.setItem(`safecracker_played_${user.username}`, today);
 
-    timer = setInterval(() => {
-      timeLeft--;
-      document.getElementById("status").innerText = `Time left: ${timeLeft}s`;
-      if (timeLeft === 0) {
-        clearInterval(timer);
-        winGame();
+        document.querySelector("button").disabled = true;
+      } else {
+        new Audio("https://www.soundjay.com/button/beep-10.wav").play();
+        navigator.vibrate([100, 100, 100]);
+        document.getElementById("msg").innerText = "❌ Incorrect code. Try again!";
       }
-    }, 1000);
-
-    spawnBombs();
-  }
-
-  function spawnBombs() {
-    const drop = setInterval(() => {
-      if (!gameRunning) return clearInterval(drop);
-      const bomb = document.createElement("div");
-      bomb.classList.add("bomb");
-      bomb.style.left = Math.floor(Math.random() * 270) + "px";
-      gameArea.appendChild(bomb);
-
-      let y = 0;
-      const fall = setInterval(() => {
-        if (!gameRunning) return clearInterval(fall);
-        y += 4;
-        bomb.style.top = y + "px";
-        const bombRect = bomb.getBoundingClientRect();
-        const playerRect = player.getBoundingClientRect();
-        if (checkCollision(bombRect, playerRect)) {
-          clearInterval(timer);
-          gameRunning = false;
-          document.getElementById("status").innerHTML = "<span style='color:red;'>💥 You were hit! Try again tomorrow.</span>";
-          db.collection("users").doc(user.uid).update({ lastAvoidTheBomb: Date.now() });
-        }
-        if (y > 400) {
-          clearInterval(fall);
-          bomb.remove();
-        }
-      }, 20);
-    }, 800);
-  }
-
-  function checkCollision(r1, r2) {
-    return !(
-      r1.bottom < r2.top ||
-      r1.top > r2.bottom ||
-      r1.right < r2.left ||
-      r1.left > r2.right
-    );
-  }
-
-  async function winGame() {
-    gameRunning = false;
-    document.getElementById("status").innerHTML = "<span style='color:green;'>✅ You survived! ₦20 credited.</span>";
-    await db.collection("users").doc(user.uid).update({
-      lastAvoidTheBomb: Date.now()
-    });
-    const userRef = db.collection("users").doc(user.uid);
-    const userDoc = await userRef.get();
-    const newBal = (userDoc.data().balance || 0) + 20;
-    await userRef.update({ balance: newBal });
-    await db.collection("users").doc(user.uid).collection("transactions").add({
-      source: "Avoid the Bomb",
-      amount: 20,
-      date: new Date().toISOString()
-    });
-  }
-</script>
-
+    }
+  </script>
 </body>
 </html>
