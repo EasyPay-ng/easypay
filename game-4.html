@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fruit Catcher – EasyPay</title>
+  <style>
+    :root {
+      --primary: #2e7d32;
+      --bg: #f0fff0;
+      --card: #fff;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+    }
+    a.back {
+      position: absolute;
+      top: 20px; left: 20px;
+      background: rgba(0,0,0,0.1);
+      color: #fff; padding: 6px 10px;
+      border-radius: 6px; text-decoration: none;
+    }
+    header {
+      margin-top: 60px;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-align: center;
+    }
+    #gameCanvas {
+      background: var(--card);
+      border: 4px solid var(--primary);
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+    #info {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #info span {
+      display: inline-block;
+      margin: 0 10px;
+      font-weight: bold;
+    }
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <a href="mini-games.html" class="back">← Back</a>
+  <header>🍎 Fruit Catcher</header>
+  <div id="info">
+    <span id="score">Caught: 0</span>
+    <span id="timer">Time: 60s</span>
+  </div>
+  <canvas id="gameCanvas" width="320" height="480"></canvas>
+  <button id="startBtn">Start Game</button>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ---- Firebase init ----
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    // ---- Game constants ----
+    const ALLOWED  = ["emerald","titanium","supreme","royalty"];
+    const REWARD   = 20;
+    const COOLDOWN = 24 * 60 * 60 * 1000;
+    const TIMEOUT  = 60;            // seconds
+    const TARGET   = 20;            // fruits to catch
+    const GRAVITY  = 1.2;
+    const SPAWN_MS = 800;           // fruit spawn interval
+
+    // ---- DOM refs ----
+    const canvas   = document.getElementById("gameCanvas");
+    const ctx      = canvas.getContext("2d");
+    const scoreEl  = document.getElementById("score");
+    const timerEl  = document.getElementById("timer");
+    const startBtn = document.getElementById("startBtn");
+
+    let fruits = [], bucket, score, timeLeft, spawnTimer, gameTimer, currentUser, userRef, userData;
+
+    // ---- Fruit class ----
+    class Fruit {
+      constructor(x,y,size,img) {
+        this.x = x; this.y = y; this.size = size; this.img = img;
+      }
+      update() {
+        this.y += GRAVITY;
+      }
+      draw() {
+        ctx.drawImage(this.img, this.x, this.y, this.size, this.size);
+      }
+    }
+
+    // ---- Load a fruit image ----
+    const fruitImg = new Image();
+    fruitImg.src = "https://i.imgur.com/5qHNe7b.png"; // 🍎 placeholder
+
+    // ---- Bucket ----
+    function initBucket() {
+      bucket = { x: canvas.width/2 - 30, w: 60, h: 30 };
+      canvas.addEventListener("mousemove", e => {
+        const rect = canvas.getBoundingClientRect();
+        bucket.x = e.clientX - rect.left - bucket.w/2;
+      });
+    }
+
+    // ---- Draw bucket ----
+    function drawBucket() {
+      ctx.fillStyle = "#555";
+      ctx.fillRect(bucket.x, canvas.height - bucket.h - 5, bucket.w, bucket.h);
+    }
+
+    // ---- Collision check ----
+    function checkCatch(f) {
+      const by = canvas.height - bucket.h - 5;
+      return f.y + f.size >= by
+          && f.x + f.size > bucket.x
+          && f.x < bucket.x + bucket.w;
+    }
+
+    // ---- Game loop ----
+    function gameLoop() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      drawBucket();
+      for (let i = fruits.length -1; i>=0; i--) {
+        const f = fruits[i];
+        f.update(); f.draw();
+        if (checkCatch(f)) {
+          fruits.splice(i,1);
+          scoreEl.innerText = `Caught: ${++score}`;
+          if (score >= TARGET) return win();
+        } else if (f.y > canvas.height) {
+          fruits.splice(i,1);
+        }
+      }
+    }
+
+    // ---- Spawn fruits ----
+    function spawnFruit() {
+      const size = 32 + Math.random()*16;
+      const x = Math.random() * (canvas.width - size);
+      fruits.push(new Fruit(x, -size, size, fruitImg));
+    }
+
+    // ---- Win & credit ----
+    async function win() {
+      clearInterval(spawnTimer);
+      clearInterval(gameTimer);
+      startBtn.disabled = false;
+      alert("✅ You caught 20 fruits! ₦20 credited.");
+      await userRef.update({ lastFruitCatch: firebase.firestore.FieldValue.serverTimestamp(), balance: firebase.firestore.FieldValue.increment(REWARD) });
+    }
+
+    // ---- Countdown ----
+    function startTimers() {
+      timeLeft = TIMEOUT;
+      timerEl.innerText = `Time: ${timeLeft}s`;
+      gameTimer = setInterval(() => {
+        if (--timeLeft <= 0) {
+          clearInterval(gameTimer);
+          clearInterval(spawnTimer);
+          startBtn.disabled = false;
+          alert("⛔ Time's up! Try again tomorrow.");
+          userRef.update({ lastFruitCatch: Date.now() });
+        }
+        timerEl.innerText = `Time: ${timeLeft}s`;
+      },1000);
+    }
+
+    // ---- Start game ----
+    startBtn.onclick = () => {
+      startBtn.disabled = true;
+      score = 0; fruits = [];
+      scoreEl.innerText = `Caught: 0`;
+      initBucket();
+      spawnTimer = setInterval(spawnFruit, SPAWN_MS);
+      gameTimer  = setInterval(gameLoop, 16);
+      startTimers();
+    };
+
+    // ---- Auth & plan & cooldown ----
+    auth.onAuthStateChanged(async u => {
+      if (!u) return location.href="login.html";
+      currentUser = u;
+      userRef = db.collection("users").doc(u.uid);
+      const snap = await userRef.get(); if (!snap.exists) return location.href="login.html";
+      userData = snap.data();
+      if (!ALLOWED.includes((userData.plan||"").toLowerCase())) {
+        alert("You must be on at least Emerald plan to play.");
+        return location.href="upgrade.html";
+      }
+      // cooldown
+      const last = userData.lastFruitCatch?.toMillis?.() || userData.lastFruitCatch || 0;
+      const since= Date.now() - last;
+      if (since < COOLDOWN) {
+        const wait = COOLDOWN - since;
+        alert(`⏳ Please wait ${Math.ceil(wait/3600000)}h before next play.`);
+        startBtn.disabled = true;
+      } else {
+        startBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
