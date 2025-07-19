@@ -24,7 +24,7 @@
     a.back {
       position: absolute;
       top: 20px; left: 20px;
-      background: rgba(0,0,0,0.1);
+      background: var(--primary);
       color: #fff; padding: 6px 10px;
       border-radius: 6px; text-decoration: none;
     }
@@ -43,14 +43,14 @@
     }
     #info {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
     }
     #info span {
       display: inline-block;
       margin: 0 10px;
       font-weight: bold;
     }
-    button {
+    #startBtn {
       background: var(--primary);
       color: #fff;
       border: none;
@@ -59,8 +59,13 @@
       font-size: 1rem;
       cursor: pointer;
       transition: background 0.2s;
+      margin-bottom: 30px;
     }
-    button:disabled { background: #aaa; cursor: not-allowed; }
+    #startBtn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    #startBtn:hover:not(:disabled) { background: #256427; }
   </style>
 </head>
 <body>
@@ -71,162 +76,169 @@
     <span id="timer">Time: 60s</span>
   </div>
   <canvas id="gameCanvas" width="320" height="480"></canvas>
-  <button id="startBtn">Start Game</button>
+  <button id="startBtn" disabled>Loading…</button>
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
   <script>
-    // ---- Firebase init ----
-    const firebaseConfig = {
+    // --- Firebase init ---
+    const cfg = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8"
     };
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(cfg);
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    // ---- Game constants ----
-    const ALLOWED  = ["emerald","titanium","supreme","royalty"];
-    const REWARD   = 20;
-    const COOLDOWN = 24 * 60 * 60 * 1000;
-    const TIMEOUT  = 60;            // seconds
-    const TARGET   = 20;            // fruits to catch
-    const GRAVITY  = 1.2;
-    const SPAWN_MS = 800;           // fruit spawn interval
+    // --- Constants ---
+    const ALLOWED   = ["emerald","titanium","supreme","royalty"];
+    const REWARD    = 20;
+    const COOLDOWN  = 24 * 60 * 60 * 1000; // ms
+    const TIMEOUT   = 60;     // seconds per round
+    const TARGET    = 10;     // catch 10 fruits
 
-    // ---- DOM refs ----
+    // --- DOM refs ---
     const canvas   = document.getElementById("gameCanvas");
     const ctx      = canvas.getContext("2d");
     const scoreEl  = document.getElementById("score");
     const timerEl  = document.getElementById("timer");
     const startBtn = document.getElementById("startBtn");
 
-    let fruits = [], bucket, score, timeLeft, spawnTimer, gameTimer, currentUser, userRef, userData;
+    // --- State ---
+    let fruits = [], score = 0, timeLeft = TIMEOUT;
+    let spawnTimer, gameTimer;
+    let currentUser, userRef, userData;
 
-    // ---- Fruit class ----
+    // --- Fruit emojis pool ---
+    const FRUITS = ['🍎','🍌','🍇','🍓','🍉','🍒','🥝','🍑'];
+
+    // --- Fruit class draws an emoji ---
     class Fruit {
-      constructor(x,y,size,img) {
-        this.x = x; this.y = y; this.size = size; this.img = img;
+      constructor(x,y,size,emoji){
+        this.x = x; this.y = y; this.size = size; this.emoji = emoji;
       }
-      update() {
-        this.y += GRAVITY;
-      }
-      draw() {
-        ctx.drawImage(this.img, this.x, this.y, this.size, this.size);
+      update(){ this.y += this.size * 0.02 + 1; }
+      draw(){
+        ctx.font = `${this.size}px serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(this.emoji, this.x + this.size/2, this.y + this.size);
       }
     }
 
-    // ---- Load a fruit image ----
-    const fruitImg = new Image();
-    fruitImg.src = "https://i.imgur.com/5qHNe7b.png"; // 🍎 placeholder
+    function spawnFruit(){
+      const size = 32 + Math.random()*16;
+      const x = Math.random() * (canvas.width - size);
+      const emoji = FRUITS[Math.floor(Math.random()*FRUITS.length)];
+      fruits.push(new Fruit(x, -size, size, emoji));
+    }
 
-    // ---- Bucket ----
-    function initBucket() {
-      bucket = { x: canvas.width/2 - 30, w: 60, h: 30 };
-      canvas.addEventListener("mousemove", e => {
-        const rect = canvas.getBoundingClientRect();
-        bucket.x = e.clientX - rect.left - bucket.w/2;
+    function drawBucket(){ /* bucket omitted—catch at bottom */ }
+
+    function gameLoop(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      fruits.forEach((f,i)=>{
+        f.update(); f.draw();
+        // if hits bottom:
+        if (f.y + f.size >= canvas.height){
+          fruits.splice(i,1);
+        }
+        // simple catch if click in its area:
       });
     }
 
-    // ---- Draw bucket ----
-    function drawBucket() {
-      ctx.fillStyle = "#555";
-      ctx.fillRect(bucket.x, canvas.height - bucket.h - 5, bucket.w, bucket.h);
-    }
-
-    // ---- Collision check ----
-    function checkCatch(f) {
-      const by = canvas.height - bucket.h - 5;
-      return f.y + f.size >= by
-          && f.x + f.size > bucket.x
-          && f.x < bucket.x + bucket.w;
-    }
-
-    // ---- Game loop ----
-    function gameLoop() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      drawBucket();
-      for (let i = fruits.length -1; i>=0; i--) {
-        const f = fruits[i];
-        f.update(); f.draw();
-        if (checkCatch(f)) {
-          fruits.splice(i,1);
-          scoreEl.innerText = `Caught: ${++score}`;
-          if (score >= TARGET) return win();
-        } else if (f.y > canvas.height) {
-          fruits.splice(i,1);
-        }
-      }
-    }
-
-    // ---- Spawn fruits ----
-    function spawnFruit() {
-      const size = 32 + Math.random()*16;
-      const x = Math.random() * (canvas.width - size);
-      fruits.push(new Fruit(x, -size, size, fruitImg));
-    }
-
-    // ---- Win & credit ----
-    async function win() {
-      clearInterval(spawnTimer);
-      clearInterval(gameTimer);
-      startBtn.disabled = false;
-      alert("✅ You caught 20 fruits! ₦20 credited.");
-      await userRef.update({ lastFruitCatch: firebase.firestore.FieldValue.serverTimestamp(), balance: firebase.firestore.FieldValue.increment(REWARD) });
-    }
-
-    // ---- Countdown ----
-    function startTimers() {
+    function startTimers(){
       timeLeft = TIMEOUT;
+      score = 0; fruits = [];
+      scoreEl.innerText = `Caught: 0`;
       timerEl.innerText = `Time: ${timeLeft}s`;
-      gameTimer = setInterval(() => {
-        if (--timeLeft <= 0) {
+
+      gameTimer = setInterval(()=>{
+        if (--timeLeft <= 0){
           clearInterval(gameTimer);
           clearInterval(spawnTimer);
-          startBtn.disabled = false;
-          alert("⛔ Time's up! Try again tomorrow.");
-          userRef.update({ lastFruitCatch: Date.now() });
+          onTimeout();
         }
         timerEl.innerText = `Time: ${timeLeft}s`;
       },1000);
+
+      spawnTimer = setInterval(spawnFruit, 800);
+      requestAnimationFrame(function loop(){
+        gameLoop();
+        if (timeLeft>0 && score < TARGET) requestAnimationFrame(loop);
+      });
     }
 
-    // ---- Start game ----
-    startBtn.onclick = () => {
+    function onTimeout(){
       startBtn.disabled = true;
-      score = 0; fruits = [];
-      scoreEl.innerText = `Caught: 0`;
-      initBucket();
-      spawnTimer = setInterval(spawnFruit, SPAWN_MS);
-      gameTimer  = setInterval(gameLoop, 16);
-      startTimers();
-    };
+      startBtn.textContent = `Next play in 24h`;
+      userRef.update({ lastFruitCatch: Date.now() });
+      alert("⛔ Time's up! Try again tomorrow.");
+      startCooldown();
+    }
 
-    // ---- Auth & plan & cooldown ----
-    auth.onAuthStateChanged(async u => {
-      if (!u) return location.href="login.html";
+    function win(){
+      clearInterval(gameTimer);
+      clearInterval(spawnTimer);
+      startBtn.disabled = true;
+      startBtn.textContent = `Next play in 24h`;
+      alert(`✅ You caught ${TARGET} fruits! ₦${REWARD} credited.`);
+      // credit & timestamp
+      userRef.update({
+        lastFruitCatch: firebase.firestore.FieldValue.serverTimestamp(),
+        balance: firebase.firestore.FieldValue.increment(REWARD)
+      });
+      startCooldown();
+    }
+
+    function startCooldown(){
+      const end = Date.now() + COOLDOWN;
+      const tick = ()=>{
+        let ms = end - Date.now();
+        if(ms<=0){ startBtn.disabled = false; startBtn.textContent="Start Game"; return; }
+        let h = Math.floor(ms/3600000);
+        let m = Math.floor((ms%3600000)/60000);
+        startBtn.textContent = `Next in ${h}h ${m}m`;
+        setTimeout(tick,60000);
+      };
+      tick();
+    }
+
+    canvas.addEventListener('click', e=>{
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX - rect.left, py = e.clientY - rect.top;
+      fruits.forEach((f,i)=>{
+        if(px>=f.x && px<=f.x+f.size && py>=f.y && py<=f.y+f.size){
+          fruits.splice(i,1);
+          scoreEl.innerText = `Caught: ${++score}`;
+          if(score>=TARGET) win();
+        }
+      });
+    });
+
+    startBtn.addEventListener('click', startTimers);
+
+    auth.onAuthStateChanged(async u=>{
+      if(!u) return location.href="login.html";
       currentUser = u;
       userRef = db.collection("users").doc(u.uid);
-      const snap = await userRef.get(); if (!snap.exists) return location.href="login.html";
+      let snap = await userRef.get(); if(!snap.exists) return location.href="login.html";
       userData = snap.data();
-      if (!ALLOWED.includes((userData.plan||"").toLowerCase())) {
-        alert("You must be on at least Emerald plan to play.");
+      if(!ALLOWED.includes((userData.plan||'').toLowerCase())) {
+        alert("Upgrade to Emerald+ to play.");
         return location.href="upgrade.html";
       }
-      // cooldown
-      const last = userData.lastFruitCatch?.toMillis?.() || userData.lastFruitCatch || 0;
-      const since= Date.now() - last;
-      if (since < COOLDOWN) {
-        const wait = COOLDOWN - since;
-        alert(`⏳ Please wait ${Math.ceil(wait/3600000)}h before next play.`);
+      // cooldown check
+      const last = userData.lastFruitCatch || 0;
+      const since = Date.now() - last;
+      if(since < COOLDOWN){
         startBtn.disabled = true;
+        startBtn.textContent = "Loading…";
+        startCooldown();
       } else {
         startBtn.disabled = false;
+        startBtn.textContent = "Start Game";
       }
     });
   </script>
