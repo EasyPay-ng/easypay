@@ -12,6 +12,7 @@
       --text: #1a1a1a;
       --card: #fff;
     }
+    * { box-sizing: border-box; margin:0; padding:0; }
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -55,6 +56,14 @@
       text-align: center;
       margin-bottom: 1rem;
     }
+    #info {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    #info span {
+      margin: 0 10px;
+      font-weight: bold;
+    }
     #gameArea {
       position: relative;
       width: 300px; height: 300px;
@@ -72,11 +81,7 @@
       cursor: pointer;
       display: none;
     }
-    #info {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    button {
+    #startBtn {
       background: var(--primary);
       color: white;
       border: none;
@@ -86,12 +91,13 @@
       cursor: pointer;
       transition: background 0.2s;
       margin: .5rem;
+      min-width: 160px;
     }
-    button:disabled {
+    #startBtn:disabled {
       background: #aaa;
       cursor: not-allowed;
     }
-    button:hover:not(:disabled) {
+    #startBtn:hover:not(:disabled) {
       background: #256427;
     }
     #footer {
@@ -109,9 +115,7 @@
     <h1>Quick Draw</h1>
   </header>
   <main>
-    <div id="desc">
-      Tap the target as it appears. Hit 10 in a row and earn ₦20.
-    </div>
+    <div id="desc">Tap the target as it appears. Hit 10 in a row and earn ₦20.</div>
     <div id="info">
       <span id="hits">Hits: 0</span> |
       <span id="timer">Time: 20s</span>
@@ -119,12 +123,12 @@
     <div id="gameArea">
       <div id="target"></div>
     </div>
-    <button id="startBtn">Start Game</button>
+    <button id="startBtn" disabled>Loading…</button>
   </main>
   <div id="footer">© 2025 EasyPay</div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { initializeApp }  from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
     import {
       getFirestore, doc, getDoc,
@@ -142,131 +146,131 @@
     const db   = getFirestore(app);
 
     // --- Constants ---
-    const ALLOWED   = ["emerald","titanium","supreme","royalty"];
-    const REWARD    = 20;
-    const COOLDOWN  = 24 * 60 * 60 * 1000;
-    const TOTAL_HITS = 10;
-    const DURATION = 20; // seconds
+    const ALLOWED    = ["emerald","titanium","supreme","royalty"];
+    const REWARD     = 20;
+    const COOLDOWN   = 24 * 60 * 60 * 1000;
+    const TARGET_HITS = 10;
+    const DURATION   = 20; // seconds
 
     // --- UI refs ---
     const startBtn = document.getElementById("startBtn");
     const target   = document.getElementById("target");
     const hitsEl   = document.getElementById("hits");
     const timerEl  = document.getElementById("timer");
-    let gameArea   = document.getElementById("gameArea");
+    const gameArea = document.getElementById("gameArea");
 
-    // --- State ---
     let userRef, userData, currentUser;
-    let hits=0, timeLeft=DURATION, gameInterval, spawnTimeout;
+    let hits=0, timeLeft=DURATION, timerId, spawnId;
 
-    // --- Helpers ---
     function randomPos() {
-      const area = gameArea.getBoundingClientRect();
+      const { width, height } = gameArea.getBoundingClientRect();
       const size = 50;
-      const x = Math.random()*(area.width-size);
-      const y = Math.random()*(area.height-size);
-      return { x,y };
-    }
-    function showCooldown(ms) {
-      const next = Date.now()+ms;
-      document.body.innerHTML = `
-        <div style="text-align:center;padding:40px">
-          <div style="font-size:5rem">😓</div>
-          <p>You’ve played today.<br/>Next in:</p>
-          <div id="cd" style="font-size:1.5rem"></div>
-          <button onclick="location.reload()">Refresh</button>
-        </div>`;
-      function tick(){
-        const d = next-Date.now();
-        if(d<=0) return location.reload();
-        const h=Math.floor(d/3600000),
-              m=Math.floor((d%3600000)/60000),
-              s=Math.floor((d%60000)/1000);
-        document.getElementById("cd").innerText = `${h}h ${m}m ${s}s`;
-      }
-      tick(); setInterval(tick,1000);
+      return {
+        x: Math.random()*(width-size),
+        y: Math.random()*(height-size)
+      };
     }
 
-    function startGame() {
-      hits=0; timeLeft=DURATION;
-      hitsEl.innerText = `Hits: 0`;
-      timerEl.innerText= `Time: ${DURATION}s`;
-      startBtn.disabled = true;
-
-      // countdown
-      gameInterval = setInterval(()=>{
-        timeLeft--;
-        timerEl.innerText = `Time: ${timeLeft}s`;
-        if(timeLeft<=0) endGame(false);
-      },1000);
-
-      // first spawn
-      spawnTarget();
-    }
-
-    function spawnTarget() {
-      if(hits>=TOTAL_HITS) return;
+    function placeTarget() {
       const { x,y } = randomPos();
       target.style.left = x+"px";
       target.style.top  = y+"px";
       target.style.display = "block";
-      // next spawn in 800–1500ms
-      spawnTimeout = setTimeout(spawnTarget, 800+Math.random()*700);
+    }
+
+    function startCountdown() {
+      timeLeft = DURATION;
+      timerEl.innerText = `Time: ${timeLeft}s`;
+      timerId = setInterval(() => {
+        if (--timeLeft <=0) return endGame(false);
+        timerEl.innerText = `Time: ${timeLeft}s`;
+      },1000);
+    }
+
+    function spawnLoop() {
+      placeTarget();
+      spawnId = setTimeout(spawnLoop, 800 + Math.random()*700);
     }
 
     function endGame(won) {
-      clearInterval(gameInterval);
-      clearTimeout(spawnTimeout);
+      clearInterval(timerId);
+      clearTimeout(spawnId);
       target.style.display = "none";
-      if(won) handleWin();
-      else alert("Time’s up! Try again tomorrow.");
+      if (won) return handleWin();
+      alert("⛔ Time’s up! Try again tomorrow.");
+      updateDoc(userRef, { lastQuickDraw: Date.now() });
+      disableWithCountdown();
     }
 
     async function handleWin() {
-      timerEl.innerHTML = `✅ You hit ${TOTAL_HITS}! ₦${REWARD} credited.`;
-      // record & credit
+      timerEl.innerText = `✅ You hit ${TARGET_HITS}! ₦${REWARD} credited.`;
       await updateDoc(userRef, {
         lastQuickDraw: serverTimestamp(),
         balance: increment(REWARD)
       });
-      // cooldown UI
-      showCooldown(COOLDOWN);
+      disableWithCountdown();
+    }
+
+    function disableWithCountdown() {
+      startBtn.disabled = true;
+      let left = COOLDOWN;
+      function tick() {
+        const h = Math.floor(left/3600000),
+              m = Math.floor((left%3600000)/60000),
+              s = Math.floor((left%60000)/1000);
+        startBtn.innerText = `Try again in ${h}h ${m}m ${s}s`;
+        if (left <= 0) {
+          clearInterval(cdown);
+          startBtn.innerText = "Start Game";
+          startBtn.disabled = false;
+          return;
+        }
+        left -= 1000;
+      }
+      const cdown = setInterval(tick,1000);
+      tick();
+    }
+
+    function startGame() {
+      hits = 0;
+      hitsEl.innerText = `Hits: 0`;
+      startBtn.disabled = true;
+      startCountdown();
+      spawnLoop();
     }
 
     target.onclick = () => {
-      hits++;
-      hitsEl.innerText = `Hits: ${hits}`;
-      // immediately move
-      spawnTarget();
-      if(hits>=TOTAL_HITS) endGame(true);
+      hitsEl.innerText = `Hits: ${++hits}`;
+      if (hits >= TARGET_HITS) endGame(true);
+      else placeTarget();
     };
 
-    // --- Auth & plan & cooldown check ---
     onAuthStateChanged(auth, async u => {
-      if(!u) return location.href="login.html";
+      if (!u) return location.href = "login.html";
       currentUser = u;
-      userRef = doc(db,"users",u.uid);
+      userRef = doc(db, "users", u.uid);
       const snap = await getDoc(userRef);
-      if(!snap.exists()) return location.href="login.html";
+      if (!snap.exists()) return location.href="login.html";
       userData = snap.data();
 
       // plan check
-      if(!ALLOWED.includes((userData.plan||"").toLowerCase())){
+      if (!ALLOWED.includes((userData.plan||"").toLowerCase())) {
         alert("You must be on at least Emerald plan to play.");
         return location.href="upgrade.html";
       }
 
-      // cooldown
+      // cooldown check
       const last = userData.lastQuickDraw?.toMillis?.() || userData.lastQuickDraw || 0;
-      const since= Date.now()-last;
-      if(since<COOLDOWN){
-        showCooldown(COOLDOWN-since);
+      const since= Date.now() - last;
+      if (since < COOLDOWN) {
+        disableWithCountdown();
       } else {
         startBtn.disabled = false;
+        startBtn.innerText = "Start Game";
       }
     });
 
     startBtn.onclick = startGame;
   </script>
 </body>
-</html>
+  </html>
