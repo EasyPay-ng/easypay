@@ -35,12 +35,6 @@
       color: var(--primary);
       text-align: center;
     }
-    #gameCanvas {
-      background: var(--card);
-      border: 4px solid var(--primary);
-      border-radius: 12px;
-      margin: 20px 0;
-    }
     #info {
       text-align: center;
       margin-bottom: 12px;
@@ -49,6 +43,12 @@
       display: inline-block;
       margin: 0 10px;
       font-weight: bold;
+    }
+    #gameCanvas {
+      background: var(--card);
+      border: 4px solid var(--primary);
+      border-radius: 12px;
+      margin: 20px 0;
     }
     #startBtn {
       background: var(--primary);
@@ -60,6 +60,7 @@
       cursor: pointer;
       transition: background 0.2s;
       margin-bottom: 30px;
+      min-width: 160px;
     }
     #startBtn:disabled {
       background: #aaa;
@@ -96,8 +97,8 @@
     const ALLOWED   = ["emerald","titanium","supreme","royalty"];
     const REWARD    = 20;
     const COOLDOWN  = 24 * 60 * 60 * 1000; // ms
-    const TIMEOUT   = 60;     // seconds per round
-    const TARGET    = 10;     // catch 10 fruits
+    const TIMEOUT   = 60;     // seconds
+    const TARGET    = 10;     // fruits to catch
 
     // --- DOM refs ---
     const canvas   = document.getElementById("gameCanvas");
@@ -111,81 +112,70 @@
     let spawnTimer, gameTimer;
     let currentUser, userRef, userData;
 
-    // --- Fruit emojis pool ---
+    // --- Fruit emojis ---
     const FRUITS = ['🍎','🍌','🍇','🍓','🍉','🍒','🥝','🍑'];
 
-    // --- Fruit class draws an emoji ---
     class Fruit {
       constructor(x,y,size,emoji){
-        this.x = x; this.y = y; this.size = size; this.emoji = emoji;
+        this.x=x;this.y=y;this.size=size;this.emoji=emoji;
       }
-      update(){ this.y += this.size * 0.02 + 1; }
+      update(){ this.y += this.size*0.02 + 1; }
       draw(){
         ctx.font = `${this.size}px serif`;
-        ctx.textAlign = 'center';
-        ctx.fillText(this.emoji, this.x + this.size/2, this.y + this.size);
+        ctx.textAlign='center';
+        ctx.fillText(this.emoji,this.x+this.size/2,this.y+this.size);
       }
     }
 
     function spawnFruit(){
-      const size = 32 + Math.random()*16;
-      const x = Math.random() * (canvas.width - size);
-      const emoji = FRUITS[Math.floor(Math.random()*FRUITS.length)];
-      fruits.push(new Fruit(x, -size, size, emoji));
+      const size=32+Math.random()*16;
+      const x=Math.random()*(canvas.width-size);
+      const emoji=FRUITS[Math.floor(Math.random()*FRUITS.length)];
+      fruits.push(new Fruit(x,-size,size,emoji));
     }
-
-    function drawBucket(){ /* bucket omitted—catch at bottom */ }
 
     function gameLoop(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
       fruits.forEach((f,i)=>{
         f.update(); f.draw();
-        // if hits bottom:
-        if (f.y + f.size >= canvas.height){
+        if(f.y+f.size>=canvas.height){
           fruits.splice(i,1);
         }
-        // simple catch if click in its area:
       });
     }
 
     function startTimers(){
-      timeLeft = TIMEOUT;
-      score = 0; fruits = [];
-      scoreEl.innerText = `Caught: 0`;
-      timerEl.innerText = `Time: ${timeLeft}s`;
+      // reset
+      score=0; fruits=[];
+      scoreEl.innerText=`Caught: 0`;
+      timeLeft=TIMEOUT;
+      timerEl.innerText=`Time: ${timeLeft}s`;
 
+      // game tick
       gameTimer = setInterval(()=>{
-        if (--timeLeft <= 0){
-          clearInterval(gameTimer);
-          clearInterval(spawnTimer);
-          onTimeout();
-        }
-        timerEl.innerText = `Time: ${timeLeft}s`;
+        timeLeft--;
+        if(timeLeft<=0) return onTimeout();
+        timerEl.innerText=`Time: ${timeLeft}s`;
       },1000);
 
+      // spawn
       spawnTimer = setInterval(spawnFruit, 800);
-      requestAnimationFrame(function loop(){
-        gameLoop();
-        if (timeLeft>0 && score < TARGET) requestAnimationFrame(loop);
-      });
+      (function raf(){ gameLoop(); if(timeLeft>0 && score<TARGET) requestAnimationFrame(raf); })();
     }
 
-    function onTimeout(){
-      startBtn.disabled = true;
-      startBtn.textContent = `Next play in 24h`;
-      userRef.update({ lastFruitCatch: Date.now() });
+    function endGame(win){
+      clearInterval(gameTimer);
+      clearInterval(spawnTimer);
+      startBtn.disabled=true;
+      if(win) return onWin();
       alert("⛔ Time's up! Try again tomorrow.");
+      userRef.update({ lastFruitCatch: Date.now() });
       startCooldown();
     }
 
-    function win(){
-      clearInterval(gameTimer);
-      clearInterval(spawnTimer);
-      startBtn.disabled = true;
-      startBtn.textContent = `Next play in 24h`;
-      alert(`✅ You caught ${TARGET} fruits! ₦${REWARD} credited.`);
-      // credit & timestamp
-      userRef.update({
+    async function onWin(){
+      alert(`✅ You caught ${TARGET}! ₦${REWARD} credited.`);
+      await userRef.update({
         lastFruitCatch: firebase.firestore.FieldValue.serverTimestamp(),
         balance: firebase.firestore.FieldValue.increment(REWARD)
       });
@@ -193,52 +183,56 @@
     }
 
     function startCooldown(){
-      const end = Date.now() + COOLDOWN;
-      const tick = ()=>{
-        let ms = end - Date.now();
-        if(ms<=0){ startBtn.disabled = false; startBtn.textContent="Start Game"; return; }
-        let h = Math.floor(ms/3600000);
-        let m = Math.floor((ms%3600000)/60000);
-        startBtn.textContent = `Next in ${h}h ${m}m`;
-        setTimeout(tick,60000);
-      };
+      const unlock = Date.now() + COOLDOWN;
+      function tick(){
+        const ms = unlock - Date.now();
+        if(ms<=0){
+          startBtn.disabled=false;
+          startBtn.textContent="Start Game";
+        } else {
+          const h = Math.floor(ms/3600000);
+          const m = Math.floor((ms%3600000)/60000);
+          startBtn.textContent = `Next in ${h}h ${m}m`;
+          setTimeout(tick,60000);
+        }
+      }
       tick();
     }
 
-    canvas.addEventListener('click', e=>{
-      const rect = canvas.getBoundingClientRect();
-      const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    canvas.addEventListener('click',e=>{
+      const r=canvas.getBoundingClientRect();
+      const px=e.clientX-r.left, py=e.clientY-r.top;
       fruits.forEach((f,i)=>{
-        if(px>=f.x && px<=f.x+f.size && py>=f.y && py<=f.y+f.size){
+        if(px>=f.x&&px<=f.x+f.size&&py>=f.y&&py<=f.y+f.size){
           fruits.splice(i,1);
-          scoreEl.innerText = `Caught: ${++score}`;
-          if(score>=TARGET) win();
+          scoreEl.innerText=`Caught: ${++score}`;
+          if(score>=TARGET) endGame(true);
         }
       });
     });
 
-    startBtn.addEventListener('click', startTimers);
+    startBtn.onclick = ()=>startTimers();
 
     auth.onAuthStateChanged(async u=>{
       if(!u) return location.href="login.html";
-      currentUser = u;
-      userRef = db.collection("users").doc(u.uid);
-      let snap = await userRef.get(); if(!snap.exists) return location.href="login.html";
-      userData = snap.data();
-      if(!ALLOWED.includes((userData.plan||'').toLowerCase())) {
+      currentUser=u;
+      userRef=db.collection("users").doc(u.uid);
+      const snap=await userRef.get(); if(!snap.exists) return location.href="login.html";
+      userData=snap.data();
+      const plan=(userData.plan||"").toLowerCase();
+      if(!ALLOWED.includes(plan)){
         alert("Upgrade to Emerald+ to play.");
         return location.href="upgrade.html";
       }
       // cooldown check
-      const last = userData.lastFruitCatch || 0;
-      const since = Date.now() - last;
+      const last = userData.lastFruitCatch?.toMillis?.()||userData.lastFruitCatch||0;
+      const since=Date.now()-last;
       if(since < COOLDOWN){
-        startBtn.disabled = true;
-        startBtn.textContent = "Loading…";
+        startBtn.disabled=true;
         startCooldown();
       } else {
-        startBtn.disabled = false;
-        startBtn.textContent = "Start Game";
+        startBtn.disabled=false;
+        startBtn.textContent="Start Game";
       }
     });
   </script>
