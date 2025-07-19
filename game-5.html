@@ -7,10 +7,10 @@
   <style>
     :root {
       --primary: #2e7d32;
-      --light: #e8f5e9;
-      --bg: #f0fff0;
-      --text: #1a1a1a;
-      --card: #fff;
+      --light:   #e8f5e9;
+      --bg:      #f0fff0;
+      --text:    #1a1a1a;
+      --card:    #fff;
     }
     * { box-sizing: border-box; margin:0; padding:0; }
     body {
@@ -18,10 +18,7 @@
       font-family: 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      align-items: center;
+      display: flex; flex-direction: column; min-height: 100vh; align-items: center;
     }
     header {
       background: var(--primary);
@@ -32,38 +29,18 @@
       position: relative;
     }
     header .back {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: white;
-      text-decoration: none;
-      font-size: 0.9rem;
-      background: rgba(255,255,255,0.2);
-      padding: 4px 8px;
-      border-radius: 4px;
+      position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+      color: white; text-decoration: none; font-size: 0.9rem;
+      background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;
     }
     main {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
-      width: 100%;
-      max-width: 400px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 2rem; width: 100%; max-width: 400px;
     }
-    #desc {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    #info {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    #info span {
-      margin: 0 10px;
-      font-weight: bold;
-    }
+    #desc { text-align: center; margin-bottom: 1rem; }
+    #info { text-align: center; margin-bottom: 1rem; }
+    #info span { margin: 0 10px; font-weight: bold; }
     #gameArea {
       position: relative;
       width: 300px; height: 300px;
@@ -136,21 +113,20 @@
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     // --- Firebase init ---
-    const firebaseConfig = {
+    const app  = initializeApp({
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8"
-    };
-    const app  = initializeApp(firebaseConfig);
+    });
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
     // --- Constants ---
-    const ALLOWED    = ["emerald","titanium","supreme","royalty"];
-    const REWARD     = 20;
-    const COOLDOWN   = 24 * 60 * 60 * 1000;
-    const TARGET_HITS = 10;
-    const DURATION   = 20; // seconds
+    const ALLOWED      = ["emerald","titanium","supreme","royalty"];
+    const REWARD       = 20;
+    const COOLDOWN_MS  = 24 * 60 * 60 * 1000;
+    const TARGET_HITS  = 10;
+    const DURATION     = 20; // seconds
 
     // --- UI refs ---
     const startBtn = document.getElementById("startBtn");
@@ -159,118 +135,121 @@
     const timerEl  = document.getElementById("timer");
     const gameArea = document.getElementById("gameArea");
 
-    let userRef, userData, currentUser;
+    let userRef, userData, lastPlayedMS;
     let hits=0, timeLeft=DURATION, timerId, spawnId;
 
+    // Random position for target
     function randomPos() {
       const { width, height } = gameArea.getBoundingClientRect();
-      const size = 50;
       return {
-        x: Math.random()*(width-size),
-        y: Math.random()*(height-size)
+        x: Math.random()*(width-50),
+        y: Math.random()*(height-50)
       };
     }
-
+    // Show the target
     function placeTarget() {
       const { x,y } = randomPos();
-      target.style.left = x+"px";
-      target.style.top  = y+"px";
+      target.style.left = x + "px";
+      target.style.top  = y + "px";
       target.style.display = "block";
     }
-
+    // Countdown timer
     function startCountdown() {
       timeLeft = DURATION;
-      timerEl.innerText = `Time: ${timeLeft}s`;
-      timerId = setInterval(() => {
-        if (--timeLeft <=0) return endGame(false);
+      timerEl.innerText = `Time: ${DURATION}s`;
+      timerId = setInterval(()=>{
+        if (--timeLeft <= 0) return endGame(false);
         timerEl.innerText = `Time: ${timeLeft}s`;
-      },1000);
+      }, 1000);
     }
-
+    // Spawn loop
     function spawnLoop() {
       placeTarget();
       spawnId = setTimeout(spawnLoop, 800 + Math.random()*700);
     }
-
-    function endGame(won) {
+    // Clear loops
+    function clearGameLoops() {
       clearInterval(timerId);
       clearTimeout(spawnId);
       target.style.display = "none";
-      if (won) return handleWin();
-      alert("⛔ Time’s up! Try again tomorrow.");
-      updateDoc(userRef, { lastQuickDraw: Date.now() });
-      disableWithCountdown();
     }
-
+    // Disable with persistent countdown
+    function disableWithCountdown(msRemaining) {
+      startBtn.disabled = true;
+      function tick() {
+        if (msRemaining <= 0) {
+          startBtn.disabled = false;
+          startBtn.innerText = "Start Game";
+          return;
+        }
+        const h = Math.floor(msRemaining/3600000);
+        const m = Math.floor((msRemaining%3600000)/60000);
+        const s = Math.floor((msRemaining%60000)/1000);
+        startBtn.innerText = `Next in ${h}h ${m}m ${s}s`;
+        msRemaining -= 1000;
+        setTimeout(tick, 1000);
+      }
+      tick();
+    }
+    // Handle win
     async function handleWin() {
-      timerEl.innerText = `✅ You hit ${TARGET_HITS}! ₦${REWARD} credited.`;
+      clearGameLoops();
+      alert(`✅ You hit ${TARGET_HITS}! ₦${REWARD} credited.`);
+      // credit + timestamp
       await updateDoc(userRef, {
         lastQuickDraw: serverTimestamp(),
         balance: increment(REWARD)
       });
-      disableWithCountdown();
+      // reload to get server timestamp
+      const fresh = await getDoc(userRef);
+      lastPlayedMS = fresh.data().lastQuickDraw.toMillis();
+      const remaining = COOLDOWN_MS - (Date.now() - lastPlayedMS);
+      disableWithCountdown(remaining);
     }
-
-    function disableWithCountdown() {
-      startBtn.disabled = true;
-      let left = COOLDOWN;
-      function tick() {
-        const h = Math.floor(left/3600000),
-              m = Math.floor((left%3600000)/60000),
-              s = Math.floor((left%60000)/1000);
-        startBtn.innerText = `Try again in ${h}h ${m}m ${s}s`;
-        if (left <= 0) {
-          clearInterval(cdown);
-          startBtn.innerText = "Start Game";
-          startBtn.disabled = false;
-          return;
-        }
-        left -= 1000;
-      }
-      const cdown = setInterval(tick,1000);
-      tick();
+    // End game
+    function endGame(won) {
+      clearGameLoops();
+      if (won) return handleWin();
+      alert("⛔ Time’s up! Try again tomorrow.");
+      updateDoc(userRef, { lastQuickDraw: Date.now() });
+      disableWithCountdown(COOLDOWN_MS);
     }
-
-    function startGame() {
+    // Start button
+    startBtn.addEventListener("click", () => {
       hits = 0;
       hitsEl.innerText = `Hits: 0`;
       startBtn.disabled = true;
       startCountdown();
       spawnLoop();
-    }
-
-    target.onclick = () => {
+    });
+    // Target click
+    target.addEventListener("click", () => {
       hitsEl.innerText = `Hits: ${++hits}`;
       if (hits >= TARGET_HITS) endGame(true);
       else placeTarget();
-    };
-
+    });
+    // Auth + plan + cooldown
     onAuthStateChanged(auth, async u => {
       if (!u) return location.href = "login.html";
-      currentUser = u;
       userRef = doc(db, "users", u.uid);
       const snap = await getDoc(userRef);
       if (!snap.exists()) return location.href="login.html";
       userData = snap.data();
-
       // plan check
       if (!ALLOWED.includes((userData.plan||"").toLowerCase())) {
         alert("You must be on at least Emerald plan to play.");
         return location.href="upgrade.html";
       }
-
-      // cooldown check
-      const last = userData.lastQuickDraw?.toMillis?.() || userData.lastQuickDraw || 0;
-      const since= Date.now() - last;
-      if (since < COOLDOWN) {
-        disableWithCountdown();
+      // cooldown
+      lastPlayedMS = userData.lastQuickDraw?.toMillis?.() || userData.lastQuickDraw || 0;
+      const since = Date.now() - lastPlayedMS;
+      if (since < COOLDOWN_MS) {
+        disableWithCountdown(COOLDOWN_MS - since);
       } else {
         startBtn.disabled = false;
         startBtn.innerText = "Start Game";
       }
     });
-
-    startBtn.onclick = startGame;
   </script>
 </body>
-  </html>
+</html>
