@@ -1,7 +1,6 @@
-<!DOCTYPE html><html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Admin – Manage Plans</title>
   <link
     rel="stylesheet"
@@ -13,7 +12,7 @@
       display: flex; justify-content: space-between; align-items: center; }
     header h1 { margin: 0; font-size: 1.25rem; }
     header button { background: #fff; color: #009f4d; border: none;
-      padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+      padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-left: 0.5rem; }
     header button:hover { background: #e0f6e8; }
     .container { max-width: 900px; margin: 2rem auto; }
     .search { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
@@ -36,7 +35,10 @@
 <body>
   <header>
     <h1>Manage User Plans</h1>
-    <button id="logout">Logout</button>
+    <div>
+      <button id="downgradeAll">Downgrade All to Basic</button>
+      <button id="logout">Logout</button>
+    </div>
   </header>  <div class="container">
     <div class="search">
       <input id="q" type="text" placeholder="Search by username…" />
@@ -84,6 +86,17 @@
       if (e.key === "Enter") filter();
     };
 
+    document.getElementById("downgradeAll").onclick = async () => {
+      if (!confirm("Are you sure you want to downgrade EVERYONE to basic?")) return;
+      const wrap = document.getElementById("tableWrap");
+      wrap.innerHTML = '<p class="no-data">Downgrading all users…</p>';
+      for (let u of allUsers) {
+        await updateDoc(doc(db, "users", u.id), { plan: "basic", planStart: null });
+      }
+      alert("All users have been downgraded to basic.");
+      loadUsers();
+    };
+
     async function loadUsers() {
       const wrap = document.getElementById("tableWrap");
       wrap.innerHTML = "<p class='no-data'>Loading…</p>";
@@ -111,13 +124,11 @@
       for (let u of list) {
         let activated = "-", daysLeft = "-";
         if (u.plan !== "basic" && u.planStart) {
-          // All plans now valid for 7 days
           const maxDays = 7;
           const elapsed = now - u.planStart;
           const left    = maxDays - Math.floor(elapsed / MS_DAY);
 
           if (left <= 0) {
-            // auto-downgrade expired users
             await updateDoc(doc(db, "users", u.id), { plan: "basic", planStart: null });
             u.plan = "basic";
           } else {
