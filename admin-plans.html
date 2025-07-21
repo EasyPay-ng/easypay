@@ -1,6 +1,7 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html><html lang="en">
+<head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay Admin – Manage Plans</title>
   <link
     rel="stylesheet"
@@ -36,15 +37,13 @@
   <header>
     <h1>Manage User Plans</h1>
     <button id="logout">Logout</button>
-  </header>
-  <div class="container">
+  </header>  <div class="container">
     <div class="search">
       <input id="q" type="text" placeholder="Search by username…" />
       <button id="btnSearch"><i class="fas fa-search"></i> Search</button>
     </div>
     <div id="tableWrap"></div>
-  </div>
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
       getFirestore,
@@ -72,13 +71,13 @@
 
     onAuthStateChanged(auth, u => {
       if (!u || u.email.toLowerCase() !== ADMIN) {
-        return signOut(auth).then(() => location.href="login.html");
+        return signOut(auth).then(() => location.href = "login.html");
       }
       loadUsers();
     });
 
     document.getElementById("logout").onclick = () =>
-      signOut(auth).then(() => location.href="login.html");
+      signOut(auth).then(() => location.href = "login.html");
 
     document.getElementById("btnSearch").onclick = filter;
     document.getElementById("q").onkeypress = e => {
@@ -90,17 +89,6 @@
       wrap.innerHTML = "<p class='no-data'>Loading…</p>";
       const snap = await getDocs(collection(db, "users"));
       allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      // Immediately downgrade everyone to basic
-      for (let u of allUsers) {
-        if (u.plan !== "basic") {
-          await updateDoc(doc(db, "users", u.id), { plan: "basic", planStart: null });
-        }
-      }
-
-      // reload after downgrade
-      const snap2 = await getDocs(collection(db, "users"));
-      allUsers = snap2.docs.map(d => ({ id: d.id, ...d.data() }));
       render(allUsers);
     }
 
@@ -111,6 +99,9 @@
         return;
       }
 
+      const now = Date.now();
+      const MS_DAY = 24*60*60*1000;
+
       let html = `<table>
         <thead><tr>
           <th>Username</th><th>Email</th><th>Plan</th>
@@ -118,12 +109,43 @@
         </tr></thead><tbody>`;
 
       for (let u of list) {
+        let activated = "-", daysLeft = "-";
+        if (u.plan !== "basic" && u.planStart) {
+          // All plans now valid for 7 days
+          const maxDays = 7;
+          const elapsed = now - u.planStart;
+          const left    = maxDays - Math.floor(elapsed / MS_DAY);
+
+          if (left <= 0) {
+            // auto-downgrade expired users
+            await updateDoc(doc(db, "users", u.id), { plan: "basic", planStart: null });
+            u.plan = "basic";
+          } else {
+            activated = new Date(u.planStart).toLocaleDateString();
+            daysLeft  = `${left} day${left===1?"":"s"}`;
+          }
+        }
+
         html += `<tr>
           <td>${u.username||"—"}</td>
           <td>${u.email||"—"}</td>
-          <td>${u.plan}</td>
-          <td>—</td>
-          <td>—</td>
+          <td>
+            <select id="plan-${u.id}">
+              <option value="basic"     ${u.plan==="basic"     ? "selected":""}>Basic</option>
+              <option value="premium"   ${u.plan==="premium"   ? "selected":""}>Premium</option>
+              <option value="gold"      ${u.plan==="gold"      ? "selected":""}>Gold</option>
+              <option value="elite"     ${u.plan==="elite"     ? "selected":""}>Elite</option>
+              <option value="diamond"   ${u.plan==="diamond"   ? "selected":""}>Diamond</option>
+              <option value="platinum"  ${u.plan==="platinum"  ? "selected":""}>Platinum</option>
+              <option value="sapphire"  ${u.plan==="sapphire"  ? "selected":""}>Sapphire</option>
+              <option value="emerald"   ${u.plan==="emerald"   ? "selected":""}>Emerald</option>
+              <option value="titanium"  ${u.plan==="titanium"  ? "selected":""}>Titanium</option>
+              <option value="supreme"   ${u.plan==="supreme"   ? "selected":""}>Supreme</option>
+              <option value="royalty"   ${u.plan==="royalty"   ? "selected":""}>Royalty</option>
+            </select>
+          </td>
+          <td>${activated}</td>
+          <td>${u.plan==="basic"?"—":daysLeft}</td>
           <td><button class="save" data-id="${u.id}">Save</button></td>
         </tr>`;
       }
@@ -135,8 +157,11 @@
         b.onclick = async () => {
           const id = b.dataset.id;
           const sel = document.getElementById(`plan-${id}`);
-          const plan = sel ? sel.value : "basic";
-          await updateDoc(doc(db, "users", id), { plan, planStart: plan==="basic" ? null : Date.now() });
+          const plan = sel.value;
+          const data = { plan };
+          if (plan !== "basic") data.planStart = Date.now();
+          else data.planStart = null;
+          await updateDoc(doc(db, "users", id), data);
           alert("Updated.");
           loadUsers();
         };
@@ -150,6 +175,5 @@
         : allUsers
       );
     }
-  </script>
-</body>
+  </script></body>
 </html>
