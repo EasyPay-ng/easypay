@@ -1,64 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Leaderboard</title>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #00b66d;
+      --bg: #f7fdf8;
+      --text: #333;
+      --card-bg: #fff;
+      --shadow: rgba(0, 102, 51, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+    }
+    h1 {
+      font-weight: 600;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    .leaderboard {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 4px 16px var(--shadow);
+      overflow: hidden;
+    }
+    .leader-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      transition: background 0.2s;
+    }
+    .leader-item:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .leader-item:last-child { border-bottom: none; }
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      margin-right: 1rem;
+      object-fit: cover;
+    }
+    .details {
+      flex: 1;
+    }
+    .rank {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .username {
+      font-weight: 500;
+    }
+    .balance {
+      font-size: 0.9rem;
+      margin-left: auto;
+      font-weight: 600;
+    }
+    @media (max-width: 360px) {
+      h1 { font-size: 1.5rem; }
+      .leader-item { padding: 0.8rem; }
+      .avatar { width: 40px; height: 40px; }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4">
-  <h1 class="text-2xl font-bold text-center mb-6">Top 10 Users Leaderboard</h1>
-  <div id="leaderboard" class="max-w-xl mx-auto bg-white p-4 rounded-xl shadow-md space-y-4"></div>
-
+<body>
+  <h1>Top 10 Leaderboard</h1>
+  <div class="leaderboard" id="leaderboard"></div>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";const firebaseConfig = {
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.appspot.com",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const container = document.getElementById('leaderboard');
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
+async function loadLeaderboard() {
+  const usersRef = collection(db, 'users');
+  const q = query(usersRef, orderBy('balance', 'desc'), limit(10));
+  const snap = await getDocs(q);
+  let rank = 1;
+  snap.forEach(doc => {
+    const d = doc.data();
+    const avatar = d.avatar || `https://ui-avatars.com/api/?name=${d.username}&background=00b66d&color=fff&size=128`;
+    const item = document.createElement('div');
+    item.className = 'leader-item';
+    item.innerHTML = `
+      <img src="${avatar}" alt="avatar" class="avatar" />
+      <div class="details">
+        <span class="rank">${rank}.</span>
+        <span class="username">${d.username}</span>
+      </div>
+      <div class="balance">₦${(d.balance||0).toFixed(2)}</div>
+    `;
+    container.appendChild(item);
+    rank++;
+  });
+}
+loadLeaderboard();
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const leaderboardContainer = document.getElementById('leaderboard');
-
-    async function loadLeaderboard() {
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, orderBy('balance', 'desc'), limit(10));
-      const querySnapshot = await getDocs(q);
-
-      let rank = 1;
-      querySnapshot.forEach(doc => {
-        const data = doc.data();
-        const avatarUrl = data.avatar || `https://ui-avatars.com/api/?name=${data.username || 'User'}&background=random`;
-
-        const userItem = document.createElement('div');
-        userItem.className = 'flex items-center space-x-4 p-4 bg-gray-50 rounded-lg shadow-sm';
-
-        userItem.innerHTML = `
-          <img src="${avatarUrl}" alt="avatar" class="w-12 h-12 rounded-full border border-gray-300">
-          <div>
-            <p class="font-semibold">${rank}. ${data.username || 'User'}</p>
-            <p class="text-sm text-gray-600">₦${data.balance?.toFixed(2) || '0.00'}</p>
-          </div>
-        `;
-
-        leaderboardContainer.appendChild(userItem);
-        rank++;
-      });
-    }
-
-    loadLeaderboard();
   </script>
 </body>
 </html>
