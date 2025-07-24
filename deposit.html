@@ -1,220 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Submit Deposit</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:20px; }
-    .container { max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-    h2 { color:#2f7a2f; margin-top:0; }
-    label { display:block; margin-top:15px; font-weight:bold; }
-    input, button { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:5px; }
-    button { background:#2f7a2f; color:#fff; border:none; cursor:pointer; font-size:16px; }
-    button:disabled { background:#ccc; cursor:not-allowed; }
-    .info { margin-top:10px; color:#333; font-size:14px; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    th, td { border:1px solid #ddd; padding:8px; text-align:left; }
-    th { background:#2f7a2f; color:#fff; }
-    #loading { display:none; text-align:center; margin:10px 0; }
+    :root {
+      --primary: #00b66d;
+      --bg: #f7fdf8;
+      --text: #333;
+      --card-bg: #fff;
+      --shadow: rgba(0, 102, 51, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
+    .container { max-width: 480px; margin: 20px auto; background: var(--card-bg); border-radius: 16px; box-shadow: 0 4px 12px var(--shadow); overflow: hidden; }
+    .header { background: var(--primary); color: #fff; padding: 1rem; text-align: center; font-size: 1.2rem; font-weight: 600; }
+    .info { padding: 1rem; background: var(--primary-light); }
+    .info p { font-size: 0.9rem; margin: 0.5rem 0; }
+    form { display: flex; flex-direction: column; padding: 1rem; gap: 1rem; }
+    label { font-size: 0.9rem; font-weight: 500; color: #555; }
+    input { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+    input:focus { outline: none; border-color: var(--primary); }
+    button { padding: 0.8rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px var(--shadow); }
+    button:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+    #msg { padding: 0 1rem; font-size: 0.9rem; min-height: 18px; }
+    .history { margin: 1rem; }
+    .history h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+    th { background: var(--primary); color: #fff; }
+    #loading { text-align: center; padding: 0.5rem; display: none; }
+    @media (max-width: 360px) {
+      .container { margin: 10px; }
+      form { gap: 0.8rem; }
+      input, button { font-size: 0.9rem; padding: 0.6rem; }
+      th, td { font-size: 0.8rem; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Submit a Deposit</h2>
+    <div class="header">Submit a Deposit</div>
     <div class="info">
-      <p>📒 Account Number: <strong>8125600222</strong></p>
-      <p>👤 Account Name: <strong>Onyeka Anointed Chidi</strong></p>
-      <p>🏦 Bank Name: <strong>Opay/Paycom</strong></p>
+      <p>📒 <strong>Account No:</strong> 8125600222</p>
+      <p>👤 <strong>Name:</strong> Onyeka Anointed Chidi</p>
+      <p>🏦 <strong>Bank:</strong> Opay/Paycom</p>
     </div>
-
-    <!-- Hidden fields for the signed-in user -->
-    <input type="hidden" id="userId" />
-    <input type="hidden" id="username" />
-
-    <label>Amount</label>
-    <input type="number" id="amount" min="1" placeholder="Enter amount" />
-
-    <label>Sender Name</label>
-    <input type="text" id="senderName" placeholder="Your name on transfer" />
-
-    <label>Reference ID</label>
-    <input type="text" id="refId" readonly />
-
-    <button id="submitBtn" type="button">Submit Deposit</button>
-    <div id="loading">Submitting…</div>
-    <div id="msg" class="info"></div>
-
-    <h3>Deposit Records</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Amount</th><th>Sender</th><th>Ref ID</th><th>Status</th><th>Date</th>
-        </tr>
-      </thead>
-      <tbody id="history"></tbody>
-    </table>
+    <form id="depositForm">
+      <input type="hidden" id="userId" />
+      <input type="hidden" id="username" />
+      <div>
+        <label for="amount">Amount</label>
+        <input type="number" id="amount" min="1" placeholder="Enter amount" required />
+      </div>
+      <div>
+        <label for="senderName">Sender Name</label>
+        <input type="text" id="senderName" placeholder="Your name on transfer" required />
+      </div>
+      <div>
+        <label for="refId">Reference ID</label>
+        <input type="text" id="refId" readonly />
+      </div>
+      <button id="submitBtn" type="button">Submit Deposit</button>
+      <div id="loading">Submitting…</div>
+      <div id="msg"></div>
+    </form>
+    <div class="history">
+      <h3>Deposit Records</h3>
+      <table>
+        <thead>
+          <tr><th>Amt</th><th>Sender</th><th>Ref</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody id="history"></tbody>
+      </table>
+    </div>
   </div>
-
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
   <script>
-    // Initialize Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c8f1e" };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // DOM refs
-    const userIdIn    = document.getElementById('userId');
-    const usernameIn  = document.getElementById('username');
-    const amtIn       = document.getElementById('amount');
-    const senderIn    = document.getElementById('senderName');
-    const refIn       = document.getElementById('refId');
-    const btn         = document.getElementById('submitBtn');
-    const msg         = document.getElementById('msg');
-    const load        = document.getElementById('loading');
-    const hist        = document.getElementById('history');
-
-    // Generate a random reference ID
+    const auth = firebase.auth(), db = firebase.firestore();
+    const userIdIn = document.getElementById('userId'), usernameIn = document.getElementById('username'), amtIn = document.getElementById('amount'), senderIn = document.getElementById('senderName'), refIn = document.getElementById('refId'), btn = document.getElementById('submitBtn'), msg = document.getElementById('msg'), load = document.getElementById('loading'), hist = document.getElementById('history');
     const genRef = () => Math.random().toString(36).substr(2,9);
     refIn.value = genRef();
-
-    // Once the user is authenticated, populate userId/username and set up listeners
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        // If not signed in, redirect to login
-        return window.location.href = 'login.html';
-      }
-      try {
-        // Fetch the user's Firestore document to get their username
-        const snap = await db.collection('users').doc(user.uid).get();
-        const data = snap.data() || {};
-        const uname = data.username || user.email;
-        userIdIn.value   = user.uid;
-        usernameIn.value = uname;
-        loadHistory();
-        watchForApproval();   // Start listening for approved deposits
-      } catch (e) {
-        console.error("Failed to load user profile:", e);
-      }
-    });
-
-    // Load this user's deposit history (filtering by username for display)
-    async function loadHistory() {
-      hist.innerHTML = '';
-      const uname = usernameIn.value;
-      if (!uname) return;
-
-      try {
-        // Query deposits by username for display
-        const snap = await db.collection('deposits')
-                           .where('username', '==', uname)
-                           .get();
-        const docs = [];
-        snap.forEach(doc => docs.push(doc.data()));
-        // Sort descending by date
-        docs.sort((a,b) => b.date - a.date);
-
-        docs.forEach(d => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>₦${d.amount}</td>
-            <td>${d.senderName}</td>
-            <td>${d.refId}</td>
-            <td>${d.status}</td>
-            <td>${new Date(d.date).toLocaleString()}</td>
-          `;
-          hist.appendChild(tr);
-        });
-      } catch(e) {
-        console.error('History load error:', e);
-      }
-    }
-
-    // Watch for any deposit of this user that becomes "approved" & not yet processed
-    function watchForApproval() {
-      db.collection('deposits')
-        .where('userId', '==', userIdIn.value)
-        .where('status', '==', 'approved')
-        .where('processed', '==', false)
-        .onSnapshot(snapshot => {
-          snapshot.forEach(async docSnap => {
-            const d = docSnap.data();
-            const docId = docSnap.id;
-            const depositAmount = d.amount;
-
-            // 1) Credit the user's balance by UID
-            try {
-              await db.collection('users')
-                      .doc(userIdIn.value)
-                      .update({
-                        balance: firebase.firestore.FieldValue.increment(depositAmount)
-                      });
-              // 2) Mark this deposit as processed so it won't run again
-              await db.collection('deposits')
-                      .doc(docId)
-                      .update({ processed: true });
-            } catch (err) {
-              console.error('Error crediting balance:', err);
-            }
-          });
-          // Refresh history in case statuses have changed
-          loadHistory();
-        });
-    }
-
-    // Handle “Submit Deposit” click
-    btn.addEventListener('click', async () => {
-      const uid      = userIdIn.value;
-      const uname    = usernameIn.value;
-      const amount   = parseFloat(amtIn.value);
-      const sender   = senderIn.value.trim();
-      const refId    = refIn.value;
-      if (!amount || !sender) {
-        return alert('Please enter amount and sender name.');
-      }
-
-      btn.disabled       = true;
-      load.style.display = 'block';
-      msg.textContent    = '';
-
-      try {
-        await db.collection('deposits').add({
-          userId:     uid,            // store UID
-          username:   uname,          // store display‐name
-          amount:     amount,
-          senderName: sender,
-          refId:      refId,
-          status:     'pending',
-          processed:  false,          // not yet credited
-          date:       Date.now()
-        });
-        msg.style.color = 'green';
-        msg.textContent = '✅ Deposit request sent!';
-        amtIn.value     = '';
-        senderIn.value  = '';
-        refIn.value     = genRef();
-        await loadHistory();
-      } catch(e) {
-        console.error('Submission error:', e);
-        msg.style.color = 'red';
-        msg.textContent = '❌ Submission failed.';
-      } finally {
-        btn.disabled       = false;
-        load.style.display = 'none';
-      }
-    });
+    auth.onAuthStateChanged(async user => { if(!user) return window.location.href='login.html'; const snap = await db.collection('users').doc(user.uid).get(); const data = snap.data()||{}; userIdIn.value = user.uid; usernameIn.value = data.username||user.email; loadHistory(); watchForApproval(); });
+    async function loadHistory(){ hist.innerHTML=''; const uname = usernameIn.value; if(!uname) return; const snap = await db.collection('deposits').where('username','==',uname).get(); const docs=[]; snap.forEach(d=>docs.push(d.data())); docs.sort((a,b)=>b.date - a.date); docs.forEach(d=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>₦${d.amount}</td><td>${d.senderName}</td><td>${d.refId}</td><td>${d.status}</td><td>${new Date(d.date).toLocaleString()}</td>`; hist.appendChild(tr); }); }
+    function watchForApproval(){ db.collection('deposits').where('userId','==',userIdIn.value).where('status','==','approved').where('processed','==',false).onSnapshot(snap=>{ snap.forEach(async ds=>{ const d=ds.data(), id=ds.id; await db.collection('users').doc(userIdIn.value).update({ balance: firebase.firestore.FieldValue.increment(d.amount) }); await db.collection('deposits').doc(id).update({ processed:true }); }); loadHistory(); }); }
+    btn.addEventListener('click',async()=>{ const uid=userIdIn.value, uname=usernameIn.value, amount=parseFloat(amtIn.value), sender=senderIn.value.trim(), refId=refIn.value; if(!amount||!sender) return alert('Please fill in all fields'); btn.disabled=true; load.style.display='block'; msg.textContent=''; try{ await db.collection('deposits').add({ userId:uid, username:uname, amount, senderName:sender, refId, status:'pending', processed:false, date:Date.now() }); msg.style.color='green'; msg.textContent='Request sent!'; amtIn.value=''; senderIn.value=''; refIn.value=genRef(); await loadHistory(); }catch(e){ msg.style.color='red'; msg.textContent='Submission failed.'; } finally{ btn.disabled=false; load.style.display='none'; } });
   </script>
 </body>
 </html>
