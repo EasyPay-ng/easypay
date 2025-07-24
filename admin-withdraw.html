@@ -46,8 +46,7 @@ async function loadWithdrawals() {
     docs.push({
       path: docSnap.ref.path,
       data,
-      uid: docSnap.ref.path.split("/")[1],
-      username: data.username || data.uid
+      uid: docSnap.ref.path.split("/")[1]
     });
   });
 
@@ -57,7 +56,7 @@ async function loadWithdrawals() {
 }
 
 function renderTable(withdrawals) {
-  const tbody = document.getElementById("withdrawalTable").querySelector("tbody");
+  const tbody = document.querySelector("#withdrawalTable tbody");
   tbody.innerHTML = "";
   if (!withdrawals.length) {
     tbody.innerHTML = '<tr><td colspan="7">No records found.</td></tr>';
@@ -97,7 +96,10 @@ window.updateStatus = async function(selectEl) {
 
 function filterByUID() {
   const term = document.getElementById('searchUID').value.trim();
-  if (!term) return renderTable(allWithdrawals);
+  if (!term) {
+    renderTable(allWithdrawals);
+    return;
+  }
   const filtered = allWithdrawals.filter(i => i.uid === term);
   renderTable(filtered);
 }
