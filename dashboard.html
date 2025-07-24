@@ -91,13 +91,14 @@
     .container {
       flex: 1;
       padding: 1rem 1.2rem;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 1rem;
       max-width: 480px;
       margin: 1rem auto;
     }
     .card {
+      width: 100%;
       background: var(--card-bg);
       border-radius: 18px;
       padding: 1rem;
@@ -153,7 +154,6 @@
     }
     .nav a:hover { color: var(--primary-light); }
     .nav a i { font-size: 1.2rem; margin-bottom: 2px; }@media (max-width: 360px) {
-  .container { grid-template-columns: 1fr; padding: 1rem; }
   header h1 { font-size: 1.2rem; }
   .card p.value { font-size: 1.5rem; }
   .btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
@@ -237,7 +237,7 @@
       if (startMs) {
         const startDate = new Date(startMs);
         document.getElementById('planDate').innerText = startDate.toLocaleDateString();
-        const daysLeft = Math.max(0, Math.ceil(((startMs + 30*86400000) - Date.now()) / 86400000));
+        const daysLeft = Math.max(0, Math.ceil(((startMs + 7*86400000) - Date.now()) / 86400000));
         document.getElementById('daysRemaining').innerText = daysLeft;
       }
 
