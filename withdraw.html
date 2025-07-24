@@ -1,257 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Withdrawal Page</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay Withdrawal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f5fff5;
-      color: #222;
-      margin: 0;
-      padding: 1rem;
+    :root {
+      --primary: #00b66d;
+      --bg: #f7fdf8;
+      --text: #333;
+      --card-bg: #fff;
+      --shadow: rgba(0, 102, 51, 0.1);
     }
-    .important-message {
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      font-weight: 600;
-      text-align: center;
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); padding-bottom:60px; }
+    .alert {
+      max-width:480px; margin:1rem auto; background:#fffbea; border:1px solid #ffeeba;
+      color:#856404; padding:1rem; border-radius:8px; text-align:center;
+      font-weight:600; box-shadow:0 4px 12px var(--shadow);
     }
-    .form-box, .table-box {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      padding: 1rem;
-      margin-bottom: 2rem;
+    .form-card {
+      max-width:480px; margin:1rem auto; background:var(--card-bg);
+      border-radius:12px; box-shadow:0 4px 12px var(--shadow); padding:1.5rem;
     }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 1rem;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
+    .form-card h2 { margin-bottom:1rem; font-size:1.2rem; color:var(--primary); }
+    .form-group { margin-bottom:1rem; }
+    label { display:block; margin-bottom:0.4rem; font-size:0.9rem; }
+    input, select {
+      width:100%; padding:0.8rem; border:1px solid #ddd; border-radius:6px;
+      font-size:1rem;
     }
+    input:focus, select:focus { outline:none; border-color:var(--primary); }
     button {
-      background-color: green;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      position: relative;
+      width:100%; padding:0.8rem; background:var(--primary);
+      color:#fff; border:none; border-radius:6px; font-size:1rem;
+      font-weight:600; cursor:pointer; box-shadow:0 4px 12px var(--shadow);
+      display:flex; align-items:center; justify-content:center;
     }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid #fff;
-      border-top: 2px solid transparent;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .table-box {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ddd;
-    }
-    th {
-      background-color: #e0ffe0;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    /* Status colors */
-    .status {
-      padding: 4px 8px;
-      border-radius: 4px;
-      color: #fff;
-      font-weight: bold;
-      display: inline-block;
-    }
-    .status-pending { background: #fd7e14; box-shadow: 0 0 8px rgba(253,126,20,0.5); }
-    .status-approved { background: #28a745; box-shadow: 0 0 8px rgba(40,167,69,0.5); }
-    .status-rejected { background: #dc3545; box-shadow: 0 0 8px rgba(220,53,69,0.5); }
-    .no-log { text-align: center; color: #666; padding: 10px; }
+    button:disabled { background:#c8e9da; cursor:not-allowed; box-shadow:none; }
+    .spinner { width:16px; height:16px; border:2px solid #fff; border-top:2px solid transparent;
+      border-radius:50%; animation:spin 1s linear infinite; margin-right:8px; }@keyframes spin { to{transform:rotate(360deg);} }
+
+.table-card {
+  max-width:480px; margin:1rem auto; background:var(--card-bg);
+  border-radius:12px; box-shadow:0 4px 12px var(--shadow); overflow:hidden;
+}
+.table-card h3 { padding:1rem; font-size:1.1rem; color:var(--primary); }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:0.8rem; text-align:left; border-bottom:1px solid #eee; font-size:0.9rem; }
+th { background:var(--primary); color:#fff; position:sticky; top:0; }
+.no-log { text-align:center; padding:1rem; color:#666; }
+.status { padding:4px 8px; border-radius:4px; color:#fff; font-weight:600; display:inline-block; font-size:0.8rem;
+  box-shadow:0 0 8px var(--shadow);
+}
+.status-pending { background:#fd7e14; }
+.status-approved { background:#28a745; }
+.status-rejected { background:#dc3545; }
+
   </style>
 </head>
 <body>
-  <div class="important-message">
-    Withdrawals take up to 48hrs to complete. Please avoid making any complaints before this Time period!
+  <div class="alert">
+    Withdrawals take up to 48hrs. Please avoid complaints before then!
   </div>
-
-  <div class="form-box">
+  <div class="form-card">
     <h2>Make a Withdrawal</h2>
-    <input type="number" id="amount" placeholder="Amount (min ₦200)" />
-    <select id="bank">
-      <option value="">Select Bank</option>
-      <option>Access Bank</option>
-      <option>Kuda</option>
-      <option>PalmPay</option>
-      <option>Moniepoint</option>
-      <option>Opay</option>
-      <option>GTBank</option>
-      <option>First Bank</option>
-      <option>UBA</option>
-      <option>Zenith Bank</option>
-      <option>Wema Bank</option>
-      <option>SmartCash PSB</option>
-      <option>Momo PSB</option>
-    </select>
-    <input type="text" id="accName" placeholder="Account Name" />
-    <input type="number" id="accNumber" placeholder="Account Number" />
+    <div class="form-group">
+      <label for="amount">Amount (min ₦200)</label>
+      <input type="number" id="amount" placeholder="Enter amount" />
+    </div>
+    <div class="form-group">
+      <label for="bank">Select Bank</label>
+      <select id="bank">
+        <option value="">-- Choose Bank --</option>
+        <option>Access Bank</option><option>Kuda</option><option>PalmPay</option>
+        <option>Moniepoint</option><option>Opay</option><option>GTBank</option>
+        <option>First Bank</option><option>UBA</option><option>Zenith Bank</option>
+        <option>Wema Bank</option><option>SmartCash PSB</option><option>Momo PSB</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="accName">Account Name</label>
+      <input type="text" id="accName" placeholder="Recipient's Name" />
+    </div>
+    <div class="form-group">
+      <label for="accNumber">Account Number</label>
+      <input type="text" id="accNumber" placeholder="0123456789" />
+    </div>
     <button id="submitBtn">Submit Withdrawal</button>
-  </div>
-
-  <div class="table-box">
+  </div>  <div class="table-card">
     <h3>Recent Withdrawals</h3>
-    <table id="withdrawalTable">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Amount</th>
-          <th>Bank</th>
-          <th>Account</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
+    <table>
+      <thead><tr><th>Date</th><th>Amt</th><th>Bank</th><th>Acct</th><th>Status</th></tr></thead>
+      <tbody id="withdrawalTable">
+        <tr><td colspan="5" class="no-log">Loading...</td></tr>
+      </tbody>
     </table>
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc, updateDoc,
-      collection, addDoc, query, orderBy, limit, getDocs
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.firebasestorage.app",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.firebasestorage.app", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e", measurementId: "G-2FZKDQ47FZ" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    onAuthStateChanged(auth, async user => {
-      if (!user) {
-        alert("Please log in.");
-        window.location.href = "login.html";
-        return;
-      }
-      const uid = user.uid;
-      document.getElementById("submitBtn")
-        .addEventListener("click", () => submitWithdrawal(uid));
-      loadWithdrawals(uid);
+    onAuthStateChanged(auth, user => {
+      if (!user) { alert('Please log in.'); location.href='login.html'; return; }
+      document.getElementById('submitBtn').addEventListener('click', () => submitWithdrawal(user.uid));
+      loadWithdrawals(user.uid);
     });
 
     async function submitWithdrawal(uid) {
-      const btn = document.getElementById("submitBtn");
-      const originalText = btn.textContent;
-
-      // disable & show spinner
+      const btn = document.getElementById('submitBtn');
+      const orig = btn.textContent;
       btn.disabled = true;
-      btn.innerHTML = `<span class="spinner"></span>Processing...`;
-
+      btn.innerHTML = '<span class="spinner"></span>Processing...';
       try {
-        const amount   = parseFloat(document.getElementById("amount").value);
-        const bank     = document.getElementById("bank").value;
-        const accName  = document.getElementById("accName").value.trim();
-        const accNumber = document.getElementById("accNumber").value.trim();
-
-        if (isNaN(amount) || amount < 200 || !bank || !accName || !accNumber) {
-          alert("Please fill all fields correctly. Minimum is ₦200.");
-          return;
-        }
-
-        const userRef = doc(db, "users", uid);
+        const amount = parseFloat(document.getElementById('amount').value);
+        const bank = document.getElementById('bank').value;
+        const accName = document.getElementById('accName').value.trim();
+        const accNumber = document.getElementById('accNumber').value.trim();
+        if (isNaN(amount) || amount<200 || !bank || !accName || !accNumber) { alert('Fill all fields correctly, min ₦200.'); return; }
+        const userRef = doc(db,'users',uid);
         const userDoc = await getDoc(userRef);
-        const balance = userDoc.data().balance || 0;
-
-        if (amount > balance) {
-          alert("Insufficient balance.");
-          return;
-        }
-
-        // update balance & log
-        await updateDoc(userRef, { balance: balance - amount });
-        await addDoc(collection(userRef, "withdrawals"), {
-          timestamp: new Date(),
-          amount, bank, accName, accNumber, status: "pending"
-        });
-
-        alert("Withdrawal submitted successfully.");
-        ["amount","bank","accName","accNumber"].forEach(id => document.getElementById(id).value = '');
+        const balance = userDoc.data().balance||0;
+        if (amount>balance) { alert('Insufficient balance.'); return; }
+        await updateDoc(userRef,{ balance: balance-amount });
+        await addDoc(collection(userRef,'withdrawals'),{ timestamp:new Date(), amount, bank, accName, accNumber, status:'pending' });
+        alert('Withdrawal submitted.');
+        ['amount','bank','accName','accNumber'].forEach(id=>document.getElementById(id).value='');
         loadWithdrawals(uid);
-
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
-
-      } finally {
-        // restore button
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
+      } catch(e) { console.error(e); alert('Error. Please retry.'); }
+      finally { btn.disabled=false; btn.textContent=orig; }
     }
 
     async function loadWithdrawals(uid) {
-      const tbody = document.querySelector("#withdrawalTable tbody");
+      const tbody = document.getElementById('withdrawalTable');
       tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';
-      const withdrawalRef = collection(doc(db, "users", uid), "withdrawals");
-      const q = query(withdrawalRef, orderBy("timestamp", "desc"), limit(20));
-      const snapshot = await getDocs(q);
-
+      const ref = collection(doc(db,'users',uid),'withdrawals');
+      const q = query(ref, orderBy('timestamp','desc'), limit(20));
+      const snap = await getDocs(q);
+      if (snap.empty) { tbody.innerHTML='<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>'; return; }
       tbody.innerHTML = '';
-      if (snapshot.empty) {
-        tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
-        return;
-      }
-
-      snapshot.forEach(docSnap => {
-        const d = docSnap.data();
-        const date = new Date(d.timestamp.seconds * 1000).toLocaleString();
-        const cls = d.status === 'approved' ? 'status-approved'
-                  : d.status === 'rejected'? 'status-rejected'
-                  : 'status-pending';
-        tbody.innerHTML += `
-          <tr>
-            <td>${date}</td>
-            <td>₦${d.amount}</td>
-            <td>${d.bank}</td>
-            <td>${d.accNumber}</td>
-            <td><span class="status ${cls}">${d.status.charAt(0).toUpperCase() + d.status.slice(1)}</span></td>
-          </tr>`;
+      snap.forEach(ds=>{
+        const d=ds.data();
+        const date=new Date(d.timestamp.seconds*1000).toLocaleString();
+        const cls=d.status==='approved'?'status-approved':d.status==='rejected'?'status-rejected':'status-pending';
+        tbody.innerHTML+=`<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber}</td><td><span class="status ${cls}">${d.status.charAt(0).toUpperCase()+d.status.slice(1)}</span></td></tr>`;
       });
     }
-  </script>
-</body>
+  </script></body>
 </html>
