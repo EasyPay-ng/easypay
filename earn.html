@@ -1,113 +1,149 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay Tasks</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EasyPay – Available Tasks</title>
   <style>
-    :root {
-      --primary: #00b66d;
-      --bg: #f7fdf8;
-      --text: #333;
-      --card-bg: #fff;
-      --shadow: rgba(0, 102, 51, 0.1);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 1rem; }
-    .auth-card, .tasks-container { max-width: 480px; margin: 1rem auto; }
-    .auth-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px var(--shadow); }
-    .auth-card h2 { text-align: center; color: var(--primary); margin-bottom: 1rem; }
-    .auth-card input { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
-    .auth-card button { width: 100%; padding: 0.8rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px var(--shadow); }
-    .auth-card p.error { color: #dc3545; font-size: 0.9rem; text-align: center; margin-top: 0.5rem; }
-    .tasks-header { display: flex; justify-content: space-between; align-items: center; max-width: 480px; margin: 1.5rem auto 0; }
-    .tasks-header h1 { font-size: 1.4rem; color: var(--primary); }
-    .tasks-header button { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; }
-    .task-card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 12px var(--shadow); margin: 1rem auto; padding: 1rem; max-width: 480px; }
-    .task-card h2 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--primary); }
-    .task-card p { font-size: 0.9rem; margin-bottom: 0.8rem; line-height: 1.4; }
-    .task-card .earn { font-weight: 600; margin-bottom: 0.8rem; }
-    .progress-bar-bg { background: #eee; border-radius: 12px; overflow: hidden; height: 12px; margin-bottom: 0.5rem; }
-    .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
-    .progress-label { font-size: 0.8rem; margin-bottom: 0.8rem; }
-    .task-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .task-buttons button { flex: 1; padding: 0.6rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
-    .proof-group { margin-top: 1rem; }
-    .proof-group label { font-size: 0.9rem; margin-bottom: 0.3rem; display: block; }
-    .proof-group textarea, .proof-group input[type=file] { width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0.8rem; }
-    @media (max-width: 360px) {
-      .tasks-header h1 { font-size: 1.2rem; }
-      .task-card { padding: 0.8rem; }
-      .task-buttons button { font-size: 0.8rem; padding: 0.5rem; }
-    }
+    body { margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; background-color: #f8fff8; }
+    #loginDiv, #app { max-width: 800px; margin: auto; }
+    #loginDiv { text-align: center; padding-top: 50px; }
+    #loginDiv input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; }
+    #loginDiv button { padding: 10px 20px; background: #006400; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
+    #loginError { color: red; margin-top: 8px; }
+    #app { display: none; }
+    #logoutBtn { float: right; padding: 6px 12px; background: #006400; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    header { text-align: center; color: #006400; font-size: 2em; margin-bottom: 20px; }
+    .task { background: #fff; border: 1px solid #ccc; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .task h2 { margin: 0 0 10px; color: #006400; font-size: 1.5em; }
+    .task p { margin: 8px 0; line-height: 1.4; }
+    .progress-container { background: #eee; border-radius: 20px; overflow: hidden; margin: 10px 0; height: 16px; }
+    .progress-bar { height: 100%; background: #28a745; width: 0%; transition: width 0.4s ease-in-out; }
+    .progress-label { font-size: 11px; color: #004400; margin-bottom: 10px; }
+    .proof { margin-top: 15px; }
+    .proof label { display: block; margin-bottom: 4px; font-weight: bold; }
+    .proof textarea, .proof input[type=file] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
+    .submit-btn { padding: 8px 16px; background: #007700; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .upload-progress-container { background: #eee; border-radius: 10px; overflow: hidden; height: 10px; margin-bottom: 4px; display: none; }
+    .upload-progress-bar { height: 100%; width: 0%; transition: width 0.2s ease; }
+    .upload-progress-label { font-size: 11px; text-align: right; color: #004400; display: none; }
   </style>
 </head>
 <body>
-  <div id="loginDiv" class="auth-card">
-    <h2>Sign In</h2>
+  <div id="loginDiv">
+    <h2>Sign In to Continue</h2>
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
     <button id="loginBtn">Sign In</button>
-    <p id="loginError" class="error"></p>
+    <p id="loginError"></p>
   </div>
   <div id="app">
-    <div class="tasks-header">
-      <h1>Available Tasks</h1>
-      <button id="logoutBtn">Sign Out</button>
-    </div>
-    <div id="loading" class="tasks-container">Loading tasks...</div>
-    <div id="taskContainer" class="tasks-container"></div>
-  </div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    firebase.initializeApp({ apiKey: "AIzaSy...", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8" });
+    <button id="logoutBtn">Sign Out</button>
+    <header>EasyPay – Available Tasks</header>
+    <div id="loading">Loading tasks...</div>
+    <div id="taskContainer"></div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e" };
+    firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
-    const loginDiv = document.getElementById('loginDiv'), appDiv = document.getElementById('app');
-    document.getElementById('loginBtn').onclick = () => {
-      document.getElementById('loginError').textContent = '';
-      auth.signInWithEmailAndPassword(email.value, password.value).catch(e => document.getElementById('loginError').textContent = e.message);
-    };
-    document.getElementById('logoutBtn').onclick = () => auth.signOut();
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        loginDiv.style.display = 'none'; appDiv.style.display = 'block'; loadTasks(user.uid);
-      } else { loginDiv.style.display = 'block'; appDiv.style.display = 'none'; }
-    });
-    async function loadTasks(uid) {
-      loading.style.display = 'block'; taskContainer.innerHTML = '';
-      const tasksSnap = await db.collection('tasks').where('status','==','approved').get();
-      loading.style.display = 'none';
-      const approvedSnap = await db.collection('task_submissions').where('userId','==',uid).get();
-      const done = approvedSnap.docs.map(d=>d.data().taskId);
-      tasksSnap.docs.forEach(doc=>{ const d=doc.data(); if(done.includes(doc.id)) return; renderTask(doc.id,d,uid); });
-    }
-    function renderTask(id,data,uid) {
-      const userPay = ((data.costPerUser)||(data.totalBudget/data.workersNeeded))*0.7;
-      const card = document.createElement('div'); card.className = 'task-card';
-      card.innerHTML = `
-        <h2>${data.taskTitle}</h2>
-        <p>${data.description||''}</p>
-        <div class="earn">Earn: ₦${userPay.toFixed(2)}</div>
-        <div class="progress-bar-bg"><div class="progress-bar" id="bar-${id}"></div></div>
-        <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded}</div>
-        <div class="task-buttons"><button onclick="window.open('${data.link}','_blank')">Start Task</button></div>
-        <div class="proof-group">
-          <label>Text Proof</label>
-          <textarea id="text-${id}" rows="3"></textarea><label>Image Proof</label>
-      <input type="file" id="file-${id}" accept="image/*" />
-      <button onclick="submitProof('${id}',${userPay.toFixed(2)})">Submit Proof</button>
-    </div>
-  `;
-  document.getElementById('taskContainer').appendChild(card);
-  // subscribe progress
-  db.collection('task_submissions').where('taskId','==',id).where('status','==','approved')
-    .onSnapshot(s=>{
-      const done=s.size; const pct=Math.min(100,Math.round(done/data.workersNeeded*100));
-      document.getElementById(`bar-${id}`).style.width=pct+'%';
-      document.getElementById(`label-${id}`).textContent=`${done} / ${data.workersNeeded}`;
-      if(done>=data.workersNeeded) card.remove();
-    });
-}
-// submitProof omitted for brevity
 
+    const loginDiv = document.getElementById('loginDiv'),
+          appDiv = document.getElementById('app'),
+          loginBtn = document.getElementById('loginBtn'),
+          logoutBtn = document.getElementById('logoutBtn'),
+          emailEl = document.getElementById('email'),
+          passEl = document.getElementById('password'),
+          loginError = document.getElementById('loginError'),
+          loadingEl = document.getElementById('loading'),
+          taskContainer = document.getElementById('taskContainer');
+
+    loginBtn.onclick = () => {
+      loginError.textContent = '';
+      auth.signInWithEmailAndPassword(emailEl.value, passEl.value).catch(err => loginError.textContent = err.message);
+    };
+    logoutBtn.onclick = () => auth.signOut();
+
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        loginDiv.style.display = 'none';
+        appDiv.style.display = 'block';
+        await loadTasks(user.uid);
+        db.collection('task_submissions')
+          .where('userId', '==', user.uid)
+          .onSnapshot(() => loadTasks(user.uid));
+      } else {
+        loginDiv.style.display = 'block';
+        appDiv.style.display = 'none';
+      }
+    });
+
+    async function loadTasks(uid) {
+      loadingEl.textContent = 'Loading tasks...';
+      taskContainer.innerHTML = '';
+      try {
+        const [tasksSnap, userSubsSnap] = await Promise.all([
+          db.collection('tasks').where('status','==','approved').get(),
+          db.collection('task_submissions').where('userId','==',uid).get()
+        ]);
+        const skipIds = new Set(
+          userSubsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId)
+        );
+        const tasks = tasksSnap.docs.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
+        loadingEl.style.display = 'none';
+        for (let doc of tasks) {
+          const data = doc.data(), id = doc.id;
+          if (skipIds.has(id)) continue;
+          const globalApproved = (await db.collection('task_submissions')
+            .where('taskId','==',id).where('status','==','approved').get()).size;
+          if (globalApproved < data.workersNeeded) renderTask(id, data);
+        }
+      } catch(e) {
+        loadingEl.textContent = 'Error loading tasks: ' + e.message;
+      }
+    }
+
+    function renderTask(id, data) {
+      const price = data.costPerUser || (data.totalBudget/data.workersNeeded);
+      const userPay = +(price*0.7).toFixed(2);
+      const div = document.createElement('div'); div.className='task'; div.id=`task-${id}`;
+      div.innerHTML = `
+        <h2>${data.taskTitle} — ${data.category}</h2>
+        <p>${data.description||''}</p>
+        <p><strong>Earn:</strong> ₦${userPay}</p>
+        <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
+        <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
+        <button onclick="window.open('${data.link}','_blank')" class="submit-btn">Start Task</button>
+        <div class="proof">
+          <label>Text Proof:</label>
+          <textarea id="text-${id}" placeholder="Enter text proof..."></textarea>
+          <label>Upload Image Proof:</label>
+          <input type="file" id="file_${id}" accept="image/*" />
+          <div class="upload-progress-container" id="upload-container-${id}">
+            <div class="upload-progress-bar" id="upload-bar-${id}"></div>
+          </div>
+          <div class="upload-progress-label" id="upload-label-${id}"></div>
+          <button id="submit-${id}" class="submit-btn">Submit Proof</button>
+        </div>
+      `;
+      taskContainer.appendChild(div);
+      document.getElementById(`submit-${id}`).onclick = () => submitProof(id, userPay);
+      db.collection('task_submissions')
+        .where('taskId','==',id).where('status','==','approved')
+        .onSnapshot(snap => {
+          const done = snap.size;
+          const pct = Math.min(100,Math.round(done/data.workersNeeded*100));
+          document.getElementById(`bar-${id}`).style.width = pct + '%';
+          document.getElementById(`label-${id}`).textContent = `${done} / ${data.workersNeeded} completed`;
+          if (done>=data.workersNeeded) document.getElementById(`task-${id}`).remove();
+        });
+    }
+
+    function uploadToImgur(file,onProgress){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const b=r.result.split(',')[1],f=new FormData();f.append('image',b);const x=new XMLHttpRequest();x.open('POST','https://api.imgur.com/3/image');x.setRequestHeader('Authorization','Client-ID fb533db21a59486');x.upload.onprogress=e=>e.lengthComputable&&onProgress(Math.round(e.loaded/e.total*100));x.onload=()=>{const j=JSON.parse(x.responseText);j.success?res(j.data.link):rej(j.data.error)};x.onerror=()=>rej('Upload failed');x.send(f)};r.onerror=()=>rej('Read error');r.readAsDataURL(file);});}
+
+    async function submitProof(taskId,payout){const t=document.getElementById(`text-${taskId}`),f=document.getElementById(`file_${taskId}`);const txt=t.value.trim(),file=f.files[0];if(!txt||!file)return alert('Provide text & image');const bar=document.getElementById(`upload-bar-${taskId}`),lbl=document.getElementById(`upload-label-${taskId}`),ctr=document.getElementById(`upload-container-${taskId}`);ctr.style.display=lbl.style.display='block';try{const url=await uploadToImgur(file,p=>{bar.style.width=p+'%';lbl.textContent=p+'%'});const u=auth.currentUser;await db.collection('task_submissions').add({taskId,userId:u.uid,username:u.email,textProof:txt,imageProof:url,payout,status:'pending',submittedAt:firebase.firestore.FieldValue.serverTimestamp()});lbl.textContent='Submitted!';document.getElementById(`task-${taskId}`).remove();setTimeout(()=>{ctr.style.display=lbl.style.display='none';bar.style.width='0%';t.value='';f.value=null},1000)}catch(e){lbl.textContent='Error: '+e}}
   </script>
 </body>
 </html>
