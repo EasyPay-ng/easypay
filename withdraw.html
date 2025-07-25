@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay Withdrawal</title>
@@ -39,13 +38,17 @@
     }
     button:disabled { background:#c8e9da; cursor:not-allowed; box-shadow:none; }
     .spinner { width:16px; height:16px; border:2px solid #fff; border-top:2px solid transparent;
-      border-radius:50%; animation:spin 1s linear infinite; margin-right:8px; }@keyframes spin { to{transform:rotate(360deg);} }
-
-.table-card {
+      border-radius:50%; animation:spin 1s linear infinite; margin-right:8px; }
+    @keyframes spin { to{transform:rotate(360deg);} }.table-card {
   max-width:480px; margin:1rem auto; background:var(--card-bg);
-  border-radius:12px; box-shadow:0 4px 12px var(--shadow); overflow:hidden;
+  border-radius:12px; box-shadow:0 4px 12px var(--shadow);
+  overflow: hidden;
 }
 .table-card h3 { padding:1rem; font-size:1.1rem; color:var(--primary); }
+.table-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
 table { width:100%; border-collapse:collapse; }
 th, td { padding:0.8rem; text-align:left; border-bottom:1px solid #eee; font-size:0.9rem; }
 th { background:var(--primary); color:#fff; position:sticky; top:0; }
@@ -66,8 +69,8 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
   <div class="form-card">
     <h2>Make a Withdrawal</h2>
     <div class="form-group">
-      <label for="amount">Amount (min ₦200)</label>
-      <input type="number" id="amount" placeholder="Enter amount" />
+      <label for="amount">Amount (₦200–₦2,000)</label>
+      <input type="number" id="amount" placeholder="Enter amount (max ₦2000)" />
     </div>
     <div class="form-group">
       <label for="bank">Select Bank</label>
@@ -90,12 +93,14 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
     <button id="submitBtn">Submit Withdrawal</button>
   </div>  <div class="table-card">
     <h3>Recent Withdrawals</h3>
-    <table>
-      <thead><tr><th>Date</th><th>Amt</th><th>Bank</th><th>Acct</th><th>Status</th></tr></thead>
-      <tbody id="withdrawalTable">
-        <tr><td colspan="5" class="no-log">Loading...</td></tr>
-      </tbody>
-    </table>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Date</th><th>Amt</th><th>Bank</th><th>Acct</th><th>Status</th></tr></thead>
+        <tbody id="withdrawalTable">
+          <tr><td colspan="5" class="no-log">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
@@ -119,36 +124,56 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
       btn.innerHTML = '<span class="spinner"></span>Processing...';
       try {
         const amount = parseFloat(document.getElementById('amount').value);
+        if (isNaN(amount) || amount < 200 || amount > 2000) {
+          alert('Please enter a value between ₦200 and ₦2000.');
+          return;
+        }
         const bank = document.getElementById('bank').value;
         const accName = document.getElementById('accName').value.trim();
         const accNumber = document.getElementById('accNumber').value.trim();
-        if (isNaN(amount) || amount<200 || !bank || !accName || !accNumber) { alert('Fill all fields correctly, min ₦200.'); return; }
-        const userRef = doc(db,'users',uid);
+        if (!bank || !accName || !accNumber) {
+          alert('Fill all fields correctly.');
+          return;
+        }
+        const userRef = doc(db, 'users', uid);
         const userDoc = await getDoc(userRef);
-        const balance = userDoc.data().balance||0;
-        if (amount>balance) { alert('Insufficient balance.'); return; }
-        await updateDoc(userRef,{ balance: balance-amount });
-        await addDoc(collection(userRef,'withdrawals'),{ timestamp:new Date(), amount, bank, accName, accNumber, status:'pending' });
+        const balance = userDoc.data().balance || 0;
+        if (amount > balance) {
+          alert('Insufficient balance.');
+          return;
+        }
+        await updateDoc(userRef, { balance: balance - amount });
+        await addDoc(collection(userRef, 'withdrawals'), { timestamp: new Date(), amount, bank, accName, accNumber, status: 'pending' });
         alert('Withdrawal submitted.');
-        ['amount','bank','accName','accNumber'].forEach(id=>document.getElementById(id).value='');
+        ['amount', 'bank', 'accName', 'accNumber'].forEach(id => document.getElementById(id).value = '');
         loadWithdrawals(uid);
-      } catch(e) { console.error(e); alert('Error. Please retry.'); }
-      finally { btn.disabled=false; btn.textContent=orig; }
+      } catch (e) {
+        console.error(e);
+        alert('Error. Please retry.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
     }
 
     async function loadWithdrawals(uid) {
       const tbody = document.getElementById('withdrawalTable');
       tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';
-      const ref = collection(doc(db,'users',uid),'withdrawals');
-      const q = query(ref, orderBy('timestamp','desc'), limit(20));
+      const ref = collection(doc(db, 'users', uid), 'withdrawals');
+      const q = query(ref, orderBy('timestamp', 'desc'), limit(20));
       const snap = await getDocs(q);
-      if (snap.empty) { tbody.innerHTML='<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>'; return; }
+      if (snap.empty) {
+        tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
+        return;
+      }
       tbody.innerHTML = '';
-      snap.forEach(ds=>{
-        const d=ds.data();
-        const date=new Date(d.timestamp.seconds*1000).toLocaleString();
-        const cls=d.status==='approved'?'status-approved':d.status==='rejected'?'status-rejected':'status-pending';
-        tbody.innerHTML+=`<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber}</td><td><span class="status ${cls}">${d.status.charAt(0).toUpperCase()+d.status.slice(1)}</span></td></tr>`;
+      snap.forEach(ds => {
+        const d = ds.data();
+        const date = new Date(d.timestamp.seconds * 1000).toLocaleString();
+        const cls = d.status === 'approved' ? 'status-approved' : d.status === 'rejected' ? 'status-rejected' : 'status-pending';
+        const icon = d.status.charAt(0).toLowerCase() === 'a' ? '✅' : d.status.charAt(0).toLowerCase() === 'r' ? '❌' : '⏳';
+        const statusText = d.status.charAt(0).toUpperCase() + d.status.slice(1);
+        tbody.innerHTML += `<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber}</td><td><span class="status ${cls}">${icon} ${statusText}</span></td></tr>`;
       });
     }
   </script></body>
