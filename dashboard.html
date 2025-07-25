@@ -24,7 +24,7 @@
       flex-direction: column;
       min-height: 100vh;
       overscroll-behavior-y: contain;
-      padding-bottom: 60px; /* for nav spacing */
+      padding-bottom: 60px;
     }
     header {
       background: linear-gradient(135deg, var(--primary), #00804d);
@@ -100,6 +100,23 @@
     }
     .nav a:hover { color: var(--primary-light); }
     .nav a i { font-size: 1.2rem; margin-bottom: 2px; }
+    /* Upgrade Modal Styles */
+    #upgradeModal {
+      position: fixed; top:0; left:0; width:100vw; height:100vh;
+      background: rgba(0,0,0,0.6); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+      display: none;
+    }
+    #upgradeModal .modal-content {
+      background: var(--card-bg); padding:2rem; border-radius:10px;
+      text-align:center; max-width:300px; box-shadow:0 4px 12px var(--shadow);
+    }
+    #upgradeModal .modal-content p { margin-bottom:1rem; font-size:1rem; }
+    #upgradeModal .modal-content button {
+      padding:0.6rem 1.2rem; background:var(--primary);
+      color:#fff; border:none; border-radius:6px;
+      cursor:pointer; font-weight:600;
+    }
     @media (max-width: 360px) {
       header h1 { font-size: 1.2rem; }
       .card { width: calc(100% - 1.6rem); padding: 1rem; }
@@ -120,7 +137,12 @@
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
-  </header>  <div class="container">
+  </header>  <!-- Upgrade Modal -->  <div id="upgradeModal">
+    <div class="modal-content">
+      <p>Your account is on the <strong>Basic</strong> plan. Upgrade now to access full features!</p>
+      <button onclick="location.href='upgrade.html'">Upgrade Now</button>
+    </div>
+  </div>  <div class="container">
     <div class="card">
       <h3>Balance</h3>
       <p class="value">₦<span id="balance">0.00</span></p>
@@ -155,7 +177,7 @@
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+      appId: "1:862671358267:web:b243c7b69840ef918c1e"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -164,6 +186,7 @@
     let userRef, userData;
     const claimBtn = document.getElementById('claimDailyBtn');
     const creditMsg = document.getElementById('creditMessage');
+    const upgradeModal = document.getElementById('upgradeModal');
 
     onAuthStateChanged(auth, async user => {
       if (!user) return location.href = 'login.html';
@@ -178,14 +201,19 @@
       document.getElementById('profileBalance').innerText = (userData.balance || 0).toFixed(2);
       document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
 
-      const plan = userData.plan || 'basic';
+      const plan = (userData.plan || 'basic').toLowerCase();
       document.getElementById('planName').innerText = plan.charAt(0).toUpperCase() + plan.slice(1);
       const startMs = userData.planStart?.toMillis ? userData.planStart.toMillis() : userData.planStart;
       if (startMs) {
         const startDate = new Date(startMs);
         document.getElementById('planDate').innerText = startDate.toLocaleDateString();
-        const daysLeft = Math.max(0, Math.ceil(((startMs + 7*86400000) - Date.now()) / 86400000));
+        const daysLeft = Math.max(0, Math.ceil(((startMs + 7 * 86400000) - Date.now()) / 86400000));
         document.getElementById('daysRemaining').innerText = daysLeft;
+      }
+
+      // Show upgrade modal if on basic plan
+      if (plan === 'basic') {
+        upgradeModal.style.display = 'flex';
       }
 
       setupDailyCredit();
@@ -194,8 +222,9 @@
     async function setupDailyCredit() {
       const last = userData.lastCredit?.toMillis ? userData.lastCredit.toMillis() : userData.lastCredit || 0;
       const diff = Date.now() - last;
-      if (diff >= 86400000) { creditMsg.innerText = 'Claim ₦1 now!'; claimBtn.disabled = false; }
-      else {
+      if (diff >= 86400000) {
+        creditMsg.innerText = 'Claim ₦1 now!'; claimBtn.disabled = false;
+      } else {
         let rem = 86400000 - diff;
         updateTimer(rem);
         claimBtn.disabled = true;
@@ -218,13 +247,13 @@
     }
 
     function updateTimer(ms) {
-      const h = String(Math.floor(ms/3600000)).padStart(2,'0');
-      const m = String(Math.floor((ms%3600000)/60000)).padStart(2,'0');
-      const s = String(Math.floor((ms%60000)/1000)).padStart(2,'0');
+      const h = String(Math.floor(ms / 3600000)).padStart(2, '0');
+      const m = String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0');
+      const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
       creditMsg.innerText = `${h}:${m}:${s}`;
     }
 
     window.toggleProfile = () => document.getElementById('profileInfo').classList.toggle('show');
     window.logout = () => signOut(auth);
   </script></body>
-</html>
+  </html>
