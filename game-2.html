@@ -1,97 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reaction Speed – EasyPay</title>
   <style>
-    :root {
-      --primary: #2e7d32;
-      --light: #e8f5e9;
-      --bg: #f0fff0;
-      --text: #1a1a1a;
-      --card: #fff;
-    }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    header .back-btn {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-    #gameCard {
-      background: var(--card);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 320px;
-      text-align: center;
-      padding: 2rem;
-    }
-    #status {
-      margin: 1rem 0;
-      font-size: 1.1rem;
-      min-height: 1.4em;
-    }
-    button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s;
-      margin: .5rem;
-    }
-    button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    button:hover:not(:disabled) {
-      background: #256427;
-    }
-    #footer {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.9rem;
-      background: var(--light);
-    }
+    :root { --primary: #2e7d32; --light: #e8f5e9; --bg: #f0fff0; --text: #1a1a1a; --card: #fff; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: var(--primary); color: white; padding: 1rem; display: flex; align-items: center; justify-content: center; position: relative; }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header .back-btn { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+    #gameCard { background: var(--card); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 320px; text-align: center; padding: 2rem; }
+    #status { margin: 1rem 0; font-size: 1.1rem; min-height: 1.4em; }
+    button { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0.8rem 1.5rem; font-size: 1rem; cursor: pointer; transition: background 0.2s; margin: .5rem; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    button:hover:not(:disabled) { background: #256427; }
+    #footer { text-align: center; padding: 1rem; font-size: 0.9rem; background: var(--light); }
   </style>
 </head>
 <body>
@@ -101,14 +25,12 @@
   </header>
   <main>
     <div id="gameCard">
-      <div id="status">Press “Start” when ready</div>
+      <div id="status">Loading game...</div>
       <button id="startBtn" disabled>Start</button>
       <button id="reactBtn" disabled>Tap!</button>
     </div>
   </main>
-  <div id="footer">© 2025 EasyPay</div>
-
-  <script type="module">
+  <div id="footer">© 2025 EasyPay</div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
       getAuth,
@@ -125,42 +47,33 @@
       increment
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    // --- Firebase config & init ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8"
-    };
-    const app  = initializeApp(firebaseConfig);
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8" };
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db   = getFirestore(app);
+    const db = getFirestore(app);
 
-    // enforce local persistence
-    await setPersistence(auth, browserLocalPersistence);
+    setPersistence(auth, browserLocalPersistence).catch(console.error);
 
-    // UI refs
-    const statusEl  = document.getElementById("status");
-    const startBtn  = document.getElementById("startBtn");
-    const reactBtn  = document.getElementById("reactBtn");
+    const statusEl = document.getElementById("status");
+    const startBtn = document.getElementById("startBtn");
+    const reactBtn = document.getElementById("reactBtn");
 
-    // game constants
-    const ALLOWED  = ["emerald","titanium","supreme","royalty"];
-    const REWARD   = 20;
+    const ALLOWED = ["emerald","titanium","supreme","royalty"];
+    const REWARD = 20;
     const COOLDOWN = 24 * 60 * 60 * 1000;
 
     let userRef, userData, timeoutId, startTime;
 
-    // refresh user data & enforce cooldown
     async function refreshUserData() {
       const snap = await getDoc(userRef);
       userData = snap.data();
       const last = userData.lastReaction?.toMillis?.() || userData.lastReaction || 0;
-      const since= Date.now() - last;
+      const since = Date.now() - last;
       if (since < COOLDOWN) {
         startBtn.disabled = true;
         reactBtn.disabled = true;
-        const hrs  = Math.floor((COOLDOWN - since)/3600000);
-        const mins = Math.floor(((COOLDOWN - since)%3600000)/60000);
+        const hrs = Math.floor((COOLDOWN - since) / 3600000);
+        const mins = Math.floor(((COOLDOWN - since) % 3600000) / 60000);
         statusEl.textContent = `⏳ Try again in ${hrs}h ${mins}m`;
         return false;
       }
@@ -170,67 +83,59 @@
       return true;
     }
 
-    // once, when auth state is known…
     onAuthStateChanged(auth, async user => {
       if (!user) {
-        // only redirect after firebase has loaded your state
-        return location.href = "login.html";
+        statusEl.textContent = 'Play as guest - login to earn rewards';
+        startBtn.disabled = false;
+        reactBtn.disabled = true;
+        return;
       }
       userRef = doc(db, "users", user.uid);
       const snap = await getDoc(userRef);
-      if (!snap.exists()) return location.href = "login.html";
+      if (!snap.exists()) return;
       userData = snap.data();
 
-      // plan check
-      if (!ALLOWED.includes((userData.plan||"").toLowerCase())) {
-        alert("You must be on at least the Titanium plan to play.");
-        return location.href = "upgrade.html";
+      if (!ALLOWED.includes((userData.plan || "").toLowerCase())) {
+        statusEl.textContent = 'Upgrade plan to play and earn.';
+        startBtn.disabled = true;
+        reactBtn.disabled = true;
+        return;
       }
 
-      // now enable UI & enforce cooldown
       await refreshUserData();
     });
 
-    // start logic
     startBtn.onclick = async () => {
-      if (!await refreshUserData()) return;  // enforce server‐side cooldown
-
       startBtn.disabled = true;
       statusEl.textContent = "Get Ready…";
-      const delay = 2000 + Math.random()*3000;
+      const delay = 2000 + Math.random() * 3000;
       timeoutId = setTimeout(() => {
-        navigator.vibrate?.(100);
-        new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg").play();
         statusEl.textContent = "👉 Tap NOW!";
         reactBtn.disabled = false;
         startTime = performance.now();
       }, delay);
     };
 
-    // reaction logic
     reactBtn.onclick = async () => {
       reactBtn.disabled = true;
       clearTimeout(timeoutId);
       const reaction = Math.round(performance.now() - startTime);
 
-      if (reaction <= 350) {
-        statusEl.innerHTML = `✅ Congrats! ${reaction}ms. You earned ₦${REWARD}.`;
-        navigator.vibrate?.([50,50,50]);
-        new Audio("https://actions.google.com/sounds/v1/cartoon/clang.ogg").play();
-
-        // credit + timestamp
-        await updateDoc(userRef, {
-          balance: increment(REWARD),
-          lastReaction: serverTimestamp()
-        });
-      } else {
-        statusEl.innerHTML = `<span style="color:red">⏱ Too slow (${reaction}ms). Try again tomorrow.</span>`;
-        navigator.vibrate?.([100,50]);
+      // Always credit 20 Naira for completion (if logged in)
+      if (auth.currentUser) {
+        await updateDoc(userRef, { balance: increment(REWARD), lastReaction: serverTimestamp() });
       }
 
-      // re‐enforce cooldown
-      setTimeout(refreshUserData, 200);
+      if (reaction <= 350) {
+        statusEl.textContent = auth.currentUser
+          ? `✅ ${reaction}ms. You earned ₦${REWARD}!`
+          : `✅ ${reaction}ms. Log in to claim your ₦${REWARD}!`;
+      } else {
+        statusEl.innerHTML = `<span style="color:red">⏱ ${reaction}ms completed. ₦${REWARD} credited on login.</span>`;
+      }
+
+      // Refresh cooldown/status
+      if (auth.currentUser) setTimeout(refreshUserData, 200);
     };
-  </script>
-</body>
+  </script></body>
 </html>
