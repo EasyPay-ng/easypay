@@ -25,27 +25,15 @@
   </header>
   <main>
     <div id="gameCard">
-      <div id="status">Loading game...</div>
+      <div id="status">Checking authentication...</div>
       <button id="startBtn" disabled>Start</button>
       <button id="reactBtn" disabled>Tap!</button>
     </div>
   </main>
   <div id="footer">© 2025 EasyPay</div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import {
-      getAuth,
-      setPersistence,
-      browserLocalPersistence,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      updateDoc,
-      serverTimestamp,
-      increment
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8" };
     const app = initializeApp(firebaseConfig);
@@ -85,16 +73,21 @@
 
     onAuthStateChanged(auth, async user => {
       if (!user) {
-        statusEl.textContent = 'Play as guest - login to earn rewards';
-        startBtn.disabled = false;
+        statusEl.textContent = 'Please log in to play this game and earn rewards.';
+        startBtn.disabled = true;
         reactBtn.disabled = true;
         return;
       }
+      // Logged in
       userRef = doc(db, "users", user.uid);
       const snap = await getDoc(userRef);
-      if (!snap.exists()) return;
+      if (!snap.exists()) {
+        statusEl.textContent = 'User record not found.';
+        return;
+      }
       userData = snap.data();
 
+      // Plan restriction
       if (!ALLOWED.includes((userData.plan || "").toLowerCase())) {
         statusEl.textContent = 'Upgrade plan to play and earn.';
         startBtn.disabled = true;
@@ -102,10 +95,11 @@
         return;
       }
 
+      // All checks passed
       await refreshUserData();
     });
 
-    startBtn.onclick = async () => {
+    startBtn.onclick = () => {
       startBtn.disabled = true;
       statusEl.textContent = "Get Ready…";
       const delay = 2000 + Math.random() * 3000;
@@ -121,21 +115,15 @@
       clearTimeout(timeoutId);
       const reaction = Math.round(performance.now() - startTime);
 
-      // Always credit 20 Naira for completion (if logged in)
-      if (auth.currentUser) {
-        await updateDoc(userRef, { balance: increment(REWARD), lastReaction: serverTimestamp() });
-      }
+      // Credit user
+      await updateDoc(userRef, { balance: increment(REWARD), lastReaction: serverTimestamp() });
 
-      if (reaction <= 350) {
-        statusEl.textContent = auth.currentUser
-          ? `✅ ${reaction}ms. You earned ₦${REWARD}!`
-          : `✅ ${reaction}ms. Log in to claim your ₦${REWARD}!`;
-      } else {
-        statusEl.innerHTML = `<span style="color:red">⏱ ${reaction}ms completed. ₦${REWARD} credited on login.</span>`;
-      }
+      // Feedback
+      statusEl.textContent = reaction <= 350
+        ? `✅ ${reaction}ms. You earned ₦${REWARD}!`
+        : `⏱ ${reaction}ms. You earned ₦${REWARD}!`;
 
-      // Refresh cooldown/status
-      if (auth.currentUser) setTimeout(refreshUserData, 200);
+      setTimeout(refreshUserData, 200);
     };
   </script></body>
 </html>
