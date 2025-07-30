@@ -4,7 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyPay Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
   <style>
     :root {
       --primary: #00b66d;
@@ -14,179 +14,176 @@
       --card-bg: #ffffff;
       --shadow: rgba(0, 102, 51, 0.15);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.3s, transform 0.3s, color 0.3s; }
-    html, body { width: 100%; height: 100%; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      overscroll-behavior-y: contain;
       padding-bottom: 60px;
     }
     header {
-      background: linear-gradient(135deg, var(--primary), #00804d);
+      background: var(--primary);
       color: #fff;
-      padding: 1rem 1.2rem;
+      padding: 1rem;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      border-bottom-left-radius: 24px;
-      border-bottom-right-radius: 24px;
-      box-shadow: 0 8px 20px var(--shadow);
+      justify-content: space-between;
     }
-    header h1 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; }
+    header h1 { font-size: 1.4rem; font-weight: 600; }
     .profile { position: relative; }
     .profile-icon { font-size: 1.6rem; cursor: pointer; }
     .profile-info {
-      display: none; position: absolute; top: 52px; right: 0;
-      background: var(--card-bg); border-radius: 14px; padding: 1rem;
-      box-shadow: 0 10px 30px var(--shadow); min-width: 220px;
-      opacity: 0; transform: translateY(-10px);
-      transition: opacity 0.3s, transform 0.3s;
+      display: none;
+      position: absolute;
+      top: 2.5rem;
+      right: 0;
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px var(--shadow);
+      width: 220px;
     }
-    .profile-info.show { display: block; opacity: 1; transform: translateY(0); }
-    .profile-info p { font-size: 0.85rem; color: #555; margin-bottom: 0.6rem; }
-    .logout-btn {
-      width: 100%; padding: 0.5rem; background: var(--primary);
-      color: #fff; border: none; border-radius: 8px;
-      font-size: 0.9rem; font-weight: 600; cursor: pointer;
-      letter-spacing: 0.5px;
-    }
-    .container {
-      flex: 1; padding: 1rem;
-      display: flex; flex-direction: column; gap: 1rem;
-      width: 100%; max-width: none;
+    .profile-info.show { display: block; }
+    .profile-info p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .logout-btn { margin-top: 0.5rem; width: 100%; padding: 0.5rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+      flex: 1;
     }
     .card {
-      width: calc(100% - 2rem);
-      margin: 0 auto;
-      min-height: 150px;
       background: var(--card-bg);
-      border-radius: 18px;
-      padding: 1.2rem;
-      box-shadow: 0 8px 24px var(--shadow);
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: flex-start;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px var(--shadow); }
-    .card h3 { font-size: 1.2rem; margin-bottom: 0.6rem; font-weight: 500; color: #444; }
-    .card p { font-size: 1.2rem; color: #666; margin-bottom: 0.6rem; }
-    .card p.value { font-size: 2.2rem; font-weight: 600; color: var(--text); }
-    .btn {
-      padding: 0.8rem 1.4rem;
-      background: var(--primary); color: #fff;
-      border: none; border-radius: 12px;
-      font-size: 1rem; font-weight: 600;
-      cursor: pointer; letter-spacing: 0.5px;
-      box-shadow: 0 6px 16px var(--shadow);
+    .card h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+    .card .value { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card small { color: #666; }
+    .btn-primary {
+      padding: 0.6rem 1rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      align-self: flex-start;
     }
-    .btn:hover { background: #00d57a; }
-    #claimDailyBtn:disabled { background: #c8e9da; cursor: default; box-shadow: none; }
-    .nav {
-      position: fixed; bottom: 0; width: 100%;
+    .btn-primary:disabled { background: #ccc; cursor: default; }
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center; justify-content: center;
+      visibility: hidden;
+    }
+    .modal.active { visibility: visible; }
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 4px 16px var(--shadow);
+      width: 90%; max-width: 320px;
+    }
+    .modal-content p { margin-bottom: 1rem; }
+    .modal-content .btn { width: 100%; }
+    nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
       background: var(--primary);
       display: flex; justify-content: space-around;
-      padding: 0.6rem 0;
-      box-shadow: 0 -6px 20px var(--shadow);
-      border-top-left-radius: 24px; border-top-right-radius: 24px;
+      padding: 0.5rem 0;
     }
-    .nav a {
-      color: #fff; text-decoration: none;
-      text-align: center; font-size: 0.75rem;
-      transition: color 0.3s;
-    }
-    .nav a:hover { color: var(--primary-light); }
-    .nav a i { font-size: 1.2rem; margin-bottom: 2px; }
-    /* Upgrade Modal Styles */
-    #upgradeModal {
-      position: fixed; top:0; left:0; width:100vw; height:100vh;
-      background: rgba(0,0,0,0.6); display: flex;
-      align-items: center; justify-content: center; z-index: 1000;
-      display: none;
-    }
-    #upgradeModal .modal-content {
-      background: var(--card-bg); padding:2rem; border-radius:10px;
-      text-align:center; max-width:300px; box-shadow:0 4px 12px var(--shadow);
-    }
-    #upgradeModal .modal-content p { margin-bottom:1rem; font-size:1rem; }
-    #upgradeModal .modal-content button {
-      padding:0.6rem 1.2rem; background:var(--primary);
-      color:#fff; border:none; border-radius:6px;
-      cursor:pointer; font-weight:600;
-    }
-    @media (max-width: 360px) {
-      header h1 { font-size: 1.2rem; }
-      .card { width: calc(100% - 1.6rem); padding: 1rem; }
-      .card p.value { font-size: 1.8rem; }
-      .btn { padding: 0.6rem 1rem; font-size: 0.9rem; }
-    }
+    nav a { color: #fff; font-size: 0.9rem; text-align: center; }
+    nav a i { display: block; font-size: 1.2rem; margin-bottom: 2px; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Welcome, <span id="usernameDisplay"></span>!</h1>
+    <h1>EasyPay Dashboard</h1>
     <div class="profile">
       <i class="fas fa-user-circle profile-icon" onclick="toggleProfile()"></i>
       <div class="profile-info" id="profileInfo">
-        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-        <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
+        <p><strong id="profileUsername">User</strong></p>
+        <p id="profileEmail">email@example.com</p>
+        <p>Balance: ₦<span id="profileBalance">0.00</span></p>
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
-  </header>  <!-- Upgrade Modal -->  <div id="upgradeModal">
+  </header>  <div class="modal" id="upgradeModal">
     <div class="modal-content">
-      <p>Your account is on the <strong>Basic</strong> plan. Upgrade now to access full features!</p>
-      <button onclick="location.href='upgrade.html'">Upgrade Now</button>
+      <p>Your plan is <strong>Basic</strong>. Upgrade to unlock features!</p>
+      <button class="btn-primary" onclick="location.href='upgrade.html'">Upgrade Now</button>
     </div>
-  </div>  <div class="container">
+  </div>  <div class="grid">
     <div class="card">
-      <h3>Balance</h3>
-      <p class="value">₦<span id="balance">0.00</span></p>
-    </div>
-    <div class="card">
-      <h3>Daily Credit</h3>
-      <p id="creditMessage">Loading...</p>
-      <button id="claimDailyBtn" class="btn" disabled>Claim ₦1</button>
-    </div>
-    <div class="card">
-      <h3>Plan</h3>
-      <p id="planName">Loading...</p>
-    </div>
-    <div class="card">
-      <h3>Activated</h3>
-      <p id="planDate">--</p>
-      <p><strong><span id="daysRemaining">--</span> days left</strong></p>
-    </div>
-  </div>  <div class="nav">
+      <h3><i class="fas fa-wallet"></i> Balance</h3>
+      <div class="value">₦<span id="balance">0.00</span></div>
+      <small>Current available funds</small>
+    </div><div class="card">
+  <h3><i class="fas fa-coins"></i> Daily Credit</h3>
+  <div id="creditMessage" class="value">Loading...</div>
+  <button id="claimDailyBtn" class="btn-primary" disabled>Claim ₦1</button>
+</div>
+
+<div class="card">
+  <h3><i class="fas fa-layer-group"></i> Plan</h3>
+  <div id="planName" class="value">Basic</div>
+  <small><i class="fas fa-calendar-alt"></i> Activated: <span id="planDate">--</span></small>
+  <small><i class="fas fa-hourglass-half"></i> <span id="daysRemaining">--</span> days left</small>
+</div>
+
+<div class="card">
+  <h3><i class="fas fa-history"></i> History</h3>
+  <small><a href="history.html">View transactions</a></small>
+</div>
+
+  </div>  <nav>
     <a href="menu.html"><i class="fas fa-home"></i>Home</a>
     <a href="advertise.html"><i class="fas fa-bullhorn"></i>Ads</a>
     <a href="earn.html"><i class="fas fa-coins"></i>Earn</a>
     <a href="leaderboard.html"><i class="fas fa-trophy"></i>Rank</a>
-  </div>  <script type="module">
+  </nav>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, collection } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c1e"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth();
+    const auth = getAuth(app);
+
     let userRef, userData;
+    const balanceEl = document.getElementById('balance');
+    const profileBalanceEl = document.getElementById('profileBalance');
+    const profileUsernameEl = document.getElementById('profileUsername');
+    const profileEmailEl = document.getElementById('profileEmail');
+    const planNameEl = document.getElementById('planName');
+    const planDateEl = document.getElementById('planDate');
+    const daysRemainingEl = document.getElementById('daysRemaining');
     const claimBtn = document.getElementById('claimDailyBtn');
     const creditMsg = document.getElementById('creditMessage');
     const upgradeModal = document.getElementById('upgradeModal');
+
+    function toggleProfile() {
+      document.getElementById('profileInfo').classList.toggle('show');
+    }
+    function logout() {
+      signOut(auth);
+    }
 
     onAuthStateChanged(auth, async user => {
       if (!user) return location.href = 'login.html';
@@ -195,65 +192,47 @@
       if (!snap.exists()) return location.href = 'login.html';
       userData = snap.data();
 
-      document.getElementById('usernameDisplay').innerText = userData.username;
-      document.getElementById('profileUsername').innerText = userData.username;
-      document.getElementById('profileEmail').innerText = user.email;
-      document.getElementById('profileBalance').innerText = (userData.balance || 0).toFixed(2);
-      document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
+      profileUsernameEl.textContent = userData.username;
+      profileEmailEl.textContent = user.email;
+      balanceEl.textContent = (userData.balance||0).toFixed(2);
+      profileBalanceEl.textContent = (userData.balance||0).toFixed(2);
 
-      const plan = (userData.plan || 'basic').toLowerCase();
-      document.getElementById('planName').innerText = plan.charAt(0).toUpperCase() + plan.slice(1);
-      const startMs = userData.planStart?.toMillis ? userData.planStart.toMillis() : userData.planStart;
+      const plan = (userData.plan||'basic');
+      planNameEl.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+      const startMs = userData.planStart?.toMillis?.()||userData.planStart;
       if (startMs) {
-        const startDate = new Date(startMs);
-        document.getElementById('planDate').innerText = startDate.toLocaleDateString();
-        const daysLeft = Math.max(0, Math.ceil(((startMs + 7 * 86400000) - Date.now()) / 86400000));
-        document.getElementById('daysRemaining').innerText = daysLeft;
+        const dt = new Date(startMs);
+        planDateEl.textContent = dt.toLocaleDateString();
+        const days = Math.max(0, Math.ceil((startMs + 7*86400000 - Date.now())/86400000));
+        daysRemainingEl.textContent = days;
       }
-
-      // Show upgrade modal if on basic plan
-      if (plan === 'basic') {
-        upgradeModal.style.display = 'flex';
-      }
+      if (plan==='basic') upgradeModal.classList.add('active');
 
       setupDailyCredit();
     });
 
     async function setupDailyCredit() {
-      const last = userData.lastCredit?.toMillis ? userData.lastCredit.toMillis() : userData.lastCredit || 0;
-      const diff = Date.now() - last;
-      if (diff >= 86400000) {
-        creditMsg.innerText = 'Claim ₦1 now!'; claimBtn.disabled = false;
-      } else {
-        let rem = 86400000 - diff;
-        updateTimer(rem);
-        claimBtn.disabled = true;
-        const iv = setInterval(() => { rem -= 1000; if (rem <= 0) { clearInterval(iv); setupDailyCredit(); } else updateTimer(rem); }, 1000);
+      const last = userData.lastCredit?.toMillis?.()||userData.lastCredit||0;
+      const diff = Date.now()-last;
+      if (diff>=86400000) { creditMsg.textContent='Ready to claim!'; claimBtn.disabled=false; }
+      else {
+        claimBtn.disabled=true;
+        let rem=86400000-diff;
+        const iv=setInterval(()=>{
+          rem-=1000; if(rem<=0){ clearInterval(iv); setupDailyCredit(); }
+          const h=Math.floor(rem/3600000), m=Math.floor((rem%3600000)/60000), s=Math.floor((rem%60000)/1000);
+          creditMsg.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        },1000);
       }
-
-      claimBtn.onclick = async () => {
-        claimBtn.disabled = true;
-        try {
-          await updateDoc(userRef, { balance: increment(1), lastCredit: serverTimestamp() });
-          await addDoc(collection(userRef, 'transactionHistory'), { type: 'Daily Credit', amount: 1, timestamp: serverTimestamp() });
-          const fresh = await getDoc(userRef);
-          userData = fresh.data();
-          document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
-          setupDailyCredit();
-        } catch {
-          creditMsg.innerText = 'Error—try again.';
-        }
+      claimBtn.onclick=async()=>{
+        claimBtn.disabled=true;
+        await updateDoc(userRef,{ balance:increment(1), lastCredit:serverTimestamp() });
+        await addDoc(collection(userRef,'transactionHistory'),{ type:'Daily Credit', amount:1, timestamp:serverTimestamp() });
+        const fresh=await getDoc(userRef); userData=fresh.data();
+        balanceEl.textContent = userData.balance.toFixed(2);
+        profileBalanceEl.textContent = userData.balance.toFixed(2);
+        setupDailyCredit();
       };
     }
-
-    function updateTimer(ms) {
-      const h = String(Math.floor(ms / 3600000)).padStart(2, '0');
-      const m = String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0');
-      const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
-      creditMsg.innerText = `${h}:${m}:${s}`;
-    }
-
-    window.toggleProfile = () => document.getElementById('profileInfo').classList.toggle('show');
-    window.logout = () => signOut(auth);
   </script></body>
   </html>
