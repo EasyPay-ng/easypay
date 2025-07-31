@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Choose Your Plan – EasyPay</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
@@ -20,27 +20,23 @@
       padding: 20px;
       text-align: center;
     }
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    header p {
-      margin-top: 8px;
-    }
+    header h1 { margin: 0; font-size: 2rem; }
+    header p { margin-top: 8px; }
     .important-warning {
       background: #fff8e1;
       color: #856404;
       border: 1px solid #ffe58f;
       padding: 12px 16px;
       border-radius: 8px;
-      margin: 18px auto 0;
+      margin: 18px auto;
       max-width: 90%;
       font-weight: 500;
+      text-align: center;
     }
     .plans {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 40px;
       flex: 1;
     }
@@ -48,52 +44,56 @@
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 24px;
+      padding: 32px 24px;
+      max-width: 360px;
+      width: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       transition: transform 0.2s ease;
     }
-    .plan-card:hover {
-      transform: translateY(-5px);
-    }
+    .plan-card:hover { transform: translateY(-5px); }
     .plan-header {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       color: #006400;
       margin-bottom: 10px;
       text-transform: capitalize;
+      text-align: center;
     }
     .plan-price {
-      font-size: 2rem;
+      font-size: 2.4rem;
       font-weight: bold;
       margin: 10px 0;
       color: #009f4d;
+      text-align: center;
     }
     .plan-duration {
       color: #555;
       margin-bottom: 20px;
+      text-align: center;
     }
     .plan-desc {
-      font-size: 0.95rem;
+      font-size: 1rem;
       line-height: 1.5;
       color: #444;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      text-align: center;
       flex: 1;
     }
     .upgrade-btn {
       background-color: #009f4d;
       color: #fff;
-      padding: 12px;
+      padding: 14px;
       border: none;
       border-radius: 6px;
       text-align: center;
       font-weight: bold;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      width: 100%;
+      font-size: 1rem;
     }
-    .upgrade-btn:hover {
-      background-color: #007a33;
-    }
+    .upgrade-btn:hover { background-color: #007a33; }
     footer {
       text-align: center;
       padding: 15px;
@@ -104,126 +104,20 @@
 </head>
 <body>
   <header>
-    <h1>Choose Your Weekly Plan</h1>
-    <p>All plans valid for 7 days—earn daily!</p>
+    <h1>Choose Your Monthly Plan</h1>
+    <p>All plans valid for 30 days—maximize your earnings!</p>
   </header>  <div class="important-warning">
-    ⚠️ <strong>Important:</strong> Only one upgrade request at a time to ensure smooth activation.
+    ⚠️ <strong>Note:</strong> Only one upgrade request at a time to ensure smooth activation.
   </div>  <section class="plans">
     <div class="plan-card">
       <div>
-        <div class="plan-header">premium</div>
+        <div class="plan-header">Premium</div>
         <div class="plan-price">₦1,000</div>
-        <div class="plan-duration">Valid for 7 days</div>
-        <p class="plan-desc">Earn at least ₦200 every day for 7 days. Perfect to get started quickly and build momentum.</p>
+        <div class="plan-duration">Valid for 30 days</div>
+        <p class="plan-desc">Earn consistent rewards daily over a full month with our Premium plan. Perfect to kickstart your long-term earnings.</p>
       </div>
-      <button class="upgrade-btn" data-plan="1000">Activate Premium</button>
-    </div><div class="plan-card">
-  <div>
-    <div class="plan-header">gold</div>
-    <div class="plan-price">₦2,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦400 every day for 7 days. Double the entry plan for a stronger weekly boost.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="2000">Activate Gold</button>
-</div>
-
-<div class="plan-card">
-  <div>
-    <div class="plan-header">elite</div>
-    <div class="plan-price">₦3,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦600 every day for 7 days. Great for intermediate earners seeking consistent growth.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="3000">Activate Elite</button>
-</div>
-
-<div class="plan-card">
-  <div>
-    <div class="plan-header">diamond</div>
-    <div class="plan-price">₦4,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦800 every day for 7 days. Ramp up your income with this high-yield weekly plan.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="4000">Activate Diamond</button>
-</div>
-
-<div class="plan-card">
-  <div>
-    <div class="plan-header">platinum</div>
-    <div class="plan-price">₦5,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦1,000 every day for 7 days. Premium weekly tier for serious earners.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="5000">Activate Platinum</button>
-</div>
-
-<div class="plan-card">
-  <div>
-    <div class="plan-header">sapphire</div>
-    <div class="plan-price">₦6,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦1,200 every day for 7 days. Ideal for consistent high-yield performance.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="6000">Activate Sapphire</button>
-</div>
-
-<div class="plan-card">
-  <div>
-    <div class="plan-header">emerald</div>
-    <div class="plan-price">₦7,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦1,400 every day for 7 days. Advanced plan for top-tier weekly earnings.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="7000">Activate Emerald</button>
-</div>
-
-<div class="plan-card">
-  <div>
-    <div class="plan-header">titanium</div>
-    <div class="plan-price">₦8,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦1,600 every day for 7 days. Superior weekly tier to maximize your returns.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="8000">Activate Titanium</button>
-</div>
-
-<div class="plan-card">
-  <div>
-    <div class="plan-header">supreme</div>
-    <div class="plan-price">₦9,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦1,800 every day for 7 days. Elite weekly plan for maximum weekly yield.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="9000">Activate Supreme</button>
-</div>
-
-<div class="plan-card">
-  <div>
-    <div class="plan-header">royalty</div>
-    <div class="plan-price">₦10,000</div>
-    <div class="plan-duration">Valid for 7 days</div>
-    <p class="plan-desc">Earn at least ₦2,000 every day for 7 days. The ultimate weekly plan for top earners.</p>
-  </div>
-  <button class="upgrade-btn" data-plan="10000">Activate Royalty</button>
-</div>
-
-  </section>  <footer>© 2025 EasyPay • Empowering your weekly earnings</footer>  <script>
-    const pageMap = {
-      '1000': 'upgrade-1.html',
-      '2000': 'upgrade-2.html',
-      '3000': 'upgrade-3.html',
-      '4000': 'upgrade-4.html',
-      '5000': 'upgrade-5.html',
-      '6000': 'upgrade-6.html',
-      '7000': 'upgrade-7.html',
-      '8000': 'upgrade-8.html',
-      '9000': 'upgrade-9.html',
-      '10000': 'upgrade-10.html'
-    };
-    document.querySelectorAll('.upgrade-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        window.location.href = pageMap[btn.dataset.plan];
-      });
-    });
-  </script></body>
-                                                                                                                    </html>
+      <button class="upgrade-btn" onclick="location.href='upgrade-1month.html'">Activate Premium</button>
+    </div>
+  </section>  <footer>© 2025 EasyPay • Empowering your monthly earnings</footer>
+</body>
+</html>
