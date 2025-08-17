@@ -1,238 +1,233 @@
-<!DOCTYPE html><html lang="en">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EasyPay Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EasyPay — Dashboard (Sidebar Menu)</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" defer></script>
   <style>
-    :root {
-      --primary: #00b66d;
-      --primary-light: #e6fbf3;
-      --bg: #f9fefa;
-      --text: #1a1a1a;
-      --card-bg: #ffffff;
-      --shadow: rgba(0, 102, 51, 0.15);
+    :root{
+      --primary:#00b66d;
+      --bg:#f6fff7;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --shadow: 0 8px 24px rgba(16,24,40,0.06);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      padding-bottom: 60px;
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:'Poppins',system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      background:var(--bg); color:#0f1720; min-height:100vh; display:flex;
     }
+
+    /* SIDEBAR */
+    .sidebar {
+      position:fixed; left:-320px; top:0; height:100vh; width:320px;
+      background:var(--card); box-shadow:2px 0 18px rgba(0,0,0,0.08);
+      padding:20px; border-right:1px solid #f0f5f0;
+      transition:left .28s ease; overflow-y:auto; z-index:1200;
+    }
+    .sidebar.active { left:0; }
+    .sidebar .close { text-align:right; margin-bottom:6px; cursor:pointer; font-size:18px; color:var(--muted) }
+    .profile {
+      display:flex; gap:12px; align-items:center; padding:8px 0 18px; border-bottom:1px solid #f2f7f2;
+    }
+    .avatar {
+      width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#1b7a4b);
+      display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:20px;
+      flex-shrink:0; overflow:hidden;
+    }
+    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }
+    .profile-text { flex:1 }
+    .greeting { font-weight:700; font-size:16px; color:var(--primary); }
+    .sub { font-size:13px; color:var(--muted); margin-top:4px }
+
+    /* MENU */
+    nav.menu { margin-top:18px }
+    nav.menu ul { list-style:none; padding:0; margin:0 }
+    nav.menu li { margin:10px 0; }
+    nav.menu a {
+      display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827;
+      padding:10px 8px; border-radius:10px; transition:background .12s, transform .08s;
+    }
+    nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); }
+    nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:20px; }
+    nav.menu a span.label { font-weight:600; }
+
+    /* small note area */
+    .note { margin-top:18px; font-size:13px; color:var(--muted) }
+
+    /* main content area */
+    .main {
+      flex:1; margin-left:0; transition:margin-left .28s; width:100%;
+      min-height:100vh; display:flex; flex-direction:column;
+    }
+    .main.shift { margin-left:320px; }
     header {
-      background: var(--primary);
-      color: #fff;
-      padding: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      background:var(--primary); color:#fff; padding:14px 18px; display:flex; align-items:center; gap:12px;
+      justify-content:space-between;
     }
-    header h1 { font-size: 1.4rem; font-weight: 600; }
-    .profile { position: relative; }
-    .profile-icon { font-size: 1.6rem; cursor: pointer; }
-    .profile-info {
-      display: none;
-      position: absolute;
-      top: 2.5rem;
-      right: 0;
-      background: var(--card-bg);
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 4px 12px var(--shadow);
-      width: 220px;
+    .hamburger { font-size:20px; cursor:pointer; color:#fff }
+    .title { font-weight:700; font-size:18px }
+    .profile-mini { display:flex; align-items:center; gap:10px }
+    .profile-mini img { width:36px; height:36px; border-radius:10px; object-fit:cover }
+
+    /* responsive */
+    @media (max-width:900px){
+      .sidebar{ width:86%; left:-100% }
+      .sidebar.active{ left:0 }
+      .main.shift{ margin-left:0 }
     }
-    .profile-info.show { display: block; }
-    .profile-info p { margin-bottom: 0.5rem; font-size: 0.9rem; }
-    .logout-btn { margin-top: 0.5rem; width: 100%; padding: 0.5rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
-      flex: 1;
-    }
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 12px var(--shadow);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .card h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
-    .card .value { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; }
-    .card small { color: #666; }
-    .btn-primary {
-      padding: 0.6rem 1rem;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      align-self: flex-start;
-    }
-    .btn-primary:disabled { background: #ccc; cursor: default; }
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center; justify-content: center;
-      visibility: hidden;
-    }
-    .modal.active { visibility: visible; }
-    .modal-content {
-      background: var(--card-bg);
-      border-radius: 8px;
-      padding: 2rem;
-      text-align: center;
-      box-shadow: 0 4px 16px var(--shadow);
-      width: 90%; max-width: 320px;
-    }
-    .modal-content p { margin-bottom: 1rem; }
-    .modal-content .btn { width: 100%; }
-    nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: var(--primary);
-      display: flex; justify-content: space-around;
-      padding: 0.5rem 0;
-    }
-    nav a { color: #fff; font-size: 0.9rem; text-align: center; }
-    nav a i { display: block; font-size: 1.2rem; margin-bottom: 2px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>EasyPay Dashboard</h1>
-    <div class="profile">
-      <i class="fas fa-user-circle profile-icon" onclick="toggleProfile()"></i>
-      <div class="profile-info" id="profileInfo">
-        <p><strong id="profileUsername">User</strong></p>
-        <p id="profileEmail">email@example.com</p>
-        <p>Balance: ₦<span id="profileBalance">0.00</span></p>
-        <button class="logout-btn" onclick="logout()">Logout</button>
+  <!-- Sidebar (hidden by default) -->
+  <aside class="sidebar" id="sidebar" aria-hidden="true">
+    <div class="close" onclick="toggleSidebar()" aria-label="Close menu"><i class="fas fa-times"></i></div>
+
+    <div class="profile" id="profileBlock">
+      <div class="avatar" id="avatar">
+        <!-- fallback initials -->
+        <span id="avatarInitials">EP</span>
+      </div>
+      <div class="profile-text">
+        <div class="greeting" id="greeting">Good evening</div>
+        <div class="sub" id="usernameSub">Welcome, <strong id="sideUsername">User</strong></div>
       </div>
     </div>
-  </header>  <div class="modal" id="upgradeModal">
-    <div class="modal-content">
-      <p>Your plan is <strong>Basic</strong>. Upgrade to unlock features!</p>
-      <button class="btn-primary" onclick="location.href='upgrade.html'">Upgrade Now</button>
-    </div>
-  </div>  <div class="grid">
-    <div class="card">
-      <h3><i class="fas fa-wallet"></i> Balance</h3>
-      <div class="value">₦<span id="balance">0.00</span></div>
-      <small>Current available funds</small>
-    </div><div class="card">
-  <h3><i class="fas fa-coins"></i> Daily Credit</h3>
-  <div id="creditMessage" class="value">Loading...</div>
-  <button id="claimDailyBtn" class="btn-primary" disabled>Claim ₦1</button>
-</div>
 
-<div class="card">
-  <h3><i class="fas fa-layer-group"></i> Plan</h3>
-  <div id="planName" class="value">Basic</div>
-  <small><i class="fas fa-calendar-alt"></i> Activated: <span id="planDate">--</span></small>
-  <small><i class="fas fa-hourglass-half"></i> <span id="daysRemaining">--</span> days left</small>
-</div>
+    <nav class="menu" aria-label="EasyPay menu">
+      <ul>
+        <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>
+        <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
+        <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
+        <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>
+        <li><a href="shortlink.html"><i class="emoji">🔗</i><span class="label">Shortlink</span></a></li>
+        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span></a></li>
+        <li><a href="contact.html"><i class="emoji">📞</i><span class="label">Contact Us</span></a></li>
+      </ul>
+    </nav>
 
-<div class="card">
-  <h3><i class="fas fa-history"></i> History</h3>
-  <small><a href="history.html">View transactions</a></small>
-</div>
+    <div class="note">Maximize your earnings — check Tasks and Shortlink daily for new rewards.</div>
+  </aside>
 
-  </div>  <nav>
-    <a href="menu.html"><i class="fas fa-home"></i>Home</a>
-    <a href="advertise.html"><i class="fas fa-bullhorn"></i>Ads</a>
-    <a href="earn.html"><i class="fas fa-coins"></i>Earn</a>
-    <a href="leaderboard.html"><i class="fas fa-trophy"></i>Rank</a>
-  </nav>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, increment, collection } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+  <!-- overlay -->
+  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>
 
-    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8" };
+  <!-- Main page -->
+  <main class="main" id="main">
+    <header>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="hamburger" onclick="toggleSidebar()" aria-label="Open menu"><i class="fas fa-bars"></i></div>
+        <div class="title">EasyPay Dashboard</div>
+      </div>
+      <div class="profile-mini" id="profileMini">
+        <img id="miniAvatar" src="" alt="" style="display:none" />
+        <div id="miniName" style="color:#fff; font-weight:600">User</div>
+      </div>
+    </header>
+
+    <!-- sample content area -->
+    <section style="padding:18px;">
+      <h2 style="margin:0 0 12px">Welcome to EasyPay</h2>
+      <p style="color:#374151">Use the side menu to navigate to Deposit, Withdraw, Advertise and more.</p>
+    </section>
+  </main>
+
+  <!-- Firebase + logic for greeting & profile -->
+  <script type="module">
+    // Use your Firebase config (kept from your project)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    let userRef, userData;
-    const balanceEl = document.getElementById('balance');
-    const profileBalanceEl = document.getElementById('profileBalance');
-    const profileUsernameEl = document.getElementById('profileUsername');
-    const profileEmailEl = document.getElementById('profileEmail');
-    const planNameEl = document.getElementById('planName');
-    const planDateEl = document.getElementById('planDate');
-    const daysRemainingEl = document.getElementById('daysRemaining');
-    const claimBtn = document.getElementById('claimDailyBtn');
-    const creditMsg = document.getElementById('creditMessage');
-    const upgradeModal = document.getElementById('upgradeModal');
+    const sideUsername = document.getElementById('sideUsername');
+    const greetingEl = document.getElementById('greeting');
+    const avatarEl = document.getElementById('avatar');
+    const avatarInitials = document.getElementById('avatarInitials');
+    const miniName = document.getElementById('miniName');
+    const miniAvatar = document.getElementById('miniAvatar');
 
-    function toggleProfile() {
-      document.getElementById('profileInfo').classList.toggle('show');
-    }
-    function logout() {
-      signOut(auth);
+    // toggle helpers
+    function _getGreetingFromHour(h){
+      if (h >= 5 && h < 12) return "Good morning";
+      if (h >= 12 && h < 17) return "Good afternoon";
+      return "Good evening";
     }
 
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = 'login.html';
-      userRef = doc(db, 'users', user.uid);
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) return location.href = 'login.html';
-      userData = snap.data();
+    // populate UI from Firebase Auth or users doc (if available)
+    onAuthStateChanged(auth, async (user) => {
+      const hour = new Date().getHours();
+      greetingEl.textContent = _getGreetingFromHour(hour);
 
-      profileUsernameEl.textContent = userData.username;
-      profileEmailEl.textContent = user.email;
-      balanceEl.textContent = (userData.balance||0).toFixed(2);
-      profileBalanceEl.textContent = (userData.balance||0).toFixed(2);
-
-      const plan = (userData.plan||'basic');
-      planNameEl.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
-      const startMs = userData.planStart?.toMillis?.()||userData.planStart;
-      if (startMs) {
-        const dt = new Date(startMs);
-        planDateEl.textContent = dt.toLocaleDateString();
-        const days = Math.max(0, Math.ceil((startMs + 7*86400000 - Date.now())/86400000));
-        daysRemainingEl.textContent = days;
+      if (!user) {
+        sideUsername.textContent = 'Guest';
+        miniName.textContent = 'Guest';
+        avatarInitials.textContent = 'EP';
+        return;
       }
-      if (plan==='basic') upgradeModal.classList.add('active');
 
-      setupDailyCredit();
+      // try fetch username from users collection (if you store it)
+      try {
+        const uDoc = await getDoc(doc(db, 'users', user.uid));
+        let username = user.displayName || (uDoc.exists() && uDoc.data().username) || user.email || 'User';
+        sideUsername.textContent = username;
+        miniName.textContent = username;
+
+        // avatar: prefer photoURL, then users doc photo, then initials
+        const photoURL = user.photoURL || (uDoc.exists() && uDoc.data().photoURL);
+        if (photoURL) {
+          avatarEl.innerHTML = '<img src="'+photoURL+'" alt="avatar">';
+          miniAvatar.src = photoURL; miniAvatar.style.display = 'block';
+        } else {
+          // fallback initials from username
+          const parts = username.split(' ').filter(Boolean);
+          const letters = (parts.length >= 2) ? (parts[0][0]+parts[1][0]) : username.slice(0,2);
+          avatarInitials.textContent = letters.toUpperCase();
+          miniAvatar.style.display = 'none';
+        }
+      } catch (err) {
+        // graceful fallback
+        console.warn('Could not load user doc', err);
+        const username = user.displayName || user.email || 'User';
+        sideUsername.textContent = username;
+        miniName.textContent = username;
+        if (user.photoURL) {
+          avatarEl.innerHTML = '<img src="'+user.photoURL+'" alt="avatar">';
+          miniAvatar.src = user.photoURL; miniAvatar.style.display = 'block';
+        } else {
+          const letters = (username[0]||'E').toUpperCase() + ((username.split(' ')[1]||'')[0]||'P').toUpperCase();
+          avatarInitials.textContent = letters;
+        }
+      }
     });
 
-    async function setupDailyCredit() {
-      const last = userData.lastCredit?.toMillis?.()||userData.lastCredit||0;
-      const diff = Date.now()-last;
-      if (diff>=86400000) { creditMsg.textContent='Ready to claim!'; claimBtn.disabled=false; }
-      else {
-        claimBtn.disabled=true;
-        let rem=86400000-diff;
-        const iv=setInterval(()=>{
-          rem-=1000; if(rem<=0){ clearInterval(iv); setupDailyCredit(); }
-          const h=Math.floor(rem/3600000), m=Math.floor((rem%3600000)/60000), s=Math.floor((rem%60000)/1000);
-          creditMsg.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        },1000);
-      }
-      claimBtn.onclick=async()=>{
-        claimBtn.disabled=true;
-        await updateDoc(userRef,{ balance:increment(1), lastCredit:serverTimestamp() });
-        await addDoc(collection(userRef,'transactionHistory'),{ type:'Daily Credit', amount:1, timestamp:serverTimestamp() });
-        const fresh=await getDoc(userRef); userData=fresh.data();
-        balanceEl.textContent = userData.balance.toFixed(2);
-        profileBalanceEl.textContent = userData.balance.toFixed(2);
-        setupDailyCredit();
-      };
-    }
-  </script></body>
-  </html>
+    // expose toggle function to global scope for inline handlers
+    window.toggleSidebar = function toggleSidebar(){
+      const sb = document.getElementById('sidebar');
+      const main = document.getElementById('main');
+      const overlay = document.getElementById('overlay');
+      const active = sb.classList.toggle('active');
+      if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
+      else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
+    };
+
+    // close sidebar on ESC
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
+  </script>
+</body>
+</html>
