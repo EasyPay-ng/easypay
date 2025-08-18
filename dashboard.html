@@ -79,6 +79,23 @@
     /* content area */
     .container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
 
+    /* upgrade banner */
+    .upgrade-banner {
+      background: linear-gradient(90deg, rgba(0,182,109,0.08), rgba(5,156,86,0.06));
+      border:1px solid rgba(5,156,86,0.12);
+      padding:12px;
+      border-radius:10px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-bottom:12px;
+      box-shadow: 0 6px 18px rgba(5,156,86,0.03);
+    }
+    .upgrade-banner .msg { flex:1; font-weight:600; color:var(--primary) }
+    .upgrade-banner .actions { display:flex; gap:8px; align-items:center }
+    .upgrade-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700 }
+    .close-banner { background:transparent; border:0; font-size:18px; color:var(--muted); cursor:pointer }
+
     /* top cards */
     .cards {
       display:grid;
@@ -93,6 +110,14 @@
     }
     .card .label { color:var(--muted); font-size:13px; }
     .card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* news card */
+    .news-list { display:flex; flex-direction:column; gap:10px; max-height:320px; overflow:auto; padding-right:6px }
+    .news-item { background:#fbfff9; border-radius:8px; padding:10px; border:1px solid #eff8f1 }
+    .news-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px }
+    .news-title { font-weight:800; color:#0b3f11; font-size:15px }
+    .news-date { font-size:12px; color:var(--muted) }
+    .news-body { margin-top:8px; color:#111; font-size:14px; line-height:1.45; white-space:pre-wrap }
 
     /* referral / code */
     .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
@@ -175,6 +200,15 @@
     </header>
 
     <div class="container">
+      <!-- UPGRADE BANNER (will show only for basic plan users; closeable) -->
+      <div id="upgradeBanner" class="upgrade-banner" style="display:none" role="status" aria-live="polite">
+        <div class="msg" id="upgradeMsg">You're on the Basic plan. Upgrade to Premium for higher limits, instant withdrawals and priority support.</div>
+        <div class="actions">
+          <button class="upgrade-btn" id="goUpgrade">Upgrade</button>
+          <button class="close-banner" id="closeUpgrade" title="Dismiss">&times;</button>
+        </div>
+      </div>
+
       <!-- Top cards -->
       <div class="cards" aria-hidden="false">
         <div class="card">
@@ -202,6 +236,23 @@
           <div class="label">Total Referrals</div>
           <div class="value"><span id="referrals">0</span></div>
           <small class="label">People you referred</small>
+        </div>
+      </div>
+
+      <!-- NEWS & UPDATES -->
+      <div class="card" aria-live="polite" aria-atomic="true">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="label">News & Updates</div>
+            <div style="font-weight:700; font-size:15px; margin-top:6px">Latest announcements</div>
+          </div>
+          <div><a href="news.html" style="text-decoration:none; color:var(--primary); font-weight:600">View all</a></div>
+        </div>
+
+        <div style="margin-top:12px" id="newsContainer">
+          <div class="news-list">
+            <div class="news-item"><div class="news-head"><div class="news-title">Loading news…</div></div></div>
+          </div>
         </div>
       </div>
 
@@ -288,8 +339,15 @@
     const copyRefBtn = document.getElementById('copyRefBtn');
     const txBody = document.getElementById('txBody');
 
+    const newsContainer = document.getElementById('newsContainer');
+    const upgradeBanner = document.getElementById('upgradeBanner');
+    const upgradeMsg = document.getElementById('upgradeMsg');
+    const goUpgrade = document.getElementById('goUpgrade');
+    const closeUpgrade = document.getElementById('closeUpgrade');
+
     let userRefUnsub = null;
     let txUnsub = null;
+    let newsUnsub = null;
     let currentUid = null;
 
     function greetByHour(h){
@@ -298,115 +356,89 @@
       return "Good evening";
     }
 
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = 'login.html';
-      currentUid = user.uid;
-      greetingEl.textContent = greetByHour(new Date().getHours());
-
-      // subscribe to user doc (realtime)
-      const uDocRef = doc(db, 'users', user.uid);
-      if (userRefUnsub) userRefUnsub();
-      userRefUnsub = onSnapshot(uDocRef, (snap) => {
-        if (!snap.exists()) return;
-        const data = snap.data();
-
-        const bal = Number(data.balance || 0);
-        // show number with grouping; keep decimals if set by backend
-        balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
-
-        referralsEl.textContent = (data.referrals || 0);
-
-        // referral code: username if set, otherwise uid
-        const code = (data.username && data.username.trim()) ? data.username.trim() : user.uid;
-        refCodeEl.textContent = code;
-
-        // update side username & mini name
-        const username = data.username || (user.displayName || user.email || 'User');
-        sideUsername.textContent = username;
-        miniName.textContent = username;
-
-        // avatar handling
-        if (data.photoURL) {
-          avatarEl.innerHTML = '<img src="'+escapeHtml(data.photoURL)+'" alt="avatar">';
-          miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
-        } else {
-          const parts = String(username).split(' ').filter(Boolean);
-          const letters = (parts.length >= 2) ? (parts[0][0]+parts[1][0]) : String(username).slice(0,2);
-          avatarInitials.textContent = letters.toUpperCase();
-          miniAvatar.style.display = 'none';
-        }
-      });
-
-      // subscribe to last 10 transactions
-      const txCol = collection(db, 'users', user.uid, 'transactions');
-      const txQuery = query(txCol, orderBy('date', 'desc'), limit(10));
-      if (txUnsub) txUnsub();
-      txUnsub = onSnapshot(txQuery, (snap) => {
-        if (snap.empty) {
-          txBody.innerHTML = '<tr><td colspan="3" style="padding:12px; color:var(--muted)">No transactions yet</td></tr>';
-          totalDepositsEl.textContent = '0.00';
-          availableEl.textContent = balanceEl.textContent;
-          return;
-        }
-        let rows = '';
-        let depositSum = 0;
-        snap.docs.forEach(docSnap => {
-          const t = docSnap.data();
-          const source = t.source || t.type || 'Activity';
-          const amount = Number(t.amount || 0);
-          // handle Firestore Timestamp and other date shapes
-          let dateObj;
-          if (t.date && typeof t.date.toDate === 'function') dateObj = t.date.toDate();
-          else if (t.date && t.date.seconds) dateObj = new Date(t.date.seconds * 1000);
-          else if (typeof t.date === 'number') dateObj = new Date(t.date);
-          else dateObj = new Date();
-          const dateStr = dateObj.toLocaleString();
-          const cls = amount >= 0 ? 'amt-pos' : 'amt-neg';
-          if (amount > 0) depositSum += amount;
-          rows += `<tr>
-            <td>${escapeHtml(source)}</td>
-            <td>${escapeHtml(dateStr)}</td>
-            <td style="text-align:right"><span class="${cls}">${amount.toLocaleString()}</span></td>
-          </tr>`;
-        });
-        txBody.innerHTML = rows;
-        totalDepositsEl.textContent = depositSum.toLocaleString();
-        availableEl.textContent = balanceEl.textContent;
-      });
-
-      // optional: load leaderboard top if you have a doc (left intentionally blank)
-      try {
-        // placeholder — implement if you have a leaderboard doc
-      } catch(e){}
-    });
-
-    // copy referral code
-    copyRefBtn.addEventListener('click', async () => {
-      const text = refCodeEl.textContent || '';
-      try {
-        await navigator.clipboard.writeText(text);
-        copyRefBtn.textContent = 'Copied';
-        setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
-      } catch (err) {
-        copyRefBtn.textContent = 'Copy';
-        alert('Copy failed. Manually select the code and copy.');
-      }
-    });
-
     function escapeHtml(s){
-      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
-    // ---------- sidebar toggle ----------
-    window.toggleSidebar = function toggleSidebar(){
-      const sb = document.getElementById('sidebar');
-      const main = document.getElementById('main');
-      const overlay = document.getElementById('overlay');
-      const active = sb.classList.toggle('active');
-      if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
-      else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
-    };
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
-  </script>
-</body>
-              </html>
+    function fmtTimestamp(ts){
+      if(!ts) return '';
+      try {
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleString();
+      } catch (e) {
+        return String(ts);
+      }
+    }
+
+    // render news docs into the news container
+    function renderNews(docs){
+      const list = [];
+      docs.forEach(d => list.push({ id: d.id, data: d.data() }));
+      if(list.length === 0){
+        newsContainer.innerHTML = '<div class="news-list"><div class="news-item"><div class="news-head"><div class="news-title">No announcements</div></div><div class="news-body muted">You will see site updates here.</div></div></div>';
+        return;
+      }
+      const html = ['<div class="news-list">'];
+      for(const item of list){
+        const data = item.data || {};
+        const title = escapeHtml(data.title || (data.pinned ? 'Pinned' : 'Announcement'));
+        const body = escapeHtml(data.body || '');
+        const dateStr = fmtTimestamp(data.timestamp);
+        html.push(`
+          <div class="news-item" role="article" aria-labelledby="n-${item.id}">
+            <div class="news-head">
+              <div>
+                <div id="n-${item.id}" class="news-title">${title}</div>
+                <div class="news-date">Released: ${escapeHtml(dateStr)}</div>
+              </div>
+              <div class="muted" style="font-size:12px">${escapeHtml(item.id)}</div>
+            </div>
+            <div class="news-body">${body}</div>
+          </div>
+        `);
+      }
+      html.push('</div>');
+      newsContainer.innerHTML = html.join('');
+    }
+
+    // subscribe to news collection (pinned first, then newest)
+    function subscribeNews(){
+      try {
+        const newsQuery = query(collection(db, "news"), orderBy("pinned","desc"), orderBy("timestamp","desc"), limit(10));
+        if (newsUnsub) newsUnsub();
+        newsUnsub = onSnapshot(newsQuery, snapshot => {
+          renderNews(snapshot.docs);
+        }, err => {
+          console.error('news snapshot error', err);
+          newsContainer.innerHTML = '<div class="news-list"><div class="news-item"><div class="news-title">Failed to load news.</div></div></div>';
+        });
+      } catch (e) {
+        console.error('subscribeNews error', e);
+      }
+    }
+
+    // show upgrade banner if user's plan is basic (common field names checked)
+    function handleUpgradeBanner(uid, userData){
+      const closedKey = `hideUpgradeBanner_${uid}`;
+      const closed = localStorage.getItem(closedKey) === '1';
+      // check several possible fields that might represent plan
+      const plan = (userData && (userData.plan || userData.tier || userData.accountType)) || null;
+      const isBasicFlag = !!userData && !!userData.isBasic;
+      const isBasicPlan = (typeof plan === 'string' && plan.toLowerCase() === 'basic') || (typeof plan === 'string' && plan.toLowerCase().includes('basic')) || isBasicFlag;
+      if (isBasicPlan && !closed) {
+        upgradeBanner.style.display = 'flex';
+      } else {
+        upgradeBanner.style.display = 'none';
+      }
+      // adjust message if the plan has a human-readable name
+      if (plan && typeof plan === 'string') {
+        upgradeMsg.textContent = `You're on the ${plan} plan. Upgrade to Premium for higher limits, instant withdrawals and priority support.`;
+      } else {
+        upgradeMsg.textContent = `You're on the Basic plan. Upgrade to Premium for higher limits, instant withdrawals and priority support.`;
+      }
+      // dismiss handler
+      closeUpgrade.onclick = () => {
+        localStorage.setItem(closedKey, '1');
+        upgradeBanner.style.display = 'none';
+      };
+      goUpgrade.oncl
