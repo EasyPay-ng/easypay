@@ -1,0 +1,356 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EasyPay — Admin News Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg: #f6fff7;
+      --card: #ffffff;
+      --accent: #00b66d;
+      --accent-600: #059c56;
+      --muted: #6b7280;
+      --shadow: 0 10px 30px rgba(8,24,10,0.06);
+      --glass: rgba(255,255,255,0.7);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:'Poppins',system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      background:linear-gradient(180deg, #f8fff9 0%, #f5fff6 100%); color:#072018; -webkit-font-smoothing:antialiased;
+      display:flex; align-items:start; justify-content:center; padding:28px;
+    }.wrap{width:1100px; max-width:96%;}
+header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px}
+header h1{margin:0; font-size:20px; color:var(--accent);}
+header .sub{color:var(--muted); font-weight:600}
+
+.grid{display:grid; grid-template-columns: 420px 1fr; gap:16px}
+
+/* left column: form */
+.panel{background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow)}
+.form-row{display:flex; flex-direction:column; gap:8px; margin-bottom:12px}
+label{font-weight:700; color:#0a2b1c; font-size:13px}
+input[type="text"], textarea, .file-input{width:100%; padding:10px 12px; border-radius:10px; border:1px solid #ecf6f0; background:#fbfff9}
+textarea{min-height:140px; resize:vertical}
+.controls{display:flex; gap:8px; align-items:center}
+.btn{background:var(--accent); color:#fff; padding:10px 12px; border-radius:10px; border:0; cursor:pointer; font-weight:700}
+.btn.ghost{background:transparent; color:var(--accent); border:1px solid #e6f7ec}
+.small{font-size:13px; color:var(--muted)}
+.row{display:flex; gap:8px; align-items:center}
+.meta-line{display:flex; gap:8px; align-items:center; color:var(--muted); font-size:13px}
+
+/* right column: list */
+.list{display:flex; flex-direction:column; gap:12px}
+.news-card{background:linear-gradient(180deg,#ffffff,#fbfff9); border-radius:12px; padding:12px; border:1px solid #eff8f1; display:flex; gap:12px; align-items:flex-start}
+.thumb{width:86px; height:74px; border-radius:8px; background:#f2fff6; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0}
+.thumb img{width:100%; height:100%; object-fit:cover; display:block}
+.meta{flex:1}
+.title{font-weight:800; color:#04371f}
+.when{color:var(--muted); font-size:13px}
+.body-snippet{color:#0e2b1f; margin-top:8px; font-size:14px; max-height:72px; overflow:hidden}
+.actions{display:flex; gap:6px; align-items:center}
+.pill{padding:6px 8px; border-radius:999px; font-weight:700; font-size:12px}
+.pill.pinned{background:linear-gradient(90deg,var(--accent),var(--accent-600)); color:#fff}
+.empty{padding:28px; text-align:center; color:var(--muted)}
+
+/* modal */
+.modal-backdrop{position:fixed; inset:0; background:rgba(2,6,2,0.4); display:flex; align-items:center; justify-content:center}
+.modal{width:720px; max-width:92%; background:var(--card); padding:16px; border-radius:12px; box-shadow:0 30px 60px rgba(2,6,2,0.25)}
+
+/* responsive */
+@media (max-width:920px){ .grid{grid-template-columns:1fr; } .wrap{padding:8px} }
+
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <header>
+      <div>
+        <h1>Admin — News Manager</h1>
+        <div class="sub">Publish announcements that appear on users' dashboards</div>
+      </div>
+      <div class="meta-line">
+        <div id="adminBadge" class="pill pinned" style="display:none">ADMIN</div>
+        <div id="adminStatus" class="small">Checking auth…</div>
+      </div>
+    </header><div class="grid">
+  <!-- LEFT: compose -->
+  <div class="panel">
+    <div class="form-row">
+      <label for="title">Headline</label>
+      <input id="title" type="text" placeholder="Short headline (e.g. Maintenance, New feature)" />
+    </div>
+
+    <div class="form-row">
+      <label for="body">Body</label>
+      <textarea id="body" placeholder="Write the full announcement. You can include links and line breaks."></textarea>
+    </div>
+
+    <div class="form-row">
+      <label>Attach image (optional)</label>
+      <input id="imageInput" class="file-input" type="file" accept="image/*" />
+      <div class="small">Recommended: JPG/PNG. Images are optional and will display as thumbnails on the dashboard.</div>
+    </div>
+
+    <div class="row" style="margin-top:8px; justify-content:space-between">
+      <div style="display:flex; gap:8px; align-items:center">
+        <label style="font-weight:700">Pin to top</label>
+        <input id="pin" type="checkbox" />
+        <div class="small">Pinned items appear first</div>
+      </div>
+
+      <div style="display:flex; gap:8px">
+        <button class="btn ghost" id="clearBtn">Clear</button>
+        <button class="btn" id="publishBtn">Publish</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px; display:flex; gap:10px; align-items:center">
+      <div class="small">Preview:</div>
+      <div id="livePreview" style="flex:1; border-radius:8px; padding:10px; background:#fbfff9; border:1px solid #eff8f1"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: list of news -->
+  <div>
+    <div class="panel" style="display:flex; flex-direction:column; gap:12px">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <div style="font-weight:800">Recent posts</div>
+        <div class="small">Realtime — newest first</div>
+      </div>
+
+      <div id="list" class="list" aria-live="polite">
+        <div class="empty">Loading posts…</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+  </div>  <!-- modal (edit) -->  <div id="modal" style="display:none">
+    <div class="modal-backdrop">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <div style="font-weight:800">Edit announcement</div>
+          <button class="btn ghost" id="closeModal">Close</button>
+        </div>
+        <div style="margin-top:12px">
+          <label class="small">Headline</label>
+          <input id="editTitle" type="text" style="margin-top:8px" />
+        </div>
+        <div style="margin-top:12px">
+          <label class="small">Body</label>
+          <textarea id="editBody" style="margin-top:8px; min-height:120px"></textarea>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+          <button class="btn ghost" id="cancelEdit">Cancel</button>
+          <button class="btn" id="saveEdit">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+
+    // ---------- FIREBASE CONFIG (your project) ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // UI refs
+    const adminStatus = document.getElementById('adminStatus');
+    const adminBadge = document.getElementById('adminBadge');
+    const titleInput = document.getElementById('title');
+    const bodyInput = document.getElementById('body');
+    const pinInput = document.getElementById('pin');
+    const imageInput = document.getElementById('imageInput');
+    const publishBtn = document.getElementById('publishBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const livePreview = document.getElementById('livePreview');
+    const listEl = document.getElementById('list');
+
+    const modal = document.getElementById('modal');
+    const closeModal = document.getElementById('closeModal');
+    const saveEdit = document.getElementById('saveEdit');
+    const cancelEdit = document.getElementById('cancelEdit');
+    const editTitle = document.getElementById('editTitle');
+    const editBody = document.getElementById('editBody');
+
+    let editingId = null;
+
+    function fmtTimestamp(ts){
+      if(!ts) return '';
+      try{ const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleString(); } catch(e){ return String(ts); }
+    }
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+    // live preview
+    function updatePreview(){
+      const t = titleInput.value.trim() || 'No title';
+      const b = bodyInput.value.trim() || 'No content yet.';
+      const html = `<div style="font-weight:800; color:#05381f">${escapeHtml(t)}</div><div style="margin-top:6px;color:#0d291b">${escapeHtml(b)}</div>`;
+      livePreview.innerHTML = html;
+    }
+    titleInput.addEventListener('input', updatePreview);
+    bodyInput.addEventListener('input', updatePreview);
+
+    clearBtn.addEventListener('click', ()=>{ titleInput.value=''; bodyInput.value=''; pinInput.checked=false; imageInput.value=''; updatePreview(); });
+
+    // publish
+    publishBtn.addEventListener('click', async ()=>{
+      publishBtn.disabled = true; publishBtn.textContent = 'Publishing…';
+      try{
+        const title = titleInput.value.trim();
+        const body = bodyInput.value.trim();
+        const pinned = !!pinInput.checked;
+        if(!body){ alert('News body cannot be empty'); publishBtn.disabled=false; publishBtn.textContent='Publish'; return; }
+
+        let imageUrl = null;
+        if(imageInput.files && imageInput.files[0]){
+          const file = imageInput.files[0];
+          const key = `news_images/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9_.-]/g,'')}`;
+          const ref = sRef(storage, key);
+          await uploadBytes(ref, file);
+          imageUrl = await getDownloadURL(ref);
+        }
+
+        await addDoc(collection(db, 'news'), {
+          title: title || null,
+          body,
+          pinned,
+          image: imageUrl || null,
+          postedBy: auth.currentUser ? auth.currentUser.uid : null,
+          timestamp: serverTimestamp()
+        });
+
+        titleInput.value=''; bodyInput.value=''; pinInput.checked=false; imageInput.value=''; updatePreview();
+        alert('Published');
+      } catch(e){ console.error(e); alert('Publish failed'); }
+      finally{ publishBtn.disabled=false; publishBtn.textContent='Publish'; }
+    });
+
+    // realtime list
+    function renderList(docs){
+      if(!docs || docs.length===0){ listEl.innerHTML = '<div class="empty">No posts yet — publish your first announcement.</div>'; return; }
+      const html = [];
+      docs.forEach(d=>{
+        const data = d.data();
+        const id = d.id;
+        const title = data.title || (data.pinned ? 'Pinned' : 'Announcement');
+        const when = fmtTimestamp(data.timestamp);
+        const body = (data.body || '').slice(0,280);
+        const pinned = !!data.pinned;
+        const img = data.image || null;
+        html.push(`
+          <div class="news-card" data-id="${id}">
+            <div class="thumb">${img? `<img src="${img}" alt="thumb">` : '<svg width="40" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" fill="#f2fff6"/><path d="M7 13l3 3 7-9" stroke="#059c56" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'}</div>
+            <div class="meta">
+              <div style="display:flex; gap:8px; align-items:center; justify-content:space-between">
+                <div>
+                  <div class="title">${escapeHtml(title)}</div>
+                  <div class="when">Released: ${escapeHtml(when)}</div>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center">
+                  ${pinned?'<div class="pill pinned">PINNED</div>':''}
+                </div>
+              </div>
+              <div class="body-snippet">${escapeHtml(body)}</div>
+              <div style="display:flex; gap:8px; margin-top:8px">
+                <button class="btn ghost" data-action="edit" data-id="${id}">Edit</button>
+                <button class="btn ghost" data-action="copy" data-id="${id}">Copy ID</button>
+                <button class="btn" data-action="delete" data-id="${id}" style="background:#ff5a5a">Delete</button>
+              </div>
+            </div>
+          </div>
+        `);
+      });
+      listEl.innerHTML = html.join('');
+
+      // wire actions
+      listEl.querySelectorAll('[data-action]').forEach(btn=>{
+        btn.addEventListener('click', async (e)=>{
+          const action = btn.getAttribute('data-action');
+          const id = btn.getAttribute('data-id');
+          if(action==='edit') openEdit(id);
+          if(action==='copy'){ navigator.clipboard.writeText(id).then(()=>alert('Copied id')) }
+          if(action==='delete'){
+            if(!confirm('Delete this announcement?')) return;
+            try{ await deleteDoc(doc(db,'news',id)); alert('Deleted') } catch(e){ console.error(e); alert('Delete failed') }
+          }
+        });
+      });
+    }
+
+    // edit modal
+    function openEdit(id){
+      editingId = id;
+      modal.style.display='block';
+      // load doc
+      const dRef = doc(db,'news',id);
+      // get one-time snapshot
+      dRef.get?.().catch(()=>{}); // no-op for older browsers
+      // safer: use get via onSnapshot
+      const unsub = onSnapshot(dRef, snap=>{
+        if(!snap.exists()) { alert('Post not found'); modal.style.display='none'; unsub(); return; }
+        const data = snap.data(); editTitle.value = data.title||''; editBody.value = data.body||''; unsub();
+      }, err=>{ console.error(err); unsub(); });
+    }
+
+    closeModal.addEventListener('click', ()=>{ modal.style.display='none'; editingId=null; });
+    cancelEdit.addEventListener('click', ()=>{ modal.style.display='none'; editingId=null; });
+
+    saveEdit.addEventListener('click', async ()=>{
+      if(!editingId) return; saveEdit.disabled=true; saveEdit.textContent='Saving…';
+      try{
+        const dRef = doc(db,'news',editingId);
+        await updateDoc(dRef, { title: editTitle.value.trim()||null, body: editBody.value.trim()||null });
+        modal.style.display='none'; editingId=null; alert('Saved');
+      } catch(e){ console.error(e); alert('Save failed'); }
+      finally{ saveEdit.disabled=false; saveEdit.textContent='Save changes' }
+    });
+
+    // auth & admin guard
+    onAuthStateChanged(auth, async user=>{
+      if(!user) return location.href='login.html';
+      adminStatus.textContent = `Signed in: ${user.email || user.uid}`;
+      // check isAdmin field
+      try{
+        const uDocRef = doc(db,'users',user.uid);
+        const unsub = onSnapshot(uDocRef, snap=>{
+          if(!snap.exists()){ alert('User doc not found. You must be an admin.'); location.href='login.html'; return; }
+          const data = snap.data();
+          if(data && data.isAdmin===true){ adminBadge.style.display='inline-block'; } else { alert('Access denied — admin only'); location.href='login.html'; }
+          unsub();
+        });
+      } catch(e){ console.error(e); alert('Auth check failed'); location.href='login.html'; }
+
+      // subscribe to news collection (realtime)
+      try{
+        const q = query(collection(db,'news'), orderBy('pinned','desc'), orderBy('timestamp','desc'));
+        const unsubNews = onSnapshot(q, snap=>{
+          renderList(snap.docs);
+        }, err=>{ console.error('news list error',err); listEl.innerHTML='<div class="empty">Failed to load posts</div>'; });
+      } catch(e){ console.error(e); }
+    });
+
+  </script></body>
+</html>
