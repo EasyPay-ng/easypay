@@ -100,7 +100,7 @@
         arrayUnion
       } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-      // your Firebase config
+      // Firebase config
       const firebaseConfig = {
         apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
         authDomain: "easypay-6bce8.firebaseapp.com",
@@ -142,19 +142,24 @@
           const today = new Date().toISOString().split('T')[0];
           const record = data.shortlinkTasks?.[taskId];
 
+          // determine reward amount by accountType
+          let rewardAmount = 2; // default normal user
+          if (data.accountType === 'premium') rewardAmount = 35;
+          if (data.accountType === 'gold') rewardAmount = 70;
+
           if (record?.date === today) {
             rewardText.textContent = `Reward already claimed for Task ${taskId} today.`;
           } else {
             await updateDoc(userRef, {
               [`shortlinkTasks.${taskId}`]: { date: today },
-              balance: increment(5),
+              balance: increment(rewardAmount),
               transactions: arrayUnion({
                 source: `Shortlink ${taskId}`,
-                amount: 5,
+                amount: rewardAmount,
                 date: new Date().toLocaleString()
               })
             });
-            rewardText.textContent = `You have earned ₦5 for completing the shortlink!`;
+            rewardText.textContent = `You have earned ₦${rewardAmount} for completing the shortlink!`;
           }
         } catch (err) {
           console.error(err);
