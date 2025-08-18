@@ -65,7 +65,8 @@
       flex:1; margin-left:0; transition:margin-left .26s; width:100%;
       min-height:100vh; display:flex; flex-direction:column;
     }
-    .main.shift { margin-left:300px; }
+    /* shift used only to visually indicate sidebar open, doesn't force layout overflow */
+    .main.shift { transform: translateX(0); }
 
     header {
       background:linear-gradient(90deg,var(--primary),var(--primary-600));
@@ -73,7 +74,7 @@
       justify-content:space-between;
     }
     .hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center }
-    .title { font-weight:700; font-size:16px }
+    .title { font-weight:700; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .profile-mini { display:flex; align-items:center; gap:10px }
     .profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }
 
@@ -83,7 +84,7 @@
     /* top cards */
     .cards {
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap:12px;
       margin-bottom:14px;
     }
@@ -96,17 +97,18 @@
     .card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     /* referral / code */
-    .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
+    .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; flex-wrap:wrap; }
     .ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary) }
     .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
 
     /* transactions */
     .tableWrap { overflow:auto; border-radius:8px; margin-top:10px; }
     .table {
-      width:100%; border-collapse:collapse; min-width:640px; font-size:14px;
+      width:100%; border-collapse:collapse; font-size:14px;
+      table-layout:auto;
     }
     .table thead th { text-align:left; padding:10px 12px; color:var(--muted); font-size:13px; background:rgba(0,0,0,0.02) }
-    .table tbody td { padding:10px 12px; border-top:1px solid #f2f7f2; vertical-align:middle; }
+    .table tbody td { padding:10px 12px; border-top:1px solid #f2f7f2; vertical-align:middle; word-break:break-word; }
     .amt-pos { color:green; font-weight:700; }
     .amt-neg { color:#b91c1c; font-weight:700; }
 
@@ -128,7 +130,9 @@
       .main.shift{ margin-left:0 }
       .container{ padding:12px }
       .card .value{ font-size:18px }
-      .table { min-width:560px }
+      .table { font-size:13px }
+      .ref-card { flex-direction:column; align-items:flex-start; }
+      header { padding:12px }
     }
   </style>
 </head>
@@ -148,294 +152,4 @@
     <nav class="menu" aria-label="EasyPay menu">
       <ul>
         <li><a href="profile.html"><i class="emoji">👤</i><span class="label">Profile</span></a></li>
-        <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>
-        <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
-        <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
-        <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>
-        <li><a href="shortlink.html"><i class="emoji">🔗</i><span class="label">ShortLinks</span></a></li>
-        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span><span id="refBadge" class="badge" style="display:none">0</span></a></li>
-        <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
-        <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage tasks</span></a></li>
-        <li><a href="mini-games.html"><i class="emoji">🎮</i><span class="label">Games</span></a></li>
-
-        <li class="divider" style="list-style:none"></li>
-
-        <li><a href="#" id="signOutLink" onclick="signOutUser(event)"><i class="emoji">🚪</i><span class="label">Sign out</span></a></li>
-      </ul>
-    </nav>
-
-    <div class="note">Use the menu to navigate quickly — open Tasks or ShortLinks to earn daily.</div>
-  </aside>
-
-  <!-- overlay -->
-  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>
-
-  <!-- Main -->
-  <main class="main" id="main">
-    <header>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div class="hamburger" onclick="toggleSidebar()" aria-label="Open menu"><i class="fas fa-bars"></i></div>
-        <div class="title">EasyPay Dashboard</div>
-      </div>
-      <div class="profile-mini" id="profileMini">
-        <img id="miniAvatar" src="" alt="" style="display:none" />
-        <div id="miniName" style="color:#fff; font-weight:600">User</div>
-      </div>
-    </header>
-
-    <div class="container">
-      <!-- Top cards -->
-      <div class="cards" aria-hidden="false">
-        <div class="card">
-          <div class="label">Main Balance</div>
-          <div class="value">₦<span id="balance">0.00</span></div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="copy-btn" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>
-            <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="label">Deposit Balance</div>
-          <div class="value">₦<span id="depositBalance">0.00</span></div>
-          <small class="label">Current deposited funds</small>
-        </div>
-
-        <div class="card">
-          <div class="label">Available for Withdrawal</div>
-          <div class="value">₦<span id="available">0.00</span></div>
-          <small class="label">Ready balance</small>
-        </div>
-
-        <div class="card">
-          <div class="label">Total Referrals</div>
-          <div class="value"><span id="referrals">0</span></div>
-          <small class="label">People you referred</small>
-        </div>
-      </div>
-
-      <!-- Referral Code -->
-      <div class="card ref-card" style="margin-bottom:12px;">
-        <div style="flex:1">
-          <div class="label">Referral Code</div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <div class="ref-input" id="refCode">loading...</div>
-            <button class="copy-btn" id="copyRefBtn">Copy</button>
-          </div>
-        </div>
-        <div style="min-width:120px; text-align:center;">
-          <div class="label">Leaderboard</div>
-          <div style="font-weight:800; font-size:18px; color:var(--primary); margin-top:6px" id="leaderTop">—</div>
-          <small class="label">Top earner</small>
-        </div>
-      </div>
-
-      <!-- Transactions -->
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div class="label">Recent transactions</div>
-            <div style="font-weight:700; font-size:15px; margin-top:6px">Last 10</div>
-          </div>
-          <div><a href="history.html" style="text-decoration:none; color:var(--primary); font-weight:600">See all</a></div>
-        </div>
-
-        <div class="tableWrap" role="region" aria-live="polite">
-          <table class="table" aria-hidden="false">
-            <thead>
-              <tr>
-                <th>Source</th>
-                <th>Date</th>
-                <th style="text-align:right">Amount (₦)</th>
-              </tr>
-            </thead>
-            <tbody id="txBody">
-              <tr><td colspan="3" style="padding:12px; color:var(--muted)">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- WhatsApp floating -->
-  <a class="wa" href="https://wa.me/2348132425678" target="_blank" title="Chat on WhatsApp">
-    <i class="fab fa-whatsapp" style="font-size:20px"></i>
-  </a>
-
-  <!-- FIREBASE & JS -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import {
-      getFirestore, doc, onSnapshot, collection, query, orderBy, limit, getDocs, where
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-    // ---------- YOUR FIREBASE CONFIG ----------
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.firebasestorage.app",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // UI refs
-    const sideUsername = document.getElementById('sideUsername');
-    const greetingEl = document.getElementById('greeting');
-    const avatarEl = document.getElementById('avatar');
-    const avatarInitials = document.getElementById('avatarInitials');
-    const miniName = document.getElementById('miniName');
-    const miniAvatar = document.getElementById('miniAvatar');
-
-    const balanceEl = document.getElementById('balance');
-    const depositBalanceEl = document.getElementById('depositBalance');
-    const availableEl = document.getElementById('available');
-    const referralsEl = document.getElementById('referrals');
-    const refCodeEl = document.getElementById('refCode');
-    const copyRefBtn = document.getElementById('copyRefBtn');
-    const txBody = document.getElementById('txBody');
-    const leaderTop = document.getElementById('leaderTop');
-    const refBadge = document.getElementById('refBadge');
-
-    let userRefUnsub = null;
-    let txUnsub = null;
-    let currentUid = null;
-    let currentUsername = null;
-
-    function greetByHour(h){
-      if (h >= 5 && h < 12) return "Good morning";
-      if (h >= 12 && h < 17) return "Good afternoon";
-      return "Good evening";
-    }
-
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = 'login.html';
-      currentUid = user.uid;
-      greetingEl.textContent = greetByHour(new Date().getHours());
-
-      // subscribe to user doc (realtime)
-      const uDocRef = doc(db, 'users', user.uid);
-      if (userRefUnsub) userRefUnsub();
-      userRefUnsub = onSnapshot(uDocRef, async (snap) => {
-        if (!snap.exists()) return;
-        const data = snap.data();
-
-        currentUsername = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || user.email || user.uid);
-
-        // balances
-        const bal = Number(data.balance || 0);
-        balanceEl.textContent = bal.toLocaleString();
-
-        // deposit balance: prefer stored field, else compute from transactions
-        const depositFields = ['depositBalance','deposits','totalDeposits','deposited'];
-        let depositVal = null;
-        for (const f of depositFields) {
-          if (data[f] !== undefined && data[f] !== null) { depositVal = Number(data[f]||0); break; }
-        }
-        if (depositVal !== null) {
-          depositBalanceEl.textContent = depositVal.toLocaleString();
-        } else {
-          // fallback - compute by scanning user's transactions for deposit-type entries
-          computeDepositBalance(user.uid).then(sum => depositBalanceEl.textContent = sum.toLocaleString()).catch(()=> depositBalanceEl.textContent = '0.00');
-        }
-
-        // referrals: if user doc has `referrals` use it; else compute by counting users where referredBy === uid OR referrerCode === referralCode
-        if (typeof data.referrals === 'number') {
-          referralsEl.textContent = data.referrals;
-          if (data.referrals > 0) { refBadge.style.display = 'inline-block'; refBadge.textContent = data.referrals; } else { refBadge.style.display = 'none'; }
-        } else {
-          // compute fallback
-          computeReferralCount(user.uid, currentUsername).then(count => {
-            referralsEl.textContent = count;
-            if (count > 0) { refBadge.style.display = 'inline-block'; refBadge.textContent = count; } else { refBadge.style.display = 'none'; }
-          }).catch(()=> { referralsEl.textContent = '0'; refBadge.style.display='none'; });
-        }
-
-        // referral code
-        const code = (data.username && data.username.trim()) ? data.username.trim() : user.uid;
-        refCodeEl.textContent = code;
-
-        leaderTop.textContent = (data.topEarnerName || '—');
-
-        // avatar
-        if (data.photoURL || user.photoURL) {
-          const src = data.photoURL || user.photoURL;
-          avatarEl.innerHTML = '<img src="'+src+'" alt="avatar">';
-          miniAvatar.src = src; miniAvatar.style.display = 'block';
-        } else {
-          const username = currentUsername || 'User';
-          const parts = username.split(' ').filter(Boolean);
-          const letters = (parts.length >= 2) ? (parts[0][0]+parts[1][0]) : username.slice(0,2);
-          avatarInitials.textContent = letters.toUpperCase();
-        }
-      });
-
-      // subscribe to last 10 transactions
-      const txCol = collection(db, 'users', user.uid, 'transactions');
-      const txQuery = query(txCol, orderBy('date', 'desc'), limit(10));
-      if (txUnsub) txUnsub();
-      txUnsub = onSnapshot(txQuery, async (snap) => {
-        if (snap.empty) {
-          txBody.innerHTML = '<tr><td colspan="3" style="padding:12px; color:var(--muted)">No transactions yet</td></tr>';
-          // if depositBalanceEl is still empty we'll set available equal to balance
-          if (!depositBalanceEl.textContent || depositBalanceEl.textContent==='0.00') {
-            availableEl.textContent = balanceEl.textContent;
-          }
-          return;
-        }
-        let rows = '';
-        let depositSum = 0;
-        snap.docs.forEach(docSnap => {
-          const t = docSnap.data();
-          const source = t.source || t.type || 'Activity';
-          const amount = Number(t.amount || 0);
-          const date = (t.date && t.date.toDate) ? t.date.toDate() : new Date((t.date && t.date.seconds) ? t.date.seconds * 1000 : Date.now());
-          const dateStr = date.toLocaleString();
-          const cls = amount >= 0 ? 'amt-pos' : 'amt-neg';
-          if (amount > 0) {
-            // very likely a deposit — but trust only naming
-            const srcLow = String(source||'').toLowerCase();
-            if (srcLow.includes('deposit')) depositSum += amount;
-          }
-          rows += `<tr>
-            <td>${escapeHtml(source)}</td>
-            <td>${escapeHtml(dateStr)}</td>
-            <td style="text-align:right"><span class="${cls}">${amount.toLocaleString()}</span></td>
-          </tr>`;
-        });
-        txBody.innerHTML = rows;
-
-        // if depositBalance wasn't provided earlier, use computed depositSum (this is only last-10 fallback; we try computeDepositBalance for full sum above)
-        if (!depositBalanceEl.textContent || depositBalanceEl.textContent==='0.00') {
-          depositBalanceEl.textContent = depositSum.toLocaleString();
-        }
-
-        // available = main balance (for now) — you can subtract pending withdrawals if you keep a withdrawals collection
-        availableEl.textContent = balanceEl.textContent;
-      });
-
-    });
-
-    // compute deposit balance by scanning user's transactions (full scan)
-    async function computeDepositBalance(uid) {
-      try {
-        const txCol = collection(db, 'users', uid, 'transactions');
-        // get up to 500 transactions — adjust as needed
-        const snap = await getDocs(query(txCol, orderBy('date','desc'), limit(500)));
-        if (snap.empty) return 0;
-        let sum = 0;
-        snap.forEach(docSnap => {
-          const t = docSnap.data();
-          const amount = Number(t.amount || 0);
-          const source = String(t.source || t.type || '').toLowerCase();
-          if (amount > 0 && source.includes('deposit')) sum += amount;
-        });
-        return sum;
-      } catc
+        <li><a href="deposit.html"><i class="emoji">💳</i
