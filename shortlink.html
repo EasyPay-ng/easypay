@@ -1,60 +1,126 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay | Shortlink Tasks</title>
+
   <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
   <style>
+    :root {
+      --green: #28a745;
+      --green-dark: #1e7e34;
+      --light-bg: #f9fff9;
+      --card-bg: #ffffff;
+      --text-dark: #222;
+    }
+
     body {
-      margin: 0; font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #e6f7ed, #ffffff);
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e9fdf0, #ffffff);
+      min-height: 100vh;
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
     .info-banner {
-      background: #fff8e1; color: #856404;
-      border: 1px solid #ffeeba; padding: 15px;
-      border-radius: 10px; max-width: 480px;
-      margin: 0 auto 20px; text-align: center;
-      font-size: 0.9rem;
-    }
-    .tasks-container {
-      display: flex; flex-direction: column;
-      gap: 20px; max-width: 480px; margin: 0 auto;
-    }
-    .card {
-      background-color: #fff; padding: 1.5rem;
-      border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0,128,0,0.15);
+      background: #fff9e6;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 15px;
+      border-radius: 12px;
+      max-width: 600px;
+      margin-bottom: 25px;
       text-align: center;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
+
+    .tasks-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 25px rgba(0,128,0,0.12);
+      text-align: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 15px 35px rgba(0,128,0,0.2);
+    }
+
     .card h2 {
-      color: #007f3b; margin-bottom: 0.5rem; font-size: 1.25rem;
+      color: var(--green-dark);
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
     }
+
+    .card p {
+      color: var(--text-dark);
+      font-size: 0.95rem;
+      margin: 0.3rem 0 1rem;
+    }
+
     .reward {
-      font-size: 1.3rem; font-weight: bold; color: #1c943b;
-      margin: 0.5rem 0;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--green);
+      margin: 0.8rem 0 1rem;
     }
+
     .startBtn {
-      margin-top: 1rem;
-      background-color: #28a745; color: white;
-      padding: 0.75rem 1.5rem; font-size: 1rem;
-      border: none; border-radius: 0.5rem;
-      cursor: pointer; transition: background 0.3s ease;
-    }
-    .startBtn:disabled {
-      background-color: #999; cursor: default;
+      background: var(--green);
+      color: #fff;
+      padding: 0.8rem 1.8rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,128,0,0.2);
     }
     .startBtn:hover:not(:disabled) {
-      background-color: #218838;
+      background: var(--green-dark);
+      transform: translateY(-2px);
+    }
+    .startBtn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Smooth countdown animation */
+    .countdown {
+      font-size: 0.9rem;
+      color: #444;
+      margin-top: 0.5rem;
+      opacity: 0.85;
     }
   </style>
 </head>
 <body>
   <div class="info-banner">
-    <strong>Important!</strong> Your browser must have JavaScript enabled, your ad blocker must be disabled, you must stay on the final page for about 10 seconds, you must have cookies enabled, and you must not use VPN.
-  </div>  <div class="tasks-container" id="tasksContainer"></div>  <script>
+    <strong>Important!</strong> JavaScript must be enabled, ad blockers disabled, stay on the final page for ~10 seconds, cookies enabled, and no VPN.
+  </div>
+
+  <div class="tasks-container" id="tasksContainer"></div>
+
+  <script>
     // --- Firebase init ---
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -69,6 +135,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // Shortlink tasks
     const shrinkLinks = {
       27001: 'https://tpi.li/yXUwlkTj',
       27002: 'https://shrinkme.ink/9GrK',
@@ -90,9 +157,13 @@
         <p>Task ID: <strong>${id}</strong></p>
         <div class="reward">₦5</div>
         <button class="startBtn" id="btn-${id}">Start Task</button>
+        <div class="countdown" id="cd-${id}"></div>
       `;
       container.appendChild(card);
-      buttons[id] = document.getElementById(`btn-${id}`);
+      buttons[id] = {
+        btn: document.getElementById(`btn-${id}`),
+        cd: document.getElementById(`cd-${id}`)
+      };
     }
 
     auth.onAuthStateChanged(async user => {
@@ -103,7 +174,7 @@
       const data = snap.exists ? snap.data() : {};
 
       for (let id in shrinkLinks) {
-        const btn = buttons[id];
+        const { btn, cd } = buttons[id];
         const link = shrinkLinks[id];
         const cooldown = cooldowns[id];
         const localKey = `shortlink_${uid}_${id}`;
@@ -117,7 +188,7 @@
         }
 
         if (Date.now() < nextAvailable) {
-          disableWithCountdown(btn, nextAvailable);
+          disableWithCountdown(btn, cd, nextAvailable);
         }
 
         btn.onclick = async () => {
@@ -135,12 +206,12 @@
           }, { merge: true });
 
           window.open(link, '_blank');
-          disableWithCountdown(btn, expire);
+          disableWithCountdown(btn, cd, expire);
         };
       }
     });
 
-    function disableWithCountdown(btn, availableTime) {
+    function disableWithCountdown(btn, cdElem, availableTime) {
       btn.disabled = true;
 
       const update = () => {
@@ -149,16 +220,19 @@
           clearInterval(interval);
           btn.disabled = false;
           btn.textContent = 'Start Task';
+          cdElem.textContent = '';
         } else {
           const h = Math.floor(diff / 3600000);
           const m = Math.floor((diff % 3600000) / 60000);
           const s = Math.floor((diff % 60000) / 1000);
-          btn.textContent = `Wait ${h}h ${m}m ${s}s`;
+          btn.textContent = 'Locked';
+          cdElem.textContent = `Available in ${h}h ${m}m ${s}s`;
         }
       };
 
       update();
       const interval = setInterval(update, 1000);
     }
-  </script></body>
+  </script>
+</body>
 </html>
