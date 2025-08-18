@@ -14,137 +14,112 @@
       --card:#ffffff;
       --muted:#6b7280;
       --shadow: 0 8px 24px rgba(16,24,40,0.06);
+      --glass: rgba(255,255,255,0.85);
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
       margin:0; font-family:'Poppins',system-ui,Segoe UI,Roboto,Helvetica,Arial;
       background:var(--bg); color:#0f1720; min-height:100vh; display:flex;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
 
     /* ---------- SIDEBAR ---------- */
     .sidebar {
-      position:fixed; left:-300px; top:0; height:100vh; width:300px;
+      position:fixed; left:-320px; top:0; height:100vh; width:320px;
       background:var(--card); box-shadow:2px 0 18px rgba(0,0,0,0.08);
-      padding:18px; border-right:1px solid #f0f5f0;
-      transition:left .26s ease; overflow-y:auto; z-index:1200;
+      padding:20px; border-right:1px solid #f0f5f0;
+      transition:left .28s ease; overflow-y:auto; z-index:1200;
     }
     .sidebar.active { left:0; }
     .sidebar .close { text-align:right; margin-bottom:6px; cursor:pointer; font-size:18px; color:var(--muted) }
     .profile {
-      display:flex; gap:12px; align-items:center; padding:6px 0 14px; border-bottom:1px solid #f2f7f2;
+      display:flex; gap:12px; align-items:center; padding:8px 0 18px; border-bottom:1px solid #f2f7f2;
     }
     .avatar {
-      width:52px; height:52px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#1b7a4b);
-      display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:18px;
+      width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#1b7a4b);
+      display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:20px;
       flex-shrink:0; overflow:hidden;
     }
     .avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }
-    .profile-text { flex:1; min-width:0 }
-    .greeting { font-weight:700; font-size:15px; color:var(--primary); line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .profile-text { flex:1 }
+    .greeting { font-weight:700; font-size:16px; color:var(--primary); }
+    .sub { font-size:13px; color:var(--muted); margin-top:4px }
 
-    nav.menu { margin-top:14px }
+    nav.menu { margin-top:18px }
     nav.menu ul { list-style:none; padding:0; margin:0 }
-    nav.menu li { margin:8px 0; display:flex; align-items:center; }
+    nav.menu li { margin:10px 0; }
     nav.menu a {
       display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827;
-      padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s; width:100%;
+      padding:10px 8px; border-radius:10px; transition:background .12s, transform .08s;
     }
     nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); }
-    nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; flex:0 0 36px; }
-    nav.menu a span.label { font-weight:600; flex:1; text-align:left; }
-
-    .divider { height:1px; background:#f2f7f2; margin:12px 0; border-radius:2px; width:100%; }
+    nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:20px; }
+    nav.menu a span.label { font-weight:600; }
 
     .note { margin-top:18px; font-size:13px; color:var(--muted) }
 
     /* ---------- MAIN ---------- */
     .main {
-      flex:1; margin-left:0; transition:margin-left .26s; width:100%;
+      flex:1; margin-left:0; transition:margin-left .28s; width:100%;
       min-height:100vh; display:flex; flex-direction:column;
     }
-    .main.shift { transform: translateX(0); }
+    .main.shift { margin-left:320px; }
 
     header {
       background:linear-gradient(90deg,var(--primary),var(--primary-600));
-      color:#fff; padding:12px 14px; display:flex; align-items:center; gap:12px;
+      color:#fff; padding:14px 18px; display:flex; align-items:center; gap:12px;
       justify-content:space-between;
     }
-    .hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center }
-    .title { font-weight:700; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hamburger { font-size:20px; cursor:pointer; color:#fff }
+    .title { font-weight:700; font-size:18px }
     .profile-mini { display:flex; align-items:center; gap:10px }
-    .profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }
+    .profile-mini img { width:36px; height:36px; border-radius:10px; object-fit:cover }
 
     /* content area */
-    .container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
+    .container { padding:18px; max-width:1200px; margin:0 auto; width:100% }
 
     /* top cards */
     .cards {
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap:12px;
-      margin-bottom:14px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:16px;
+      margin-bottom:18px;
     }
     .card {
-      background:var(--card); border-radius:10px; padding:12px;
+      background:var(--card); border-radius:12px; padding:16px;
       box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px;
-      min-height:78px;
     }
-    .card .label { color:var(--muted); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card .label { color:var(--muted); font-size:13px; }
+    .card .value { font-weight:800; font-size:22px; color:var(--primary); }
 
-    /* action buttons inside a card - responsive */
-    .card-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:6px; }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; border-radius:10px; font-weight:700; border:0; cursor:pointer; }
-    .btn-primary { background:var(--primary); color:#fff; }
-    .btn-outline { background:#fff; color:var(--primary); border:1px solid #e6f7ec; }
+    /* referral panel */
+    .ref-card { display:flex; gap:12px; align-items:center; justify-content:space-between; }
+    .ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:10px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600; }
 
-    /* referral / code */
-    .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; flex-wrap:wrap; }
-    .ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary) }
-    .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
-
-    /* transactions */
-    .tableWrap { overflow:auto; border-radius:8px; margin-top:10px; }
+    /* transactions table */
     .table {
-      width:100%; border-collapse:collapse; font-size:14px; table-layout:auto;
+      width:100%;
+      border-collapse:collapse;
+      margin-top:12px;
+      font-size:14px;
     }
-    .table thead th { text-align:left; padding:10px 12px; color:var(--muted); font-size:13px; background:rgba(0,0,0,0.02); }
-    .table tbody td { padding:10px 12px; border-top:1px solid #f2f7f2; vertical-align:middle; word-break:break-word; }
+    .table thead th { text-align:left; padding:10px 8px; color:var(--muted); font-size:13px; }
+    .table tbody td { padding:10px 8px; border-top:1px solid #f2f7f2; vertical-align:middle; }
     .amt-pos { color:green; font-weight:700; }
     .amt-neg { color:#b91c1c; font-weight:700; }
 
     /* floating WhatsApp */
     .wa {
-      position:fixed; right:16px; bottom:16px; background:#25D366; color:#fff;
-      width:52px; height:52px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+      position:fixed; right:18px; bottom:18px; background:#25D366; color:#fff;
+      width:56px; height:56px; border-radius:999px; display:flex; align-items:center; justify-content:center;
       box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;
-    }
-
-    /* small badge */
-    .badge {
-      background:#ff3b30; color:#fff; border-radius:999px; padding:4px 8px; font-weight:700; font-size:12px; margin-left:auto;
     }
 
     /* responsive tweaks */
     @media (max-width:900px){
       .sidebar{ width:86%; left:-100% }
       .main.shift{ margin-left:0 }
-      .container{ padding:12px }
-      .card .value{ font-size:18px }
-      .table { font-size:13px }
-      .ref-card { flex-direction:column; align-items:flex-start; }
-      header { padding:12px }
-      .title { max-width:48vw }
     }
-    @media (max-width:420px){
-      .card { padding:10px; gap:6px; }
-      .btn { padding:8px 10px; font-size:14px; border-radius:8px; }
-      .copy-btn { min-width:64px; padding:8px 10px; }
-    }
-
   </style>
 </head>
 <body>
@@ -167,19 +142,15 @@
         <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
         <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
         <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>
-        <li><a href="shortlink.html"><i class="emoji">🔗</i><span class="label">ShortLinks</span></a></li>
-        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span><span id="refBadge" class="badge" style="display:none">0</span></a></li>
-        <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
-        <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage tasks</span></a></li>
-        <li><a href="mini-games.html"><i class="emoji">🎮</i><span class="label">Games</span></a></li>
-
-        <li class="divider" style="list-style:none"></li>
-
-        <li><a href="#" id="signOutLink" onclick="signOutUser(event)"><i class="emoji">🚪</i><span class="label">Sign out</span></a></li>
+        <li><a href="shortlink.html"><i class="emoji">🔗</i><span class="label">Shortlink</span></a></li>
+        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span></a></li>
+        <li><a href="contact.html"><i class="emoji">📞</i><span class="label">Contact Us</span></a></li>
+        <li><a href="leaderboad.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
+        <li><a href="posted-task.html"><i class="emoji">📜</i><span class="label">Manage tasks</span></a></li>
       </ul>
     </nav>
 
-    <div class="note">Use the menu to navigate quickly — open Tasks or ShortLinks to earn daily.</div>
+    <div class="note">Maximize your earnings — check Tasks and Shortlink daily for new rewards.</div>
   </aside>
 
   <!-- overlay -->
@@ -200,27 +171,26 @@
 
     <div class="container">
       <!-- Top cards -->
-      <div class="cards" aria-hidden="false">
+      <div class="cards">
         <div class="card">
           <div class="label">Main Balance</div>
           <div class="value">₦<span id="balance">0.00</span></div>
-
-          <div class="card-actions">
-            <button class="btn btn-primary" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>
-            <button class="btn btn-outline" id="withdrawBtn" onclick="location.href='withdraw.html'">Withdraw</button>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="copy-btn" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>
+            <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>
           </div>
         </div>
 
         <div class="card">
-          <div class="label">Deposit Balance</div>
-          <div class="value">₦<span id="depositBalance">0.00</span></div>
-          <small class="label">Current deposited funds</small>
+          <div class="label">Total Deposits</div>
+          <div class="value">₦<span id="totalDeposits">0.00</span></div>
+          <small class="label"> deposits </small>
         </div>
 
         <div class="card">
           <div class="label">Available for Withdrawal</div>
           <div class="value">₦<span id="available">0.00</span></div>
-          <small class="label">Ready balance</small>
+          <small class="label">Main balance minus pending withdrawals</small>
         </div>
 
         <div class="card">
@@ -230,54 +200,51 @@
         </div>
       </div>
 
-      <!-- Referral Code -->
+      <!-- Referral & quick actions -->
       <div class="card ref-card" style="margin-bottom:12px;">
-        <div style="flex:1; min-width:0;">
-          <div class="label">Referral Code</div>
-          <div style="display:flex; gap:8px; margin-top:8px; align-items:center; width:100%;">
-            <div class="ref-input" id="refCode">loading...</div>
+        <div style="flex:1">
+          <div class="label">Your referral link</div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <div class="ref-input" id="refLink">loading...</div>
             <button class="copy-btn" id="copyRefBtn">Copy</button>
           </div>
+          <small class="label" style="display:block; margin-top:8px">Share this link — you earn ₦30 for each successful registration using your code.</small>
         </div>
-      </div>
-
       <!-- Transactions -->
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
             <div class="label">Recent transactions</div>
-            <div style="font-weight:700; font-size:15px; margin-top:6px">Last 10</div>
+            <div style="font-weight:700; font-size:16px; margin-top:6px">Last 10</div>
           </div>
           <div><a href="history.html" style="text-decoration:none; color:var(--primary); font-weight:600">See all</a></div>
         </div>
 
-        <div class="tableWrap" role="region" aria-live="polite">
-          <table class="table" aria-hidden="false">
-            <thead>
-              <tr>
-                <th>Source</th>
-                <th>Date</th>
-                <th style="text-align:right">Amount (₦)</th>
-              </tr>
-            </thead>
-            <tbody id="txBody">
-              <tr><td colspan="3" style="padding:12px; color:var(--muted)">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <table class="table" aria-live="polite">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Date</th>
+              <th style="text-align:right">Amount (₦)</th>
+            </tr>
+          </thead>
+          <tbody id="txBody">
+            <tr><td colspan="3" style="padding:12px; color:var(--muted)">Loading...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
 
   <!-- WhatsApp floating -->
-  <a class="wa" href="https://wa.me/2348132425678" target="_blank" title="Chat on WhatsApp">
-    <i class="fab fa-whatsapp" style="font-size:20px"></i>
+  <a class="wa" href="https://wa.me/2348037402826" target="_blank" title="Chat on WhatsApp">
+    <i class="fab fa-whatsapp" style="font-size:22px"></i>
   </a>
 
   <!-- FIREBASE & JS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
       getFirestore, doc, onSnapshot, collection, query, orderBy, limit, getDocs
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -306,131 +273,142 @@
     const miniAvatar = document.getElementById('miniAvatar');
 
     const balanceEl = document.getElementById('balance');
-    const depositBalanceEl = document.getElementById('depositBalance');
+    const totalDepositsEl = document.getElementById('totalDeposits');
     const availableEl = document.getElementById('available');
     const referralsEl = document.getElementById('referrals');
-    const refCodeEl = document.getElementById('refCode');
+    const refLinkEl = document.getElementById('refLink');
     const copyRefBtn = document.getElementById('copyRefBtn');
-    const txBody = document.getElementById('txBody');
-    const refBadge = document.getElementById('refBadge');
+    const txBody = document.getElementById('txBody:
+    let userRefUnsub = null;
+    let txUnsub = null;
+    let currentUid = null;
 
+    // greeting based on hour
     function greetByHour(h){
       if (h >= 5 && h < 12) return "Good morning";
       if (h >= 12 && h < 17) return "Good afternoon";
       return "Good evening";
     }
-    greetingEl.textContent = greetByHour(new Date().getHours());
 
     onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = 'login.html';
-      // quick UI fill
-      const uRef = doc(db, 'users', user.uid);
+      if (!user) {
+        // if not logged in redirect to login page
+        // you can change this behavior if you prefer
+        return location.href = 'login.html';
+      }
+      currentUid = user.uid;
+      // set greeting
+      greetingEl.textContent = greetByHour(new Date().getHours());
 
-      onSnapshot(uRef, async (snap) => {
-        if (!snap.exists()) {
-          // sensible defaults if doc missing
-          sideUsername.textContent = user.displayName || user.email || 'User';
-          miniName.textContent = user.displayName || user.email || 'User';
-          balanceEl.textContent = '0.00';
-          depositBalanceEl.textContent = '0.00';
-          refCodeEl.textContent = user.uid;
-          referralsEl.textContent = '0';
-          txBody.innerHTML = '<tr><td colspan="3" style="padding:12px; color:var(--muted)">No transactions yet</td></tr>';
-          return;
-        }
-
+      // subscribe to user doc (realtime)
+      const uDocRef = doc(db, 'users', user.uid);
+      if (userRefUnsub) userRefUnsub();
+      userRefUnsub = onSnapshot(uDocRef, (snap) => {
+        if (!snap.exists()) return;
         const data = snap.data();
-
-        const username = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || user.email || user.uid);
-        sideUsername.textContent = username;
-        miniName.textContent = username;
-
+        // balances
         const bal = Number(data.balance || 0);
         balanceEl.textContent = bal.toLocaleString();
+        // total deposits computed client-side if you store transaction history
+        // (we will compute below from transactions)
+        // referrals
+        referralsEl.textContent = (data.referrals || 0);
+        // referral link uses username if present else uid
+        const code = data.username || user.uid;
+        const base = window.location.origin || href=${encodeURIComponent(code)}`;
+        leaderTop.textContent = (data.topEarnerName || '—');
 
-        const depositFields = ['depositBalance','deposits','totalDeposits','deposited'];
-        let depositVal = null;
-        for (const f of depositFields) {
-          if (data[f] !== undefined && data[f] !== null) { depositVal = Number(data[f]||0); break; }
-        }
-        if (depositVal !== null) {
-          depositBalanceEl.textContent = depositVal.toLocaleString();
+        // avatar
+        if (data.photoURL) {
+          avatarEl.innerHTML = '<img src="'+data.photoURL+'" alt="avatar">';
+          miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
         } else {
-          computeDepositBalance(user.uid).then(sum => depositBalanceEl.textContent = sum.toLocaleString()).catch(()=> depositBalanceEl.textContent = '0.00');
-        }
-
-        if (typeof data.referrals === 'number') {
-          referralsEl.textContent = data.referrals;
-          if (data.referrals > 0) { refBadge.style.display = 'inline-block'; refBadge.textContent = data.referrals; } else { refBadge.style.display = 'none'; }
-        } else {
-          computeReferralCount(user.uid, username).then(count => {
-            referralsEl.textContent = count;
-            if (count > 0) { refBadge.style.display = 'inline-block'; refBadge.textContent = count; } else { refBadge.style.display = 'none'; }
-          }).catch(()=> { referralsEl.textContent = '0'; refBadge.style.display='none'; });
-        }
-
-        const code = (data.username && data.username.trim()) ? data.username.trim() : user.uid;
-        refCodeEl.textContent = code;
-
-        if (data.photoURL || user.photoURL) {
-          const src = data.photoURL || user.photoURL;
-          avatarEl.innerHTML = '<img src="'+src+'" alt="avatar">';
-          miniAvatar.src = src; miniAvatar.style.display = 'block';
-        } else {
+          const username = data.username || (user.displayName || user.email || 'User');
           const parts = username.split(' ').filter(Boolean);
           const letters = (parts.length >= 2) ? (parts[0][0]+parts[1][0]) : username.slice(0,2);
           avatarInitials.textContent = letters.toUpperCase();
         }
-      }, (err) => {
-        console.error('user snapshot error', err);
       });
 
       // subscribe to last 10 transactions
-      try {
-        const txCol = collection(db, 'users', user.uid, 'transactions');
-        const txQuery = query(txCol, orderBy('date', 'desc'), limit(10));
-        onSnapshot(txQuery, async (snap) => {
-          if (snap.empty) {
-            txBody.innerHTML = '<tr><td colspan="3" style="padding:12px; color:var(--muted)">No transactions yet</td></tr>';
-            if (!depositBalanceEl.textContent || depositBalanceEl.textContent==='0.00') {
-              availableEl.textContent = balanceEl.textContent;
-            }
-            return;
-          }
-          let rows = '';
-          let depositSum = 0;
-          snap.docs.forEach(docSnap => {
-            const t = docSnap.data();
-            const source = t.source || t.type || 'Activity';
-            const amount = Number(t.amount || 0);
-            const date = (t.date && t.date.toDate) ? t.date.toDate() : new Date((t.date && t.date.seconds) ? t.date.seconds * 1000 : Date.now());
-            const dateStr = date.toLocaleString();
-            const cls = amount >= 0 ? 'amt-pos' : 'amt-neg';
-            if (amount > 0) {
-              const srcLow = String(source||'').toLowerCase();
-              if (srcLow.includes('deposit')) depositSum += amount;
-            }
-            rows += `<tr>
-              <td>${escapeHtml(source)}</td>
-              <td>${escapeHtml(dateStr)}</td>
-              <td style="text-align:right"><span class="${cls}">${amount.toLocaleString()}</span></td>
-            </tr>`;
-          });
-          txBody.innerHTML = rows;
-          if (!depositBalanceEl.textContent || depositBalanceEl.textContent==='0.00') {
-            depositBalanceEl.textContent = depositSum.toLocaleString();
-          }
+      const txCol = collection(db, 'users', user.uid, 'transactions');
+      const txQuery = query(txCol, orderBy('date', 'desc'), limit(10));
+      if (txUnsub) txUnsub();
+      txUnsub = onSnapshot(txQuery, async (snap) => {
+        if (snap.empty) {
+          txBody.innerHTML = '<tr><td colspan="3" style="padding:12px; color:var(--muted)">No transactions yet</td></tr>';
+          totalDepositsEl.textContent = '0.00';
           availableEl.textContent = balanceEl.textContent;
+          return;
+        }
+        let rows = '';
+        let depositSum = 0;
+        snap.docs.forEach(docSnap => {
+          const t = docSnap.data();
+          const source = t.source || t.type || 'Activity';
+          const amount = Number(t.amount || 0);
+          const date = (t.date && t.date.toDate) ? t.date.toDate() : new Date((t.date && t.date.seconds) ? t.date.seconds * 1000 : Date.now());
+          const dateStr = date.toLocaleString();
+          const cls = amount >= 0 ? 'amt-pos' : 'amt-neg';
+          if (amount > 0) depositSum += amount;
+          rows += `<tr>
+            <td>${escapeHtml(source)}</td>
+            <td>${escapeHtml(dateStr)}</td>
+            <td style="text-align:right"><span class="${cls}">${amount.toLocaleString()}</span></td>
+          </tr>`;
         });
-      } catch (err) {
-        console.error('transactions subscription error', err);
+        txBody.innerHTML = rows;
+        totalDepositsEl.textContent = depositSum.toLocaleString();
+        // compute available: main balance - pending withdrawals (if you keep pending withdrawals doc)
+        // we'll try to fetch pending withdrawals count/amount; if not present, just show balance
+        // For now, set available = balance (you can replace with real deduction)
+        availableEl.textContent = balanceEl.textContent;
+      });
+
+      // extra: compute top earner (simple one-off): check 'leaderboard' collection or compute locally
+      // we try to fetch a 'leaderboard/top' doc if present (optional)
+      // safe try/catch omitted for brevity
+      try {
+        const leaderDoc = await getDocs(collection(db, 'leaderboard')); // if you have this collection
+        if (!leaderDoc.empty) {
+          const top = leaderDoc.docs[0].data();
+          leaderTop.textContent = top.username || '—';
+        }
+      } catch (e) {
+        // ignore if no leaderboard
       }
     });
 
-    // helpers
-    async function computeDepositBalance(uid) {
+    // helper: copy referral link
+    copyRefBtn.addEventListener('click', async () => {
+      const text = refLinkEl.textContent || '';
       try {
-        const snap = await getDocs(query(collection(db, 'users', uid, 'transactions'), orderBy('date','desc'), limit(500)));
-        if (snap.empty) return 0;
-        let sum = 0;
-            
+        await navigator.clipboard.writeText(text);
+        copyRefBtn.textContent = 'Copied';
+        setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
+      } catch (err) {
+        copyRefBtn.textContent = 'Copy';
+        alert('Copy failed. Manually select the link and copy.');
+      }
+    });
+
+    // small helper to escape HTML when injecting strings
+    function escapeHtml(s){
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ---------- sidebar toggle (exposed) ----------
+    window.toggleSidebar = function toggleSidebar(){
+      const sb = document.getElementById('sidebar');
+      const main = document.getElementById('main');
+      const overlay = document.getElementById('overlay');
+      const active = sb.classList.toggle('active');
+      if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
+      else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
+    };
+    // close sidebar on ESC
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
+
+  </script>
+</body>
+  </html>
