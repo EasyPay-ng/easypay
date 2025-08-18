@@ -97,7 +97,8 @@
         getDoc,
         updateDoc,
         increment,
-        arrayUnion
+        arrayUnion,
+        serverTimestamp
       } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
       // Firebase config
@@ -118,7 +119,7 @@
       const dashboardButton = document.getElementById('dashboardButton');
       const taskIdText = document.getElementById('taskIdText');
 
-      // Extract task ID from URL (?task=27001)
+      // Extract task ID from URL (?task=27002)
       const params = new URLSearchParams(window.location.search);
       const taskId = params.get('task') || '—';
       taskIdText.textContent = `ID: ${taskId}`;
@@ -156,7 +157,8 @@
               transactions: arrayUnion({
                 source: `Shortlink ${taskId}`,
                 amount: rewardAmount,
-                date: new Date().toLocaleString()
+                type: "credit",
+                createdAt: serverTimestamp()
               })
             });
             rewardText.textContent = `You have earned ₦${rewardAmount} for completing the shortlink!`;
