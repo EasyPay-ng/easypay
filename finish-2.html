@@ -1,176 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Congratulations!</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            padding: 50px;
-        }
-
-        .emoji {
-            font-size: 100px;
-        }
-
-        h1 {
-            color: #4CAF50;
-            font-size: 2.5em;
-        }
-
-        .reward {
-            font-size: 1.5em;
-            color: #333;
-            margin: 20px 0;
-        }
-
-        .task-id {
-            font-size: 1.2em;
-            color: #888;
-        }
-
-        .info {
-            font-size: 1.2em;
-            color: #555;
-            margin-top: 20px;
-        }
-
-        .button {
-            margin: 20px 10px 0;
-            padding: 15px 30px;
-            font-size: 1.2em;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: none;
-        }
-
-        .button:hover {
-            background-color: #45a049;
-        }
-
-        .footer {
-            margin-top: 30px;
-            font-size: 1em;
-            color: #777;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Congratulations!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      margin: 80px auto;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 16px;
+      color: #333;
+    }
+  </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="emoji">✅</div>
-        <h1>Congratulations!</h1>
-        <p id="rewardText" class="reward">Loading reward…</p>
-        <p id="taskIdText" class="task-id">27002</p>
-        <p class="info">Please screenshot this page for your reference purpose.</p>
-        
-        <a id="dashboardButton" href="dashboard.html" class="button">
-            Go back to Dashboard
-        </a>
+  <div class="container">
+    <h1>🎉 Congratulations!</h1>
+    <p>You have successfully completed this task.</p>
+  </div>
 
-        <div class="footer">
-            <p>Thank you for your hard work!</p>
-        </div>
-    </div>
+  <script>
+    // Firebase config (your details)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-      import {
-        getAuth,
-        onAuthStateChanged
-      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-      import {
-        getFirestore,
-        doc,
-        getDoc,
-        updateDoc,
-        increment,
-        arrayUnion,
-        serverTimestamp
-      } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-      // Firebase config
-      const firebaseConfig = {
-        apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-        authDomain: "easypay-6bce8.firebaseapp.com",
-        projectId: "easypay-6bce8",
-        storageBucket: "easypay-6bce8.appspot.com",
-        messagingSenderId: "862671358267",
-        appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-        measurementId: "G-2FZKDQ47FZ"
-      };
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const userRef = db.collection("users").doc(user.uid);
+        const userDoc = await userRef.get();
 
-      const rewardText = document.getElementById('rewardText');
-      const dashboardButton = document.getElementById('dashboardButton');
-      const taskIdText = document.getElementById('taskIdText');
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          let reward = 2; // default for Normal
 
-      // Extract task ID from URL (?task=27002)
-      const params = new URLSearchParams(window.location.search);
-      const taskId = params.get('task') || '—';
-      taskIdText.textContent = `ID: ${taskId}`;
-
-      onAuthStateChanged(auth, async user => {
-        if (!user) {
-          rewardText.textContent = 'Not signed in. Redirecting…';
-          setTimeout(() => location.href = 'login.html', 1500);
-          return;
-        }
-
-        // simulate loading delay
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        try {
-          const uid = user.uid;
-          const userRef = doc(db, 'users', uid);
-          const snap = await getDoc(userRef);
-          const data = snap.exists() ? snap.data() : {};
-
-          const today = new Date().toISOString().split('T')[0];
-          const record = data.shortlinkTasks?.[taskId];
-
-          // determine reward amount by accountType
-          let rewardAmount = 2; // default normal user
-          if (data.accountType === 'premium') rewardAmount = 35;
-          if (data.accountType === 'gold') rewardAmount = 70;
-
-          if (record?.date === today) {
-            rewardText.textContent = `Reward already claimed for Task ${taskId} today.`;
-          } else {
-            await updateDoc(userRef, {
-              [`shortlinkTasks.${taskId}`]: { date: today },
-              balance: increment(rewardAmount),
-              transactions: arrayUnion({
-                source: `Shortlink ${taskId}`,
-                amount: rewardAmount,
-                type: "credit",
-                createdAt: serverTimestamp()
-              })
-            });
-            rewardText.textContent = `You have earned ₦${rewardAmount} for completing the shortlink!`;
+          if (userData.accountType === "Premium") {
+            reward = 35;
+          } else if (userData.accountType === "Gold") {
+            reward = 70;
           }
-        } catch (err) {
-          console.error(err);
-          rewardText.textContent = 'Error processing reward.';
-        } finally {
-          // show dashboard button after processing
-          dashboardButton.style.display = 'inline-block';
+
+          // Add transaction
+          const newTransaction = {
+            source: "Task 27002",
+            amount: reward,
+            date: new Date().toLocaleString()
+          };
+
+          await userRef.update({
+            balance: firebase.firestore.FieldValue.increment(reward),
+            transactions: firebase.firestore.FieldValue.arrayUnion(newTransaction)
+          });
+
+          console.log("Reward added:", reward);
         }
-      });
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>
