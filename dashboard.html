@@ -79,23 +79,6 @@
     /* content area */
     .container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
 
-    /* upgrade banner */
-    .upgrade-banner {
-      background: linear-gradient(90deg, rgba(0,182,109,0.08), rgba(5,156,86,0.06));
-      border:1px solid rgba(5,156,86,0.12);
-      padding:12px;
-      border-radius:10px;
-      display:flex;
-      gap:12px;
-      align-items:center;
-      margin-bottom:12px;
-      box-shadow: 0 6px 18px rgba(5,156,86,0.03);
-    }
-    .upgrade-banner .msg { flex:1; font-weight:600; color:var(--primary) }
-    .upgrade-banner .actions { display:flex; gap:8px; align-items:center }
-    .upgrade-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700 }
-    .close-banner { background:transparent; border:0; font-size:18px; color:var(--muted); cursor:pointer }
-
     /* top cards */
     .cards {
       display:grid;
@@ -111,17 +94,20 @@
     .card .label { color:var(--muted); font-size:13px; }
     .card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-    /* daily claim */
-    .claim-card { display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
-    .claim-row { display:flex; gap:8px; width:100%; align-items:center; justify-content:space-between; }
-    .claim-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700 }
-    .claim-disabled { background:#e6f7ec; color:var(--muted); border:1px solid #e6f7ec; padding:8px 12px; border-radius:10px }
-    .claim-note { color:var(--muted); font-size:13px }
-
     /* referral / code */
     .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
     .ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary) }
     .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
+
+    /* transactions */
+    .tableWrap { overflow:auto; border-radius:8px; margin-top:10px; }
+    .table {
+      width:100%; border-collapse:collapse; min-width:640px; font-size:14px;
+    }
+    .table thead th { text-align:left; padding:10px 12px; color:var(--muted); font-size:13px; background:rgba(0,0,0,0.02) }
+    .table tbody td { padding:10px 12px; border-top:1px solid #f2f7f2; vertical-align:middle; }
+    .amt-pos { color:green; font-weight:700; }
+    .amt-neg { color:#b91c1c; font-weight:700; }
 
     /* floating WhatsApp */
     .wa {
@@ -130,28 +116,14 @@
       box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;
     }
 
-    /* responsive tweaks and improvements */
-    @media (max-width:1100px){
-      .container{ padding:12px; max-width:980px }
-    }
+    /* responsive tweaks */
     @media (max-width:900px){
       .sidebar{ width:86%; left:-100% }
       .main.shift{ margin-left:0 }
-      .container{ padding:10px }
-      .cards { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px }
-      .card { padding:10px; min-height:72px }
-      header { padding:10px }
+      .container{ padding:12px }
+      .card .value{ font-size:18px }
+      .table { min-width:560px }
     }
-    @media (max-width:600px){
-      header { flex-direction:column; align-items:flex-start; gap:8px }
-      .profile-mini { align-self:flex-end }
-      .cards { grid-template-columns: repeat(2, 1fr); gap:8px }
-      .ref-card { flex-direction:column; align-items:flex-start }
-      .ref-input { width:100% }
-    }
-
-    /* small helper */
-    .muted { color:var(--muted) }
   </style>
 </head>
 <body>
@@ -203,15 +175,6 @@
     </header>
 
     <div class="container">
-      <!-- UPGRADE BANNER (will show only for basic plan users; closeable) -->
-      <div id="upgradeBanner" class="upgrade-banner" style="display:none" role="status" aria-live="polite">
-        <div class="msg" id="upgradeMsg">You're on the Basic plan. Upgrade to Premium for higher limits, instant withdrawals and priority support.</div>
-        <div class="actions">
-          <button class="upgrade-btn" id="goUpgrade">Upgrade</button>
-          <button class="close-banner" id="closeUpgrade" title="Dismiss">&times;</button>
-        </div>
-      </div>
-
       <!-- Top cards -->
       <div class="cards" aria-hidden="false">
         <div class="card">
@@ -242,28 +205,6 @@
         </div>
       </div>
 
-      <!-- DAILY CLAIM -->
-      <div class="card claim-card" aria-live="polite">
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
-          <div>
-            <div class="label">Daily Claim</div>
-            <div style="font-weight:700; font-size:15px; margin-top:6px">Claim ₦0.20 every 24 hours</div>
-          </div>
-          <div id="claimStatus" class="muted">Checking…</div>
-        </div>
-
-        <div class="claim-row" style="margin-top:10px; width:100%">
-          <div class="claim-note">Get a small daily bonus for logging in — good for compounding.</div>
-          <div>
-            <button id="claimBtn" class="claim-btn">Claim ₦0.20</button>
-            <button id="claimBtnDisabled" class="claim-disabled" style="display:none" disabled>Claimed</button>
-          </div>
-        </div>
-        <div style="margin-top:8px">
-          <small class="muted" id="nextClaimInfo">Next claim: —</small>
-        </div>
-      </div>
-
       <!-- Referral Code -->
       <div class="card ref-card" style="margin-bottom:12px;">
         <div style="flex:1">
@@ -272,6 +213,32 @@
             <div class="ref-input" id="refCode">loading...</div>
             <button class="copy-btn" id="copyRefBtn">Copy</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Transactions -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="label">Recent transactions</div>
+            <div style="font-weight:700; font-size:15px; margin-top:6px">Last 10</div>
+          </div>
+          <div><a href="history.html" style="text-decoration:none; color:var(--primary); font-weight:600">See all</a></div>
+        </div>
+
+        <div class="tableWrap" role="region" aria-live="polite">
+          <table class="table" aria-hidden="false">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Date</th>
+                <th style="text-align:right">Amount (₦)</th>
+              </tr>
+            </thead>
+            <tbody id="txBody">
+              <tr><td colspan="3" style="padding:12px; color:var(--muted)">Loading...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -287,8 +254,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
-      getFirestore, doc, onSnapshot, collection, query, orderBy, limit,
-      updateDoc, serverTimestamp, addDoc, increment, getDoc
+      getFirestore, doc, onSnapshot, collection, query, orderBy, limit
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
     // ---------- FIREBASE CONFIG ----------
@@ -320,21 +286,11 @@
     const referralsEl = document.getElementById('referrals');
     const refCodeEl = document.getElementById('refCode');
     const copyRefBtn = document.getElementById('copyRefBtn');
-
-    const upgradeBanner = document.getElementById('upgradeBanner');
-    const upgradeMsg = document.getElementById('upgradeMsg');
-    const goUpgrade = document.getElementById('goUpgrade');
-    const closeUpgrade = document.getElementById('closeUpgrade');
-
-    // claim UI
-    const claimBtn = document.getElementById('claimBtn');
-    const claimBtnDisabled = document.getElementById('claimBtnDisabled');
-    const nextClaimInfo = document.getElementById('nextClaimInfo');
-    const claimStatus = document.getElementById('claimStatus');
+    const txBody = document.getElementById('txBody');
 
     let userRefUnsub = null;
+    let txUnsub = null;
     let currentUid = null;
-    let nextClaimTimeout = null;
 
     function greetByHour(h){
       if (h >= 5 && h < 12) return "Good morning";
@@ -342,119 +298,115 @@
       return "Good evening";
     }
 
-    function escapeHtml(s){
-      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    }
+    onAuthStateChanged(auth, async user => {
+      if (!user) return location.href = 'login.html';
+      currentUid = user.uid;
+      greetingEl.textContent = greetByHour(new Date().getHours());
 
-    function fmtTimestamp(ts){
-      if(!ts) return '';
-      try {
-        const d = ts.toDate ? ts.toDate() : new Date(ts);
-        return d.toLocaleString();
-      } catch (e) {
-        return String(ts);
-      }
-    }
+      // subscribe to user doc (realtime)
+      const uDocRef = doc(db, 'users', user.uid);
+      if (userRefUnsub) userRefUnsub();
+      userRefUnsub = onSnapshot(uDocRef, (snap) => {
+        if (!snap.exists()) return;
+        const data = snap.data();
 
-    function formatCurrency(n){
-      const num = Number(n || 0);
-      return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
+        const bal = Number(data.balance || 0);
+        // show number with grouping; keep decimals if set by backend
+        balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
 
-    // determine claim availability from lastDailyClaim timestamp
-    function computeClaimState(lastDailyClaimTs){
-      if(!lastDailyClaimTs) return { available: true, nextInMs: 0 };
-      const last = lastDailyClaimTs.toDate ? lastDailyClaimTs.toDate() : new Date(lastDailyClaimTs);
-      const now = new Date();
-      const diff = now - last;
-      const dayMs = 24 * 60 * 60 * 1000;
-      if (diff >= dayMs) return { available: true, nextInMs: 0 };
-      return { available: false, nextInMs: dayMs - diff };
-    }
+        referralsEl.textContent = (data.referrals || 0);
 
-    function prettyDuration(ms){
-      if (ms <= 0) return '0s';
-      const s = Math.floor(ms/1000);
-      const h = Math.floor(s/3600);
-      const m = Math.floor((s%3600)/60);
-      const sec = s % 60;
-      if (h > 0) return `${h}h ${m}m`;
-      if (m > 0) return `${m}m ${sec}s`;
-      return `${sec}s`;
-    }
+        // referral code: username if set, otherwise uid
+        const code = (data.username && data.username.trim()) ? data.username.trim() : user.uid;
+        refCodeEl.textContent = code;
 
-    function startCountdown(ms){
-      if(nextClaimTimeout) clearInterval(nextClaimTimeout);
-      let remaining = ms;
-      if(remaining <= 0){
-        nextClaimInfo.textContent = 'Next claim: available now';
-        claimBtn.style.display = 'inline-block';
-        claimBtnDisabled.style.display = 'none';
-        claimStatus.textContent = 'Ready to claim';
-        return;
-      }
-      claimBtn.style.display = 'none';
-      claimBtnDisabled.style.display = 'inline-block';
-      claimStatus.textContent = 'Claimed';
-      nextClaimInfo.textContent = 'Next claim: ' + prettyDuration(remaining);
-      nextClaimTimeout = setInterval(()=> {
-        remaining -= 1000;
-        if (remaining <= 0) {
-          clearInterval(nextClaimTimeout);
-          nextClaimInfo.textContent = 'Next claim: available now';
-          claimBtn.style.display = 'inline-block';
-          claimBtnDisabled.style.display = 'none';
-          claimStatus.textContent = 'Ready to claim';
+        // update side username & mini name
+        const username = data.username || (user.displayName || user.email || 'User');
+        sideUsername.textContent = username;
+        miniName.textContent = username;
+
+        // avatar handling
+        if (data.photoURL) {
+          avatarEl.innerHTML = '<img src="'+escapeHtml(data.photoURL)+'" alt="avatar">';
+          miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
         } else {
-          nextClaimInfo.textContent = 'Next claim: ' + prettyDuration(remaining);
+          const parts = String(username).split(' ').filter(Boolean);
+          const letters = (parts.length >= 2) ? (parts[0][0]+parts[1][0]) : String(username).slice(0,2);
+          avatarInitials.textContent = letters.toUpperCase();
+          miniAvatar.style.display = 'none';
         }
-      }, 1000);
-    }
+      });
 
-    // Claim flow: credit 0.20, write transaction, set lastDailyClaim
-    async function attemptClaim(uid){
-      claimBtn.disabled = true;
-      claimBtn.textContent = 'Claiming…';
-      try {
-        // re-check server-side timestamp (best-effort) by reading user doc server value
-        const uDocRef = doc(db, 'users', uid);
-        const uSnap = await getDoc(uDocRef);
-        const uData = uSnap.exists() ? uSnap.data() : null;
-        const last = uData && uData.lastDailyClaim ? uData.lastDailyClaim : null;
-        const state = computeClaimState(last);
-        if(!state.available){
-          alert('You already claimed within the last 24 hours. Please wait until next available.');
-          // update UI countdown based on remaining
-          startCountdown(state.nextInMs);
+      // subscribe to last 10 transactions
+      const txCol = collection(db, 'users', user.uid, 'transactions');
+      const txQuery = query(txCol, orderBy('date', 'desc'), limit(10));
+      if (txUnsub) txUnsub();
+      txUnsub = onSnapshot(txQuery, (snap) => {
+        if (snap.empty) {
+          txBody.innerHTML = '<tr><td colspan="3" style="padding:12px; color:var(--muted)">No transactions yet</td></tr>';
+          totalDepositsEl.textContent = '0.00';
+          availableEl.textContent = balanceEl.textContent;
           return;
         }
-
-        // perform update: increment balance, set lastDailyClaim, and add a transaction doc
-        const claimAmount = 0.2;
-        // update user balance and lastDailyClaim
-        await updateDoc(uDocRef, {
-          balance: increment(claimAmount),
-          lastDailyClaim: serverTimestamp()
+        let rows = '';
+        let depositSum = 0;
+        snap.docs.forEach(docSnap => {
+          const t = docSnap.data();
+          const source = t.source || t.type || 'Activity';
+          const amount = Number(t.amount || 0);
+          // handle Firestore Timestamp and other date shapes
+          let dateObj;
+          if (t.date && typeof t.date.toDate === 'function') dateObj = t.date.toDate();
+          else if (t.date && t.date.seconds) dateObj = new Date(t.date.seconds * 1000);
+          else if (typeof t.date === 'number') dateObj = new Date(t.date);
+          else dateObj = new Date();
+          const dateStr = dateObj.toLocaleString();
+          const cls = amount >= 0 ? 'amt-pos' : 'amt-neg';
+          if (amount > 0) depositSum += amount;
+          rows += `<tr>
+            <td>${escapeHtml(source)}</td>
+            <td>${escapeHtml(dateStr)}</td>
+            <td style="text-align:right"><span class="${cls}">${amount.toLocaleString()}</span></td>
+          </tr>`;
         });
+        txBody.innerHTML = rows;
+        totalDepositsEl.textContent = depositSum.toLocaleString();
+        availableEl.textContent = balanceEl.textContent;
+      });
 
-        // add transaction record
-        await addDoc(collection(db, 'users', uid, 'transactions'), {
-          source: 'Daily claim',
-          amount: claimAmount,
-          date: serverTimestamp(),
-          note: 'Daily claim ₦0.20',
-        });
+      // optional: load leaderboard top if you have a doc (left intentionally blank)
+      try {
+        // placeholder — implement if you have a leaderboard doc
+      } catch(e){}
+    });
 
-        alert('Daily claim successful — ₦0.20 credited to your balance.');
-      } catch (e) {
-        console.error('claim failed', e);
-        alert('Claim failed. Try again.');
-      } finally {
-        claimBtn.disabled = false;
-        claimBtn.textContent = 'Claim ₦0.20';
+    // copy referral code
+    copyRefBtn.addEventListener('click', async () => {
+      const text = refCodeEl.textContent || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        copyRefBtn.textContent = 'Copied';
+        setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
+      } catch (err) {
+        copyRefBtn.textContent = 'Copy';
+        alert('Copy failed. Manually select the code and copy.');
       }
+    });
+
+    function escapeHtml(s){
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // show/hide upgrade banner (same logic as before)
-    function handleUpgradeBanner(uid, userData){
-      const closedKey = `hideUpgradeBanne
+    // ---------- sidebar toggle ----------
+    window.toggleSidebar = function toggleSidebar(){
+      const sb = document.getElementById('sidebar');
+      const main = document.getElementById('main');
+      const overlay = document.getElementById('overlay');
+      const active = sb.classList.toggle('active');
+      if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
+      else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
+    };
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
+  </script>
+</body>
+  </html>
