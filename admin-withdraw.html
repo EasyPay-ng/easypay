@@ -1,75 +1,147 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Manage Withdrawals</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, collectionGroup, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";const firebaseConfig = {
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.firebasestorage.app",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c1e",
+  measurementId: "G-2FZKDQ47FZ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function sortWithdrawals(arr) {
+  return arr.sort((a, b) => {
+    const statusA = a.data.status;
+    const statusB = b.data.status;
+    if (statusA === "Pending" && statusB !== "Pending") return -1;
+    if (statusA !== "Pending" && statusB === "Pending") return 1;
+    const tsA = a.data.timestamp.seconds;
+    const tsB = b.data.timestamp.seconds;
+    return tsB - tsA;
+  });
+}
+
+async function loadWithdrawals() {
+  const withdrawalQuery = collectionGroup(db, "withdrawals");
+  const snapshot = await getDocs(withdrawalQuery);
+
+  const allDocs = [];
+  let totalNet = 0;
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    if (typeof data.amount === 'number') {
+      const net = data.amount * 0.95;
+      totalNet += net;
+    }
+    allDocs.push({
+      path: docSnap.ref.path,
+      data,
+      username: data.username || docSnap.ref.path.split("/")[1]
+    });
+  });
+
+  const sorted = sortWithdrawals(allDocs);
+  document.getElementById("totalAmount").textContent = `Total Net Withdrawn: ₦${totalNet.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+
+  const tbody = document.getElementById("withdrawalTable").querySelector("tbody");
+  tbody.innerHTML = "";
+
+  sorted.forEach(item => {
+    const d = item.data;
+    const dateStr = new Date(d.timestamp.seconds * 1000).toLocaleString();
+    const netAmt = (d.amount * 0.95).toFixed(2);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${dateStr}</td>
+      <td>₦${netAmt}</td>
+      <td>${d.bank}</td>
+      <td>${d.accNumber}</td>
+      <td>${d.accName}</td>
+      <td>${item.username}</td>
+      <td>
+        <select data-path="${item.path}" onchange="updateStatus(this)">
+          <option value="Pending" ${d.status === "Pending" ? "selected" : ""}>Pending</option>
+          <option value="Successful" ${d.status === "Successful" ? "selected" : ""}>Successful</option>
+          <option value="Rejected" ${d.status === "Rejected" ? "selected" : ""}>Rejected</option>
+        </select>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.updateStatus = async function(selectEl) {
+  const path = selectEl.getAttribute("data-path");
+  const newStatus = selectEl.value;
+  const refDoc = doc(db, path);
+  await updateDoc(refDoc, { status: newStatus });
+  alert("Status updated to " + newStatus);
+  loadWithdrawals();
+};
+
+loadWithdrawals();
+
+  </script>
   <style>
-    :root{
-      --green:#2e7d32; --green-600:#1b5e20; --green-100:#e8f5e9; --card:#ffffff; --muted:#f4fff4;
-      --shadow:0 4px 16px rgba(0,0,0,.06);
-    }
-    *{box-sizing:border-box}
     body {
-      font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: #f0fff0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0fff0;
       color: #222;
-      margin: 0; padding: 24px;
+      padding: 20px;
     }
-    header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-    header h2 { color: var(--green); margin:0; font-weight:700; }
-    #actions { margin-left:auto; display:flex; gap:8px; }
-    button, select {
-      font-family: inherit; border:1px solid #cfd8cf; background:#fff; color:#111;
-      padding:8px 12px; border-radius:10px; box-shadow: var(--shadow);
-      cursor:pointer;
+    h2 {
+      color: #2e7d32;
+      margin-bottom: 10px;
     }
-    button:hover { filter:brightness(.98); }
-
-    .kpi-row { display:flex; flex-wrap:wrap; gap:12px; margin: 6px 0 18px; }
-    .kpi { background: var(--green-100); color: var(--green-600); padding: 12px 14px; border-radius: 12px; font-weight:600; box-shadow: var(--shadow); }
-
-    .banner { display:none; padding:12px 14px; border-radius:12px; margin-bottom:12px; box-shadow: var(--shadow); }
-    .banner.error { display:block; background:#fde7e9; color:#7f1d1d; border:1px solid #fecdd3; }
-    .banner.info { display:block; background:#e0f2fe; color:#0c4a6e; border:1px solid #bae6fd; }
-
-    table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
-    th, td { padding: 12px 14px; border-bottom: 1px solid #e7eee7; font-size: 14px; }
-    th { background-color: #d0f0d0; font-weight: 600; text-align:left; }
-    tr:hover { background-color: var(--muted); }
-    td .badge { padding:4px 8px; border-radius: 999px; font-size:12px; font-weight:600; display:inline-block; }
-    .pending { background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; }
-    .successful { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
-    .rejected { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
-
-    .center { text-align:center; color:#555; padding: 18px; }
-    .spinner { width:16px; height:16px; border:2px solid #cbd5cb; border-top-color: var(--green); border-radius:50%; display:inline-block; animation: spin 1s linear infinite; vertical-align: middle; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .toast { position: fixed; bottom: 16px; right: 16px; background:#111; color:#fff; padding:10px 12px; border-radius:12px; opacity:0; transform: translateY(8px); transition: all .25s ease; }
-    .toast.show { opacity:1; transform: translateY(0); }
+    #totalAmount {
+      background: #e8f5e9;
+      color: #1b5e20;
+      padding: 10px;
+      font-weight: bold;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #d0f0d0;
+      font-weight: 600;
+    }
+    select {
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    tr:hover {
+      background-color: #f4fff4;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h2>Admin Withdrawal Records</h2>
-    <div id="actions">
-      <button id="reloadBtn" title="Reload">Reload</button>
-    </div>
-  </header>
-
-  <div id="infoBanner" class="banner info" style="display:none"></div>
-  <div id="errorBanner" class="banner error"></div>
-
-  <div class="kpi-row">
-    <div id="totalAmount" class="kpi">Calculating total…</div>
-    <div id="counts" class="kpi">—</div>
-  </div>
-
-  <table id="withdrawalTable" aria-live="polite">
+  <h2>Admin Withdrawal Records</h2>
+  <div id="totalAmount">Loading total...</div>
+  <table id="withdrawalTable">
     <thead>
       <tr>
         <th>Date</th>
@@ -82,203 +154,8 @@
       </tr>
     </thead>
     <tbody>
-      <tr><td class="center" colspan="7"><span class="spinner"></span> Loading…</td></tr>
+      <tr><td colspan="7">Loading…</td></tr>
     </tbody>
   </table>
-
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <script type="module">
-    // Firebase v9 modular SDK
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, collectionGroup, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-    // ✅ Your Firebase details (kept exactly as provided/confirmed)
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.firebasestorage.app",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // ------- Utils -------
-    const fmtNGN = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 2 });
-
-    function safeNumber(v) {
-      const n = typeof v === 'number' ? v : Number(v);
-      return Number.isFinite(n) ? n : 0;
-    }
-
-    function tsToMillis(ts) {
-      if (!ts) return null;
-      if (typeof ts.toMillis === 'function') return ts.toMillis();
-      if (typeof ts.toDate === 'function') return ts.toDate().getTime();
-      if (typeof ts === 'number') return ts; // already ms
-      if (typeof ts.seconds === 'number') return ts.seconds * 1000 + (ts.nanoseconds ? ts.nanoseconds / 1e6 : 0);
-      const d = new Date(ts);
-      return isNaN(d) ? null : d.getTime();
-    }
-
-    function statusPriority(s) {
-      if (s === 'Pending' || !s) return 0;
-      if (s === 'Successful') return 1;
-      if (s === 'Rejected') return 2;
-      return 3;
-    }
-
-    function sortWithdrawals(arr) {
-      return arr.sort((a, b) => {
-        const pA = statusPriority(a.data?.status);
-        const pB = statusPriority(b.data?.status);
-        if (pA !== pB) return pA - pB;
-        const tA = tsToMillis(a.data?.timestamp) ?? 0;
-        const tB = tsToMillis(b.data?.timestamp) ?? 0;
-        return tB - tA; // newest first
-      });
-    }
-
-    // ------- DOM helpers -------
-    const tbody = document.querySelector('#withdrawalTable tbody');
-    const totalAmountEl = document.getElementById('totalAmount');
-    const countsEl = document.getElementById('counts');
-    const errorBanner = document.getElementById('errorBanner');
-    const infoBanner = document.getElementById('infoBanner');
-    const reloadBtn = document.getElementById('reloadBtn');
-    const toastEl = document.getElementById('toast');
-
-    function setLoading(isLoading, msg = 'Loading…') {
-      if (isLoading) {
-        tbody.innerHTML = `<tr><td class="center" colspan="7"><span class="spinner"></span> ${msg}</td></tr>`;
-        infoBanner.style.display = 'none';
-        errorBanner.style.display = 'none';
-      }
-    }
-
-    function setEmpty(message = 'No data found.') {
-      tbody.innerHTML = `<tr><td class="center" colspan="7">${message}</td></tr>`;
-    }
-
-    function setError(err) {
-      const message = (err && (err.message || err.code || String(err))) || 'Unknown error';
-      errorBanner.textContent = `Error: ${message}`;
-      errorBanner.style.display = 'block';
-      setEmpty('Could not load withdrawals. Please check console and try reloading.');
-    }
-
-    let toastTimer;
-    function toast(msg) {
-      toastEl.textContent = msg;
-      toastEl.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2500);
-    }
-
-    function renderTable(items) {
-      tbody.innerHTML = '';
-      for (const item of items) {
-        const d = item.data || {};
-        const dateMs = tsToMillis(d.timestamp);
-        const dateStr = dateMs ? new Date(dateMs).toLocaleString() : '—';
-        const netAmt = safeNumber(d.amount) * 0.95;
-        const status = d.status || 'Pending';
-        const badgeClass = status.toLowerCase();
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${dateStr}</td>
-          <td>${fmtNGN.format(netAmt)}</td>
-          <td>${d.bank || '—'}</td>
-          <td>${d.accNumber || '—'}</td>
-          <td>${d.accName || '—'}</td>
-          <td>${item.username || '—'}</td>
-          <td>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span class="badge ${badgeClass}">${status}</span>
-              <select data-path="${item.path}" class="statusSelect" aria-label="Update status">
-                ${['Pending','Successful','Rejected'].map(s => `<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('')}
-              </select>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      }
-
-      // Attach listeners
-      tbody.querySelectorAll('select.statusSelect').forEach(sel => {
-        sel.addEventListener('change', async (e) => {
-          const el = e.currentTarget;
-          const newStatus = el.value;
-          el.disabled = true;
-          try {
-            const refDoc = doc(db, el.getAttribute('data-path'));
-            await updateDoc(refDoc, { status: newStatus });
-            toast(`Status updated to ${newStatus}`);
-            // Reload to re-sort rows according to new status
-            await loadWithdrawals();
-          } catch (err) {
-            console.error(err);
-            alert('Failed to update status: ' + (err?.message || err));
-          } finally {
-            el.disabled = false;
-          }
-        });
-      });
-    }
-
-    function renderCounts(items) {
-      const total = items.length;
-      const pending = items.filter(x => (x.data?.status || 'Pending') === 'Pending').length;
-      const successful = items.filter(x => x.data?.status === 'Successful').length;
-      const rejected = items.filter(x => x.data?.status === 'Rejected').length;
-      countsEl.textContent = `Total: ${total} • Pending: ${pending} • Successful: ${successful} • Rejected: ${rejected}`;
-    }
-
-    async function loadWithdrawals() {
-      setLoading(true, 'Fetching withdrawals…');
-      try {
-        const snapshot = await getDocs(collectionGroup(db, 'withdrawals'));
-
-        const allDocs = [];
-        let totalNet = 0;
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data() || {};
-          const amount = safeNumber(data.amount);
-          const net = amount * 0.95;
-          if (amount > 0) totalNet += net;
-          const username = data.username || docSnap.ref.parent?.parent?.id || (docSnap.ref.path.split('/')[1] || '—');
-          allDocs.push({ path: docSnap.ref.path, data: { ...data, amount }, username });
-        });
-
-        const sorted = sortWithdrawals(allDocs);
-        renderTable(sorted);
-        renderCounts(sorted);
-        totalAmountEl.textContent = `Total Net Withdrawn: ${fmtNGN.format(totalNet)}`;
-
-        if (!sorted.length) setEmpty('No withdrawal requests found.');
-      } catch (err) {
-        console.error(err);
-        setError(err);
-      }
-    }
-
-    reloadBtn.addEventListener('click', loadWithdrawals);
-
-    // Initial fetch
-    loadWithdrawals();
-
-    // Optional: Gentle reminder banner if loading is unusually slow
-    setTimeout(() => {
-      if (tbody.textContent.includes('Loading…')) {
-        infoBanner.textContent = 'Still fetching data… If this persists, check your Firestore rules or network.';
-        infoBanner.style.display = 'block';
-      }
-    }, 5000);
-  </script>
 </body>
 </html>
