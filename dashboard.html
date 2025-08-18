@@ -56,6 +56,8 @@
     nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; }
     nav.menu a span.label { font-weight:600; }
 
+    .divider { height:1px; background:#f2f7f2; margin:12px 0; border-radius:2px; }
+
     .note { margin-top:18px; font-size:13px; color:var(--muted) }
 
     /* ---------- MAIN ---------- */
@@ -115,6 +117,11 @@
       box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;
     }
 
+    /* small badge */
+    .badge {
+      background:#ff3b30; color:#fff; border-radius:999px; padding:4px 8px; font-weight:700; font-size:12px; margin-left:auto;
+    }
+
     /* responsive tweaks */
     @media (max-width:900px){
       .sidebar{ width:86%; left:-100% }
@@ -140,17 +147,24 @@
 
     <nav class="menu" aria-label="EasyPay menu">
       <ul>
+        <li><a href="profile.html"><i class="emoji">👤</i><span class="label">Profile</span></a></li>
         <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>
         <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
         <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
         <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>
-        <li><a href="shortlink.html"><i class="emoji">🔗</i><span class="label">Shortlink</span></a></li>
-        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span></a></li>
-        <li><a href="contact.html"><i class="emoji">📞</i><span class="label">Contact Us</span></a></li>
+        <li><a href="shortlink.html"><i class="emoji">🔗</i><span class="label">ShortLinks</span></a></li>
+        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span><span id="refBadge" class="badge" style="display:none">0</span></a></li>
+        <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
+        <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage tasks</span></a></li>
+        <li><a href="mini-games.html"><i class="emoji">🎮</i><span class="label">Games</span></a></li>
+
+        <li class="divider" style="list-style:none"></li>
+
+        <li><a href="#" id="signOutLink" onclick="signOutUser(event)"><i class="emoji">🚪</i><span class="label">Sign out</span></a></li>
       </ul>
     </nav>
 
-    <div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>
+    <div class="note">Use the menu to navigate quickly — open Tasks or ShortLinks to earn daily.</div>
   </aside>
 
   <!-- overlay -->
@@ -182,9 +196,9 @@
         </div>
 
         <div class="card">
-          <div class="label">Total Deposits</div>
-          <div class="value">₦<span id="totalDeposits">0.00</span></div>
-          <small class="label">All-time deposits</small>
+          <div class="label">Deposit Balance</div>
+          <div class="value">₦<span id="depositBalance">0.00</span></div>
+          <small class="label">Current deposited funds</small>
         </div>
 
         <div class="card">
@@ -245,16 +259,16 @@
   </main>
 
   <!-- WhatsApp floating -->
-  <a class="wa" href="https://wa.me/2348037402826" target="_blank" title="Chat on WhatsApp">
+  <a class="wa" href="https://wa.me/2348132425678" target="_blank" title="Chat on WhatsApp">
     <i class="fab fa-whatsapp" style="font-size:20px"></i>
   </a>
 
   <!-- FIREBASE & JS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
-      getFirestore, doc, onSnapshot, collection, query, orderBy, limit, getDocs
+      getFirestore, doc, onSnapshot, collection, query, orderBy, limit, getDocs, where
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
     // ---------- YOUR FIREBASE CONFIG ----------
@@ -281,17 +295,19 @@
     const miniAvatar = document.getElementById('miniAvatar');
 
     const balanceEl = document.getElementById('balance');
-    const totalDepositsEl = document.getElementById('totalDeposits');
+    const depositBalanceEl = document.getElementById('depositBalance');
     const availableEl = document.getElementById('available');
     const referralsEl = document.getElementById('referrals');
     const refCodeEl = document.getElementById('refCode');
     const copyRefBtn = document.getElementById('copyRefBtn');
     const txBody = document.getElementById('txBody');
     const leaderTop = document.getElementById('leaderTop');
+    const refBadge = document.getElementById('refBadge');
 
     let userRefUnsub = null;
     let txUnsub = null;
     let currentUid = null;
+    let currentUsername = null;
 
     function greetByHour(h){
       if (h >= 5 && h < 12) return "Good morning";
@@ -307,27 +323,54 @@
       // subscribe to user doc (realtime)
       const uDocRef = doc(db, 'users', user.uid);
       if (userRefUnsub) userRefUnsub();
-      userRefUnsub = onSnapshot(uDocRef, (snap) => {
+      userRefUnsub = onSnapshot(uDocRef, async (snap) => {
         if (!snap.exists()) return;
         const data = snap.data();
 
+        currentUsername = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || user.email || user.uid);
+
+        // balances
         const bal = Number(data.balance || 0);
         balanceEl.textContent = bal.toLocaleString();
 
-        referralsEl.textContent = (data.referrals || 0);
+        // deposit balance: prefer stored field, else compute from transactions
+        const depositFields = ['depositBalance','deposits','totalDeposits','deposited'];
+        let depositVal = null;
+        for (const f of depositFields) {
+          if (data[f] !== undefined && data[f] !== null) { depositVal = Number(data[f]||0); break; }
+        }
+        if (depositVal !== null) {
+          depositBalanceEl.textContent = depositVal.toLocaleString();
+        } else {
+          // fallback - compute by scanning user's transactions for deposit-type entries
+          computeDepositBalance(user.uid).then(sum => depositBalanceEl.textContent = sum.toLocaleString()).catch(()=> depositBalanceEl.textContent = '0.00');
+        }
 
-        // referral code: username if set, otherwise uid
+        // referrals: if user doc has `referrals` use it; else compute by counting users where referredBy === uid OR referrerCode === referralCode
+        if (typeof data.referrals === 'number') {
+          referralsEl.textContent = data.referrals;
+          if (data.referrals > 0) { refBadge.style.display = 'inline-block'; refBadge.textContent = data.referrals; } else { refBadge.style.display = 'none'; }
+        } else {
+          // compute fallback
+          computeReferralCount(user.uid, currentUsername).then(count => {
+            referralsEl.textContent = count;
+            if (count > 0) { refBadge.style.display = 'inline-block'; refBadge.textContent = count; } else { refBadge.style.display = 'none'; }
+          }).catch(()=> { referralsEl.textContent = '0'; refBadge.style.display='none'; });
+        }
+
+        // referral code
         const code = (data.username && data.username.trim()) ? data.username.trim() : user.uid;
         refCodeEl.textContent = code;
 
         leaderTop.textContent = (data.topEarnerName || '—');
 
         // avatar
-        if (data.photoURL) {
-          avatarEl.innerHTML = '<img src="'+data.photoURL+'" alt="avatar">';
-          miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
+        if (data.photoURL || user.photoURL) {
+          const src = data.photoURL || user.photoURL;
+          avatarEl.innerHTML = '<img src="'+src+'" alt="avatar">';
+          miniAvatar.src = src; miniAvatar.style.display = 'block';
         } else {
-          const username = data.username || (user.displayName || user.email || 'User');
+          const username = currentUsername || 'User';
           const parts = username.split(' ').filter(Boolean);
           const letters = (parts.length >= 2) ? (parts[0][0]+parts[1][0]) : username.slice(0,2);
           avatarInitials.textContent = letters.toUpperCase();
@@ -341,8 +384,10 @@
       txUnsub = onSnapshot(txQuery, async (snap) => {
         if (snap.empty) {
           txBody.innerHTML = '<tr><td colspan="3" style="padding:12px; color:var(--muted)">No transactions yet</td></tr>';
-          totalDepositsEl.textContent = '0.00';
-          availableEl.textContent = balanceEl.textContent;
+          // if depositBalanceEl is still empty we'll set available equal to balance
+          if (!depositBalanceEl.textContent || depositBalanceEl.textContent==='0.00') {
+            availableEl.textContent = balanceEl.textContent;
+          }
           return;
         }
         let rows = '';
@@ -354,7 +399,11 @@
           const date = (t.date && t.date.toDate) ? t.date.toDate() : new Date((t.date && t.date.seconds) ? t.date.seconds * 1000 : Date.now());
           const dateStr = date.toLocaleString();
           const cls = amount >= 0 ? 'amt-pos' : 'amt-neg';
-          if (amount > 0) depositSum += amount;
+          if (amount > 0) {
+            // very likely a deposit — but trust only naming
+            const srcLow = String(source||'').toLowerCase();
+            if (srcLow.includes('deposit')) depositSum += amount;
+          }
           rows += `<tr>
             <td>${escapeHtml(source)}</td>
             <td>${escapeHtml(dateStr)}</td>
@@ -362,44 +411,31 @@
           </tr>`;
         });
         txBody.innerHTML = rows;
-        totalDepositsEl.textContent = depositSum.toLocaleString();
+
+        // if depositBalance wasn't provided earlier, use computed depositSum (this is only last-10 fallback; we try computeDepositBalance for full sum above)
+        if (!depositBalanceEl.textContent || depositBalanceEl.textContent==='0.00') {
+          depositBalanceEl.textContent = depositSum.toLocaleString();
+        }
+
+        // available = main balance (for now) — you can subtract pending withdrawals if you keep a withdrawals collection
         availableEl.textContent = balanceEl.textContent;
       });
 
-      // optional: load leaderboard top if you have a doc
-      try {
-        // attempt to read a 'leaderboard/top' doc if you use this
-        // (safe try - ignore if collection doesn't exist)
-      } catch(e){}
     });
 
-    // copy referral code
-    copyRefBtn.addEventListener('click', async () => {
-      const text = refCodeEl.textContent || '';
+    // compute deposit balance by scanning user's transactions (full scan)
+    async function computeDepositBalance(uid) {
       try {
-        await navigator.clipboard.writeText(text);
-        copyRefBtn.textContent = 'Copied';
-        setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
-      } catch (err) {
-        copyRefBtn.textContent = 'Copy';
-        alert('Copy failed. Manually select the code and copy.');
-      }
-    });
-
-    function escapeHtml(s){
-      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    // ---------- sidebar toggle ----------
-    window.toggleSidebar = function toggleSidebar(){
-      const sb = document.getElementById('sidebar');
-      const main = document.getElementById('main');
-      const overlay = document.getElementById('overlay');
-      const active = sb.classList.toggle('active');
-      if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
-      else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
-    };
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
-  </script>
-</body>
-</html>
+        const txCol = collection(db, 'users', uid, 'transactions');
+        // get up to 500 transactions — adjust as needed
+        const snap = await getDocs(query(txCol, orderBy('date','desc'), limit(500)));
+        if (snap.empty) return 0;
+        let sum = 0;
+        snap.forEach(docSnap => {
+          const t = docSnap.data();
+          const amount = Number(t.amount || 0);
+          const source = String(t.source || t.type || '').toLowerCase();
+          if (amount > 0 && source.includes('deposit')) sum += amount;
+        });
+        return sum;
+      } catc
