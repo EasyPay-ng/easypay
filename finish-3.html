@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Congratulations!</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4fff4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      color: #2e7d32;
+    }
+    p {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #333;
+    }
+    .success {
+      font-size: 60px;
+      color: #2e7d32;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="success">🎉</div>
+    <h1>Congratulations!</h1>
+    <p>You’ve successfully completed task <strong>27003</strong>.</p>
+    <p>Your reward has been credited to your account.</p>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const userRef = db.collection("users").doc(user.uid);
+        const snap = await userRef.get();
+
+        if (snap.exists) {
+          const data = snap.data();
+          let reward = 0;
+
+          if (data.accountType === "premium") reward = 35;
+          if (data.accountType === "gold") reward = 70;
+
+          if (reward > 0) {
+            const newBalance = (data.balance || 0) + reward;
+
+            await userRef.update({
+              balance: newBalance,
+              transactions: firebase.firestore.FieldValue.arrayUnion({
+                source: "Task 27003",
+                amount: reward,
+                date: new Date().toISOString()
+              })
+            });
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
