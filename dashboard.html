@@ -1,405 +1,300 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EasyPay — Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" defer></script>
-  <style>
-    :root{
-      --primary:#00b66d;
-      --primary-600:#059c56;
-      --bg:#f6fff7;
-      --card:#ffffff;
-      --muted:#6b7280;
-      --shadow: 0 8px 24px rgba(16,24,40,0.06);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:'Poppins',system-ui,Segoe UI,Roboto,Helvetica,Arial;
-      background:var(--bg); color:#0f1720; min-height:100vh; display:flex;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    }
+<html lang="en">  
+<head>  
+  <meta charset="utf-8" />  
+  <meta name="viewport" content="width=device-width,initial-scale=1" />  
+  <title>EasyPay — Dashboard</title>  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" defer></script>  
+  <style>  
+    :root{  
+      --primary:#00b66d;  
+      --primary-600:#059c56;  
+      --bg:#f6fff7;  
+      --card:#ffffff;  
+      --muted:#6b7280;  
+      --shadow: 0 8px 24px rgba(16,24,40,0.06);  
+    }  
+    *{box-sizing:border-box}  
+    html,body{height:100%}  
+    body{  
+      margin:0; font-family:'Poppins',system-ui,Segoe UI,Roboto,Helvetica,Arial;  
+      background:var(--bg); color:#0f1720; min-height:100vh; display:flex;  
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;  
+    }  
 
-    /* ---------- SIDEBAR ---------- */
-    .sidebar {
-      position:fixed; left:-300px; top:0; height:100vh; width:300px;
-      background:var(--card); box-shadow:2px 0 18px rgba(0,0,0,0.08);
-      padding:18px; border-right:1px solid #f0f5f0;
-      transition:left .26s ease; overflow-y:auto; z-index:1200;
-    }
-    .sidebar.active { left:0; }
-    .sidebar .close { text-align:right; margin-bottom:6px; cursor:pointer; font-size:18px; color:var(--muted) }
-    .profile {
-      display:flex; gap:12px; align-items:center; padding:6px 0 14px; border-bottom:1px solid #f2f7f2;
-    }
-    .avatar {
-      width:52px; height:52px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#1b7a4b);
-      display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:18px;
-      flex-shrink:0; overflow:hidden;
-    }
-    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }
-    .profile-text { flex:1 }
-    .greeting { font-weight:700; font-size:15px; color:var(--primary); line-height:1 }
-    .sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }
+/* ---------- SIDEBAR ---------- */  
+.sidebar {  
+  position:fixed; left:-300px; top:0; height:100vh; width:300px;  
+  background:var(--card); box-shadow:2px 0 18px rgba(0,0,0,0.08);  
+  padding:18px; border-right:1px solid #f0f5f0;  
+  transition:left .26s ease; overflow-y:auto; z-index:1200;  
+  display:flex; flex-direction:column;  
+}  
+.sidebar.active { left:0; }  
+.sidebar .close { text-align:right; margin-bottom:6px; cursor:pointer; font-size:18px; color:var(--muted) }  
+.profile {  
+  display:flex; gap:12px; align-items:center; padding:6px 0 14px; border-bottom:1px solid #f2f7f2;  
+}  
+.avatar {  
+  width:52px; height:52px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#1b7a4b);  
+  display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:18px;  
+  flex-shrink:0; overflow:hidden;  
+}  
+.avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }  
+.profile-text { flex:1 }  
+.greeting { font-weight:700; font-size:15px; color:var(--primary); line-height:1 }  
+.sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }  
 
-    nav.menu { margin-top:14px }
-    nav.menu ul { list-style:none; padding:0; margin:0 }
-    nav.menu li { margin:8px 0; }
-    nav.menu a {
-      display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827;
-      padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s;
-    }
-    nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); }
-    nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; }
-    nav.menu a span.label { font-weight:600; }
+nav.menu { margin-top:14px; flex:1 }  
+nav.menu ul { list-style:none; padding:0; margin:0 }  
+nav.menu li { margin:8px 0; }  
+nav.menu a {  
+  display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827;  
+  padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s;  
+}  
+nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); }  
+nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; }  
+nav.menu a span.label { font-weight:600; }  
 
-    .note { margin-top:18px; font-size:13px; color:var(--muted) }
+/* Sign out stays bottom */  
+.signout {  
+  border-top:1px solid #f0f5f0; margin-top:12px; padding-top:12px;  
+}  
 
-    /* ---------- MAIN ---------- */
-    .main {
-      flex:1; margin-left:0; transition:margin-left .26s; width:100%;
-      min-height:100vh; display:flex; flex-direction:column;
-    }
-    .main.shift { margin-left:300px; }
+.note { margin-top:18px; font-size:13px; color:var(--muted) }  
 
-    header {
-      background:linear-gradient(90deg,var(--primary),var(--primary-600));
-      color:#fff; padding:12px 14px; display:flex; align-items:center; gap:12px;
-      justify-content:space-between;
-    }
-    .hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center }
-    .title { font-weight:700; font-size:16px }
-    .profile-mini { display:flex; align-items:center; gap:10px }
-    .profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }
+/* ---------- MAIN ---------- */  
+.main {  
+  flex:1; margin-left:0; transition:margin-left .26s; width:100%;  
+  min-height:100vh; display:flex; flex-direction:column;  
+}  
+.main.shift { margin-left:300px; }  
 
-    /* content area */
-    .container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
+header {  
+  background:linear-gradient(90deg,var(--primary),var(--primary-600));  
+  color:#fff; padding:12px 14px; display:flex; align-items:center; gap:12px;  
+  justify-content:space-between;  
+}  
+.hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center }  
+.title { font-weight:700; font-size:16px }  
+.profile-mini { display:flex; align-items:center; gap:10px }  
+.profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }  
 
-    /* top cards */
-    .cards {
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap:12px;
-      margin-bottom:14px;
-    }
-    .card {
-      background:var(--card); border-radius:10px; padding:12px;
-      box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px;
-      min-height:78px;
-    }
-    .card .label { color:var(--muted); font-size:13px; }
-    .card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* content area */  
+.container { padding:14px; max-width:1150px; margin:0 auto; width:100% }  
 
-    /* referral / code */
-    .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
-    .ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary) }
-    .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
+/* top cards */  
+.cards {  
+  display:grid;  
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));  
+  gap:12px;  
+  margin-bottom:14px;  
+}  
+.card {  
+  background:var(--card); border-radius:10px; padding:12px;  
+  box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px;  
+  min-height:78px;  
+}  
+.card .label { color:var(--muted); font-size:13px; }  
+.card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }  
 
-    /* transactions */
-    .tableWrap { overflow:auto; border-radius:8px; margin-top:10px; }
-    .table {
-      width:100%; border-collapse:collapse; min-width:640px; font-size:14px;
-    }
-    .table thead th { text-align:left; padding:10px 12px; color:var(--muted); font-size:13px; background:rgba(0,0,0,0.02) }
-    .table tbody td { padding:10px 12px; border-top:1px solid #f2f7f2; vertical-align:middle; }
-    .amt-pos { color:green; font-weight:700; }
-    .amt-neg { color:#b91c1c; font-weight:700; }
+/* referral / code */  
+.ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }  
+.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary) }  
+.copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }  
 
-    /* floating WhatsApp */
-    .wa {
-      position:fixed; right:16px; bottom:16px; background:#25D366; color:#fff;
-      width:52px; height:52px; border-radius:999px; display:flex; align-items:center; justify-content:center;
-      box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;
-    }
+/* transactions */  
+.tableWrap { overflow:auto; border-radius:8px; margin-top:10px; }  
+.table {  
+  width:100%; border-collapse:collapse; min-width:640px; font-size:14px;  
+}  
+.table thead th { text-align:left; padding:10px 12px; color:var(--muted); font-size:13px; background:rgba(0,0,0,0.02) }  
+.table tbody td { padding:10px 12px; border-top:1px solid #f2f7f2; vertical-align:middle; }  
+.amt-pos { color:green; font-weight:700; }  
+.amt-neg { color:#b91c1c; font-weight:700; }  
 
-    /* responsive tweaks */
-    @media (max-width:900px){
-      .sidebar{ width:86%; left:-100% }
-      .main.shift{ margin-left:0 }
-      .container{ padding:12px }
-      .card .value{ font-size:18px }
-      .table { min-width:560px }
-    }
-  </style>
-</head>
-<body>
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar" aria-hidden="true">
-    <div class="close" onclick="toggleSidebar()" aria-label="Close menu"><i class="fas fa-times"></i></div>
+/* floating WhatsApp */  
+.wa {  
+  position:fixed; right:16px; bottom:16px; background:#25D366; color:#fff;  
+  width:52px; height:52px; border-radius:999px; display:flex; align-items:center; justify-content:center;  
+  box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;  
+}  
 
-    <div class="profile" id="profileBlock">
-      <div class="avatar" id="avatar"><span id="avatarInitials">EP</span></div>
-      <div class="profile-text">
-        <div class="greeting" id="greeting">Good evening</div>
-        <div class="sub" id="usernameSub">Welcome, <strong id="sideUsername">User</strong></div>
-      </div>
-    </div>
+/* responsive tweaks */  
+@media (max-width:900px){  
+  .sidebar{ width:86%; left:-100% }  
+  .main.shift{ margin-left:0 }  
+  .container{ padding:12px }  
+  .card .value{ font-size:18px }  
+  .table { min-width:560px }  
+}
+  </style>  
+</head>  
+<body>  
+  <!-- Sidebar -->  
+  <aside class="sidebar" id="sidebar" aria-hidden="true">  
+    <div class="close" onclick="toggleSidebar()" aria-label="Close menu"><i class="fas fa-times"></i></div>  
+    <div class="profile" id="profileBlock">  
+      <div class="avatar" id="avatar"><span id="avatarInitials">EP</span></div>  
+      <div class="profile-text">  
+        <div class="greeting" id="greeting">Good evening</div>  
+        <div class="sub" id="usernameSub">Welcome, <strong id="sideUsername">User</strong></div>  
+      </div>  
+    </div>  
 
-    <nav class="menu" aria-label="EasyPay menu">
-      <ul>
-        <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>
-        <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
-        <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
-        <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>
-        <li><a href="shortlink.html"><i class="emoji">🔗</i><span class="label">Shortlink</span></a></li>
-        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span></a></li>
-        <li><a href="contact.html"><i class="emoji">📞</i><span class="label">Contact Us</span></a></li>
-      </ul>
-    </nav>
+    <nav class="menu" aria-label="EasyPay menu">  
+      <ul>  
+        <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>  
+        <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>  
+        <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>  
+        <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>  
+        <li><a href="shortlink.html"><i class="emoji">🔗</i><span class="label">Shortlink</span></a></li>  
+        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span></a></li>  
+        <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>  
+        <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage Tasks</span></a></li>  
+        <li><a href="profile.html"><i class="emoji">🙍‍♂️</i><span class="label">Profile</span></a></li>  
+        <li class="signout"><a href="#" onclick="signOutUser()"><i class="emoji">🚪</i><span class="label">Sign Out</span></a></li>  
+      </ul>  
+    </nav>  
 
-    <div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>
-  </aside>
+    <div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>  
+  </aside>  
 
-  <!-- overlay -->
-  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>
+  <!-- overlay -->  
+  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>  
 
-  <!-- Main -->
-  <main class="main" id="main">
-    <header>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div class="hamburger" onclick="toggleSidebar()" aria-label="Open menu"><i class="fas fa-bars"></i></div>
-        <div class="title">EasyPay Dashboard</div>
-      </div>
-      <div class="profile-mini" id="profileMini">
-        <img id="miniAvatar" src="" alt="" style="display:none" />
-        <div id="miniName" style="color:#fff; font-weight:600">User</div>
-      </div>
-    </header>
+  <!-- Main -->  
+  <main class="main" id="main">  
+    <header>  
+      <div style="display:flex; align-items:center; gap:12px;">  
+        <div class="hamburger" onclick="toggleSidebar()" aria-label="Open menu"><i class="fas fa-bars"></i></div>  
+        <div class="title">EasyPay Dashboard</div>  
+      </div>  
+      <div class="profile-mini" id="profileMini">  
+        <img id="miniAvatar" src="" alt="" style="display:none" />  
+        <div id="miniName" style="color:#fff; font-weight:600">User</div>  
+      </div>  
+    </header>  
 
-    <div class="container">
-      <!-- Top cards -->
-      <div class="cards" aria-hidden="false">
-        <div class="card">
-          <div class="label">Main Balance</div>
-          <div class="value">₦<span id="balance">0.00</span></div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="copy-btn" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>
-            <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>
-          </div>
-        </div>
+    <div class="container">  
+      <!-- Top cards -->  
+      <div class="cards" aria-hidden="false">  
+        <div class="card">  
+          <div class="label">Main Balance</div>  
+          <div class="value">₦<span id="balance">0.00</span></div>  
+          <div style="display:flex; gap:8px; margin-top:8px;">  
+            <button class="copy-btn" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>  
+            <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>  
+          </div>  
+        </div>  
 
-        <div class="card">
-          <div class="label">Total Deposits</div>
-          <div class="value">₦<span id="totalDeposits">0.00</span></div>
-          <small class="label">All-time deposits</small>
-        </div>
+        <div class="card">  
+          <div class="label">Total Deposits</div>  
+          <div class="value">₦<span id="totalDeposits">0.00</span></div>  
+          <small class="label">All-time deposits</small>  
+        </div>  
 
-        <div class="card">
-          <div class="label">Available for Withdrawal</div>
-          <div class="value">₦<span id="available">0.00</span></div>
-          <small class="label">Ready balance</small>
-        </div>
+        <div class="card">  
+          <div class="label">Available for Withdrawal</div>  
+          <div class="value">₦<span id="available">0.00</span></div>  
+          <small class="label">Ready balance</small>  
+        </div>  
 
-        <div class="card">
-          <div class="label">Total Referrals</div>
-          <div class="value"><span id="referrals">0</span></div>
-          <small class="label">People you referred</small>
-        </div>
-      </div>
+        <div class="card">  
+          <div class="label">Total Referrals</div>  
+          <div class="value"><span id="referrals">0</span></div>  
+          <small class="label">People you referred</small>  
+        </div>  
+      </div>  
 
-      <!-- Referral Code -->
-      <div class="card ref-card" style="margin-bottom:12px;">
-        <div style="flex:1">
-          <div class="label">Referral Code</div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <div class="ref-input" id="refCode">loading...</div>
-            <button class="copy-btn" id="copyRefBtn">Copy</button>
-          </div>
-        </div>
-        <div style="min-width:120px; text-align:center;">
-          <div class="label">Leaderboard</div>
-          <div style="font-weight:800; font-size:18px; color:var(--primary); margin-top:6px" id="leaderTop">—</div>
-          <small class="label">Top earner</small>
-        </div>
-      </div>
+      <!-- Referral Code -->  
+      <div class="card ref-card" style="margin-bottom:12px;">  
+        <div style="flex:1">  
+          <div class="label">Referral Code</div>  
+          <div style="display:flex; gap:8px; margin-top:8px;">  
+            <div class="ref-input" id="refCode">loading...</div>  
+            <button class="copy-btn" id="copyRefBtn">Copy</button>  
+          </div>  
+        </div>  
+      </div>  
 
-      <!-- Transactions -->
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div class="label">Recent transactions</div>
-            <div style="font-weight:700; font-size:15px; margin-top:6px">Last 10</div>
-          </div>
-          <div><a href="history.html" style="text-decoration:none; color:var(--primary); font-weight:600">See all</a></div>
-        </div>
+      <!-- Transactions -->  
+      <div class="card">  
+        <div style="display:flex; justify-content:space-between; align-items:center;">  
+          <div>  
+            <div class="label">Recent transactions</div>  
+            <div style="font-weight:700; font-size:15px; margin-top:6px">Last 10</div>  
+          </div>  
+          <div><a href="history.html" style="text-decoration:none; color:var(--primary); font-weight:600">See all</a></div>  
+        </div>  
 
-        <div class="tableWrap" role="region" aria-live="polite">
-          <table class="table" aria-hidden="false">
-            <thead>
-              <tr>
-                <th>Source</th>
-                <th>Date</th>
-                <th style="text-align:right">Amount (₦)</th>
-              </tr>
-            </thead>
-            <tbody id="txBody">
-              <tr><td colspan="3" style="padding:12px; color:var(--muted)">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </main>
+        <div class="tableWrap" role="region" aria-live="polite">  
+          <table class="table" aria-hidden="false">  
+            <thead>  
+              <tr>  
+                <th>Source</th>  
+                <th>Date</th>  
+                <th style="text-align:right">Amount (₦)</th>  
+              </tr>  
+            </thead>  
+            <tbody id="txBody">  
+              <tr><td colspan="3" style="padding:12px; color:var(--muted)">Loading...</td></tr>  
+            </tbody>  
+          </table>  
+        </div>  
+      </div>  
+    </div>  
+  </main>  
 
-  <!-- WhatsApp floating -->
-  <a class="wa" href="https://wa.me/2348037402826" target="_blank" title="Chat on WhatsApp">
-    <i class="fab fa-whatsapp" style="font-size:20px"></i>
-  </a>
+  <!-- WhatsApp floating -->  
+  <a class="wa" href="https://wa.me/2348037402826" target="_blank" title="Chat on WhatsApp">  
+    <i class="fab fa-whatsapp" style="font-size:20px"></i>  
+  </a>  
 
-  <!-- FIREBASE & JS -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import {
-      getFirestore, doc, onSnapshot, collection, query, orderBy, limit, getDocs
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  <!-- FIREBASE & JS -->  
+  <script type="module">  
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";  
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";  
+    import {  
+      getFirestore, doc, onSnapshot, collection, query, orderBy, limit  
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";  
 
-    // ---------- YOUR FIREBASE CONFIG ----------
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.firebasestorage.app",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
+    // ---------- FIREBASE CONFIG ----------  
+    const firebaseConfig = {  
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",  
+      authDomain: "easypay-6bce8.firebaseapp.com",  
+      projectId: "easypay-6bce8",  
+      storageBucket: "easypay-6bce8.firebasestorage.app",  
+      messagingSenderId: "862671358267",  
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",  
+      measurementId: "G-2FZKDQ47FZ"  
+    };  
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);  
+    const auth = getAuth(app);  
+    const db = getFirestore(app);  
 
-    // UI refs
-    const sideUsername = document.getElementById('sideUsername');
-    const greetingEl = document.getElementById('greeting');
-    const avatarEl = document.getElementById('avatar');
-    const avatarInitials = document.getElementById('avatarInitials');
-    const miniName = document.getElementById('miniName');
-    const miniAvatar = document.getElementById('miniAvatar');
+    // UI refs  
+    const sideUsername = document.getElementById('sideUsername');  
+    const greetingEl = document.getElementById('greeting');  
+    const avatarEl = document.getElementById('avatar');  
+    const avatarInitials = document.getElementById('avatarInitials');  
+    const miniName = document.getElementById('miniName');  
+    const miniAvatar = document.getElementById('miniAvatar');  
 
-    const balanceEl = document.getElementById('balance');
-    const totalDepositsEl = document.getElementById('totalDeposits');
-    const availableEl = document.getElementById('available');
-    const referralsEl = document.getElementById('referrals');
-    const refCodeEl = document.getElementById('refCode');
-    const copyRefBtn = document.getElementById('copyRefBtn');
-    const txBody = document.getElementById('txBody');
-    const leaderTop = document.getElementById('leaderTop');
+    const balanceEl = document.getElementById('balance');  
+    const totalDepositsEl = document.getElementById('totalDeposits');  
+    const availableEl = document.getElementById('available');  
+    const referralsEl = document.getElementById('referrals');  
+    const refCodeEl = document.getElementById('refCode');  
+    const copyRefBtn = document.getElementById('copyRefBtn');  
+    const txBody = document.getElementById('txBody');  
 
-    let userRefUnsub = null;
-    let txUnsub = null;
-    let currentUid = null;
+    let userRefUnsub = null;  
+    let txUnsub = null;  
+    let currentUid = null;  
 
-    function greetByHour(h){
-      if (h >= 5 && h < 12) return "Good morning";
-      if (h >= 12 && h < 17) return "Good afternoon";
-      return "Good evening";
-    }
-
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = 'login.html';
-      currentUid = user.uid;
-      greetingEl.textContent = greetByHour(new Date().getHours());
-
-      // subscribe to user doc (realtime)
-      const uDocRef = doc(db, 'users', user.uid);
-      if (userRefUnsub) userRefUnsub();
-      userRefUnsub = onSnapshot(uDocRef, (snap) => {
-        if (!snap.exists()) return;
-        const data = snap.data();
-
-        const bal = Number(data.balance || 0);
-        balanceEl.textContent = bal.toLocaleString();
-
-        referralsEl.textContent = (data.referrals || 0);
-
-        // referral code: username if set, otherwise uid
-        const code = (data.username && data.username.trim()) ? data.username.trim() : user.uid;
-        refCodeEl.textContent = code;
-
-        leaderTop.textContent = (data.topEarnerName || '—');
-
-        // avatar
-        if (data.photoURL) {
-          avatarEl.innerHTML = '<img src="'+data.photoURL+'" alt="avatar">';
-          miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
-        } else {
-          const username = data.username || (user.displayName || user.email || 'User');
-          const parts = username.split(' ').filter(Boolean);
-          const letters = (parts.length >= 2) ? (parts[0][0]+parts[1][0]) : username.slice(0,2);
-          avatarInitials.textContent = letters.toUpperCase();
-        }
-      });
-
-      // subscribe to last 10 transactions
-      const txCol = collection(db, 'users', user.uid, 'transactions');
-      const txQuery = query(txCol, orderBy('date', 'desc'), limit(10));
-      if (txUnsub) txUnsub();
-      txUnsub = onSnapshot(txQuery, async (snap) => {
-        if (snap.empty) {
-          txBody.innerHTML = '<tr><td colspan="3" style="padding:12px; color:var(--muted)">No transactions yet</td></tr>';
-          totalDepositsEl.textContent = '0.00';
-          availableEl.textContent = balanceEl.textContent;
-          return;
-        }
-        let rows = '';
-        let depositSum = 0;
-        snap.docs.forEach(docSnap => {
-          const t = docSnap.data();
-          const source = t.source || t.type || 'Activity';
-          const amount = Number(t.amount || 0);
-          const date = (t.date && t.date.toDate) ? t.date.toDate() : new Date((t.date && t.date.seconds) ? t.date.seconds * 1000 : Date.now());
-          const dateStr = date.toLocaleString();
-          const cls = amount >= 0 ? 'amt-pos' : 'amt-neg';
-          if (amount > 0) depositSum += amount;
-          rows += `<tr>
-            <td>${escapeHtml(source)}</td>
-            <td>${escapeHtml(dateStr)}</td>
-            <td style="text-align:right"><span class="${cls}">${amount.toLocaleString()}</span></td>
-          </tr>`;
-        });
-        txBody.innerHTML = rows;
-        totalDepositsEl.textContent = depositSum.toLocaleString();
-        availableEl.textContent = balanceEl.textContent;
-      });
-
-      // optional: load leaderboard top if you have a doc
-      try {
-        // attempt to read a 'leaderboard/top' doc if you use this
-        // (safe try - ignore if collection doesn't exist)
-      } catch(e){}
-    });
-
-    // copy referral code
-    copyRefBtn.addEventListener('click', async () => {
-      const text = refCodeEl.textContent || '';
-      try {
-        await navigator.clipboard.writeText(text);
-        copyRefBtn.textContent = 'Copied';
-        setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
-      } catch (err) {
-        copyRefBtn.textContent = 'Copy';
-        alert('Copy failed. Manually select the code and copy.');
-      }
-    });
-
-    function escapeHtml(s){
-      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    // ---------- sidebar toggle ----------
-    window.toggleSidebar = function toggleSidebar(){
-      const sb = document.getElementById('sidebar');
-      const main = document.getElementById('main');
-      const overlay = document.getElementById('overlay');
-      const active = sb.classList.toggle('active');
-      if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
-      else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
-    };
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
-  </script>
-</body>
-    </html>
+    function greetByHour(h){  
+      if (h >= 5 && h < 12) return "Good morning";  
+      if (h >= 12 && h <
