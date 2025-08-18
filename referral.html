@@ -1,68 +1,113 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Referrals – EasyPay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
-    :root { --green-dark:#006400; --green-medium:#009f4d; --bg:#f5fdf7; --text-dark:#003300; --white:#ffffff; }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { display:flex; flex-direction:column; height:100vh; background:var(--bg); color:var(--text-dark); font-family:'Segoe UI',sans-serif; }
-    header { background:var(--green-dark); color:var(--white); padding:16px; text-align:center; font-size:1.5rem; }
-    .info-card { background:var(--white); margin:16px auto; padding:12px 16px; border-radius:8px; width:90%; max-width:480px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-    .info-card p { margin:8px 0; font-size:0.9rem; }
-    .benefit-list { list-style:none; padding-left:16px; }
-    .benefit-list li { margin-bottom:6px; }
-    .tabs { display:flex; justify-content:center; margin-top:8px; }
-    .tab { padding:10px 20px; cursor:pointer; border-bottom:3px solid transparent; font-weight:bold; color:var(--green-dark); }
-    .tab.active { border-bottom-color:var(--green-medium); color:var(--green-medium); }
-    .container { flex:1; overflow-y:auto; padding:0 16px 16px; }
-    .section-title { font-size:1.3rem; color:var(--green-dark); margin:12px 0; text-align:center; }
-    .table-container { background:var(--white); border-radius:8px; overflow:auto; box-shadow:0 2px 8px rgba(0,0,0,0.1); max-height:calc(100vh - 300px); margin-bottom:16px; }
-    table { width:100%; border-collapse:collapse; min-width:600px; }
-    th,td { padding:12px 16px; border-bottom:1px solid #e0e0e0; font-size:0.9rem; }
-    th { background:var(--green-dark); color:var(--white); font-size:1rem; position:sticky; top:0; }
-    tr:hover td { background:#f0fff0; }
-    .no-data { text-align:center; padding:20px; color:#666; }
-    footer { background:var(--green-dark); color:var(--white); text-align:center; padding:12px; font-size:0.9rem; }
+    :root{
+      --green-dark:#06643a;
+      --green-med:#00a86b;
+      --bg:#f6fdf8;
+      --card:#ffffff;
+      --muted:#6b6b6b;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Poppins',sans-serif;background:linear-gradient(180deg, #f8fff9 0%, var(--bg) 100%);color:var(--green-dark);min-height:100vh;display:flex;flex-direction:column}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:linear-gradient(90deg,var(--green-med),var(--green-dark));color:#fff}
+    .brand{font-weight:700;font-size:1.15rem}
+    .ref-box{display:flex;gap:10px;align-items:center}
+    .ref-code{background:rgba(255,255,255,0.1);padding:8px 12px;border-radius:8px;font-weight:600}
+    .btn{background:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600}
+    .btn.small{padding:6px 8px;font-size:.9rem}.top-row{display:flex;gap:16px;padding:18px;max-width:1100px;margin:18px auto;width:95%}
+.card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(6,100,58,0.08);flex:1;display:flex;flex-direction:column;gap:8px}
+.card h3{margin:0;color:var(--green-dark);font-size:0.95rem}
+.big{font-size:1.4rem;font-weight:700;color:var(--green-dark)}
+.muted{color:var(--muted);font-size:0.85rem}
+
+.controls{display:flex;gap:12px;align-items:center}
+.search{flex:1;min-width:200px}
+.search input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e6f3ea;background:#fbfffb}
+
+.tabs{display:flex;gap:12px;justify-content:center;margin:6px auto;max-width:1100px;width:95%}
+.tab{padding:10px 16px;border-radius:999px;cursor:pointer;background:transparent;border:1px solid transparent;font-weight:600;color:var(--green-dark)}
+.tab.active{background:linear-gradient(90deg,var(--green-med),var(--green-dark));color:#fff;box-shadow:0 8px 18px rgba(6,100,58,0.08)}
+
+.container{max-width:1100px;margin:12px auto;display:flex;flex-direction:column;gap:14px;padding:0 20px 40px;width:95%}
+.table-card{background:var(--card);border-radius:12px;padding:8px;box-shadow:0 10px 30px rgba(6,100,58,0.05);overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+thead th{position:sticky;top:0;background:linear-gradient(90deg,var(--green-dark),var(--green-med));color:#fff;padding:12px;text-align:left}
+tbody td{padding:12px;border-bottom:1px solid #f0f6f1}
+tbody tr:hover td{background:#fbfff9}
+
+.no-data{padding:26px;text-align:center;color:var(--muted)}
+footer{margin-top:auto;padding:14px;text-align:center;background:transparent;color:var(--muted)}
+
+@media (max-width:860px){
+  .top-row{flex-direction:column}
+  table{min-width:600px}
+  .ref-box{flex-direction:column;align-items:flex-end}
+}
+
   </style>
 </head>
 <body>
-  <header>My Referrals</header>  <!-- Referral Code & Benefit Breakdown -->  <div class="info-card">
-    <p><strong>Your Referral Code:</strong> <span id="refCode">Loading...</span></p>
-    <p><strong>Referral Benefits Breakdown:</strong></p>
-    <ul class="benefit-list">
-      <li>Activate ₦1,000 → You get ₦300</li>
-      <li>Activate ₦2,000–₦3,000 → You get ₦500</li>
-      <li>Activate ₦5,000–₦6,000 → You get ₦1,000</li>
-      <li>Activate ₦7,000–₦10,000 → You get ₦1,500–₦2,000</li>
-    </ul>
-  </div>  <!-- Tabs -->  <div class="tabs">
-    <div class="tab active" data-tab="activated">Activated Users</div>
+  <header>
+    <div class="brand">EasyPay — My Referrals</div>
+    <div class="ref-box" aria-live="polite">
+      <div style="text-align:right">
+        <div style="font-size:.8rem;color:rgba(255,255,255,0.9)">Your referral code</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+          <div id="refCode" class="ref-code">Loading...</div>
+          <button id="copyBtn" class="btn small">Copy</button>
+        </div>
+      </div>
+    </div>
+  </header>  <div class="top-row">
+    <div class="card">
+      <h3>Total Referred</h3>
+      <div class="big" id="totalRef">—</div>
+      <div class="muted">Users who signed up with your code</div>
+    </div><div class="card">
+  <h3>Activated</h3>
+  <div class="big" id="activatedCount">—</div>
+  <div class="muted">Users who meet activation criteria</div>
+</div>
+
+<div class="card">
+  <h3>Search & Filter</h3>
+  <div class="controls">
+    <div class="search"><input id="searchInput" placeholder="Search username or email"/></div>
+    <div style="min-width:110px"><button id="refreshBtn" class="btn">Refresh</button></div>
+  </div>
+  <div class="muted" style="margin-top:6px">Type to filter the visible table</div>
+</div>
+
+  </div>  <div class="tabs">
+    <div class="tab active" data-tab="activated">Activated</div>
     <div class="tab" data-tab="all">All Referrals</div>
   </div>  <div class="container">
-    <div id="activated" class="tab-content">
-      <div class="section-title">Activated Referrals</div>
-      <div class="table-container">
-        <table>
+    <div id="activated" class="tab-pane">
+      <div class="table-card">
+        <table aria-describedby="activated">
           <thead>
-            <tr><th>Username</th><th>Email</th><th>Balance</th><th>Registered At</th></tr>
+            <tr><th>Username</th><th>Email</th><th>Balance (₦)</th><th>Registered At</th></tr>
           </thead>
           <tbody id="activatedBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
         </table>
       </div>
-    </div>
-    <div id="all" class="tab-content" style="display:none;">
-      <div class="section-title">All Referred Users</div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr><th>Username</th><th>Email</th><th>Balance</th><th>Registered At</th></tr>
-          </thead>
-          <tbody id="allBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </div>  <footer>EasyPay 2025</footer>  <script type="module">
+    </div><div id="all" class="tab-pane" style="display:none">
+  <div class="table-card">
+    <table aria-describedby="all">
+      <thead>
+        <tr><th>Username</th><th>Email</th><th>Balance (₦)</th><th>Registered At</th></tr>
+      </thead>
+      <tbody id="allBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>  <footer>EasyPay © 2025</footer>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
@@ -76,6 +121,7 @@
       appId: "1:862671358267:web:b243c7b69840ef918c1e",
       measurementId: "G-2FZKDQ47FZ"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -83,40 +129,105 @@
     const activatedBody = document.getElementById('activatedBody');
     const allBody = document.getElementById('allBody');
     const refCodeEl = document.getElementById('refCode');
+    const totalRefEl = document.getElementById('totalRef');
+    const activatedCountEl = document.getElementById('activatedCount');
+    const searchInput = document.getElementById('searchInput');
+    const copyBtn = document.getElementById('copyBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+
     const allowedPlans = ['premium','gold','elite','diamond','platinum','sapphire','emerald','titanium','supreme','royalty'];
 
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = 'login.html';
-      const userRef = doc(db, 'users', user.uid);
+    let allRefs = [];
+    let activatedRefs = [];
+
+    function fmtDate(ts){
+      try{ const d = ts instanceof Date ? ts : (ts && ts.toDate ? ts.toDate() : new Date(ts));
+        return d.toLocaleString(); } catch(e){ return '-'; }
+    }
+
+    function renderRows(list, container){
+      if(!list.length){ container.innerHTML = '<tr><td colspan="4" class="no-data">No records found</td></tr>'; return }
+      container.innerHTML = list.map(u=>{
+        const reg = fmtDate(u.registeredAt || u.createdAt || u.registered_at || u.created_at || new Date());
+        const bal = typeof u.balance === 'number' ? u.balance.toLocaleString('en-NG') : (u.balance || '0');
+        return `<tr>
+          <td style="font-weight:600">${u.username || '-'}${u.username && u.isActivated?'<span style="margin-left:8px;background:#e8fdf1;color:var(--green-dark);padding:4px 8px;border-radius:999px;font-size:.7rem;font-weight:700">Activated</span>':''}</td>
+          <td>${u.email || '-'}</td>
+          <td>₦${bal}</td>
+          <td>${reg}</td>
+        </tr>`
+      }).join('')
+    }
+
+    function applyFilter(){
+      const q = (searchInput.value||'').toLowerCase().trim();
+      if(!q){ renderRows(activatedRefs, activatedBody); renderRows(allRefs, allBody); return }
+      const f1 = activatedRefs.filter(u=> (u.username||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+      const f2 = allRefs.filter(u=> (u.username||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+      renderRows(f1, activatedBody); renderRows(f2, allBody);
+    }
+
+    searchInput.addEventListener('input', applyFilter);
+    copyBtn.addEventListener('click', ()=>{ const code = refCodeEl.textContent || ''; navigator.clipboard.writeText(code).then(()=>{ copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent='Copy',1400) }) });
+    refreshBtn.addEventListener('click', loadData);
+
+    document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', e=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      const tab = e.currentTarget.dataset.tab;
+      document.querySelectorAll('.tab-pane').forEach(p=>p.style.display='none');
+      document.getElementById(tab).style.display = 'block';
+    }));
+
+    onAuthStateChanged(auth, async user=>{
+      if(!user) return location.href='login.html';
+      const userRef = doc(db,'users',user.uid);
       const userSnap = await getDoc(userRef);
-      const myData = userSnap.data() || {};
-      refCodeEl.textContent = myData.username || user.email;
-
-      const qRef = query(collection(db,'users'), where('referral','==', myData.username));
-      const snap = await getDocs(qRef);
-      activatedBody.innerHTML = '';
-      allBody.innerHTML = '';
-
-      if (snap.empty) {
-        allBody.innerHTML = '<tr><td colspan="4" class="no-data">No referrals found.</td></tr>';
-        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">No activated referrals.</td></tr>';
-      } else {
-        snap.forEach(docSnap => {
-          const d = docSnap.data();
-          const reg = d.createdAt?.toDate().toLocaleString() || 'N/A';
-          const bal = '₦' + ((d.balance ?? 0).toFixed(2));
-          const rowHTML = `<tr><td>${d.username}</td><td>${d.email}</td><td>${bal}</td><td>${reg}</td></tr>`;
-          allBody.innerHTML += rowHTML;
-          if (allowedPlans.includes((d.plan||'').toLowerCase())) activatedBody.innerHTML += rowHTML;
-        });
-      }
+      const myData = userSnap.exists() ? userSnap.data() : {};
+      const myCode = myData.username || user.email || user.uid;
+      refCodeEl.textContent = myCode;
+      await loadData(myCode);
     });
 
-    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-      document.getElementById(tab.dataset.tab).style.display = 'block';
-    }));
+    async function loadData(myCode){
+      try{
+        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Loading…</td></tr>';
+        allBody.innerHTML = '<tr><td colspan="4" class="no-data">Loading…</td></tr>';
+
+        const qRef = query(collection(db,'users'), where('referral','==', myCode));
+        const snap = await getDocs(qRef);
+        allRefs = [];
+        activatedRefs = [];
+
+        snap.forEach(docSnap=>{
+          const d = docSnap.data();
+          const user = {
+            username: d.username || d.name || '',
+            email: d.email || '',
+            balance: Number(d.balance) || Number(d.wallet) || 0,
+            registeredAt: d.createdAt || d.registeredAt || null,
+            plan: (d.plan||'').toString().toLowerCase(),
+            isActivated: false
+          };
+          user.isActivated = allowedPlans.includes(user.plan) || user.balance > 0;
+          allRefs.push(user);
+          if(user.isActivated) activatedRefs.push(user);
+        });
+
+        // sort by date descending if registeredAt exists
+        const sortFn = (a,b)=> (b.registeredAt && a.registeredAt)? (new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime()) : 0;
+        allRefs.sort(sortFn);
+        activatedRefs.sort(sortFn);
+
+        totalRefEl.textContent = allRefs.length;
+        activatedCountEl.textContent = activatedRefs.length;
+
+        applyFilter();
+      }catch(err){
+        console.error(err);
+        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Failed to load referrals</td></tr>';
+        allBody.innerHTML = '<tr><td colspan="4" class="no-data">Failed to load referrals</td></tr>';
+      }
+    }
   </script></body>
 </html>
