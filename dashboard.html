@@ -139,6 +139,7 @@
         <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage Tasks</span></a></li>
         <li><a href="profile.html"><i class="emoji">🙍‍♂️</i><span class="label">Profile</span></a></li>
         <li><a href="tap.html"><i class="emoji">🤙</i><span class="label">Tap&Earn</span></a></li>
+
         <li><a href="index.html"><i class="emoji">🚪</i><span class="label">Sign-Out</span></a></li>
       </ul>
     </nav>
@@ -173,8 +174,6 @@
             <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>
           </div>
         </div>
-
-        <!-- Removed Total Deposits -->
 
         <div class="card">
           <div class="label">Available for Withdrawal</div>
@@ -238,6 +237,14 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // UI refs
+    const sideUsername = document.getElementById('sideUsername');
+    const greetingEl = document.getElementById('greeting');
+    const avatarEl = document.getElementById('avatar');
+    const avatarInitials = document.getElementById('avatarInitials');
+    const miniName = document.getElementById('miniName');
+    const miniAvatar = document.getElementById('miniAvatar');
+
     const balanceEl = document.getElementById('balance');
     const availableEl = document.getElementById('available');
     const referralsEl = document.getElementById('referrals');
@@ -246,31 +253,76 @@
     const claimBtn = document.getElementById('claimBtn');
     const claimStatus = document.getElementById('claimStatus');
 
+    let userRefUnsub = null;
     let currentUid = null;
 
     function greetByHour(h){
+      // local hours (0-23) -> better split for more conventional greetings
       if (h >= 5 && h < 12) return "Good morning";
       if (h >= 12 && h < 17) return "Good afternoon";
       return "Good evening";
     }
 
+    function initialsFromName(name) {
+      if (!name) return 'EP';
+      const parts = String(name).trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    // Set UI immediately from auth user (so it doesn't show 'User' while Firestore loads)
     onAuthStateChanged(auth, async user => {
       if (!user) return location.href = 'login.html';
       currentUid = user.uid;
 
+      // immediate fallback name (before Firestore doc arrives)
+      const fallbackName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+      sideUsername.textContent = fallbackName;
+      miniName.textContent = fallbackName;
+      avatarInitials.textContent = initialsFromName(fallbackName);
+
+      // show greeting using local time + first name
+      const firstName = (fallbackName.split(' ')[0] || fallbackName);
+      greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${firstName}`;
+
+      // subscribe to user doc (realtime)
       const uDocRef = doc(db, 'users', user.uid);
-      onSnapshot(uDocRef, (snap) => {
+      if (userRefUnsub) userRefUnsub();
+      userRefUnsub = onSnapshot(uDocRef, (snap) => {
         if (!snap.exists()) return;
         const data = snap.data();
-        balanceEl.textContent = Number(data.balance || 0).toLocaleString();
-        availableEl.textContent = balanceEl.textContent;
-        referralsEl.textContent = (data.referrals || 0);
-        refCodeEl.textContent = (data.username || user.uid);
 
-        // check last claim
+        // username precedence: Firestore username > auth displayName > email fallback
+        const username = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || (user.email ? user.email.split('@')[0] : 'User'));
+        sideUsername.textContent = username;
+        miniName.textContent = username;
+
+        // update greeting to include the (possibly updated) first name
+        const displayFirst = (username.split(' ')[0] || username);
+        greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${displayFirst}`;
+
+        // avatar handling
+        if (data.photoURL) {
+          avatarEl.innerHTML = '<img src="'+escapeHtml(data.photoURL)+'" alt="avatar">';
+          miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
+        } else {
+          avatarEl.innerHTML = '<span id="avatarInitials">'+ initialsFromName(username) +'</span>';
+          miniAvatar.style.display = 'none';
+        }
+
+        // balances & refs
+        const bal = Number(data.balance || 0);
+        balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
+        referralsEl.textContent = (data.referrals || 0);
+        refCodeEl.textContent = username;
+
+        // check last claim to toggle claim button
         if (data.lastClaim) {
-          const last = data.lastClaim.toDate ? data.lastClaim.toDate() : new Date(data.lastClaim);
-          const diff = Date.now() - last.getTime();
+          let lastDate;
+          if (typeof data.lastClaim.toDate === 'function') lastDate = data.lastClaim.toDate();
+          else if (typeof data.lastClaim === 'number') lastDate = new Date(data.lastClaim);
+          else lastDate = new Date(data.lastClaim);
+          const diff = Date.now() - lastDate.getTime();
           if (diff < 24*60*60*1000) {
             claimBtn.disabled = true;
             claimBtn.style.background = "#ccc";
@@ -280,25 +332,44 @@
             claimBtn.style.background = "var(--primary)";
             claimStatus.textContent = "";
           }
+        } else {
+          // no claim yet
+          claimBtn.disabled = false;
+          claimBtn.style.background = "var(--primary)";
+          claimStatus.textContent = "";
         }
+
+        // ensure available shows latest
+        availableEl.textContent = balanceEl.textContent;
       });
 
+      // claim handler — small note: using optimistic update via updateDoc; consider server transaction for production
       claimBtn.addEventListener('click', async () => {
         if (!currentUid) return;
         try {
           const uDocRef = doc(db, 'users', currentUid);
+
+          // take local display balance, parse it, add 0.5 and write back with timestamp
+          const localBal = Number(balanceEl.textContent.replace(/,/g,'')) || 0;
           await updateDoc(uDocRef, {
-            balance: (Number(balanceEl.textContent.replace(/,/g,'')) + 0.5),
+            balance: localBal + 0.5,
             lastClaim: serverTimestamp()
           });
+
           claimBtn.disabled = true;
           claimBtn.style.background = "#ccc";
           claimStatus.textContent = "Claimed successfully! ₦0.50 added.";
         } catch (err) {
+          console.error('Claim error:', err);
           alert("Claim failed, try again.");
         }
       });
     });
+
+    // simple escape
+    function escapeHtml(s){
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
 
     // copy referral code
     copyRefBtn.addEventListener('click', async () => {
@@ -308,11 +379,11 @@
         copyRefBtn.textContent = 'Copied';
         setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
       } catch (err) {
-        alert('Copy failed. Manually copy.');
+        alert('Copy failed. Manually select the code and copy.');
       }
     });
 
-    // sidebar toggle
+    // ---------- sidebar toggle ----------
     window.toggleSidebar = function toggleSidebar(){
       const sb = document.getElementById('sidebar');
       const main = document.getElementById('main');
@@ -321,6 +392,7 @@
       if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
       else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
     };
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
   </script>
 </body>
-  </html>
+</html>
