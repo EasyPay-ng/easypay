@@ -1,4 +1,3 @@
-
 <!doctype html>
 
 <html lang="en">
@@ -185,8 +184,11 @@ header {
     <div style="flex:1">
       <div class="label">Referral Link</div>
       <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
-        <div class="ref-input" id="refCode" title="Click to open link">loading...</div>
+        <!-- Visible text only — link itself is hidden -->
+        <div class="ref-input" id="refCode" aria-hidden="true" title="Referral link is hidden">Get referral link!</div>
         <button class="copy-btn" id="copyRefBtn">Copy</button>
+        <!-- hidden element holding the actual referral URL -->
+        <span id="hiddenRef" style="display:none" aria-hidden="true">loading...</span>
       </div>
     </div>
   </div>
@@ -235,7 +237,9 @@ header {
     const balanceEl = document.getElementById('balance');
     const availableEl = document.getElementById('available');
     const referralsEl = document.getElementById('referrals');
-    const refCodeEl = document.getElementById('refCode');
+    // visible placeholder element (non-clickable)
+    const refCodeEl = document.getElementById('refCode') || document.getElementById('refCodeVisible');
+    const hiddenRefEl = document.getElementById('hiddenRef');
     const copyRefBtn = document.getElementById('copyRefBtn');
     const claimBtn = document.getElementById('claimBtn');
     const claimStatus = document.getElementById('claimStatus');
@@ -318,16 +322,19 @@ header {
           referralsEl.textContent = (data.referrals || 0);
         }
 
-        // build referral URL and show it (scrollable)
+        // build referral URL and store it hidden (visible text remains "Get referral link!")
         try {
           const encoded = encodeURIComponent(username);
           const refUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encoded}`;
-          refCodeEl.textContent = refUrl;
-          refCodeEl.setAttribute('title', refUrl);
-          // make it non-clickable — user should copy via the Copy button
-          refCodeEl.style.cursor = 'text';
+          if (hiddenRefEl) hiddenRefEl.textContent = refUrl;
+          if (refCodeEl) {
+            refCodeEl.textContent = 'Get referral link!';
+            refCodeEl.setAttribute('title', 'Click Copy to copy your referral link');
+            refCodeEl.style.cursor = 'default';
+          }
         } catch (e) {
-          refCodeEl.textContent = username;
+          if (hiddenRefEl) hiddenRefEl.textContent = username;
+          if (refCodeEl) refCodeEl.textContent = 'Get referral link!';
         }
 
         // check last claim to toggle claim button
@@ -387,13 +394,14 @@ header {
 
     // copy referral code
     copyRefBtn.addEventListener('click', async () => {
-      const text = refCodeEl.textContent || '';
+      // copy from the hidden element (preferred) — fallback to visible text if hidden missing
+      const text = (hiddenRefEl && hiddenRefEl.textContent) ? hiddenRefEl.textContent : (refCodeEl ? refCodeEl.textContent : '');
       try {
         await navigator.clipboard.writeText(text);
         copyRefBtn.textContent = 'Copied';
         setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
       } catch (err) {
-        alert('Copy failed. Manually select the code and copy.');
+        alert('Copy failed. Please copy the referral code from the link field.');
       }
     });
 
