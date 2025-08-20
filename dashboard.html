@@ -95,7 +95,9 @@ header {
 
 /* referral / code */
 .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
-.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary) }
+.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow-x:auto; overflow-y:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary); -webkit-overflow-scrolling:touch; }
+.ref-input::-webkit-scrollbar{height:8px}
+.ref-input::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:8px}
 .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
 
 /* floating WhatsApp */
@@ -277,6 +279,7 @@ header {
         const fallbackUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encodeURIComponent(fallbackName)}`;
         refCodeEl.textContent = fallbackUrl;
         refCodeEl.title = fallbackUrl;
+        refCodeEl.dataset.url = fallbackUrl;
       } catch (e) {
         // ignore
       }
@@ -315,32 +318,10 @@ header {
         const referralUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encodeURIComponent(username)}`;
         refCodeEl.textContent = referralUrl;
         refCodeEl.title = referralUrl; // hover shows full link on smaller screens
+        refCodeEl.dataset.url = referralUrl;
 
         // check last claim to toggle claim button
         if (data.lastClaim) {
-          let lastDate;
-          if (typeof data.lastClaim.toDate === 'function') lastDate = data.lastClaim.toDate();
-          else if (typeof data.lastClaim === 'number') lastDate = new Date(data.lastClaim);
-          else lastDate = new Date(data.lastClaim);
-          const diff = Date.now() - lastDate.getTime();
-          if (diff < 24*60*60*1000) {
-            claimBtn.disabled = true;
-            claimBtn.style.background = "#ccc";
-            claimStatus.textContent = "You already claimed today. Come back later.";
-          } else {
-            claimBtn.disabled = false;
-            claimBtn.style.background = "var(--primary)";
-            claimStatus.textContent = "";
-          }
-        } else {
-          // no claim yet
-          claimBtn.disabled = false;
-          claimBtn.style.background = "var(--primary)";
-          claimStatus.textContent = "";
-        }
-
-        // ensure available shows latest
-        availableEl.textContent = balanceEl.textContent;
       });
 
       // claim handler — small note: using optimistic update via updateDoc; consider server transaction for production
@@ -373,7 +354,7 @@ header {
 
     // copy referral code (now copies full registration URL)
     copyRefBtn.addEventListener('click', async () => {
-      const text = refCodeEl.textContent || '';
+      const text = refCodeEl.dataset.url || refCodeEl.textContent || '';
       try {
         await navigator.clipboard.writeText(text);
         copyRefBtn.textContent = 'Copied';
@@ -394,4 +375,4 @@ header {
     };
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
   </script></body>
-          </html>
+  </html>
