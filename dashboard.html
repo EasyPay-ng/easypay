@@ -95,9 +95,7 @@ header {
 
 /* referral / code */
 .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
-.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow-x:auto; overflow-y:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary); -webkit-overflow-scrolling:touch; }
-.ref-input::-webkit-scrollbar{height:8px}
-.ref-input::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:8px}
+.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow-x:auto; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary); -webkit-overflow-scrolling:touch }
 .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
 
 /* floating WhatsApp */
@@ -129,7 +127,6 @@ header {
       </div>
     </div><nav class="menu" aria-label="EasyPay menu">
   <ul>
-    <li><a href="upgrade.html"><i class="emoji">📈</i><span class="label">Upgrade</span></a></li>
     <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>
     <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
     <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
@@ -182,12 +179,12 @@ header {
     </div>
   </div>
 
-  <!-- Referral Code -->
+  <!-- Referral Link -->
   <div class="card ref-card" style="margin-bottom:12px;">
     <div style="flex:1">
-      <div class="label">Referral Code</div>
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <div class="ref-input" id="refCode">loading...</div>
+      <div class="label">Referral Link</div>
+      <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+        <div class="ref-input" id="refCode" title="Click to open link">loading...</div>
         <button class="copy-btn" id="copyRefBtn">Copy</button>
       </div>
     </div>
@@ -274,16 +271,6 @@ header {
       const firstName = (fallbackName.split(' ')[0] || fallbackName);
       greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${firstName}`;
 
-      // set an immediate referral link using fallback name (so there's no empty state)
-      try {
-        const fallbackUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encodeURIComponent(fallbackName)}`;
-        refCodeEl.textContent = fallbackUrl;
-        refCodeEl.title = fallbackUrl;
-        refCodeEl.dataset.url = fallbackUrl;
-      } catch (e) {
-        // ignore
-      }
-
       // subscribe to user doc (realtime)
       const uDocRef = doc(db, 'users', user.uid);
       if (userRefUnsub) userRefUnsub();
@@ -314,14 +301,43 @@ header {
         balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
         referralsEl.textContent = (data.referrals || 0);
 
-        // --- NEW: set the referral URL (includes username) so user can copy full registration link ---
-        const referralUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encodeURIComponent(username)}`;
-        refCodeEl.textContent = referralUrl;
-        refCodeEl.title = referralUrl; // hover shows full link on smaller screens
-        refCodeEl.dataset.url = referralUrl;
+        // build referral URL and show it (scrollable)
+        try {
+          const encoded = encodeURIComponent(username);
+          const refUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encoded}`;
+          refCodeEl.textContent = refUrl;
+          refCodeEl.setAttribute('title', refUrl);
+          // make it non-clickable — user should copy via the Copy button
+          refCodeEl.style.cursor = 'text';
+        } catch (e) {
+          refCodeEl.textContent = username;
+        }
 
         // check last claim to toggle claim button
         if (data.lastClaim) {
+          let lastDate;
+          if (typeof data.lastClaim.toDate === 'function') lastDate = data.lastClaim.toDate();
+          else if (typeof data.lastClaim === 'number') lastDate = new Date(data.lastClaim);
+          else lastDate = new Date(data.lastClaim);
+          const diff = Date.now() - lastDate.getTime();
+          if (diff < 24*60*60*1000) {
+            claimBtn.disabled = true;
+            claimBtn.style.background = "#ccc";
+            claimStatus.textContent = "You already claimed today. Come back later.";
+          } else {
+            claimBtn.disabled = false;
+            claimBtn.style.background = "var(--primary)";
+            claimStatus.textContent = "";
+          }
+        } else {
+          // no claim yet
+          claimBtn.disabled = false;
+          claimBtn.style.background = "var(--primary)";
+          claimStatus.textContent = "";
+        }
+
+        // ensure available shows latest
+        availableEl.textContent = balanceEl.textContent;
       });
 
       // claim handler — small note: using optimistic update via updateDoc; consider server transaction for production
@@ -352,9 +368,9 @@ header {
       return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // copy referral code (now copies full registration URL)
+    // copy referral code
     copyRefBtn.addEventListener('click', async () => {
-      const text = refCodeEl.dataset.url || refCodeEl.textContent || '';
+      const text = refCodeEl.textContent || '';
       try {
         await navigator.clipboard.writeText(text);
         copyRefBtn.textContent = 'Copied';
@@ -375,4 +391,4 @@ header {
     };
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
   </script></body>
-  </html>
+</html>
