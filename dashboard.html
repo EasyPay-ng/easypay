@@ -1,3 +1,4 @@
+
 <!doctype html>
 
 <html lang="en">
@@ -94,8 +95,8 @@ header {
 .card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 /* referral / code */
-.ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
-.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow-x:auto; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary); -webkit-overflow-scrolling:touch }
+.ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; overflow:hidden; }
+.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; width:100%; max-width:100%; box-sizing:border-box; overflow-x:auto; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary); -webkit-overflow-scrolling:touch; cursor:text; }
 .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
 
 /* floating WhatsApp */
@@ -205,7 +206,7 @@ header {
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
-      getFirestore, doc, onSnapshot, updateDoc, serverTimestamp
+      getFirestore, collection, query, where, doc, onSnapshot, updateDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
     // ---------- FIREBASE CONFIG ----------
@@ -241,6 +242,7 @@ header {
 
     let userRefUnsub = null;
     let currentUid = null;
+    let referralsUnsub = null;
 
     function greetByHour(h){
       // local hours (0-23) -> better split for more conventional greetings
@@ -299,7 +301,22 @@ header {
         // balances & refs
         const bal = Number(data.balance || 0);
         balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
-        referralsEl.textContent = (data.referrals || 0);
+
+        // detach previous referrals listener (so we don't stack listeners)
+        if (typeof referralsUnsub === 'function') referralsUnsub();
+        try {
+          const usersCol = collection(db, 'users');
+          const refQuery = query(usersCol, where('ref', '==', username));
+          referralsUnsub = onSnapshot(refQuery, (qSnap) => {
+            referralsEl.textContent = (qSnap && typeof qSnap.size === 'number') ? qSnap.size : (data.referrals || 0);
+          }, (err) => {
+            console.error('Referrals query error:', err);
+            referralsEl.textContent = (data.referrals || 0);
+          });
+        } catch (err) {
+          console.error('Referrals listener setup failed:', err);
+          referralsEl.textContent = (data.referrals || 0);
+        }
 
         // build referral URL and show it (scrollable)
         try {
@@ -391,4 +408,4 @@ header {
     };
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
   </script></body>
-</html>
+  </html>
