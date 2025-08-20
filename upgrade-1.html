@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,7 +21,7 @@
     .upload-progress-label { font-size: .9rem; color: var(--green-dark); margin-top: .4rem; display: none; text-align: right; }
     button { margin-top: 1rem; padding: 14px; font-weight: 600; font-size: 1.1rem; color: var(--white); background: var(--green); border: none; border-radius: var(--radius); cursor: pointer; box-shadow: 0 6px 16px rgba(46,125,50,0.4); transition: background .3s, box-shadow .3s; }
     button:hover:not(:disabled) { background: var(--green-dark); box-shadow: 0 8px 24px rgba(39,108,40,0.5); }
-    button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+    button:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
     .message { margin-top: 1rem; font-weight: 600; font-size: 1rem; min-height: 1.2em; text-align: center; }
     .message.success { color: var(--green-dark); }
     .message.error { color: #c62828; }
@@ -29,29 +30,36 @@
 <body>
   <main class="container" role="main" aria-label="Upgrade Account Form">
     <h1>Upgrade Your Account</h1>
+
     <label for="senderName">Sender's Name</label>
-    <input id="senderName" type="text" placeholder="Enter sender's name" aria-required="true" /><section class="info" aria-live="polite" aria-atomic="true">
-  <p><strong>Amount:</strong> ₦1,000</p>
-  <p><strong>Account Name:</strong> Onyeka Anointed Chidi</p>
-  <p><strong>Bank:</strong> Moniepoint MFB</p>
-  <p><strong>Account No:</strong> 8132425678</p>
-      <p> strong>AVOID SENDING THIS REQUEST MULTIPLE TIMES TO AVOID LOSS OF FUNDS!</p>
-</section>
+    <input id="senderName" type="text" placeholder="Enter sender's name" aria-required="true" />
 
-<label for="proofFile">Upload Proof Image</label>
-<input id="proofFile" type="file" accept="image/*" aria-required="true" />
+    <section class="info" aria-live="polite" aria-atomic="true">
+      <p><strong>Amount:</strong> ₦1,000</p>
+      <p><strong>Account Name:</strong> Onyeka Anointed Chidi</p>
+      <p><strong>Bank:</strong> Moniepoint MFB</p>
+      <p><strong>Account No:</strong> 8132425678</p>
+      <p><strong>AVOID SENDING THIS REQUEST MULTIPLE TIMES TO AVOID LOSS OF FUNDS!</strong></p>
+    </section>
 
-<div class="upload-progress-container" id="uploadContainer">
-  <div class="upload-progress-bar" id="uploadBar"></div>
-</div>
-<div class="upload-progress-label" id="uploadLabel"></div>
+    <label for="proofFile">Upload Proof Image</label>
+    <input id="proofFile" type="file" accept="image/*" aria-required="true" />
 
-<button id="submitBtn" type="button" disabled>Loading…</button>
-<div id="message" class="message" aria-live="assertive"></div>
+    <div class="upload-progress-container" id="uploadContainer">
+      <div class="upload-progress-bar" id="uploadBar"></div>
+    </div>
+    <div class="upload-progress-label" id="uploadLabel"></div>
 
-  </main>  <script type="module">
+    <button id="submitBtn" type="button" disabled>Loading…</button>
+    <div id="message" class="message" aria-live="assertive"></div>
+  </main>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp,
+      query, where, orderBy, limit, getDocs
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import { getDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
@@ -63,34 +71,27 @@
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
     let currentUser = null;
     let username = null;
+    const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-    // Wait for auth and fetch username
-    onAuthStateChanged(auth, async user => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
-      currentUser = user;
-      // fetch username from users collection
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (!userDoc.exists()) {
-        alert('User data missing.');
-        return;
-      }
-      username = userDoc.data().username;
-      // enable submit once username is known
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = false;
-      btn.textContent = 'Submit for Approval';
-    });
+    // UI refs
+    const submitBtn = document.getElementById('submitBtn');
+    const messageDiv = document.getElementById('message');
+    const uploadContainer = document.getElementById('uploadContainer');
+    const uploadLabel = document.getElementById('uploadLabel');
+    const uploadBar = document.getElementById('uploadBar');
 
-    // Imgur helper
+    // Timer state
+    let cooldownTimer = null;   // interval id
+    let cooldownExpiresAt = 0;  // epoch ms when cooldown ends
+
+    // ---------- Imgur helper (keeps your original) ----------
     async function uploadToImgur(file, onProgress) {
       const clientId = 'fb533db21a59486';
       const endpoint = 'https://api.imgur.com/3/image';
@@ -112,12 +113,12 @@
             try {
               const res = JSON.parse(xhr.responseText);
               if (res.success) resolve(res.data.link);
-              else reject(res.data.error);
-            } catch {
-              reject('Invalid JSON');
+              else reject(res.data.error || 'Imgur upload failed');
+            } catch (e) {
+              reject('Invalid JSON from Imgur');
             }
           };
-          xhr.onerror = () => reject('Network error');
+          xhr.onerror = () => reject('Network error uploading to Imgur');
           xhr.send(form);
         };
         reader.onerror = () => reject('File read error');
@@ -125,11 +126,139 @@
       });
     }
 
-    // Submit handler
+    // ---------- Cooldown helpers ----------
+    // returns ms left (>0) or 0 if no cooldown
+    async function fetchCooldownMsLeftForUser(usernameLocal) {
+      try {
+        const q = query(
+          collection(db, 'upgradeRequests'),
+          where('username', '==', usernameLocal),
+          orderBy('requestedAt', 'desc'),
+          limit(1)
+        );
+        const snap = await getDocs(q);
+        if (snap.empty) return 0;
+        const latest = snap.docs[0].data();
+        if (!latest.requestedAt) return 0;
+
+        // handle Firestore timestamp shapes
+        let lastTimeMs;
+        if (typeof latest.requestedAt.toDate === 'function') lastTimeMs = latest.requestedAt.toDate().getTime();
+        else if (typeof latest.requestedAt === 'number') lastTimeMs = latest.requestedAt;
+        else lastTimeMs = new Date(latest.requestedAt).getTime();
+
+        const elapsed = Date.now() - lastTimeMs;
+        const msLeft = COOLDOWN_MS - elapsed;
+        return msLeft > 0 ? msLeft : 0;
+      } catch (e) {
+        console.error('Error checking cooldown:', e);
+        return 0;
+      }
+    }
+
+    // start countdown UI given ms left
+    function startCooldown(msLeft) {
+      // clear existing
+      if (cooldownTimer) {
+        clearInterval(cooldownTimer);
+        cooldownTimer = null;
+      }
+
+      if (!msLeft || msLeft <= 0) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Approval';
+        return;
+      }
+
+      cooldownExpiresAt = Date.now() + msLeft;
+      submitBtn.disabled = true;
+      updateCooldownDisplay(); // immediate update
+
+      // update every second for smooth countdown (display predominantly minutes)
+      cooldownTimer = setInterval(() => {
+        updateCooldownDisplay();
+      }, 1000);
+    }
+
+    // format ms -> "Xh Ym" or "Xm Ys"
+    function formatMsToReadable(ms) {
+      if (ms <= 0) return '0m';
+      const totalSec = Math.floor(ms / 1000);
+      const hours = Math.floor(totalSec / 3600);
+      const minutes = Math.floor((totalSec % 3600) / 60);
+      const seconds = totalSec % 60;
+
+      if (hours > 0) return `${hours}h ${minutes}m`;
+      if (minutes > 0) return `${minutes}m ${seconds}s`;
+      return `Less than a minute`;
+    }
+
+    function updateCooldownDisplay() {
+      const msLeft = cooldownExpiresAt - Date.now();
+      if (msLeft <= 0) {
+        clearInterval(cooldownTimer);
+        cooldownTimer = null;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Approval';
+        messageDiv.textContent = '';
+        return;
+      }
+      // show minutes:seconds, but since you requested minute-by-minute, main focus is minutes
+      const totalSec = Math.ceil(msLeft / 1000);
+      const minutes = Math.floor(totalSec / 60);
+      const seconds = totalSec % 60;
+
+      // if >= 60 minutes show hours/minutes
+      if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const remM = minutes % 60;
+        submitBtn.textContent = `Wait ${hours}h ${remM}m`;
+        messageDiv.textContent = `You can submit again in ${hours}h ${remM}m`;
+      } else if (minutes > 0) {
+        submitBtn.textContent = `Wait ${minutes}m ${seconds}s`;
+        messageDiv.textContent = `You can submit again in ${minutes}m ${seconds}s`;
+      } else {
+        submitBtn.textContent = `Wait less than a minute`;
+        messageDiv.textContent = `You can submit again in less than a minute`;
+      }
+    }
+
+    // ---------- Auth & init ----------
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUser = user;
+
+      // fetch username from users collection
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (!userDoc.exists()) {
+          alert('User data missing.');
+          return;
+        }
+        username = userDoc.data().username;
+
+        // check cooldown from Firestore and start UI accordingly
+        const msLeft = await fetchCooldownMsLeftForUser(username);
+        if (msLeft > 0) startCooldown(msLeft);
+        else {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit for Approval';
+          messageDiv.textContent = '';
+        }
+      } catch (e) {
+        console.error('Init error:', e);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Approval';
+      }
+    });
+
+    // ---------- Submit handler ----------
     document.getElementById('submitBtn').addEventListener('click', async () => {
       const senderName = document.getElementById('senderName').value.trim();
       const file = document.getElementById('proofFile').files[0];
-      const messageDiv = document.getElementById('message');
       messageDiv.className = 'message';
       messageDiv.textContent = '';
 
@@ -145,16 +274,15 @@
       }
 
       // show progress UI
-      document.getElementById('uploadContainer').style.display = 'block';
-      document.getElementById('uploadLabel').style.display = 'block';
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.textContent = 'Submitting...';
+      uploadContainer.style.display = 'block';
+      uploadLabel.style.display = 'block';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
 
       try {
         const imageUrl = await uploadToImgur(file, pct => {
-          document.getElementById('uploadBar').style.width = pct + '%';
-          document.getElementById('uploadLabel').textContent = pct + '%';
+          uploadBar.style.width = pct + '%';
+          uploadLabel.textContent = pct + '%';
         });
 
         // write to Firestore with auth-tracked username
@@ -167,18 +295,30 @@
 
         messageDiv.textContent = 'Request submitted!';
         messageDiv.classList.add('success');
+
+        // Start local cooldown immediately: 24 hours from now
+        startCooldown(COOLDOWN_MS);
+
       } catch (err) {
-        messageDiv.textContent = 'Error: ' + err;
+        console.error('Submit error:', err);
+        messageDiv.textContent = 'Error: ' + (err?.message || err);
         messageDiv.classList.add('error');
+        // allow retry
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Approval';
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Submit for Approval';
         setTimeout(() => {
-          document.getElementById('uploadContainer').style.display = 'none';
-          document.getElementById('uploadLabel').style.display = 'none';
-          document.getElementById('uploadBar').style.width = '0%';
+          uploadContainer.style.display = 'none';
+          uploadLabel.style.display = 'none';
+          uploadBar.style.width = '0%';
         }, 1500);
       }
     });
-  </script></body>
+
+    // ensure intervals get cleared when leaving page
+    window.addEventListener('beforeunload', () => {
+      if (cooldownTimer) clearInterval(cooldownTimer);
+    });
+  </script>
+</body>
 </html>
