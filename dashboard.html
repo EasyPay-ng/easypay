@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -21,98 +22,97 @@
       margin:0; font-family:'Poppins',system-ui,Segoe UI,Roboto,Helvetica,Arial;
       background:var(--bg); color:#0f1720; min-height:100vh; display:flex;
       -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    }
+    }/* ---------- SIDEBAR ---------- */
+.sidebar {
+  position:fixed; left:-300px; top:0; height:100vh; width:300px;
+  background:var(--card); box-shadow:2px 0 18px rgba(0,0,0,0.08);
+  padding:18px; border-right:1px solid #f0f5f0;
+  transition:left .26s ease; overflow-y:auto; z-index:1200;
+  display:flex; flex-direction:column;
+}
+.sidebar.active { left:0; }
+.sidebar .close { text-align:right; margin-bottom:6px; cursor:pointer; font-size:18px; color:var(--muted) }
+.profile {
+  display:flex; gap:12px; align-items:center; padding:6px 0 14px; border-bottom:1px solid #f2f7f2;
+}
+.avatar {
+  width:52px; height:52px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#1b7a4b);
+  display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:18px;
+  flex-shrink:0; overflow:hidden;
+}
+.avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }
+.profile-text { flex:1 }
+.greeting { font-weight:700; font-size:15px; color:var(--primary); line-height:1 }
+.sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }
 
-    /* ---------- SIDEBAR ---------- */
-    .sidebar {
-      position:fixed; left:-300px; top:0; height:100vh; width:300px;
-      background:var(--card); box-shadow:2px 0 18px rgba(0,0,0,0.08);
-      padding:18px; border-right:1px solid #f0f5f0;
-      transition:left .26s ease; overflow-y:auto; z-index:1200;
-      display:flex; flex-direction:column;
-    }
-    .sidebar.active { left:0; }
-    .sidebar .close { text-align:right; margin-bottom:6px; cursor:pointer; font-size:18px; color:var(--muted) }
-    .profile {
-      display:flex; gap:12px; align-items:center; padding:6px 0 14px; border-bottom:1px solid #f2f7f2;
-    }
-    .avatar {
-      width:52px; height:52px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#1b7a4b);
-      display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:18px;
-      flex-shrink:0; overflow:hidden;
-    }
-    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }
-    .profile-text { flex:1 }
-    .greeting { font-weight:700; font-size:15px; color:var(--primary); line-height:1 }
-    .sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }
+nav.menu { margin-top:14px; flex:1 }
+nav.menu ul { list-style:none; padding:0; margin:0 }
+nav.menu li { margin:8px 0; }
+nav.menu a {
+  display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827;
+  padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s;
+}
+nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); }
+nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; }
+nav.menu a span.label { font-weight:600; }
 
-    nav.menu { margin-top:14px; flex:1 }
-    nav.menu ul { list-style:none; padding:0; margin:0 }
-    nav.menu li { margin:8px 0; }
-    nav.menu a {
-      display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827;
-      padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s;
-    }
-    nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); }
-    nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; }
-    nav.menu a span.label { font-weight:600; }
+.note { margin-top:18px; font-size:13px; color:var(--muted) }
 
-    .note { margin-top:18px; font-size:13px; color:var(--muted) }
+/* ---------- MAIN ---------- */
+.main {
+  flex:1; margin-left:0; transition:margin-left .26s; width:100%;
+  min-height:100vh; display:flex; flex-direction:column;
+}
+.main.shift { margin-left:300px; }
 
-    /* ---------- MAIN ---------- */
-    .main {
-      flex:1; margin-left:0; transition:margin-left .26s; width:100%;
-      min-height:100vh; display:flex; flex-direction:column;
-    }
-    .main.shift { margin-left:300px; }
+header {
+  background:linear-gradient(90deg,var(--primary),var(--primary-600));
+  color:#fff; padding:12px 14px; display:flex; align-items:center; gap:12px;
+  justify-content:space-between;
+}
+.hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center }
+.title { font-weight:700; font-size:16px }
+.profile-mini { display:flex; align-items:center; gap:10px }
+.profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }
 
-    header {
-      background:linear-gradient(90deg,var(--primary),var(--primary-600));
-      color:#fff; padding:12px 14px; display:flex; align-items:center; gap:12px;
-      justify-content:space-between;
-    }
-    .hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center }
-    .title { font-weight:700; font-size:16px }
-    .profile-mini { display:flex; align-items:center; gap:10px }
-    .profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }
+/* content area */
+.container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
 
-    /* content area */
-    .container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
+/* top cards */
+.cards {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap:12px;
+  margin-bottom:14px;
+}
+.card {
+  background:var(--card); border-radius:10px; padding:12px;
+  box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px;
+  min-height:78px;
+}
+.card .label { color:var(--muted); font-size:13px; }
+.card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-    /* top cards */
-    .cards {
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap:12px;
-      margin-bottom:14px;
-    }
-    .card {
-      background:var(--card); border-radius:10px; padding:12px;
-      box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px;
-      min-height:78px;
-    }
-    .card .label { color:var(--muted); font-size:13px; }
-    .card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* referral / code */
+.ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
+.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary) }
+.copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
 
-    /* referral / code */
-    .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; }
-    .ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary) }
-    .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
+/* floating WhatsApp */
+.wa {
+  position:fixed; right:16px; bottom:16px; background:#25D366; color:#fff;
+  width:52px; height:52px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;
+}
 
-    /* floating WhatsApp */
-    .wa {
-      position:fixed; right:16px; bottom:16px; background:#25D366; color:#fff;
-      width:52px; height:52px; border-radius:999px; display:flex; align-items:center; justify-content:center;
-      box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;
-    }
+/* responsive tweaks */
+@media (max-width:900px){
+  .sidebar{ width:86%; left:-100% }
+  .main.shift{ margin-left:0 }
+  .container{ padding:12px }
+  .card .value{ font-size:18px }
+}
 
-    /* responsive tweaks */
-    @media (max-width:900px){
-      .sidebar{ width:86%; left:-100% }
-      .main.shift{ margin-left:0 }
-      .container{ padding:12px }
-      .card .value{ font-size:18px }
-    }
   </style>
 </head>
 <body>
@@ -125,34 +125,27 @@
         <div class="greeting" id="greeting">Good evening</div>
         <div class="sub" id="usernameSub">Welcome, <strong id="sideUsername">User</strong></div>
       </div>
-    </div>
+    </div><nav class="menu" aria-label="EasyPay menu">
+  <ul>
+    <li><a href="upgrade.html"><i class="emoji">📈</i><span class="label">Upgrade</span></a></li>
+    <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>
+    <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
+    <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
+    <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>
+    <li><a href="user-submission.html"><i class="emoji">📒</i><span class="label">Task history</span></a></li>
+    <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span></a></li>
+    <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
+    <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage Tasks</span></a></li>
+    <li><a href="profile.html"><i class="emoji">🙍‍♂️</i><span class="label">Profile</span></a></li>
+    <li><a href="tap.html"><i class="emoji">🤙</i><span class="label">Tap&Earn</span></a></li>
 
-    <nav class="menu" aria-label="EasyPay menu">
-      <ul>
-        <li><a href="upgrade.html"><i class="emoji">📈</i><span class="label">Upgrade</span></a></li>
-        <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>
-        <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
-        <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
-        <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>
-        <li><a href="user-submission.html"><i class="emoji">📒</i><span class="label">Task history</span></a></li>
-        <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span></a></li>
-        <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
-        <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage Tasks</span></a></li>
-        <li><a href="profile.html"><i class="emoji">🙍‍♂️</i><span class="label">Profile</span></a></li>
-        <li><a href="tap.html"><i class="emoji">🤙</i><span class="label">Tap&Earn</span></a></li>
+    <li><a href="index.html"><i class="emoji">🚪</i><span class="label">Sign-Out</span></a></li>
+  </ul>
+</nav>
 
-        <li><a href="index.html"><i class="emoji">🚪</i><span class="label">Sign-Out</span></a></li>
-      </ul>
-    </nav>
+<div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>
 
-    <div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>
-  </aside>
-
-  <!-- overlay -->
-  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>
-
-  <!-- Main -->
-  <main class="main" id="main">
+  </aside>  <!-- overlay -->  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>  <!-- Main -->  <main class="main" id="main">
     <header>
       <div style="display:flex; align-items:center; gap:12px;">
         <div class="hamburger" onclick="toggleSidebar()" aria-label="Open menu"><i class="fas fa-bars"></i></div>
@@ -162,61 +155,54 @@
         <img id="miniAvatar" src="" alt="" style="display:none" />
         <div id="miniName" style="color:#fff; font-weight:600">User</div>
       </div>
-    </header>
-
-    <div class="container">
-      <!-- Top cards -->
-      <div class="cards" aria-hidden="false">
-        <div class="card">
-          <div class="label">Main Balance</div>
-          <div class="value">₦<span id="balance">0.00</span></div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="copy-btn" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>
-            <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="label">Available for Withdrawal</div>
-          <div class="value">₦<span id="available">0.00</span></div>
-          <small class="label">Ready balance</small>
-        </div>
-
-        <div class="card">
-          <div class="label">Total Referrals</div>
-          <div class="value"><span id="referrals">0</span></div>
-          <small class="label">People you referred</small>
-        </div>
-      </div>
-
-      <!-- Referral Code -->
-      <div class="card ref-card" style="margin-bottom:12px;">
-        <div style="flex:1">
-          <div class="label">Referral Code</div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <div class="ref-input" id="refCode">loading...</div>
-            <button class="copy-btn" id="copyRefBtn">Copy</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Daily Claim -->
-      <div class="card">
-        <div class="label">Daily Claim</div>
-        <div style="font-weight:700; font-size:16px; margin-top:6px">Claim ₦0.50 every 24 hours</div>
-        <button class="copy-btn" id="claimBtn" style="margin-top:10px; max-width:160px;">Claim Now</button>
-        <small id="claimStatus" class="label" style="margin-top:6px;"></small>
+    </header><div class="container">
+  <!-- Top cards -->
+  <div class="cards" aria-hidden="false">
+    <div class="card">
+      <div class="label">Main Balance</div>
+      <div class="value">₦<span id="balance">0.00</span></div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="copy-btn" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>
+        <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>
       </div>
     </div>
-  </main>
 
-  <!-- WhatsApp floating -->
-  <a class="wa" href="https://wa.me/2348132425678" target="_blank" title="Chat on WhatsApp">
+    <div class="card">
+      <div class="label">Available for Withdrawal</div>
+      <div class="value">₦<span id="available">0.00</span></div>
+      <small class="label">Ready balance</small>
+    </div>
+
+    <div class="card">
+      <div class="label">Total Referrals</div>
+      <div class="value"><span id="referrals">0</span></div>
+      <small class="label">People you referred</small>
+    </div>
+  </div>
+
+  <!-- Referral Code -->
+  <div class="card ref-card" style="margin-bottom:12px;">
+    <div style="flex:1">
+      <div class="label">Referral Code</div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <div class="ref-input" id="refCode">loading...</div>
+        <button class="copy-btn" id="copyRefBtn">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Claim -->
+  <div class="card">
+    <div class="label">Daily Claim</div>
+    <div style="font-weight:700; font-size:16px; margin-top:6px">Claim ₦0.50 every 24 hours</div>
+    <button class="copy-btn" id="claimBtn" style="margin-top:10px; max-width:160px;">Claim Now</button>
+    <small id="claimStatus" class="label" style="margin-top:6px;"></small>
+  </div>
+</div>
+
+  </main>  <!-- WhatsApp floating -->  <a class="wa" href="https://wa.me/2348132425678" target="_blank" title="Chat on WhatsApp">
     <i class="fab fa-whatsapp" style="font-size:20px"></i>
-  </a>
-
-  <!-- FIREBASE & JS -->
-  <script type="module">
+  </a>  <!-- FIREBASE & JS -->  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
@@ -286,6 +272,15 @@
       const firstName = (fallbackName.split(' ')[0] || fallbackName);
       greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${firstName}`;
 
+      // set an immediate referral link using fallback name (so there's no empty state)
+      try {
+        const fallbackUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encodeURIComponent(fallbackName)}`;
+        refCodeEl.textContent = fallbackUrl;
+        refCodeEl.title = fallbackUrl;
+      } catch (e) {
+        // ignore
+      }
+
       // subscribe to user doc (realtime)
       const uDocRef = doc(db, 'users', user.uid);
       if (userRefUnsub) userRefUnsub();
@@ -315,7 +310,11 @@
         const bal = Number(data.balance || 0);
         balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
         referralsEl.textContent = (data.referrals || 0);
-        refCodeEl.textContent = username;
+
+        // --- NEW: set the referral URL (includes username) so user can copy full registration link ---
+        const referralUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encodeURIComponent(username)}`;
+        refCodeEl.textContent = referralUrl;
+        refCodeEl.title = referralUrl; // hover shows full link on smaller screens
 
         // check last claim to toggle claim button
         if (data.lastClaim) {
@@ -372,7 +371,7 @@
       return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // copy referral code
+    // copy referral code (now copies full registration URL)
     copyRefBtn.addEventListener('click', async () => {
       const text = refCodeEl.textContent || '';
       try {
@@ -394,6 +393,5 @@
       else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
     };
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
-  </script>
-</body>
-</html>
+  </script></body>
+          </html>
