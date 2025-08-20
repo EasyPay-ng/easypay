@@ -1,123 +1,285 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Choose Your Plan – EasyPay</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+    :root{
+      --bg: #f5fdf7;
+      --green: #009f4d;
+      --green-dark: #007a33;
+      --card: #ffffff;
+      --muted: #556064;
+      --accent-gold: #c79b1b;
+      --shadow-1: 0 6px 20px rgba(2, 48, 22, 0.06);
+      --radius: 14px;
+      --glass: rgba(255,255,255,0.6);
     }
-    header {
-      background-color: #009f4d;
-      color: white;
-      padding: 20px;
-      text-align: center;
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #f7fff9 0%, var(--bg) 100%);
+      color:#173231;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
     }
-    header h1 { margin: 0; font-size: 2rem; }
-    header p { margin-top: 8px; }
-    .important-warning {
-      background: #fff8e1;
-      color: #856404;
-      border: 1px solid #ffe58f;
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin: 18px auto;
-      max-width: 90%;
-      font-weight: 500;
-      text-align: center;
-    }
-    .plans {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px;
-      flex: 1;
-    }
-    .plan-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 32px 24px;
-      max-width: 360px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s ease;
-    }
-    .plan-card:hover { transform: translateY(-5px); }
-    .plan-header {
-      font-size: 1.8rem;
-      color: #006400;
-      margin-bottom: 10px;
-      text-transform: capitalize;
-      text-align: center;
-    }
-    .plan-price {
-      font-size: 2.4rem;
-      font-weight: bold;
-      margin: 10px 0;
-      color: #009f4d;
-      text-align: center;
-    }
-    .plan-duration {
-      color: #555;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .plan-desc {
-      font-size: 1rem;
-      line-height: 1.5;
-      color: #444;
-      margin-bottom: 24px;
-      text-align: center;
-      flex: 1;
-    }
-    .upgrade-btn {
-      background-color: #009f4d;
+
+    header{
+      padding:28px 20px;
+      background: linear-gradient(90deg, rgba(0,159,77,0.96), rgba(5,125,66,0.95));
       color: #fff;
-      padding: 14px;
-      border: none;
-      border-radius: 6px;
-      text-align: center;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      width: 100%;
-      font-size: 1rem;
+      text-align:center;
+      box-shadow: 0 6px 18px rgba(3,64,30,0.08);
     }
-    .upgrade-btn:hover { background-color: #007a33; }
+    header h1{ margin:0; font-size:1.9rem; font-weight:700; letter-spacing: -0.4px; }
+    header p{ margin:.6rem 0 0; opacity:.95; font-weight:500 }
+
+    .page {
+      width:100%;
+      max-width:1200px;
+      margin: 22px auto;
+      padding: 0 20px 60px;
+      flex:1;
+    }
+
+    .top-notes {
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin: 18px 0;
+    }
+
+    .note {
+      flex:1 1 560px;
+      background:#fff;
+      border-left:6px solid var(--green);
+      padding:14px 16px;
+      border-radius:10px;
+      box-shadow:var(--shadow-1);
+      color:var(--muted);
+      font-weight:600;
+    }
+
+    .note small { display:block; margin-top:6px; font-weight:500; color:#5a6b64 }
+
+    .danger {
+      flex:1 1 320px;
+      background: linear-gradient(180deg, rgba(255,245,240,1), #fffaf8);
+      border:1px solid rgba(255,122,66,0.12);
+      padding:14px 16px;
+      border-radius:10px;
+      color:#7a2a1a;
+      box-shadow: 0 8px 18px rgba(204,80,48,0.06);
+      font-weight:700;
+      text-align:center;
+    }
+    .danger .title { color:#b32305; display:block; font-size:0.98rem; margin-bottom:6px; }
+    .danger p { margin:0; font-weight:600; font-size:.95rem; color:#7a2a1a; }
+
+    .plans {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap:20px;
+      margin-top:18px;
+    }
+
+    .plan-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), var(--card));
+      border-radius:14px;
+      padding:26px;
+      box-shadow: var(--shadow-1);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      border: 1px solid rgba(4,90,40,0.03);
+      transition: transform .18s ease, box-shadow .18s ease;
+      min-height: 360px;
+    }
+    .plan-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 18px 40px rgba(6,84,40,0.08);
+    }
+
+    .plan-top {
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .badge {
+      width:56px; height:56px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+      font-weight:800; color:#fff; font-size:18px;
+    }
+
+    .badge.premium { background: linear-gradient(180deg,#15a65b,#078343); }
+    .badge.gold { background: linear-gradient(180deg,#d0a33e,#b88617); color:#2b1f05; }
+
+    .plan-header { font-size:1.4rem; font-weight:700; color:#123824; }
+    .plan-price { font-size:2.2rem; font-weight:800; color:var(--green-dark); margin-top:6px; }
+    .plan-price .naira { font-size:1.1rem; margin-right:6px; color:#0f6b3a; font-weight:700; vertical-align:middle; }
+
+    .plan-duration { color:var(--muted); font-weight:600; margin-top:4px; }
+    .plan-desc { color:#27423a; margin-top:12px; line-height:1.5; font-weight:600; flex:1; text-align:center; padding: 0 8px; }
+
+    .plan-features { list-style:none; padding:0; margin:12px 0 0; display:flex; flex-direction:column; gap:8px; align-items:flex-start; color:var(--muted); font-weight:600; }
+    .plan-features li { display:flex; gap:10px; align-items:center; }
+    .plan-features li i { color:var(--green); min-width:20px; text-align:center; font-size:13px; }
+
+    .plan-footer { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:8px; }
+    .upgrade-btn {
+      background:var(--green);
+      color:#fff;
+      border:0;
+      padding:12px 18px;
+      border-radius:10px;
+      box-shadow: 0 8px 20px rgba(2,95,47,0.12);
+      font-weight:700;
+      cursor:pointer;
+      width:100%;
+      max-width:220px;
+    }
+    .upgrade-btn.gold { background: linear-gradient(90deg,var(--accent-gold), #b88617); color:#2b1f05; box-shadow: 0 8px 24px rgba(184,134,23,0.12); }
+
+    .tag { display:inline-block; padding:6px 8px; border-radius:999px; font-weight:700; background:rgba(0,159,77,0.08); color:var(--green-dark); font-size:0.85rem; }
+
     footer {
-      text-align: center;
-      padding: 15px;
-      font-size: 0.9rem;
-      color: #666;
+      text-align:center;
+      padding:20px;
+      color:var(--muted);
+      font-size:0.95rem;
+    }
+
+    /* responsive tweaks */
+    @media (max-width:860px){
+      .top-notes { flex-direction:column; align-items:stretch; gap:10px; }
+      header h1{ font-size:1.6rem }
+      .plan-desc { font-size:0.96rem; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Choose Your Monthly Plan</h1>
-    <p>All plans valid for 7 days—maximize your earnings!</p>
-  </header>  <div class="important-warning">
-    ⚠️ <strong>Note:</strong> Only one upgrade request at a time to ensure smooth activation.
-  </div>  <section class="plans">
-    <div class="plan-card">
-      <div>
-        <div class="plan-header">Premium</div>
-        <div class="plan-price">₦1,000</div>
-        <div class="plan-duration">Valid for 7 days</div>
-        <p class="plan-desc">Earn consistent rewards daily over a full month with our Premium plan. Perfect to kickstart your long-term earnings.</p>
+  <header role="banner" aria-label="Page header">
+    <h1>Choose Your Activation Plan</h1>
+    <p>All plans valid for 7 days — activate and start earning quickly.</p>
+  </header>
+
+  <main class="page" role="main">
+    <div class="top-notes" aria-live="polite">
+      <div class="note" role="status">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div>
+            <div style="font-size:1rem;font-weight:700;color:#184d36">Activation processed within <strong>12 hours</strong></div>
+            <small>Once your payment and proof are verified, we activate your plan (max 12 hours). Please keep your proof handy.</small>
+          </div>
+          <div class="tag" aria-hidden="true">Fast activation</div>
+        </div>
+        <small>Contact support if activation exceeds 12 hours, quoting your username and request ID.</small>
       </div>
-      <button class="upgrade-btn" onclick="location.href='upgrade-1.html'">Activate Premium</button>
+
+      <div class="danger" role="alert" aria-atomic="true">
+        <span class="title">Important — Duplicate Activations</span>
+        <p>
+          If an already-activated user attempts another activation (duplicate request), the account will be <strong>downgraded & disabled</strong> with <strong>no appeal</strong>.
+        </p>
+      </div>
     </div>
-  </section>  <footer>© 2025 EasyPay • Empowering your weekly earnings</footer>
+
+    <section class="plans" aria-label="Available plans">
+
+      <!-- Premium -->
+      <article class="plan-card" aria-labelledby="premiumTitle">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="plan-top">
+            <div class="badge premium" aria-hidden="true">P</div>
+            <div style="text-align:left">
+              <div id="premiumTitle" class="plan-header">Premium</div>
+              <div class="plan-price"><span class="naira">₦</span>1,000</div>
+              <div class="plan-duration">Valid for 7 days</div>
+            </div>
+          </div>
+
+          <p class="plan-desc">Affordable starter plan—steady daily earnings to build momentum. Great for new users wanting fast returns.</p>
+
+          <ul class="plan-features" aria-hidden="false">
+            <li><i class="fas fa-check-circle"></i> Ideal for newcomers</li>
+            <li><i class="fas fa-check-circle"></i> Quick activation (≤12h)</li>
+            <li><i class="fas fa-check-circle"></i> Full support during activation</li>
+          </ul>
+        </div>
+
+        <div class="plan-footer" aria-hidden="false">
+          <button class="upgrade-btn" onclick="confirmAndGo('premium')" aria-label="Activate Premium plan">Activate Premium</button>
+        </div>
+      </article>
+
+      <!-- Gold -->
+      <article class="plan-card" aria-labelledby="goldTitle">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="plan-top">
+            <div class="badge gold" aria-hidden="true"><i class="fas fa-crown" style="font-size:20px;"></i></div>
+            <div style="text-align:left">
+              <div id="goldTitle" class="plan-header">Gold</div>
+              <div class="plan-price"><span class="naira">₦</span>2,000</div>
+              <div class="plan-duration">Valid for 7 days</div>
+            </div>
+          </div>
+
+          <p class="plan-desc"><strong>₦2,000 to earn ₦400 daily.</strong> High-yield plan for users who want a strong daily return over the 7-day activation period.</p>
+
+          <ul class="plan-features" aria-hidden="false">
+            <li><i class="fas fa-check-circle"></i> Earn ₦400 daily</li>
+            <li><i class="fas fa-check-circle"></i> Priority activation (≤12h)</li>
+            <li><i class="fas fa-check-circle"></i> Recommended for experienced users</li>
+          </ul>
+        </div>
+
+        <div class="plan-footer" aria-hidden="false">
+          <button class="upgrade-btn gold" onclick="confirmAndGo('gold')" aria-label="Activate Gold plan">Activate Gold</button>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <footer role="contentinfo">© 2025 EasyPay • Empowering your weekly earnings — Activation processed within 12 hours</footer>
+
+  <script>
+    // Small confirmation + redirect helper
+    function confirmAndGo(plan) {
+      // message tailored per plan
+      let title = plan === 'gold' ? 'Activate Gold (₦2,000)?' : 'Activate Premium (₦1,000)?';
+      let body = plan === 'gold'
+        ? 'Gold activation: ₦2,000 — earn ₦400 daily. Activation is processed within 12 hours. Duplicate activation may lead to downgrade and permanent disablement with no appeal. Proceed?'
+        : 'Premium activation: ₦1,000. Activation is processed within 12 hours. Duplicate activation may lead to downgrade and permanent disablement with no appeal. Proceed?';
+
+      if (!confirm(title + "\n\n" + body)) return;
+
+      // safe redirect — you likely have separate pages for checkout/proof pages like upgrade-1.html & upgrade-2.html
+      if (plan === 'gold') {
+        window.location.href = 'upgrade-2.html';
+      } else {
+        window.location.href = 'upgrade-1.html';
+      }
+    }
+
+    // Accessibility: focus main on load
+    document.addEventListener('DOMContentLoaded', () => {
+      const main = document.querySelector('main');
+      if (main) main.setAttribute('tabindex', '-1');
+      if (main) main.focus();
+    }, { once: true });
+  </script>
 </body>
-</html>
+  </html>
