@@ -173,10 +173,11 @@ header {
       <small class="label">Ready balance</small>
     </div>
 
+    <!-- REPLACED: account age card (replaces previous referrals card) -->
     <div class="card">
-      <div class="label">Total Referrals</div>
-      <div class="value"><span id="referrals">0</span></div>
-      <small class="label">People you referred</small>
+      <div class="label">Account Age</div>
+      <div class="value"><span id="accountAge">0 days</span></div>
+      <small class="label" id="accountSince">Member since —</small>
     </div>
   </div>
 
@@ -237,7 +238,8 @@ header {
 
     const balanceEl = document.getElementById('balance');
     const availableEl = document.getElementById('available');
-    const referralsEl = document.getElementById('referrals');
+    const accountAgeEl = document.getElementById('accountAge');
+    const accountSinceEl = document.getElementById('accountSince');
     // visible placeholder element (non-clickable)
     const refCodeEl = document.getElementById('refCode') || document.getElementById('refCodeVisible');
     const hiddenRefEl = document.getElementById('hiddenRef');
@@ -247,7 +249,6 @@ header {
 
     let userRefUnsub = null;
     let currentUid = null;
-    let referralsUnsub = null;
 
     function greetByHour(h){
       // local hours (0-23) -> better split for more conventional greetings
@@ -261,6 +262,16 @@ header {
       const parts = String(name).trim().split(/\s+/).filter(Boolean);
       if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
       return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    // utility: compute days between now and date (floor)
+    function daysSince(date){
+      const now = Date.now();
+      const then = date instanceof Date ? date.getTime() : new Date(date).getTime();
+      if (!isFinite(then)) return 0;
+      const msPerDay = 24*60*60*1000;
+      const diff = Math.floor((now - then) / msPerDay);
+      return diff >= 0 ? diff : 0;
     }
 
     // Set UI immediately from auth user (so it doesn't show 'User' while Firestore loads)
@@ -303,25 +314,9 @@ header {
           miniAvatar.style.display = 'none';
         }
 
-        // balances & refs
+        // balances
         const bal = Number(data.balance || 0);
         balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
-
-        // detach previous referrals listener (so we don't stack listeners)
-        if (typeof referralsUnsub === 'function') referralsUnsub();
-        try {
-          const usersCol = collection(db, 'users');
-          const refQuery = query(usersCol, where('ref', '==', username));
-          referralsUnsub = onSnapshot(refQuery, (qSnap) => {
-            referralsEl.textContent = (qSnap && typeof qSnap.size === 'number') ? qSnap.size : (data.referrals || 0);
-          }, (err) => {
-            console.error('Referrals query error:', err);
-            referralsEl.textContent = (data.referrals || 0);
-          });
-        } catch (err) {
-          console.error('Referrals listener setup failed:', err);
-          referralsEl.textContent = (data.referrals || 0);
-        }
 
         // build referral URL and store it hidden (visible text remains "Get referral link!")
         try {
@@ -338,28 +333,21 @@ header {
           if (refCodeEl) refCodeEl.textContent = 'Get referral link!';
         }
 
-        // check last claim to toggle claim button
-        if (data.lastClaim) {
-          let lastDate;
-          if (typeof data.lastClaim.toDate === 'function') lastDate = data.lastClaim.toDate();
-          else if (typeof data.lastClaim === 'number') lastDate = new Date(data.lastClaim);
-          else lastDate = new Date(data.lastClaim);
-          const diff = Date.now() - lastDate.getTime();
-          if (diff < 24*60*60*1000) {
-            claimBtn.disabled = true;
-            claimBtn.style.background = "#ccc";
-            claimStatus.textContent = "You already claimed today. Come back later.";
-          } else {
-            claimBtn.disabled = false;
-            claimBtn.style.background = "var(--primary)";
-            claimStatus.textContent = "";
-          }
+        // ACCOUNT AGE — prefer Firestore `createdAt` if present, otherwise fall back to auth metadata.creationTime
+        let createdAtDate = null;
+        if (data.createdAt) {
+          if (typeof data.createdAt.toDate === 'function') createdAtDate = data.createdAt.toDate();
+          else if (typeof data.createdAt === 'number') createdAtDate = new Date(data.createdAt);
+          else createdAtDate = new Date(data.createdAt);
+        } else if (user.metadata && user.metadata.creationTime) {
+          createdAtDate = new Date(user.metadata.creationTime);
         } else {
-          // no claim yet
-          claimBtn.disabled = false;
-          claimBtn.style.background = "var(--primary)";
-          claimStatus.textContent = "";
+          createdAtDate = new Date();
         }
+
+        const days = daysSince(createdAtDate);
+        accountAgeEl.textContent = `${days} ${days === 1 ? 'day' : 'days'}`;
+        accountSinceEl.textContent = `Member since ${createdAtDate.toLocaleDateString()}`;
 
         // ensure available shows latest
         availableEl.textContent = balanceEl.textContent;
@@ -417,4 +405,4 @@ header {
     };
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
   </script></body>
-  </html>
+      </html>
