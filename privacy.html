@@ -1,57 +1,240 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy – EasyPay</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Privacy Policy — EasyPay</title>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9fff9;
-      color: #222;
-      padding: 20px;
-      line-height: 1.6;
+    :root{
+      --bg:#f6fff7;
+      --card:#ffffff;
+      --accent:#00b66d;
+      --accent-700:#059c56;
+      --muted:#6b7280;
+      --text:#0f1720;
+      --shadow:0 10px 30px rgba(16,24,40,0.06);
+      --radius:12px;
+      --maxWidth:1100px;
     }
-    h1, h2 {
-      color: #2e7d32;
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background:linear-gradient(180deg,#f8fff9 0%,var(--bg) 100%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding:40px 20px;
+      display:flex;
+      justify-content:center;
     }
-    a {
-      color: #2e7d32;
-      text-decoration: none;
+
+    .shell {
+      width:100%;
+      max-width:var(--maxWidth);
+      display:grid;
+      grid-template-columns:280px 1fr;
+      gap:20px;
+      align-items:start;
     }
+
+    .hero {
+      grid-column:1 / -1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:6px;
+    }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .logo {
+      width:52px; height:52px; border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-700));
+      display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;
+      box-shadow:var(--shadow);
+    }
+    h1 { margin:0; font-size:20px; font-weight:700; color:var(--text); }
+    .meta { color:var(--muted); font-size:13px; text-align:right; }
+    .meta strong { color:var(--text); display:block; font-weight:600; }
+
+    .toc {
+      background:var(--card); border-radius:var(--radius); padding:14px;
+      box-shadow:var(--shadow); border:1px solid #f0f7f2; position:sticky; top:28px;
+      height:fit-content;
+    }
+    .toc h3 { margin:0 0 8px 0; font-size:14px; color:var(--accent); }
+    .toc ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+    .toc a { text-decoration:none; color:var(--text); font-weight:600; padding:8px; border-radius:8px; transition:all .12s; }
+    .toc a:hover { background:#f2fff6; transform:translateX(6px); color:var(--accent-700); }
+
+    .card {
+      background:var(--card); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow);
+      border:1px solid #f0f7f2;
+    }
+    .card p.lead { margin:0 0 12px 0; color:var(--muted); font-size:15px; }
+    .section { margin-top:18px; padding-top:8px; border-top:1px dashed #f0f6f2; }
+    .section h2 { margin:0 0 8px 0; color:var(--accent); font-size:16px; }
+    .section p, .section li { margin:0 0 12px 0; color:#25303a; font-size:15px; }
+    .section ul { margin:0 0 12px 18px; }
+
+    .contact { display:flex; gap:12px; align-items:center; margin-top:18px; padding-top:10px; border-top:1px solid #f3f7f3; color:var(--muted); font-size:14px; }
+    a.contact-link { color:var(--accent); text-decoration:none; font-weight:600; }
+
+    .top-btn {
+      position:fixed; right:20px; bottom:20px; background:var(--accent); color:#fff; border-radius:999px;
+      width:44px; height:44px; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(0,0,0,0.12);
+      border:0; cursor:pointer; transition:transform .12s;
+    }
+    .top-btn:hover { transform:translateY(-4px); }
+
+    @media (max-width:980px){
+      .shell { grid-template-columns:1fr; }
+      .toc { position:relative; top:0; order:2; margin-top:10px; }
+      .hero { flex-direction:column; align-items:flex-start; gap:6px; }
+    }
+
+    @media print { .toc, .top-btn { display:none } }
   </style>
 </head>
 <body>
-  <h1>Privacy Policy – EasyPay</h1>
-  <p><strong>Last Updated:</strong> July 17, 2025</p>  <p>At EasyPay, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy outlines how we collect, use, and protect your information across our platform.</p>  <h2>1. Information We Collect</h2>
-  <p>We may collect the following types of information:</p>
-  <ul>
-    <li><strong>Personal Details:</strong> Username, email address, and referral code.</li>
-    <li><strong>Task & Earnings Data:</strong> Task completion history, payment records, and balances.</li>
-    <li><strong>Device & Usage Info:</strong> IP address, browser type, access times, and device ID.</li>
-  </ul>  <h2>2. How We Use Your Information</h2>
-  <p>We use your data to:</p>
-  <ul>
-    <li>Create and manage user accounts</li>
-    <li>Track task completion and referral activities</li>
-    <li>Calculate and process earnings</li>
-    <li>Provide support and service updates</li>
-    <li>Detect and prevent fraudulent activities</li>
-  </ul>  <h2>3. Data Sharing & Disclosure</h2>
-  <p>We <strong>do not sell or share</strong> your personal information with third parties, except:</p>
-  <ul>
-    <li>To comply with legal requirements</li>
-    <li>To enforce our Terms of Use</li>
-    <li>To protect the rights or safety of EasyPay and users</li>
-  </ul>  <h2>4. Data Security</h2>
-  <p>We implement industry-standard security measures to protect your data. However, no system is 100% secure, and we advise users to keep their login credentials confidential.</p>  <h2>5. Cookies</h2>
-  <p>We may use cookies to enhance user experience, such as remembering your session and improving site performance.</p>  <h2>6. Your Rights</h2>
-  <p>You have the right to:</p>
-  <ul>
-    <li>Access your personal data</li>
-    <li>Request data correction or deletion</li>
-    <li>Withdraw consent at any time</li>
-  </ul>  <h2>7. Changes to This Policy</h2>
-  <p>We may update this Privacy Policy as needed. All changes will be posted on this page with a revised effective date.</p>  <h2>8. Contact Us</h2>
-  <p>If you have any questions about this Privacy Policy, please contact us at:</p>
-  <p>📧 <strong><a href="mailto:easy.pay27.ng@gmail.com">easy.pay27.ng@gmail.com</a></strong></p></body>
-  </html>
+  <div class="shell" role="main">
+    <div class="hero">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">EP</div>
+        <div>
+          <h1>Privacy Policy — EasyPay</h1>
+          <div class="meta"><strong>Your privacy matters</strong></div>
+        </div>
+      </div>
+
+      <div class="meta" aria-hidden="true">
+        <div>Last updated: <strong id="lastUpdated">July 17, 2025</strong></div>
+        <div style="font-size:13px; color:var(--muted)">Version 1.0</div>
+      </div>
+    </div>
+
+    <aside class="toc" aria-label="Table of contents">
+      <h3>Contents</h3>
+      <ul>
+        <li><a href="#intro">Introduction</a></li>
+        <li><a href="#collect">1. Information We Collect</a></li>
+        <li><a href="#use">2. How We Use Your Information</a></li>
+        <li><a href="#share">3. Data Sharing & Disclosure</a></li>
+        <li><a href="#security">4. Data Security</a></li>
+        <li><a href="#cookies">5. Cookies</a></li>
+        <li><a href="#rights">6. Your Rights</a></li>
+        <li><a href="#changes">7. Changes to Policy</a></li>
+        <li><a href="#contact">8. Contact Us</a></li>
+      </ul>
+    </aside>
+
+    <article class="card" id="termsContent">
+      <p class="lead">At EasyPay we are committed to protecting your privacy and safeguarding personal information. This Privacy Policy explains how we collect, use, share and protect the information you provide when using our platform.</p>
+
+      <section id="intro" class="section">
+        <h2>Introduction</h2>
+        <p>This Privacy Policy applies to EasyPay's website, mobile apps and services. By registering or using EasyPay, you consent to the collection and use of information as described below.</p>
+      </section>
+
+      <section id="collect" class="section">
+        <h2>1. Information We Collect</h2>
+        <p>We collect information necessary to provide and improve our services. This may include:</p>
+        <ul>
+          <li><strong>Personal details:</strong> username, email, referral code and profile photo.</li>
+          <li><strong>Task & earnings data:</strong> task completion records, balances and payment history.</li>
+          <li><strong>Device & usage information:</strong> IP address, device identifiers, browser type and timestamps.</li>
+        </ul>
+      </section>
+
+      <section id="use" class="section">
+        <h2>2. How We Use Your Information</h2>
+        <p>We use your information to:</p>
+        <ul>
+          <li>Create and manage your account.</li>
+          <li>Track tasks, calculate and process earnings.</li>
+          <li>Deliver support, notifications and service updates.</li>
+          <li>Detect and prevent fraud and abuse.</li>
+        </ul>
+      </section>
+
+      <section id="share" class="section">
+        <h2>3. Data Sharing & Disclosure</h2>
+        <p>We do not sell your personal information. We may disclose information only in limited circumstances, for example:</p>
+        <ul>
+          <li>To comply with legal obligations or court orders.</li>
+          <li>To enforce our Terms of Use or protect user safety.</li>
+          <li>To respond to legitimate requests from law enforcement or regulators.</li>
+        </ul>
+      </section>
+
+      <section id="security" class="section">
+        <h2>4. Data Security</h2>
+        <p>We apply industry-standard technical and organizational measures to protect your data. While we strive to secure your information, no system can be guaranteed completely secure — please keep your login credentials confidential and enable any available account protections.</p>
+      </section>
+
+      <section id="cookies" class="section">
+        <h2>5. Cookies</h2>
+        <p>We use cookies and similar technologies to improve performance, remember session state and personalize your experience. You can control cookie preferences in your browser settings.</p>
+      </section>
+
+      <section id="rights" class="section">
+        <h2>6. Your Rights</h2>
+        <p>You have certain rights regarding your personal data, including:</p>
+        <ul>
+          <li>Access your stored personal data.</li>
+          <li>Request correction or deletion of inaccurate information.</li>
+          <li>Withdraw consent for certain processing activities.</li>
+        </ul>
+        <p>To exercise these rights contact us using the details below.</p>
+      </section>
+
+      <section id="changes" class="section">
+        <h2>7. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy periodically. We will post the revised policy on this page with a new effective date. Continued use of EasyPay after updates indicates acceptance of the new policy.</p>
+      </section>
+
+      <section id="contact" class="section">
+        <h2>8. Contact Us</h2>
+        <p>If you have questions or wish to exercise your privacy rights, please contact us:</p>
+        <div class="contact">
+          <div>Support email</div>
+          <div><a class="contact-link" href="mailto:easypay27.ng@gmail.com">easypay27.ng@gmail.com</a></div>
+        </div>
+
+        <p style="margin-top:14px">Thank you for trusting <strong>EasyPay</strong>. We are committed to keeping your information safe and using it responsibly.</p>
+      </section>
+    </article>
+
+  </div>
+
+  <button class="top-btn" id="topBtn" title="Back to top" aria-label="Back to top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+
+  <script>
+    // highlight TOC while scrolling
+    (function(){
+      const links = Array.from(document.querySelectorAll('.toc a'));
+      const sections = links.map(l => document.querySelector(l.getAttribute('href')));
+      function onScroll(){
+        const y = window.scrollY + 120;
+        let current = sections.find(s => s && s.offsetTop <= y && (s.offsetTop + s.offsetHeight) > y);
+        if (!current) {
+          if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
+            current = sections[sections.length - 1];
+          }
+        }
+        links.forEach(a => a.style.background = '');
+        if (current) {
+          const id = '#' + current.id;
+          const active = document.querySelector('.toc a[href="'+id+'"]');
+          if (active) active.style.background = '#f2fff6';
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive:true });
+      window.addEventListener('load', onScroll);
+    })();
+  </script>
+</body>
+</html>
