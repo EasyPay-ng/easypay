@@ -21,45 +21,87 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 30px;
       width: 100%;
-      max-width: 400px;
+      max-width: 720px;
+      box-sizing: border-box;
     }
     h2 {
       margin-top: 0;
       color: #009f4d;
       text-align: center;
     }
+
+    .top-row {
+      display:flex;
+      gap:20px;
+      align-items:center;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+    }
+
+    .avatar-wrap {
+      width:110px;
+      height:110px;
+      border-radius:14px;
+      background: linear-gradient(135deg,#e9f7ef,#fff);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      overflow:hidden;
+      border:1px solid #e6f7ee;
+      box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+    }
+    .avatar-wrap img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .avatar-actions {
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:200px;
+    }
+    .btn {
+      padding:10px 12px;
+      border-radius:8px;
+      border:0;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn.primary { background:#009f4d; color:#fff; }
+    .btn.ghost { background:#fff; color:#009f4d; border:1px solid #e6f7ee; }
+    .note { font-size:13px; color:#666; }
+
+    .form-grid {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      margin-top:6px;
+    }
+
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     label {
       display: block;
       margin-bottom: 6px;
       font-weight: 600;
     }
-    input {
+    input[type="text"], input[type="password"] {
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 1rem;
+      box-sizing:border-box;
     }
     input[readonly] {
       background-color: #eee;
     }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #009f4d;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: #007a3a;
-    }
+    hr { margin:18px 0; border:none; border-top:1px solid #f0f4f0; }
+
     .message {
       margin-top: 10px;
       font-weight: 600;
@@ -67,32 +109,105 @@
     }
     .message.error { color: #c62828; }
     .message.success { color: #2e7d32; }
+
+    /* gallery */
+    .gallery {
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .thumb {
+      width:86px;
+      height:86px;
+      border-radius:8px;
+      overflow:hidden;
+      border:2px solid transparent;
+      cursor:pointer;
+      position:relative;
+    }
+    .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .thumb.selected { border-color: #009f4d; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+    .thumb .del {
+      position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.5); color:#fff; border-radius:6px; padding:2px 6px; font-size:12px; display:none;
+    }
+    .thumb:hover .del { display:block; }
+
+    .progress {
+      width:100%;
+      height:8px;
+      background:#eee;
+      border-radius:8px;
+      overflow:hidden;
+      margin-top:8px;
+    }
+    .progress > i {
+      display:block;
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,#00b66d,#059c56);
+      transition:width .2s linear;
+    }
+
+    @media (max-width:720px){
+      .form-grid { grid-template-columns: 1fr; }
+      .avatar-actions { min-width:0; width:100% }
+    }
   </style>
 </head>
 <body>
   <div class="settings-card">
     <h2>Profile Settings</h2>
 
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input type="text" id="email" readonly>
+    <div class="top-row">
+      <div class="avatar-wrap" id="avatarWrap" title="Current avatar">
+        <!-- avatar image injected here -->
+        <img id="avatarImg" src="" alt="avatar" style="display:none">
+        <div id="avatarFallback" style="font-weight:800;color:#009f4d;font-size:22px;">EP</div>
+      </div>
+
+      <div class="avatar-actions">
+        <input type="file" id="fileInput" accept="image/*" style="display:none" />
+        <div style="display:flex; gap:8px;">
+          <button id="uploadBtn" class="btn primary">Upload New</button>
+          <button id="useSelectedBtn" class="btn ghost">Set as Avatar</button>
+        </div>
+        <div class="note">Upload an image to add to your gallery. Pick any image from the gallery and click <strong>Set as Avatar</strong> to use it across the app.</div>
+        <div class="progress" id="uploadProgress" style="display:none"><i></i></div>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="referral">Referral Code</label>
-      <input type="text" id="referral" readonly>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="text" id="email" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="referral">Referral Code</label>
+        <input type="text" id="referral" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="registered">Registered On</label>
+        <input type="text" id="registered" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username">
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="registered">Registered On</label>
-      <input type="text" id="registered" readonly>
-    </div>
-
-    <div class="form-group">
-      <label for="username">Username</label>
-      <input type="text" id="username">
-    </div>
     <hr />
+
+    <div>
+      <label>Your Gallery</label>
+      <div class="gallery" id="gallery"></div>
+    </div>
+
+    <hr />
+
     <div class="form-group">
       <label for="newPassword">New Password</label>
       <input type="password" id="newPassword" placeholder="Leave blank to keep current">
@@ -101,24 +216,45 @@
       <label for="confirmPassword">Confirm New Password</label>
       <input type="password" id="confirmPassword">
     </div>
-    <button id="saveBtn">Save Changes</button>
+    <div style="display:flex; gap:10px;">
+      <button id="saveBtn" class="btn primary">Save Changes</button>
+      <button id="logoutBtn" class="btn ghost">Logout</button>
+    </div>
     <div id="msg" class="message"></div>
   </div>
 
   <script type="module">
+    // Firebase imports (v9 modular)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import {
       getAuth,
       onAuthStateChanged,
-      updatePassword
+      updatePassword,
+      updateProfile,
+      signOut
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import {
       getFirestore,
       doc,
       getDoc,
-      updateDoc
+      updateDoc,
+      collection,
+      addDoc,
+      query,
+      orderBy,
+      onSnapshot,
+      deleteDoc,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import {
+      getStorage,
+      ref as storageRef,
+      uploadBytesResumable,
+      getDownloadURL,
+      deleteObject
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
+    // Firebase config (same project)
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -129,12 +265,13 @@
       measurementId: "G-2FZKDQ47FZ"
     };
 
-    // Initialize
+    // init
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    // Elements
+    // DOM
     const emailEl      = document.getElementById('email');
     const referralEl   = document.getElementById('referral');
     const registeredEl = document.getElementById('registered');
@@ -142,39 +279,230 @@
     const newPassEl    = document.getElementById('newPassword');
     const confirmEl    = document.getElementById('confirmPassword');
     const saveBtn      = document.getElementById('saveBtn');
+    const logoutBtn    = document.getElementById('logoutBtn');
     const msgEl        = document.getElementById('msg');
 
-    let currentUser, userDocRef;
+    const avatarImg    = document.getElementById('avatarImg');
+    const avatarFallback = document.getElementById('avatarFallback');
+    const avatarWrap   = document.getElementById('avatarWrap');
+    const fileInput    = document.getElementById('fileInput');
+    const uploadBtn    = document.getElementById('uploadBtn');
+    const useSelectedBtn = document.getElementById('useSelectedBtn');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = uploadProgress.querySelector('i');
 
-    onAuthStateChanged(auth, async user => {
+    const galleryEl    = document.getElementById('gallery');
+
+    let currentUser = null;
+    let userDocRef = null;
+    let selectedGalleryUrl = null; // when user clicks a thumbnail
+    let galleryUnsub = null;
+
+    function showMsg(text, type='') {
+      msgEl.textContent = text;
+      msgEl.className = 'message' + (type ? ' ' + type : '');
+      if (text) setTimeout(()=> { msgEl.textContent=''; msgEl.className='message'; }, 4000);
+    }
+
+    function initialsFromName(name) {
+      if (!name) return 'EP';
+      const parts = String(name).trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    // format timestamp fallback
+    function formatDate(d) {
+      try {
+        return new Date(d).toLocaleString();
+      } catch(e){ return ''; }
+    }
+
+    // load user doc + gallery realtime
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = 'login.html';
         return;
       }
       currentUser = user;
+      userDocRef = doc(db, 'users', user.uid);
 
-      // Email & referral
-      emailEl.value    = user.email;
-      userDocRef       = doc(db, 'users', user.uid);
-      const snap       = await getDoc(userDocRef);
-      const data       = snap.exists() ? snap.data() : {};
-      referralEl.value = data.username || '';
+      // immediate UI fill
+      emailEl.value = user.email || '';
+      referralEl.value = (user.displayName || '').trim();
 
-      // Determine registration date
+      // show greeting avatar fallback / initials
+      avatarFallback.textContent = initialsFromName(user.displayName || (user.email?user.email.split('@')[0]:'EP'));
+
+      // load user doc once and subscribe for realtime updates
+      const snap = await getDoc(userDocRef);
+      const data = snap.exists() ? snap.data() : {};
+
+      // username
+      usernameEl.value = data.username || (user.displayName || '');
+
+      // registered
       let regDate = '';
-      if (data.createdAt && data.createdAt.toDate) {
-        regDate = data.createdAt.toDate();
-      } else if (user.metadata && user.metadata.creationTime) {
-        regDate = new Date(user.metadata.creationTime);
-      }
-      registeredEl.value = regDate
-        ? regDate.toLocaleDateString() + ' ' + regDate.toLocaleTimeString()
-        : '';
+      if (data.createdAt && data.createdAt.toDate) regDate = data.createdAt.toDate();
+      else if (user.metadata && user.metadata.creationTime) regDate = new Date(user.metadata.creationTime);
+      registeredEl.value = regDate ? regDate.toLocaleDateString() + ' ' + regDate.toLocaleTimeString() : '';
 
-      // Username field
-      usernameEl.value = data.username || '';
+      // show photoURL if exists
+      const photoURL = (data.photoURL || user.photoURL) || '';
+      if (photoURL) {
+        avatarImg.src = photoURL;
+        avatarImg.style.display = 'block';
+        avatarFallback.style.display = 'none';
+      } else {
+        avatarImg.style.display = 'none';
+        avatarFallback.style.display = 'block';
+      }
+
+      // subscribe to gallery (subcollection 'gallery' under users/{uid})
+      if (galleryUnsub) galleryUnsub();
+      try {
+        const gCol = collection(db, 'users', user.uid, 'gallery');
+        const q = query(gCol, orderBy('createdAt','desc'));
+        galleryUnsub = onSnapshot(q, (qsnap) => {
+          renderGallery(qsnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, (err) => {
+          console.error('Gallery listener error', err);
+        });
+      } catch (e) {
+        console.error('Failed to listen gallery', e);
+      }
     });
 
+    // render gallery thumbnails
+    function renderGallery(items = []) {
+      galleryEl.innerHTML = '';
+      items.forEach(item => {
+        const t = document.createElement('div');
+        t.className = 'thumb';
+        if (item.url === selectedGalleryUrl) t.classList.add('selected');
+
+        const img = document.createElement('img');
+        img.src = item.url;
+        img.alt = 'gallery-item';
+
+        const del = document.createElement('button');
+        del.className = 'del';
+        del.textContent = 'Del';
+
+        // click selects an image
+        t.addEventListener('click', (e) => {
+          // ignore clicks on delete button
+          if (e.target === del) return;
+          selectedGalleryUrl = item.url;
+          // visually mark selected
+          const thumbs = galleryEl.querySelectorAll('.thumb');
+          thumbs.forEach(th => th.classList.remove('selected'));
+          t.classList.add('selected');
+        });
+
+        // delete handler (removes both firestore doc and storage object if path stored)
+        del.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          const sure = confirm('Delete this image from your gallery?');
+          if (!sure) return;
+          try {
+            // delete storage object if we stored the storagePath field
+            if (item.storagePath) {
+              try { await deleteObject(storageRef(storage, item.storagePath)); } catch(e){ console.warn('Could not delete storage object', e); }
+            }
+            await deleteDoc(doc(db, 'users', currentUser.uid, 'gallery', item.id));
+            // if deleted item was selected as avatar, clear avatar (fallback to initials)
+            const curPhoto = (currentUser.photoURL || '').trim();
+            if (curPhoto && curPhoto === item.url) {
+              // clear photoURL in firestore & auth
+              await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: '' });
+              try { await updateProfile(currentUser, { photoURL: '' }); } catch(e){/* ignore */ }
+              avatarImg.style.display = 'none';
+              avatarFallback.style.display = 'block';
+            }
+            showMsg('Image deleted', 'success');
+          } catch (err) {
+            console.error(err);
+            showMsg('Failed to delete image', 'error');
+          }
+        });
+
+        t.appendChild(img);
+        t.appendChild(del);
+        galleryEl.appendChild(t);
+      });
+    }
+
+    // upload flow
+    uploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      // simple validation: image and < 5MB
+      if (!file.type.startsWith('image/')) {
+        showMsg('Please select an image file', 'error'); return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showMsg('Please use an image smaller than 5MB', 'error'); return;
+      }
+
+      const uid = currentUser.uid;
+      const filename = `${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
+      const path = `users/${uid}/gallery/${filename}`;
+      const sRef = storageRef(storage, path);
+
+      uploadProgress.style.display = 'block';
+      progressBar.style.width = '0%';
+
+      const task = uploadBytesResumable(sRef, file);
+      task.on('state_changed', (snapshot) => {
+        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        progressBar.style.width = pct + '%';
+      }, (err) => {
+        console.error('Upload failed', err);
+        uploadProgress.style.display = 'none';
+        showMsg('Upload failed', 'error');
+      }, async () => {
+        // finished
+        try {
+          const url = await getDownloadURL(task.snapshot.ref);
+          // add to gallery subcollection
+          const gRef = collection(db, 'users', uid, 'gallery');
+          await addDoc(gRef, { url, storagePath: path, createdAt: serverTimestamp() });
+          // set as avatar immediately (optional) — here we auto-set to the newly uploaded image
+          await updateDoc(doc(db, 'users', uid), { photoURL: url });
+          try { await updateProfile(currentUser, { photoURL: url }); } catch(e){ /* ignore auth update failure */ }
+          avatarImg.src = url; avatarImg.style.display = 'block'; avatarFallback.style.display = 'none';
+          uploadProgress.style.display = 'none';
+          progressBar.style.width = '0%';
+          showMsg('Uploaded & set as avatar', 'success');
+        } catch (err) {
+          console.error('Post-upload error', err);
+          uploadProgress.style.display = 'none';
+          showMsg('Upload succeeded but failed to save', 'error');
+        }
+      });
+      // clear input so same file can be reselected later if needed
+      fileInput.value = '';
+    });
+
+    // set selected gallery image as avatar (does NOT upload, just points to existing url)
+    useSelectedBtn.addEventListener('click', async () => {
+      if (!selectedGalleryUrl) { showMsg('Select an image from your gallery first', 'error'); return; }
+      try {
+        // write to user doc and auth profile
+        await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: selectedGalleryUrl });
+        try { await updateProfile(currentUser, { photoURL: selectedGalleryUrl }); } catch(e){ /* ignore */ }
+        avatarImg.src = selectedGalleryUrl; avatarImg.style.display = 'block'; avatarFallback.style.display = 'none';
+        showMsg('Avatar updated', 'success');
+      } catch (err) {
+        console.error('Failed to set avatar', err);
+        showMsg('Failed to set avatar', 'error');
+      }
+    });
+
+    // save username / password
     saveBtn.addEventListener('click', async () => {
       msgEl.textContent = '';
       const newUsername = usernameEl.value.trim();
@@ -182,34 +510,47 @@
       const confirmPass = confirmEl.value;
 
       if (newPass && newPass !== confirmPass) {
-        msgEl.textContent = 'Passwords do not match.';
-        msgEl.className = 'message error';
-        return;
+        showMsg('Passwords do not match.', 'error'); return;
       }
 
       try {
         await updateDoc(userDocRef, { username: newUsername });
+        // update auth displayName as well
+        try { await updateProfile(currentUser, { displayName: newUsername }); } catch(e){ /* ignore */ }
       } catch (e) {
-        msgEl.textContent = 'Failed to update username.';
-        msgEl.className = 'message error';
-        return;
+        console.error('Username update failed', e);
+        showMsg('Failed to update username.', 'error'); return;
       }
 
       if (newPass) {
         try {
           await updatePassword(currentUser, newPass);
         } catch (e) {
-          msgEl.textContent = 'Failed to update password. Please re-login and try again.';
-          msgEl.className = 'message error';
-          return;
+          console.error('Password update failed', e);
+          showMsg('Failed to update password. Please re-login and try again.', 'error'); return;
         }
       }
 
-      msgEl.textContent = 'Profile updated successfully!';
-      msgEl.className = 'message success';
       newPassEl.value = '';
       confirmEl.value = '';
+      showMsg('Profile updated successfully!', 'success');
+    });
+
+    // logout
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html';
+      } catch (e) {
+        console.error('Logout failed', e);
+        showMsg('Failed to logout', 'error');
+      }
+    });
+
+    // helpful cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (galleryUnsub) galleryUnsub();
     });
   </script>
 </body>
-</html>
+  </html>
