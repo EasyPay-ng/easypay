@@ -21,82 +21,72 @@
       --max-width: 1100px;
     }
 
-    html,body{height:100%}
+    /* base + prevent horizontal scroll */
+    *, *::before, *::after { box-sizing: border-box; }
+    html,body { height:100%; width:100%; overflow-x:hidden; margin:0; }
     body{
-      margin:0;
       font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial;
       background: linear-gradient(180deg,#f8fff9 0%,var(--bg) 100%);
       color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      overflow-x: hidden;
-      padding:24px 12px;
-      box-sizing:border-box;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding:24px;
     }
+    .wrap { max-width:var(--max-width); width:100%; margin:0 auto; padding:0 16px; }
 
-    *{box-sizing:border-box}
-    .wrap { width:100%; max-width:var(--max-width); margin:0 auto; padding:0 18px; }
-
-    /* Loading screen (visible by default) */
+    /* LOADER (visible by default) */
     #loadingScreen {
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      min-height:60vh;
-      gap:12px;
-      color:var(--muted);
+      display:flex; align-items:center; justify-content:center; flex-direction:column;
+      min-height:60vh; gap:12px; color:var(--muted);
     }
     .loader-card {
-      background:var(--card);
-      padding:22px 28px;
-      border-radius:12px;
-      box-shadow:var(--shadow);
-      border:1px solid #eef7f0;
-      display:flex;
-      align-items:center;
-      gap:14px;
+      background:var(--card); padding:18px 20px; border-radius:12px; box-shadow:var(--shadow);
+      border:1px solid #eef7f0; display:flex; align-items:center; gap:12px;
     }
     .spinner {
-      width:28px;
-      height:28px;
-      border-radius:50%;
-      border:3px solid rgba(0,0,0,0.08);
-      border-top-color:var(--accent-700);
-      animation:spin 1s linear infinite;
+      width:30px; height:30px; border-radius:50%; border:3px solid rgba(0,0,0,0.08);
+      border-top-color:var(--accent-700); animation:spin 1s linear infinite;
       flex:0 0 auto;
     }
     @keyframes spin { to { transform: rotate(360deg) } }
-    .loader-text { font-weight:600; color:var(--muted) }
+    .loader-text { font-weight:700; color:var(--muted) }
+    .loader-sub { font-size:13px; color:var(--muted) }
 
-    /* error inside loader */
-    .loader-error { color:#b00020; font-weight:700; }
+    .small-btn {
+      background:var(--accent); color:#fff; border:0; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700;
+      box-shadow:0 8px 18px rgba(0,0,0,0.06);
+    }
 
-    /* hidden by default; shown after loader hides */
-    #loginDiv { max-width:420px; margin:40px auto 0; text-align:center; display:none; }
-    #loginDiv input { width:100%; padding:12px 10px; margin:8px 0; border-radius:10px; border:1px solid #e6f4ec }
-    #loginDiv button { padding:12px 18px; border-radius:10px; border:0; background:var(--accent); color:#fff; font-weight:700; cursor:pointer }
+    /* LOGIN MODAL (hidden until requested) */
+    #loginModal {
+      display:none;
+      position:fixed; inset:0; z-index:1400;
+      align-items:center; justify-content:center;
+    }
+    #loginModal .backdrop {
+      position:absolute; inset:0; background:rgba(0,0,0,0.36);
+    }
+    #loginModal .panel {
+      position:relative; background:var(--card); border-radius:12px; padding:20px; width:100%; max-width:420px; box-shadow:var(--shadow); border:1px solid #eef7f0; z-index:2;
+    }
+    #loginModal input { width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #e6f4ec; }
 
-    /* app area (unchanged layout) */
+    /* APP layout (unchanged structure but responsive & no overflow) */
     #app { display:none; }
     header.page { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
-    .brand { display:flex; align-items:center; gap:12px; }
+    .brand { display:flex; align-items:center; gap:12px; min-width:0; }
     .logo { width:56px; height:56px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--accent),var(--accent-700)); color:white; font-weight:700; font-size:18px; box-shadow:var(--shadow); flex:0 0 auto; }
     .title { font-size:20px; font-weight:700; line-height:1; word-break:break-word; }
     .subtitle { color:var(--muted); font-size:13px; }
-    #logoutBtn { background: transparent; border:1px solid rgba(5,124,86,0.12); color:var(--accent-700); padding:8px 14px; border-radius:10px; cursor:pointer; font-weight:700; transition: transform .12s; white-space:nowrap; }
-    #logoutBtn:hover{ transform:translateY(-2px) }
+    #logoutBtn { background: transparent; border:1px solid rgba(5,124,86,0.12); color:var(--accent-700); padding:8px 14px; border-radius:10px; cursor:pointer; font-weight:700; white-space:nowrap; }
 
     .content { display:grid; grid-template-columns: 1fr minmax(260px,360px); gap:18px; align-items:start; width:100%; }
     .main-col { display:flex; flex-direction:column; gap:16px; min-width:0; }
-    .card { background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); border:1px solid #eef7f0; overflow:visible; }
-    .task { display:block; border-radius:12px; overflow:hidden; padding:18px; background: linear-gradient(180deg, rgba(255,255,255,0.98), var(--card)); border:1px solid #f1fbf4; box-shadow: 0 8px 26px rgba(10,40,20,0.03); min-width:0; }
-    .task .task-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
-    .task .task-main { flex:1 1 0; min-width:0 }
-    .task h2 { margin:0 0 8px; font-size:18px; color:var(--accent-700); word-break:break-word; }
-    .task p { margin:0 0 10px; color:#22323a; line-height:1.5; word-break:break-word; }
+    .card { background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); border:1px solid #eef7f0; }
+    .task { border-radius:12px; padding:18px; background: linear-gradient(180deg, rgba(255,255,255,0.98), var(--card)); border:1px solid #f1fbf4; box-shadow: 0 8px 26px rgba(10,40,20,0.03); min-width:0; word-break:break-word; }
+    .task > div:first-child { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; min-width:0; }
+    .task h2 { margin:0 0 8px; font-size:18px; color:var(--accent-700); }
+    .task p { margin:0 0 10px; color:#22323a; line-height:1.5; }
     .meta-row { display:flex; gap:12px; align-items:center; color:var(--muted); font-size:13px; margin-bottom:10px; flex-wrap:wrap; }
-    .task .task-actions { flex:0 0 140px; min-width:120px; text-align:right; }
 
     .progress-wrap { margin:10px 0 12px; }
     .progress-container { background:#eef7ef; border-radius:999px; height:12px; overflow:hidden; }
@@ -106,65 +96,69 @@
     .actions { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap; }
     .btn { background:var(--accent); color:white; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; box-shadow: 0 8px 18px rgba(0,0,0,0.06); display:inline-flex; gap:8px; align-items:center; white-space:nowrap; }
     .btn.ghost { background:#fff; color:var(--accent); border:1px solid #e9f7ef; box-shadow:none; }
-    .btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
-
     .proof { margin-top:12px; display:grid; gap:8px; }
-    label { font-weight:600; color:#1c2a29; font-size:13px; display:block; }
     textarea { width:100%; min-height:86px; padding:10px; border-radius:10px; border:1px solid #e6f4ec; resize:vertical; font-family:inherit; }
-    input[type=file] { padding:8px 6px; border-radius:8px; border:1px dashed #e6f4ec; background:#fcfffc }
+    input[type=file] { padding:8px 6px; border-radius:8px; border:1px dashed #e6f4ec; background:#fcfffc; max-width:100%; }
 
-    .upload-progress { margin-top:8px; display:flex; gap:8px; align-items:center; }
+    .upload-progress { margin-top:8px; display:flex; gap:8px; align-items:center; min-width:0; }
     .upload-progress .bar { flex:1; background:#eef7ef; border-radius:999px; height:8px; overflow:hidden; }
     .upload-progress .bar > i { display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-700)); transition:width .15s linear; }
-    .upload-progress .label { font-size:12px; color:var(--muted); min-width:46px; text-align:right }
+    .upload-progress .label { font-size:12px; color:var(--muted); min-width:46px; text-align:right; }
 
-    .side-col { display:flex; flex-direction:column; gap:12px; position:sticky; top:28px; align-self:start; min-width:0 }
+    .side-col { display:flex; flex-direction:column; gap:12px; position:sticky; top:28px; align-self:start; min-width:0; }
     .hint { color:var(--muted); font-size:14px; }
 
     @media (max-width:980px){
-      body{ padding:18px 10px; }
+      body{ padding:18px; }
       .content { grid-template-columns: 1fr; }
-      .side-col { position:relative; top:0 }
-      .task .task-actions { flex: 1 1 100%; text-align:left; }
+      .task > div:first-child { flex-direction:column; align-items:flex-start; }
+      .task .task-actions { width:100%; text-align:left; }
     }
     @media (max-width:420px){
-      body{ padding:12px 8px; }
+      body{ padding:12px; }
       .logo{ width:48px; height:48px; }
-      .task { padding:14px; }
-      .card { padding:14px; }
-      .loader-card { padding:16px 18px; }
-      .spinner { width:24px; height:24px; }
+      .card, .task { padding:14px; }
+      .spinner { width:26px; height:26px; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- LOADING SCREEN (VISIBLE BY DEFAULT) -->
+    <!-- LOADER visible by default so page never appears blank -->
     <div id="loadingScreen" role="status" aria-live="polite">
-      <div class="loader-card" id="loaderCard">
+      <div class="loader-card">
         <div class="spinner" aria-hidden="true"></div>
         <div>
-          <div class="loader-text" id="loaderTitle">Connecting to EasyPay…</div>
-          <div style="font-size:12px; color:var(--muted); margin-top:6px;">Loading resources — please wait</div>
+          <div class="loader-text">Connecting to EasyPay…</div>
+          <div class="loader-sub">Loading resources — please wait</div>
         </div>
       </div>
-      <div style="font-size:13px; color:var(--muted); margin-top:12px;" id="loaderSub">If this takes too long, check your network.</div>
-      <div style="margin-top:12px; display:none;" id="loaderRetryWrap">
-        <button id="loaderRetryBtn" class="btn">Retry</button>
+
+      <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+        <div style="font-size:13px; color:var(--muted)">If you already have an account:</div>
+        <button id="openLoginBtn" class="small-btn" type="button">Sign In</button>
+      </div>
+
+      <div style="font-size:13px; color:var(--muted); margin-top:8px;">If this takes too long, check your network.</div>
+    </div>
+
+    <!-- LOGIN modal (hidden until user clicks "Sign In") -->
+    <div id="loginModal" aria-hidden="true">
+      <div class="backdrop" onclick="closeLoginModal()"></div>
+      <div class="panel" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <h3 id="loginTitle" style="margin:0 0 10px 0; color:var(--accent-700)">Sign In</h3>
+        <input id="email" type="email" placeholder="Email" />
+        <input id="password" type="password" placeholder="Password" />
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button id="loginBtn" class="small-btn" style="flex:1">Sign In</button>
+          <button onclick="closeLoginModal()" class="btn ghost" style="flex:1">Cancel</button>
+        </div>
+        <p id="loginError" style="color:#b00020; margin-top:8px; display:none;"></p>
       </div>
     </div>
 
-    <!-- LOGIN (hidden until loader hides) -->
-    <div id="loginDiv" aria-hidden="true">
-      <h2>Sign In to Continue</h2>
-      <input type="email" id="email" placeholder="Email" />
-      <input type="password" id="password" placeholder="Password" />
-      <button id="loginBtn">Sign In</button>
-      <p id="loginError" style="margin-top:8px;color:#b00020;display:none;"></p>
-    </div>
-
-    <!-- APP (hidden until auth ready) -->
-    <div id="app" aria-hidden="true">
+    <!-- App (hidden until user is authenticated) -->
+    <div id="app" style="display:none">
       <header class="page">
         <div class="brand">
           <div class="logo" aria-hidden="true">EP</div>
@@ -212,203 +206,121 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // ---------- robust bootstrap (waits for firebase or times out) ----------
-    const FIREBASE_WAIT_MS = 4500; // how long to wait for firebase to appear
-    let authInitialized = false; // ensure we attach onAuthStateChanged only once
-
-    function showLoaderError(message) {
-      const loaderTitle = document.getElementById('loaderTitle');
-      const loaderSub = document.getElementById('loaderSub');
-      const loaderRetryWrap = document.getElementById('loaderRetryWrap');
-      if (loaderTitle) loaderTitle.textContent = 'Connection error';
-      if (loaderSub) loaderSub.textContent = message || 'Unable to connect. Check network or try again.';
-      if (loaderRetryWrap) loaderRetryWrap.style.display = 'block';
-      const loaderCard = document.getElementById('loaderCard');
-      if (loaderCard) loaderCard.style.borderColor = '#ffd6d6';
-    }
-
-    function resetLoader() {
-      const loaderTitle = document.getElementById('loaderTitle');
-      const loaderSub = document.getElementById('loaderSub');
-      const loaderRetryWrap = document.getElementById('loaderRetryWrap');
-      if (loaderTitle) loaderTitle.textContent = 'Connecting to EasyPay…';
-      if (loaderSub) loaderSub.textContent = 'If this takes too long, check your network.';
-      if (loaderRetryWrap) loaderRetryWrap.style.display = 'none';
-      const loaderCard = document.getElementById('loaderCard');
-      if (loaderCard) loaderCard.style.borderColor = '#eef7f0';
-    }
-
-    function hideLoaderAndShow(target) {
-      const loader = document.getElementById('loadingScreen');
-      if (loader) loader.style.display = 'none';
-      const loginDiv = document.getElementById('loginDiv');
-      const appDiv = document.getElementById('app');
-      if (target === 'login') {
-        if (loginDiv) { loginDiv.style.display = 'block'; loginDiv.setAttribute('aria-hidden','false'); }
-        if (appDiv) { appDiv.style.display = 'none'; appDiv.setAttribute('aria-hidden','true'); }
-      } else if (target === 'app') {
-        if (loginDiv) { loginDiv.style.display = 'none'; loginDiv.setAttribute('aria-hidden','true'); }
-        if (appDiv) { appDiv.style.display = 'block'; appDiv.setAttribute('aria-hidden','false'); }
+    // show/hide login modal (UI only)
+    const loginModal = document.getElementById('loginModal');
+    function openLoginModal(){
+      if (loginModal) {
+        loginModal.style.display = 'flex';
+        loginModal.setAttribute('aria-hidden','false');
       }
     }
-
-    function waitForFirebase(timeout = FIREBASE_WAIT_MS) {
-      return new Promise((resolve, reject) => {
-        const start = Date.now();
-        const check = () => {
-          if (typeof firebase !== 'undefined' && firebase && firebase.apps !== undefined) return resolve(firebase);
-          if (Date.now() - start > timeout) return reject(new Error('Firebase not available'));
-          setTimeout(check, 150);
-        };
-        check();
-      });
+    function closeLoginModal(){
+      if (loginModal) {
+        loginModal.style.display = 'none';
+        loginModal.setAttribute('aria-hidden','true');
+      }
     }
+    document.getElementById('openLoginBtn').addEventListener('click', openLoginModal);
 
-    // Retry button
-    document.getElementById('loaderRetryBtn').addEventListener('click', () => {
-      resetLoader();
-      // attempt bootstrap again
-      bootstrapFirebase();
+    // ---------- config (unchanged) ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c769840ef918c1e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth(), db = firebase.firestore();
+
+    // ---------- UI refs (login inputs are inside modal now) ----------
+    const loginBtn = document.getElementById('loginBtn'),
+          logoutBtn = document.getElementById('logoutBtn'),
+          emailEl = document.getElementById('email'),
+          passEl = document.getElementById('password'),
+          loginError = document.getElementById('loginError'),
+          loadingEl = document.getElementById('loading'),
+          taskContainer = document.getElementById('taskContainer'),
+          loadingScreen = document.getElementById('loadingScreen'),
+          appDiv = document.getElementById('app');
+
+    // login click behaviour unchanged (exact same function)
+    loginBtn.onclick = () => {
+      if (loginError){ loginError.style.display = 'none'; loginError.textContent = ''; }
+      auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
+        .catch(err => {
+          if (loginError) { loginError.style.display = 'block'; loginError.textContent = err.message || 'Login failed'; }
+        });
+    };
+
+    // logout unchanged
+    logoutBtn.onclick = () => auth.signOut();
+
+    // auth listener — minimal visible changes: show app if signed in; otherwise keep loader visible.
+    auth.onAuthStateChanged(async user => {
+      try {
+        if (user) {
+          // hide loader and show app
+          if (loadingScreen) loadingScreen.style.display = 'none';
+          if (loginModal) closeLoginModal();
+          if (appDiv) appDiv.style.display = 'block';
+          // run your unchanged task loading logic
+          await loadTasks(user.uid);
+          // keep reactive to user's submissions
+          db.collection('task_submissions').where('userId','==',user.uid)
+            .onSnapshot(() => loadTasks(user.uid));
+        } else {
+          // keep loader visible (we replaced the old "show login" behaviour).
+          // user can open the login modal by clicking "Sign In" on the loader.
+          if (loadingScreen) loadingScreen.style.display = 'flex';
+          if (appDiv) appDiv.style.display = 'none';
+        }
+      } catch (e) {
+        console.error('Auth state handling error', e);
+      }
     });
 
-    async function bootstrapFirebase() {
+    // ---------- task loading (keeps same logic in your original) ----------
+    async function loadTasks(uid) {
+      loadingEl.textContent = 'Loading tasks...';
+      taskContainer.innerHTML = '';
       try {
-        // wait for firebase scripts to become available
-        const fb = await waitForFirebase();
-        // initialize if needed
-        try {
-          const firebaseConfig = {
-            apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-            authDomain: "easypay-6bce8.firebaseapp.com",
-            projectId: "easypay-6bce8",
-            storageBucket: "easypay-6bce8.appspot.com",
-            messagingSenderId: "862671358267",
-            appId: "1:862671358267:web:b243c769840ef918c1e"
-          };
-          if (!fb.apps.length) fb.initializeApp(firebaseConfig);
-        } catch (initErr) {
-          console.error('Firebase init failed', initErr);
-          showLoaderError('Failed to initialize Firebase. Try retry.');
-          return;
-        }
-
-        // grab compat services
-        const auth = fb.auth();
-        const db = fb.firestore();
-
-        // wire UI handlers that depend on firebase
-        wireApp(auth, db);
-
-      } catch (err) {
-        console.error('Firebase bootstrap error', err);
-        showLoaderError('Firebase scripts failed to load. Please retry.');
-      }
-    }
-
-    // attach login/logout and auth state handling only once
-    function wireApp(auth, db) {
-      if (authInitialized) return;
-      authInitialized = true;
-
-      // UI elements
-      const loginBtn = document.getElementById('loginBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
-      const emailEl = document.getElementById('email');
-      const passEl = document.getElementById('password');
-      const loginError = document.getElementById('loginError');
-
-      // login click (unchanged behaviour)
-      if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-          if (loginError) { loginError.style.display = 'none'; loginError.textContent = ''; }
-          auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
-            .catch(err => {
-              if (loginError) {
-                loginError.style.display = 'block';
-                loginError.textContent = err && err.message ? err.message : 'Login failed';
-              }
-            });
-        });
-      }
-
-      if (logoutBtn) logoutBtn.addEventListener('click', () => auth.signOut());
-
-      // auth listener: shows login/app appropriately. single stable handler.
-      auth.onAuthStateChanged(async user => {
-        try {
-          // remove loader before revealing UI
-          if (!user) {
-            hideLoaderAndShow('login');
-          } else {
-            hideLoaderAndShow('app');
-            // call original loadTasks function (uses db variable from outer scope)
-            await loadTasksForBootstrap(db, auth);
-            // keep UI reactive to user's own submissions (same behaviour)
-            db.collection('task_submissions').where('userId','==',user.uid)
-              .onSnapshot(() => loadTasksForBootstrap(db, auth));
-          }
-        } catch (e) {
-          console.error('Auth handler error', e);
-          showLoaderError('An error occurred while initializing the app.');
-        }
-      });
-
-      // expose db/auth to original functions by setting global refs the originals expect
-      // (the rest of your original code expects `firebase`, `auth`, `db` variables - we preserve usage below)
-      window.__EP_FIRESTORE = db;
-      window.__EP_AUTH = auth;
-    }
-
-    // Wrapper to call your original loadTasks code while passing db/auth explicitly
-    async function loadTasksForBootstrap(db, auth) {
-      // find your existing UI refs (same IDs as original)
-      const loadingEl = document.getElementById('loading');
-      const taskContainer = document.getElementById('taskContainer');
-      if (loadingEl) loadingEl.textContent = 'Loading tasks...';
-      if (taskContainer) taskContainer.innerHTML = '';
-      try {
-        // replicate the same loads as original but using the db passed in
-        const user = auth.currentUser;
-        if (!user) return;
-
         const [tasksSnap, userSubsSnap] = await Promise.all([
           db.collection('tasks').where('status','==','approved').get(),
-          db.collection('task_submissions').where('userId','==',user.uid).get()
+          db.collection('task_submissions').where('userId','==',uid).get()
         ]);
         const skipIds = new Set(
           userSubsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId)
         );
         const tasks = tasksSnap.docs.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
-        if (loadingEl) loadingEl.style.display = 'none';
+        loadingEl.style.display = 'none';
         for (let doc of tasks) {
           const data = doc.data(), id = doc.id;
           if (skipIds.has(id)) continue;
+          // check global approvals to avoid over-serving the task
           const globalApproved = (await db.collection('task_submissions')
             .where('taskId','==',id).where('status','==','approved').get()).size;
-          if (globalApproved < data.workersNeeded) {
-            renderTaskWithDB(id, data, db, auth);
-          }
+          if (globalApproved < data.workersNeeded) renderTask(id, data);
         }
-      } catch (e) {
-        if (loadingEl) loadingEl.textContent = 'Error loading tasks: ' + (e.message || e);
-        console.error('loadTasksForBootstrap error', e);
+      } catch(e) {
+        loadingEl.textContent = 'Error loading tasks: ' + (e.message || e);
       }
     }
 
-    // renderTask adaptation that uses provided db/auth but otherwise identical to your function
-    function renderTaskWithDB(id, data, db, auth) {
+    function renderTask(id, data) {
       const price = data.costPerUser || (data.totalBudget/data.workersNeeded);
       const userPay = +(price*0.7).toFixed(2);
-      const taskContainer = document.getElementById('taskContainer');
+      // create node
       const div = document.createElement('div'); div.className='card task'; div.id=`task-${id}`;
       div.innerHTML = `
-        <div class="task-header">
-          <div class="task-main">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:0;">
             <h2>${escapeHtml(data.taskTitle)} <span style="font-size:12px;color:var(--muted); font-weight:600">— ${escapeHtml(data.category || '')}</span></h2>
             <div class="meta-row"><div><strong>Earn:</strong> ₦${userPay}</div><div>•</div><div>${escapeHtml(data.workersNeeded)} slots</div></div>
             <p>${escapeHtml(data.description || '')}</p>
           </div>
-          <div class="task-actions">
+          <div style="min-width:120px; text-align:right;">
             <button class="btn" onclick="window.open('${data.link}','_blank')" title="Open task link">Open Task</button>
           </div>
         </div>
@@ -434,4 +346,76 @@
           </div>
 
           <div class="actions">
-      
+            <button id="submit-${id}" class="btn">
+              <span class="btn-text">Submit Proof</span>
+              <span class="btn-spinner" aria-hidden="true" style="display:none; margin-left:6px;"><span class="spinner"></span></span>
+            </button>
+            <button class="btn ghost" onclick="document.getElementById('text-${id}').value=''; document.getElementById('file_${id}').value=null">Clear</button>
+          </div>
+        </div>
+      `;
+      taskContainer.appendChild(div);
+
+      // attach submit handler
+      document.getElementById(`submit-${id}`).onclick = () => submitProof(id, userPay);
+      // live update for approved submissions
+      db.collection('task_submissions')
+        .where('taskId','==',id).where('status','==','approved')
+        .onSnapshot(snap => {
+          const done = snap.size;
+          const pct = Math.min(100, Math.round(done/data.workersNeeded*100));
+          const bar = document.getElementById(`bar-${id}`);
+          const label = document.getElementById(`label-${id}`);
+          if (bar) bar.style.width = pct + '%';
+          if (label) label.textContent = `${done} / ${data.workersNeeded} completed`;
+          if (done >= data.workersNeeded) {
+            const el = document.getElementById(`task-${id}`);
+            if (el) el.remove();
+          }
+        });
+    }
+
+    // helper escape
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ---------- Imgur upload (kept functionally the same) ----------
+    // returns Promise<string> resolving to image URL
+    function uploadToImgur(file, onProgress) {
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const b = r.result.split(',')[1];
+          const f = new FormData();
+          f.append('image', b);
+          const x = new XMLHttpRequest();
+          x.open('POST', 'https://api.imgur.com/3/image');
+          // keep your existing client id; do not modify unless you want to change
+          x.setRequestHeader('Authorization', 'Client-ID fb533db21a59486');
+          x.upload.onprogress = e => e.lengthComputable && onProgress(Math.round(e.loaded / e.total * 100));
+          x.onload = () => {
+            try {
+              const j = JSON.parse(x.responseText);
+              if (j && j.success) res(j.data.link);
+              else rej((j && j.data && j.data.error) || 'Upload failed');
+            } catch (err) {
+              rej('Invalid response from Imgur');
+            }
+          };
+          x.onerror = () => rej('Upload failed (network)');
+          x.send(f);
+        };
+        r.onerror = () => rej('File read error');
+        r.readAsDataURL(file);
+      });
+    }
+
+    // ---------- submit proof with spinner + disable (unchanged behaviour) ----------
+    async function submitProof(taskId, payout) {
+      const submitBtn = document.getElementById(`submit-${taskId}`);
+      if (!submitBtn) return;
+      const btnText = submitBtn.querySelector('.btn-text');
+      const btnSpinner = submitBtn.querySelector('.btn-spinner');
+      // disable and show spinner
+      submitBt
