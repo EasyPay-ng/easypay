@@ -35,13 +35,7 @@
     }
 
     *{box-sizing:border-box}
-
-    .wrap {
-      width:100%;
-      max-width:var(--max-width);
-      margin:0 auto;
-      padding:0 18px;
-    }
+    .wrap { width:100%; max-width:var(--max-width); margin:0 auto; padding:0 18px; }
 
     /* Loading screen (visible by default) */
     #loadingScreen {
@@ -75,7 +69,10 @@
     @keyframes spin { to { transform: rotate(360deg) } }
     .loader-text { font-weight:600; color:var(--muted) }
 
-    /* hidden by default; shown after loader removed */
+    /* error inside loader */
+    .loader-error { color:#b00020; font-weight:700; }
+
+    /* hidden by default; shown after loader hides */
     #loginDiv { max-width:420px; margin:40px auto 0; text-align:center; display:none; }
     #loginDiv input { width:100%; padding:12px 10px; margin:8px 0; border-radius:10px; border:1px solid #e6f4ec }
     #loginDiv button { padding:12px 18px; border-radius:10px; border:0; background:var(--accent); color:#fff; font-weight:700; cursor:pointer }
@@ -144,27 +141,30 @@
   <div class="wrap">
     <!-- LOADING SCREEN (VISIBLE BY DEFAULT) -->
     <div id="loadingScreen" role="status" aria-live="polite">
-      <div class="loader-card">
+      <div class="loader-card" id="loaderCard">
         <div class="spinner" aria-hidden="true"></div>
         <div>
-          <div class="loader-text">Connecting to EasyPay…</div>
+          <div class="loader-text" id="loaderTitle">Connecting to EasyPay…</div>
           <div style="font-size:12px; color:var(--muted); margin-top:6px;">Loading resources — please wait</div>
         </div>
       </div>
-      <div style="font-size:13px; color:var(--muted); margin-top:12px;">If this takes too long, check your network.</div>
+      <div style="font-size:13px; color:var(--muted); margin-top:12px;" id="loaderSub">If this takes too long, check your network.</div>
+      <div style="margin-top:12px; display:none;" id="loaderRetryWrap">
+        <button id="loaderRetryBtn" class="btn">Retry</button>
+      </div>
     </div>
 
     <!-- LOGIN (hidden until loader hides) -->
-    <div id="loginDiv">
+    <div id="loginDiv" aria-hidden="true">
       <h2>Sign In to Continue</h2>
       <input type="email" id="email" placeholder="Email" />
       <input type="password" id="password" placeholder="Password" />
       <button id="loginBtn">Sign In</button>
-      <p id="loginError" class="error" style="margin-top:8px; display:none;"></p>
+      <p id="loginError" style="margin-top:8px;color:#b00020;display:none;"></p>
     </div>
 
     <!-- APP (hidden until auth ready) -->
-    <div id="app">
+    <div id="app" aria-hidden="true">
       <header class="page">
         <div class="brand">
           <div class="logo" aria-hidden="true">EP</div>
@@ -212,233 +212,226 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // show an error message inside the loader (instead of switching to login)
-    function showConnectionError(msg){
-      const loader = document.getElementById('loadingScreen');
-      if (loader) {
-        loader.innerHTML = `
-          <div class="loader-card" style="border-color:#ffd6d6;">
-            <div style="width:28px;height:28px;border-radius:50%;background:#ffd6d6;display:inline-block"></div>
-            <div style="margin-left:12px">
-              <div style="font-weight:700;color:#b00020">Connection error</div>
-              <div style="font-size:13px;color:#6b7280;margin-top:6px">${(msg||'Unable to connect to server.')} Please check your network or try again later.</div>
-            </div>
-          </div>
-        `;
-      }
-      // keep login hidden; do not reveal it automatically
-      const loginDiv = document.getElementById('loginDiv');
-      if (loginDiv) loginDiv.style.display = 'none';
-      const appDiv = document.getElementById('app');
-      if (appDiv) appDiv.style.display = 'none';
+    // ---------- robust bootstrap (waits for firebase or times out) ----------
+    const FIREBASE_WAIT_MS = 4500; // how long to wait for firebase to appear
+    let authInitialized = false; // ensure we attach onAuthStateChanged only once
+
+    function showLoaderError(message) {
+      const loaderTitle = document.getElementById('loaderTitle');
+      const loaderSub = document.getElementById('loaderSub');
+      const loaderRetryWrap = document.getElementById('loaderRetryWrap');
+      if (loaderTitle) loaderTitle.textContent = 'Connection error';
+      if (loaderSub) loaderSub.textContent = message || 'Unable to connect. Check network or try again.';
+      if (loaderRetryWrap) loaderRetryWrap.style.display = 'block';
+      const loaderCard = document.getElementById('loaderCard');
+      if (loaderCard) loaderCard.style.borderColor = '#ffd6d6';
     }
 
-    // small timeout to detect if firebase lib failed to load (network)
-    setTimeout(()=> {
-      if (typeof firebase === 'undefined') {
-        showConnectionError('Firebase failed to load. Check your network or script URLs.');
-      }
-    }, 1600);
-
-    // ---------- config (unchanged) ----------
-    try {
-      const firebaseConfig = {
-        apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-        authDomain: "easypay-6bce8.firebaseapp.com",
-        projectId: "easypay-6bce8",
-        storageBucket: "easypay-6bce8.appspot.com",
-        messagingSenderId: "862671358267",
-        appId: "1:862671358267:web:b243c769840ef918c1e"
-      };
-
-      // initialize firebase safely
-      if (typeof firebase !== 'undefined' && !firebase.apps?.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-    } catch (initErr) {
-      console.error('Firebase init error', initErr);
-      showConnectionError('Failed to initialize connection. Please try again later.');
+    function resetLoader() {
+      const loaderTitle = document.getElementById('loaderTitle');
+      const loaderSub = document.getElementById('loaderSub');
+      const loaderRetryWrap = document.getElementById('loaderRetryWrap');
+      if (loaderTitle) loaderTitle.textContent = 'Connecting to EasyPay…';
+      if (loaderSub) loaderSub.textContent = 'If this takes too long, check your network.';
+      if (loaderRetryWrap) loaderRetryWrap.style.display = 'none';
+      const loaderCard = document.getElementById('loaderCard');
+      if (loaderCard) loaderCard.style.borderColor = '#eef7f0';
     }
 
-    // hide loader and show login/app based on auth state
     function hideLoaderAndShow(target) {
       const loader = document.getElementById('loadingScreen');
       if (loader) loader.style.display = 'none';
       const loginDiv = document.getElementById('loginDiv');
       const appDiv = document.getElementById('app');
       if (target === 'login') {
-        if (loginDiv) loginDiv.style.display = 'block';
-        if (appDiv) appDiv.style.display = 'none';
+        if (loginDiv) { loginDiv.style.display = 'block'; loginDiv.setAttribute('aria-hidden','false'); }
+        if (appDiv) { appDiv.style.display = 'none'; appDiv.setAttribute('aria-hidden','true'); }
       } else if (target === 'app') {
-        if (loginDiv) loginDiv.style.display = 'none';
-        if (appDiv) appDiv.style.display = 'block';
+        if (loginDiv) { loginDiv.style.display = 'none'; loginDiv.setAttribute('aria-hidden','true'); }
+        if (appDiv) { appDiv.style.display = 'block'; appDiv.setAttribute('aria-hidden','false'); }
       }
     }
 
-    // if firebase exists, continue with original behaviour
-    if (typeof firebase !== 'undefined') {
-      const auth = firebase.auth(), db = firebase.firestore();
+    function waitForFirebase(timeout = FIREBASE_WAIT_MS) {
+      return new Promise((resolve, reject) => {
+        const start = Date.now();
+        const check = () => {
+          if (typeof firebase !== 'undefined' && firebase && firebase.apps !== undefined) return resolve(firebase);
+          if (Date.now() - start > timeout) return reject(new Error('Firebase not available'));
+          setTimeout(check, 150);
+        };
+        check();
+      });
+    }
 
-      // ---------- UI refs ----------
-      const loginDivEl = document.getElementById('loginDiv'),
-            appDiv = document.getElementById('app'),
-            loginBtn = document.getElementById('loginBtn'),
-            logoutBtn = document.getElementById('logoutBtn'),
-            emailEl = document.getElementById('email'),
-            passEl = document.getElementById('password'),
-            loginError = document.getElementById('loginError'),
-            loadingEl = document.getElementById('loading'),
-            taskContainer = document.getElementById('taskContainer');
+    // Retry button
+    document.getElementById('loaderRetryBtn').addEventListener('click', () => {
+      resetLoader();
+      // attempt bootstrap again
+      bootstrapFirebase();
+    });
 
-      // login click (unchanged)
-      loginBtn.onclick = () => {
-        if (loginError) loginError.style.display = 'none';
-        auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
-          .catch(err => {
-            if (loginError) {
-              loginError.textContent = err.message || 'Login failed';
-              loginError.style.display = 'block';
-            }
-          });
-      };
+    async function bootstrapFirebase() {
+      try {
+        // wait for firebase scripts to become available
+        const fb = await waitForFirebase();
+        // initialize if needed
+        try {
+          const firebaseConfig = {
+            apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+            authDomain: "easypay-6bce8.firebaseapp.com",
+            projectId: "easypay-6bce8",
+            storageBucket: "easypay-6bce8.appspot.com",
+            messagingSenderId: "862671358267",
+            appId: "1:862671358267:web:b243c769840ef918c1e"
+          };
+          if (!fb.apps.length) fb.initializeApp(firebaseConfig);
+        } catch (initErr) {
+          console.error('Firebase init failed', initErr);
+          showLoaderError('Failed to initialize Firebase. Try retry.');
+          return;
+        }
 
-      logoutBtn.onclick = () => auth.signOut();
+        // grab compat services
+        const auth = fb.auth();
+        const db = fb.firestore();
 
-      // auth listener: hide loader then show login/app appropriately
+        // wire UI handlers that depend on firebase
+        wireApp(auth, db);
+
+      } catch (err) {
+        console.error('Firebase bootstrap error', err);
+        showLoaderError('Firebase scripts failed to load. Please retry.');
+      }
+    }
+
+    // attach login/logout and auth state handling only once
+    function wireApp(auth, db) {
+      if (authInitialized) return;
+      authInitialized = true;
+
+      // UI elements
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const emailEl = document.getElementById('email');
+      const passEl = document.getElementById('password');
+      const loginError = document.getElementById('loginError');
+
+      // login click (unchanged behaviour)
+      if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+          if (loginError) { loginError.style.display = 'none'; loginError.textContent = ''; }
+          auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
+            .catch(err => {
+              if (loginError) {
+                loginError.style.display = 'block';
+                loginError.textContent = err && err.message ? err.message : 'Login failed';
+              }
+            });
+        });
+      }
+
+      if (logoutBtn) logoutBtn.addEventListener('click', () => auth.signOut());
+
+      // auth listener: shows login/app appropriately. single stable handler.
       auth.onAuthStateChanged(async user => {
         try {
-          // once auth engages, remove the loader
+          // remove loader before revealing UI
           if (!user) {
             hideLoaderAndShow('login');
           } else {
             hideLoaderAndShow('app');
-            await loadTasks(user.uid);
-            // keep UI reactive to user's own submissions
+            // call original loadTasks function (uses db variable from outer scope)
+            await loadTasksForBootstrap(db, auth);
+            // keep UI reactive to user's own submissions (same behaviour)
             db.collection('task_submissions').where('userId','==',user.uid)
-              .onSnapshot(() => loadTasks(user.uid));
+              .onSnapshot(() => loadTasksForBootstrap(db, auth));
           }
         } catch (e) {
-          console.error('Auth state handler error', e);
-          showConnectionError('An error occurred while initializing the app.');
+          console.error('Auth handler error', e);
+          showLoaderError('An error occurred while initializing the app.');
         }
       });
 
-      // ---------- existing task functions (unchanged) ----------
-      async function loadTasks(uid) {
-        loadingEl.textContent = 'Loading tasks...';
-        taskContainer.innerHTML = '';
-        try {
-          const [tasksSnap, userSubsSnap] = await Promise.all([
-            db.collection('tasks').where('status','==','approved').get(),
-            db.collection('task_submissions').where('userId','==',uid).get()
-          ]);
-          const skipIds = new Set(
-            userSubsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId)
-          );
-          const tasks = tasksSnap.docs.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
-          loadingEl.style.display = 'none';
-          for (let doc of tasks) {
-            const data = doc.data(), id = doc.id;
-            if (skipIds.has(id)) continue;
-            // check global approvals to avoid over-serving the task
-            const globalApproved = (await db.collection('task_submissions')
-              .where('taskId','==',id).where('status','==','approved').get()).size;
-            if (globalApproved < data.workersNeeded) renderTask(id, data);
+      // expose db/auth to original functions by setting global refs the originals expect
+      // (the rest of your original code expects `firebase`, `auth`, `db` variables - we preserve usage below)
+      window.__EP_FIRESTORE = db;
+      window.__EP_AUTH = auth;
+    }
+
+    // Wrapper to call your original loadTasks code while passing db/auth explicitly
+    async function loadTasksForBootstrap(db, auth) {
+      // find your existing UI refs (same IDs as original)
+      const loadingEl = document.getElementById('loading');
+      const taskContainer = document.getElementById('taskContainer');
+      if (loadingEl) loadingEl.textContent = 'Loading tasks...';
+      if (taskContainer) taskContainer.innerHTML = '';
+      try {
+        // replicate the same loads as original but using the db passed in
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const [tasksSnap, userSubsSnap] = await Promise.all([
+          db.collection('tasks').where('status','==','approved').get(),
+          db.collection('task_submissions').where('userId','==',user.uid).get()
+        ]);
+        const skipIds = new Set(
+          userSubsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId)
+        );
+        const tasks = tasksSnap.docs.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
+        if (loadingEl) loadingEl.style.display = 'none';
+        for (let doc of tasks) {
+          const data = doc.data(), id = doc.id;
+          if (skipIds.has(id)) continue;
+          const globalApproved = (await db.collection('task_submissions')
+            .where('taskId','==',id).where('status','==','approved').get()).size;
+          if (globalApproved < data.workersNeeded) {
+            renderTaskWithDB(id, data, db, auth);
           }
-        } catch(e) {
-          loadingEl.textContent = 'Error loading tasks: ' + (e.message || e);
         }
+      } catch (e) {
+        if (loadingEl) loadingEl.textContent = 'Error loading tasks: ' + (e.message || e);
+        console.error('loadTasksForBootstrap error', e);
       }
+    }
 
-      function renderTask(id, data) {
-        const price = data.costPerUser || (data.totalBudget/data.workersNeeded);
-        const userPay = +(price*0.7).toFixed(2);
-        const div = document.createElement('div'); div.className='card task'; div.id=`task-${id}`;
-        div.innerHTML = `
-          <div class="task-header">
-            <div class="task-main">
-              <h2>${escapeHtml(data.taskTitle)} <span style="font-size:12px;color:var(--muted); font-weight:600">— ${escapeHtml(data.category || '')}</span></h2>
-              <div class="meta-row"><div><strong>Earn:</strong> ₦${userPay}</div><div>•</div><div>${escapeHtml(data.workersNeeded)} slots</div></div>
-              <p>${escapeHtml(data.description || '')}</p>
-            </div>
-            <div class="task-actions">
-              <button class="btn" onclick="window.open('${data.link}','_blank')" title="Open task link">Open Task</button>
-            </div>
+    // renderTask adaptation that uses provided db/auth but otherwise identical to your function
+    function renderTaskWithDB(id, data, db, auth) {
+      const price = data.costPerUser || (data.totalBudget/data.workersNeeded);
+      const userPay = +(price*0.7).toFixed(2);
+      const taskContainer = document.getElementById('taskContainer');
+      const div = document.createElement('div'); div.className='card task'; div.id=`task-${id}`;
+      div.innerHTML = `
+        <div class="task-header">
+          <div class="task-main">
+            <h2>${escapeHtml(data.taskTitle)} <span style="font-size:12px;color:var(--muted); font-weight:600">— ${escapeHtml(data.category || '')}</span></h2>
+            <div class="meta-row"><div><strong>Earn:</strong> ₦${userPay}</div><div>•</div><div>${escapeHtml(data.workersNeeded)} slots</div></div>
+            <p>${escapeHtml(data.description || '')}</p>
+          </div>
+          <div class="task-actions">
+            <button class="btn" onclick="window.open('${data.link}','_blank')" title="Open task link">Open Task</button>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
+          <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
+        </div>
+
+        <div class="proof" aria-live="polite">
+          <div>
+            <label for="text-${id}">Text Proof</label>
+            <textarea id="text-${id}" placeholder="Enter short proof (what you did, link, time, etc.)"></textarea>
+          </div>
+          <div>
+            <label for="file_${id}">Upload Image Proof</label>
+            <input type="file" id="file_${id}" accept="image/*" />
           </div>
 
-          <div class="progress-wrap">
-            <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
-            <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
+          <div class="upload-progress" id="upload-area-${id}" style="display:none;">
+            <div class="bar"><i id="upload-bar-${id}"></i></div>
+            <div class="label" id="upload-label-${id}">0%</div>
           </div>
 
-          <div class="proof" aria-live="polite">
-            <div>
-              <label for="text-${id}">Text Proof</label>
-              <textarea id="text-${id}" placeholder="Enter short proof (what you did, link, time, etc.)"></textarea>
-            </div>
-            <div>
-              <label for="file_${id}">Upload Image Proof</label>
-              <input type="file" id="file_${id}" accept="image/*" />
-            </div>
-
-            <div class="upload-progress" id="upload-area-${id}" style="display:none;">
-              <div class="bar"><i id="upload-bar-${id}"></i></div>
-              <div class="label" id="upload-label-${id}">0%</div>
-            </div>
-
-            <div class="actions">
-              <button id="submit-${id}" class="btn">
-                <span class="btn-text">Submit Proof</span>
-                <span class="btn-spinner" aria-hidden="true" style="display:none; margin-left:6px;"><span class="spinner"></span></span>
-              </button>
-              <button class="btn ghost" onclick="document.getElementById('text-${id}').value=''; document.getElementById('file_${id}').value=null">Clear</button>
-            </div>
-          </div>
-        `;
-        taskContainer.appendChild(div);
-
-        // attach submit handler
-        document.getElementById(`submit-${id}`).onclick = () => submitProof(id, userPay);
-        // live update for approved submissions
-        db.collection('task_submissions')
-          .where('taskId','==',id).where('status','==','approved')
-          .onSnapshot(snap => {
-            const done = snap.size;
-            const pct = Math.min(100, Math.round(done/data.workersNeeded*100));
-            const bar = document.getElementById(`bar-${id}`);
-            const label = document.getElementById(`label-${id}`);
-            if (bar) bar.style.width = pct + '%';
-            if (label) label.textContent = `${done} / ${data.workersNeeded} completed`;
-            if (done >= data.workersNeeded) {
-              const el = document.getElementById(`task-${id}`);
-              if (el) el.remove();
-            }
-          });
-      }
-
-      function escapeHtml(s) {
-        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      }
-
-      // Imgur upload (unchanged)
-      function uploadToImgur(file, onProgress) {
-        return new Promise((res, rej) => {
-          const r = new FileReader();
-          r.onload = () => {
-            const b = r.result.split(',')[1];
-            const f = new FormData();
-            f.append('image', b);
-            const x = new XMLHttpRequest();
-            x.open('POST', 'https://api.imgur.com/3/image');
-            x.setRequestHeader('Authorization', 'Client-ID fb533db21a59486');
-            x.upload.onprogress = e => e.lengthComputable && onProgress(Math.round(e.loaded / e.total * 100));
-            x.onload = () => {
-              try {
-                const j = JSON.parse(x.responseText);
-                if (j && j.success) res(j.data.link);
-                else rej((j && j.data && j.data.error) || 'Upload failed');
-              } catch (err) {
-                rej('Invalid response from Imgur');
-              }
-            };
-            x.onerror = () 
+          <div class="actions">
+      
