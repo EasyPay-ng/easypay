@@ -16,196 +16,155 @@
       --accent-700: #059c56;
       --muted: #6b7280;
       --text: #0f1720;
-      --glass: rgba(255,255,255,0.7);
       --shadow: 0 12px 30px rgba(16,24,40,0.06);
       --radius: 14px;
       --max-width: 1100px;
     }
 
-    /* prevent horizontal scrolling */
     html,body{height:100%}
     body{
       margin:0;
       font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial;
       background: linear-gradient(180deg,#f8fff9 0%,var(--bg) 100%);
       color:var(--text);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      overflow-x: hidden; /* <-- stops horizontal scrolling */
-      padding:24px 12px; /* keep some breathing room */
-      box-sizing: border-box;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow-x: hidden;
+      padding:24px 12px;
+      box-sizing:border-box;
     }
 
     *{box-sizing:border-box}
 
-    /* container is flexible and will never exceed viewport */
     .wrap {
       width:100%;
       max-width:var(--max-width);
       margin:0 auto;
-      padding:0 18px; /* inner padding, won't force overflow */
+      padding:0 18px;
     }
 
-    header.page {
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      margin-bottom:18px;
+    /* Loading screen (visible by default) */
+    #loadingScreen {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      min-height:60vh;
+      gap:12px;
+      color:var(--muted);
     }
-    .brand {
-      display:flex; align-items:center; gap:12px;
+    .loader-card {
+      background:var(--card);
+      padding:22px 28px;
+      border-radius:12px;
+      box-shadow:var(--shadow);
+      border:1px solid #eef7f0;
+      display:flex;
+      align-items:center;
+      gap:14px;
     }
-    .logo {
-      width:56px; height:56px; border-radius:12px;
-      display:flex; align-items:center; justify-content:center;
-      background:linear-gradient(135deg,var(--accent),var(--accent-700));
-      color:white; font-weight:700; font-size:18px; box-shadow:var(--shadow);
+    .spinner {
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      border:3px solid rgba(0,0,0,0.08);
+      border-top-color:var(--accent-700);
+      animation:spin 1s linear infinite;
       flex:0 0 auto;
     }
-    .title {
-      font-size:20px; font-weight:700;
-      line-height:1;
-      word-break:break-word;
-    }
-    .subtitle {
-      color:var(--muted); font-size:13px;
-    }
-    #logoutBtn {
-      background: transparent; border:1px solid rgba(5,124,86,0.12);
-      color:var(--accent-700); padding:8px 14px; border-radius:10px;
-      cursor:pointer; font-weight:700;
-      transition: transform .12s;
-      white-space:nowrap;
-    }
+    @keyframes spin { to { transform: rotate(360deg) } }
+    .loader-text { font-weight:600; color:var(--muted) }
+
+    /* hidden by default; shown after loader removed */
+    #loginDiv { max-width:420px; margin:40px auto 0; text-align:center; display:none; }
+    #loginDiv input { width:100%; padding:12px 10px; margin:8px 0; border-radius:10px; border:1px solid #e6f4ec }
+    #loginDiv button { padding:12px 18px; border-radius:10px; border:0; background:var(--accent); color:#fff; font-weight:700; cursor:pointer }
+
+    /* app area (unchanged layout) */
+    #app { display:none; }
+    header.page { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .logo { width:56px; height:56px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--accent),var(--accent-700)); color:white; font-weight:700; font-size:18px; box-shadow:var(--shadow); flex:0 0 auto; }
+    .title { font-size:20px; font-weight:700; line-height:1; word-break:break-word; }
+    .subtitle { color:var(--muted); font-size:13px; }
+    #logoutBtn { background: transparent; border:1px solid rgba(5,124,86,0.12); color:var(--accent-700); padding:8px 14px; border-radius:10px; cursor:pointer; font-weight:700; transition: transform .12s; white-space:nowrap; }
     #logoutBtn:hover{ transform:translateY(-2px) }
 
-    /* grid: main + sidebar
-       sidebar min 260px, max 360px; on small screens it will stack */
-    .content {
-      display:grid;
-      grid-template-columns: 1fr minmax(260px,360px);
-      gap:18px;
-      align-items:start;
-      width:100%;
-    }
-
-    /* left column - tasks */
-    .main-col {
-      display:flex; flex-direction:column; gap:16px;
-      min-width:0; /* <-- important to allow children to shrink */
-    }
-
-    .card {
-      background:var(--card); border-radius:var(--radius); padding:18px;
-      box-shadow:var(--shadow); border:1px solid #eef7f0;
-      overflow:visible;
-    }
-
-    .task {
-      display:block; border-radius:12px; overflow:hidden; padding:18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), var(--card));
-      border:1px solid #f1fbf4; box-shadow: 0 8px 26px rgba(10,40,20,0.03);
-      min-width:0; /* allow shrinking */
-    }
-    /* the header row of each task can wrap on narrow screens */
-    .task .task-header {
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      flex-wrap:wrap;         /* allow wrap instead of overflow */
-    }
-    .task .task-main { flex:1 1 0; min-width:0 } /* allow shrinking */
-    .task h2 {
-      margin:0 0 8px;
-      font-size:18px;
-      color:var(--accent-700);
-      word-break:break-word;  /* avoid overflow on long titles */
-    }
+    .content { display:grid; grid-template-columns: 1fr minmax(260px,360px); gap:18px; align-items:start; width:100%; }
+    .main-col { display:flex; flex-direction:column; gap:16px; min-width:0; }
+    .card { background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); border:1px solid #eef7f0; overflow:visible; }
+    .task { display:block; border-radius:12px; overflow:hidden; padding:18px; background: linear-gradient(180deg, rgba(255,255,255,0.98), var(--card)); border:1px solid #f1fbf4; box-shadow: 0 8px 26px rgba(10,40,20,0.03); min-width:0; }
+    .task .task-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+    .task .task-main { flex:1 1 0; min-width:0 }
+    .task h2 { margin:0 0 8px; font-size:18px; color:var(--accent-700); word-break:break-word; }
     .task p { margin:0 0 10px; color:#22323a; line-height:1.5; word-break:break-word; }
-
     .meta-row { display:flex; gap:12px; align-items:center; color:var(--muted); font-size:13px; margin-bottom:10px; flex-wrap:wrap; }
-
-    /* ensure action column can wrap below content on small widths */
     .task .task-actions { flex:0 0 140px; min-width:120px; text-align:right; }
 
-    /* progress */
     .progress-wrap { margin:10px 0 12px; }
     .progress-container { background:#eef7ef; border-radius:999px; height:12px; overflow:hidden; }
     .progress-bar { height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-700)); transition: width .4s ease; }
     .progress-label { font-size:12px; color:var(--muted); margin-top:6px; }
 
-    /* actions */
     .actions { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap; }
-    .btn {
-      background:var(--accent); color:white; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.06); display:inline-flex; gap:8px; align-items:center;
-      white-space:nowrap;
-    }
+    .btn { background:var(--accent); color:white; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; box-shadow: 0 8px 18px rgba(0,0,0,0.06); display:inline-flex; gap:8px; align-items:center; white-space:nowrap; }
     .btn.ghost { background:#fff; color:var(--accent); border:1px solid #e9f7ef; box-shadow:none; }
     .btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
 
-    /* proof area */
     .proof { margin-top:12px; display:grid; gap:8px; }
     label { font-weight:600; color:#1c2a29; font-size:13px; display:block; }
     textarea { width:100%; min-height:86px; padding:10px; border-radius:10px; border:1px solid #e6f4ec; resize:vertical; font-family:inherit; }
     input[type=file] { padding:8px 6px; border-radius:8px; border:1px dashed #e6f4ec; background:#fcfffc }
 
-    /* upload progress small */
-    .upload-progress {
-      margin-top:8px; display:flex; gap:8px; align-items:center;
-    }
-    .upload-progress .bar {
-      flex:1; background:#eef7ef; border-radius:999px; height:8px; overflow:hidden;
-    }
+    .upload-progress { margin-top:8px; display:flex; gap:8px; align-items:center; }
+    .upload-progress .bar { flex:1; background:#eef7ef; border-radius:999px; height:8px; overflow:hidden; }
     .upload-progress .bar > i { display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-700)); transition:width .15s linear; }
     .upload-progress .label { font-size:12px; color:var(--muted); min-width:46px; text-align:right }
 
-    /* right column - sidebar */
     .side-col { display:flex; flex-direction:column; gap:12px; position:sticky; top:28px; align-self:start; min-width:0 }
     .hint { color:var(--muted); font-size:14px; }
 
-    /* login */
-    #loginDiv { max-width:420px; margin:70px auto 0; text-align:center; }
-    #loginDiv input { width:100%; padding:12px 10px; margin:8px 0; border-radius:10px; border:1px solid #e6f4ec }
-    #loginDiv button { padding:12px 18px; border-radius:10px; border:0; background:var(--accent); color:#fff; font-weight:700; cursor:pointer }
-
-    /* spinner */
-    .spinner {
-      width:18px; height:18px; border-radius:50%; border:3px solid rgba(255,255,255,0.2); border-top-color:rgba(255,255,255,0.9);
-      animation:spin 1s linear infinite; display:inline-block;
-    }
-    .spinner.inline-dark {
-      border:3px solid rgba(0,0,0,0.08); border-top-color:var(--accent-700);
-      width:16px; height:16px;
-    }
-    @keyframes spin { to { transform: rotate(360deg) } }
-
-    /* responsive adjustments */
     @media (max-width:980px){
       body{ padding:18px 10px; }
       .content { grid-template-columns: 1fr; }
       .side-col { position:relative; top:0 }
-      .task .task-actions { flex: 1 1 100%; text-align:left; } /* actions full width below content */
+      .task .task-actions { flex: 1 1 100%; text-align:left; }
     }
-
-    /* very small devices - reduce paddings so content stays comfortable */
     @media (max-width:420px){
       body{ padding:12px 8px; }
       .logo{ width:48px; height:48px; }
       .task { padding:14px; }
       .card { padding:14px; }
+      .loader-card { padding:16px 18px; }
+      .spinner { width:24px; height:24px; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div id="loginDiv" style="display:none">
+    <!-- LOADING SCREEN (VISIBLE BY DEFAULT) -->
+    <div id="loadingScreen" role="status" aria-live="polite">
+      <div class="loader-card">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <div class="loader-text">Connecting to EasyPay…</div>
+          <div style="font-size:12px; color:var(--muted); margin-top:6px;">Loading resources — please wait</div>
+        </div>
+      </div>
+      <div style="font-size:13px; color:var(--muted); margin-top:12px;">If this takes too long, check your network.</div>
+    </div>
+
+    <!-- LOGIN (hidden until loader hides) -->
+    <div id="loginDiv">
       <h2>Sign In to Continue</h2>
       <input type="email" id="email" placeholder="Email" />
       <input type="password" id="password" placeholder="Password" />
       <button id="loginBtn">Sign In</button>
-      <p id="loginError" style="color:#c62828; font-weight:600; margin-top:8px"></p>
+      <p id="loginError" class="error" style="margin-top:8px; display:none;"></p>
     </div>
 
-    <div id="app" style="display:none">
+    <!-- APP (hidden until auth ready) -->
+    <div id="app">
       <header class="page">
         <div class="brand">
           <div class="logo" aria-hidden="true">EP</div>
@@ -219,7 +178,7 @@
         </div>
       </header>
 
-      <div class="content">
+      <div class="content" aria-live="polite">
         <div class="main-col">
           <div class="card">
             <div id="loading" style="color:var(--muted)">Loading tasks...</div>
@@ -253,238 +212,233 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
+    // show an error message inside the loader (instead of switching to login)
+    function showConnectionError(msg){
+      const loader = document.getElementById('loadingScreen');
+      if (loader) {
+        loader.innerHTML = `
+          <div class="loader-card" style="border-color:#ffd6d6;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#ffd6d6;display:inline-block"></div>
+            <div style="margin-left:12px">
+              <div style="font-weight:700;color:#b00020">Connection error</div>
+              <div style="font-size:13px;color:#6b7280;margin-top:6px">${(msg||'Unable to connect to server.')} Please check your network or try again later.</div>
+            </div>
+          </div>
+        `;
+      }
+      // keep login hidden; do not reveal it automatically
+      const loginDiv = document.getElementById('loginDiv');
+      if (loginDiv) loginDiv.style.display = 'none';
+      const appDiv = document.getElementById('app');
+      if (appDiv) appDiv.style.display = 'none';
+    }
+
+    // small timeout to detect if firebase lib failed to load (network)
+    setTimeout(()=> {
+      if (typeof firebase === 'undefined') {
+        showConnectionError('Firebase failed to load. Check your network or script URLs.');
+      }
+    }, 1600);
+
     // ---------- config (unchanged) ----------
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c769840ef918c1e"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.firestore();
+    try {
+      const firebaseConfig = {
+        apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+        authDomain: "easypay-6bce8.firebaseapp.com",
+        projectId: "easypay-6bce8",
+        storageBucket: "easypay-6bce8.appspot.com",
+        messagingSenderId: "862671358267",
+        appId: "1:862671358267:web:b243c769840ef918c1e"
+      };
 
-    // ---------- UI refs ----------
-    const loginDiv = document.getElementById('loginDiv'),
-          appDiv = document.getElementById('app'),
-          loginBtn = document.getElementById('loginBtn'),
-          logoutBtn = document.getElementById('logoutBtn'),
-          emailEl = document.getElementById('email'),
-          passEl = document.getElementById('password'),
-          loginError = document.getElementById('loginError'),
-          loadingEl = document.getElementById('loading'),
-          taskContainer = document.getElementById('taskContainer');
-
-    // ---------- auth handlers (unchanged behaviour) ----------
-    loginBtn.onclick = () => {
-      loginError.textContent = '';
-      auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
-        .catch(err => loginError.textContent = err.message);
-    };
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        loginDiv.style.display = 'none';
-        appDiv.style.display = 'block';
-        await loadTasks(user.uid);
-        // keep UI reactive to user's own submissions
-        db.collection('task_submissions').where('userId','==',user.uid)
-          .onSnapshot(() => loadTasks(user.uid));
-      } else {
-        loginDiv.style.display = 'block';
-        appDiv.style.display = 'none';
+      // initialize firebase safely
+      if (typeof firebase !== 'undefined' && !firebase.apps?.length) {
+        firebase.initializeApp(firebaseConfig);
       }
-    });
+    } catch (initErr) {
+      console.error('Firebase init error', initErr);
+      showConnectionError('Failed to initialize connection. Please try again later.');
+    }
 
-    // ---------- task loading (keeps same logic) ----------
-    async function loadTasks(uid) {
-      loadingEl.textContent = 'Loading tasks...';
-      taskContainer.innerHTML = '';
-      try {
-        const [tasksSnap, userSubsSnap] = await Promise.all([
-          db.collection('tasks').where('status','==','approved').get(),
-          db.collection('task_submissions').where('userId','==',uid).get()
-        ]);
-        const skipIds = new Set(
-          userSubsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId)
-        );
-        const tasks = tasksSnap.docs.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
-        loadingEl.style.display = 'none';
-        for (let doc of tasks) {
-          const data = doc.data(), id = doc.id;
-          if (skipIds.has(id)) continue;
-          // check global approvals to avoid over-serving the task
-          const globalApproved = (await db.collection('task_submissions')
-            .where('taskId','==',id).where('status','==','approved').get()).size;
-          if (globalApproved < data.workersNeeded) renderTask(id, data);
-        }
-      } catch(e) {
-        loadingEl.textContent = 'Error loading tasks: ' + (e.message || e);
+    // hide loader and show login/app based on auth state
+    function hideLoaderAndShow(target) {
+      const loader = document.getElementById('loadingScreen');
+      if (loader) loader.style.display = 'none';
+      const loginDiv = document.getElementById('loginDiv');
+      const appDiv = document.getElementById('app');
+      if (target === 'login') {
+        if (loginDiv) loginDiv.style.display = 'block';
+        if (appDiv) appDiv.style.display = 'none';
+      } else if (target === 'app') {
+        if (loginDiv) loginDiv.style.display = 'none';
+        if (appDiv) appDiv.style.display = 'block';
       }
     }
 
-    function renderTask(id, data) {
-      const price = data.costPerUser || (data.totalBudget/data.workersNeeded);
-      const userPay = +(price*0.7).toFixed(2);
-      // create node
-      const div = document.createElement('div'); div.className='card task'; div.id=`task-${id}`;
-      div.innerHTML = `
-        <div class="task-header">
-          <div class="task-main">
-            <h2>${escapeHtml(data.taskTitle)} <span style="font-size:12px;color:var(--muted); font-weight:600">— ${escapeHtml(data.category || '')}</span></h2>
-            <div class="meta-row"><div><strong>Earn:</strong> ₦${userPay}</div><div>•</div><div>${escapeHtml(data.workersNeeded)} slots</div></div>
-            <p>${escapeHtml(data.description || '')}</p>
-          </div>
-          <div class="task-actions">
-            <button class="btn" onclick="window.open('${data.link}','_blank')" title="Open task link">Open Task</button>
-          </div>
-        </div>
+    // if firebase exists, continue with original behaviour
+    if (typeof firebase !== 'undefined') {
+      const auth = firebase.auth(), db = firebase.firestore();
 
-        <div class="progress-wrap">
-          <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
-          <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
-        </div>
+      // ---------- UI refs ----------
+      const loginDivEl = document.getElementById('loginDiv'),
+            appDiv = document.getElementById('app'),
+            loginBtn = document.getElementById('loginBtn'),
+            logoutBtn = document.getElementById('logoutBtn'),
+            emailEl = document.getElementById('email'),
+            passEl = document.getElementById('password'),
+            loginError = document.getElementById('loginError'),
+            loadingEl = document.getElementById('loading'),
+            taskContainer = document.getElementById('taskContainer');
 
-        <div class="proof" aria-live="polite">
-          <div>
-            <label for="text-${id}">Text Proof</label>
-            <textarea id="text-${id}" placeholder="Enter short proof (what you did, link, time, etc.)"></textarea>
-          </div>
-          <div>
-            <label for="file_${id}">Upload Image Proof</label>
-            <input type="file" id="file_${id}" accept="image/*" />
-          </div>
-
-          <div class="upload-progress" id="upload-area-${id}" style="display:none;">
-            <div class="bar"><i id="upload-bar-${id}"></i></div>
-            <div class="label" id="upload-label-${id}">0%</div>
-          </div>
-
-          <div class="actions">
-            <button id="submit-${id}" class="btn">
-              <span class="btn-text">Submit Proof</span>
-              <span class="btn-spinner" aria-hidden="true" style="display:none; margin-left:6px;"><span class="spinner"></span></span>
-            </button>
-            <button class="btn ghost" onclick="document.getElementById('text-${id}').value=''; document.getElementById('file_${id}').value=null">Clear</button>
-          </div>
-        </div>
-      `;
-      taskContainer.appendChild(div);
-
-      // attach submit handler
-      document.getElementById(`submit-${id}`).onclick = () => submitProof(id, userPay);
-      // live update for approved submissions
-      db.collection('task_submissions')
-        .where('taskId','==',id).where('status','==','approved')
-        .onSnapshot(snap => {
-          const done = snap.size;
-          const pct = Math.min(100, Math.round(done/data.workersNeeded*100));
-          const bar = document.getElementById(`bar-${id}`);
-          const label = document.getElementById(`label-${id}`);
-          if (bar) bar.style.width = pct + '%';
-          if (label) label.textContent = `${done} / ${data.workersNeeded} completed`;
-          if (done >= data.workersNeeded) {
-            const el = document.getElementById(`task-${id}`);
-            if (el) el.remove();
-          }
-        });
-    }
-
-    // helper escape
-    function escapeHtml(s) {
-      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    // ---------- Imgur upload (kept functionally the same) ----------
-    // returns Promise<string> resolving to image URL
-    function uploadToImgur(file, onProgress) {
-      return new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => {
-          const b = r.result.split(',')[1];
-          const f = new FormData();
-          f.append('image', b);
-          const x = new XMLHttpRequest();
-          x.open('POST', 'https://api.imgur.com/3/image');
-          // keep your existing client id; do not modify unless you want to change
-          x.setRequestHeader('Authorization', 'Client-ID fb533db21a59486');
-          x.upload.onprogress = e => e.lengthComputable && onProgress(Math.round(e.loaded / e.total * 100));
-          x.onload = () => {
-            try {
-              const j = JSON.parse(x.responseText);
-              if (j && j.success) res(j.data.link);
-              else rej((j && j.data && j.data.error) || 'Upload failed');
-            } catch (err) {
-              rej('Invalid response from Imgur');
+      // login click (unchanged)
+      loginBtn.onclick = () => {
+        if (loginError) loginError.style.display = 'none';
+        auth.signInWithEmailAndPassword(emailEl.value, passEl.value)
+          .catch(err => {
+            if (loginError) {
+              loginError.textContent = err.message || 'Login failed';
+              loginError.style.display = 'block';
             }
-          };
-          x.onerror = () => rej('Upload failed (network)');
-          x.send(f);
-        };
-        r.onerror = () => rej('File read error');
-        r.readAsDataURL(file);
-      });
-    }
+          });
+      };
 
-    // ---------- submit proof with spinner + disable (improved) ----------
-    async function submitProof(taskId, payout) {
-      const submitBtn = document.getElementById(`submit-${taskId}`);
-      if (!submitBtn) return;
-      const btnText = submitBtn.querySelector('.btn-text');
-      const btnSpinner = submitBtn.querySelector('.btn-spinner');
-      // disable and show spinner
-      submitBtn.disabled = true;
-      submitBtn.setAttribute('aria-busy', 'true');
-      btnText.style.opacity = '0.35';
-      btnSpinner.style.display = 'inline-block';
+      logoutBtn.onclick = () => auth.signOut();
 
-      try {
-        const t = document.getElementById(`text-${taskId}`);
-        const f = document.getElementById(`file_${taskId}`);
-        const txt = t ? t.value.trim() : '';
-        const file = f && f.files ? f.files[0] : null;
-        if (!txt || !file) {
-          alert('Please provide text proof and an image.');
-          throw new Error('Missing proof');
+      // auth listener: hide loader then show login/app appropriately
+      auth.onAuthStateChanged(async user => {
+        try {
+          // once auth engages, remove the loader
+          if (!user) {
+            hideLoaderAndShow('login');
+          } else {
+            hideLoaderAndShow('app');
+            await loadTasks(user.uid);
+            // keep UI reactive to user's own submissions
+            db.collection('task_submissions').where('userId','==',user.uid)
+              .onSnapshot(() => loadTasks(user.uid));
+          }
+        } catch (e) {
+          console.error('Auth state handler error', e);
+          showConnectionError('An error occurred while initializing the app.');
         }
+      });
 
-        // show upload UI
-        const uploadArea = document.getElementById(`upload-area-${taskId}`);
-        const uploadBar = document.getElementById(`upload-bar-${taskId}`);
-        const uploadLabel = document.getElementById(`upload-label-${taskId}`);
-        if (uploadArea) uploadArea.style.display = 'flex';
-        if (uploadBar) uploadBar.style.width = '0%';
-        if (uploadLabel) uploadLabel.textContent = '0%';
+      // ---------- existing task functions (unchanged) ----------
+      async function loadTasks(uid) {
+        loadingEl.textContent = 'Loading tasks...';
+        taskContainer.innerHTML = '';
+        try {
+          const [tasksSnap, userSubsSnap] = await Promise.all([
+            db.collection('tasks').where('status','==','approved').get(),
+            db.collection('task_submissions').where('userId','==',uid).get()
+          ]);
+          const skipIds = new Set(
+            userSubsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId)
+          );
+          const tasks = tasksSnap.docs.sort((a,b) => (b.data().createdAt?.toMillis()||0) - (a.data().createdAt?.toMillis()||0));
+          loadingEl.style.display = 'none';
+          for (let doc of tasks) {
+            const data = doc.data(), id = doc.id;
+            if (skipIds.has(id)) continue;
+            // check global approvals to avoid over-serving the task
+            const globalApproved = (await db.collection('task_submissions')
+              .where('taskId','==',id).where('status','==','approved').get()).size;
+            if (globalApproved < data.workersNeeded) renderTask(id, data);
+          }
+        } catch(e) {
+          loadingEl.textContent = 'Error loading tasks: ' + (e.message || e);
+        }
+      }
 
-        // upload image to imgur with progress
-        const url = await uploadToImgur(file, p => {
-          if (uploadBar) uploadBar.style.width = p + '%';
-          if (uploadLabel) uploadLabel.textContent = p + '%';
-        });
+      function renderTask(id, data) {
+        const price = data.costPerUser || (data.totalBudget/data.workersNeeded);
+        const userPay = +(price*0.7).toFixed(2);
+        const div = document.createElement('div'); div.className='card task'; div.id=`task-${id}`;
+        div.innerHTML = `
+          <div class="task-header">
+            <div class="task-main">
+              <h2>${escapeHtml(data.taskTitle)} <span style="font-size:12px;color:var(--muted); font-weight:600">— ${escapeHtml(data.category || '')}</span></h2>
+              <div class="meta-row"><div><strong>Earn:</strong> ₦${userPay}</div><div>•</div><div>${escapeHtml(data.workersNeeded)} slots</div></div>
+              <p>${escapeHtml(data.description || '')}</p>
+            </div>
+            <div class="task-actions">
+              <button class="btn" onclick="window.open('${data.link}','_blank')" title="Open task link">Open Task</button>
+            </div>
+          </div>
 
-        // write submission doc
-        const u = auth.currentUser;
-        await db.collection('task_submissions').add({
-          taskId,
-          userId: u.uid,
-          username: u.email || (u.displayName || ''),
-          textProof: txt,
-          imageProof: url,
-          payout,
-          status: 'pending',
-          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+          <div class="progress-wrap">
+            <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
+            <div class="progress-label" id="label-${id}">0 / ${data.workersNeeded} completed</div>
+          </div>
 
-        // success feedback
-        if (uploadLabel) uploadLabel.textContent = 'Submitted';
-        // remove the task node to prevent re-submitting (existing behaviour)
-        const el = document.getElementById(`task-${taskId}`);
-        if (el) el.remove();
+          <div class="proof" aria-live="polite">
+            <div>
+              <label for="text-${id}">Text Proof</label>
+              <textarea id="text-${id}" placeholder="Enter short proof (what you did, link, time, etc.)"></textarea>
+            </div>
+            <div>
+              <label for="file_${id}">Upload Image Proof</label>
+              <input type="file" id="file_${id}" accept="image/*" />
+            </div>
 
-      } catch (err) {
-        // show error message
-        console.error('Submission error', err);
-        if (typeof err === 'string') alert(err);
-        else if (err && err.message && err.message !== 'Missing proof') alert('Submission failed: '
+            <div class="upload-progress" id="upload-area-${id}" style="display:none;">
+              <div class="bar"><i id="upload-bar-${id}"></i></div>
+              <div class="label" id="upload-label-${id}">0%</div>
+            </div>
+
+            <div class="actions">
+              <button id="submit-${id}" class="btn">
+                <span class="btn-text">Submit Proof</span>
+                <span class="btn-spinner" aria-hidden="true" style="display:none; margin-left:6px;"><span class="spinner"></span></span>
+              </button>
+              <button class="btn ghost" onclick="document.getElementById('text-${id}').value=''; document.getElementById('file_${id}').value=null">Clear</button>
+            </div>
+          </div>
+        `;
+        taskContainer.appendChild(div);
+
+        // attach submit handler
+        document.getElementById(`submit-${id}`).onclick = () => submitProof(id, userPay);
+        // live update for approved submissions
+        db.collection('task_submissions')
+          .where('taskId','==',id).where('status','==','approved')
+          .onSnapshot(snap => {
+            const done = snap.size;
+            const pct = Math.min(100, Math.round(done/data.workersNeeded*100));
+            const bar = document.getElementById(`bar-${id}`);
+            const label = document.getElementById(`label-${id}`);
+            if (bar) bar.style.width = pct + '%';
+            if (label) label.textContent = `${done} / ${data.workersNeeded} completed`;
+            if (done >= data.workersNeeded) {
+              const el = document.getElementById(`task-${id}`);
+              if (el) el.remove();
+            }
+          });
+      }
+
+      function escapeHtml(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
+
+      // Imgur upload (unchanged)
+      function uploadToImgur(file, onProgress) {
+        return new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => {
+            const b = r.result.split(',')[1];
+            const f = new FormData();
+            f.append('image', b);
+            const x = new XMLHttpRequest();
+            x.open('POST', 'https://api.imgur.com/3/image');
+            x.setRequestHeader('Authorization', 'Client-ID fb533db21a59486');
+            x.upload.onprogress = e => e.lengthComputable && onProgress(Math.round(e.loaded / e.total * 100));
+            x.onload = () => {
+              try {
+                const j = JSON.parse(x.responseText);
+                if (j && j.success) res(j.data.link);
+                else rej((j && j.data && j.data.error) || 'Upload failed');
+              } catch (err) {
+                rej('Invalid response from Imgur');
+              }
+            };
+            x.onerror = () 
