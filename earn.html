@@ -22,42 +22,34 @@
       --max-width: 1100px;
     }
 
-    /* prevent horizontal scroll and make elements shrink when needed */
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow-x: hidden; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+    *{box-sizing:border-box}
     body{
-      font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+      margin:0; font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial;
       background: linear-gradient(180deg,#f8fff9 0%,var(--bg) 100%);
-      color:var(--text);
+      color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
       padding:28px;
     }
 
-    /* wrap is constrained and responsive, inner padding won't cause overflow */
     .wrap {
       max-width:var(--max-width);
-      width:100%;
       margin:0 auto;
-      padding:0 16px;
     }
 
     header.page {
       display:flex; align-items:center; justify-content:space-between; gap:12px;
       margin-bottom:18px;
-      min-width:0; /* allow shrink */
     }
     .brand {
-      display:flex; align-items:center; gap:12px; min-width:0;
+      display:flex; align-items:center; gap:12px;
     }
     .logo {
       width:56px; height:56px; border-radius:12px;
       display:flex; align-items:center; justify-content:center;
       background:linear-gradient(135deg,var(--accent),var(--accent-700));
       color:white; font-weight:700; font-size:18px; box-shadow:var(--shadow);
-      flex:0 0 auto;
     }
     .title {
-      font-size:20px; font-weight:700; line-height:1; word-break:break-word;
-      min-width:0;
+      font-size:20px; font-weight:700;
     }
     .subtitle {
       color:var(--muted); font-size:13px;
@@ -67,53 +59,35 @@
       color:var(--accent-700); padding:8px 14px; border-radius:10px;
       cursor:pointer; font-weight:700;
       transition: transform .12s;
-      white-space:nowrap;
     }
     #logoutBtn:hover{ transform:translateY(-2px) }
 
-    /* layout: flexible sidebar that won't force overflow */
+    /* container */
     .content {
       display:grid;
-      grid-template-columns: 1fr minmax(240px,360px); /* sidebar can shrink but not force overflow */
+      grid-template-columns: 1fr 360px;
       gap:18px;
       align-items:start;
-      width:100%;
     }
 
     /* left column - tasks */
     .main-col {
       display:flex; flex-direction:column; gap:16px;
-      min-width:0; /* critical: lets children shrink */
     }
 
     .card {
       background:var(--card); border-radius:var(--radius); padding:18px;
       box-shadow:var(--shadow); border:1px solid #eef7f0;
-      overflow:visible;
     }
 
     .task {
       display:block; border-radius:12px; overflow:hidden; padding:18px;
       background: linear-gradient(180deg, rgba(255,255,255,0.98), var(--card));
       border:1px solid #f1fbf4; box-shadow: 0 8px 26px rgba(10,40,20,0.03);
-      min-width:0; /* allow shrink on small screens */
-      word-wrap:break-word; word-break:break-word;
     }
-    /* allow header row to wrap instead of causing horizontal scrolling */
-    .task > div:first-child {
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      flex-wrap:wrap; /* allow wrap */
-      min-width:0;
-    }
-    .task h2 { margin:0 0 8px; font-size:18px; color:var(--accent-700); word-break:break-word; }
-    .task p { margin:0 0 10px; color:#22323a; line-height:1.5; word-break:break-word; }
-    .meta-row { display:flex; gap:12px; align-items:center; color:var(--muted); font-size:13px; margin-bottom:10px; flex-wrap:wrap; }
-
-    /* ensure actions column can drop under text on narrow viewports (no overflow) */
-    .task .task-actions { min-width:120px; flex:0 0 auto; text-align:right; }
+    .task h2 { margin:0 0 8px; font-size:18px; color:var(--accent-700) }
+    .task p { margin:0 0 10px; color:#22323a; line-height:1.5 }
+    .meta-row { display:flex; gap:12px; align-items:center; color:var(--muted); font-size:13px; margin-bottom:10px; }
 
     /* progress */
     .progress-wrap { margin:10px 0 12px; }
@@ -126,20 +100,19 @@
     .btn {
       background:var(--accent); color:white; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700;
       box-shadow: 0 8px 18px rgba(0,0,0,0.06); display:inline-flex; gap:8px; align-items:center;
-      white-space:nowrap;
     }
     .btn.ghost { background:#fff; color:var(--accent); border:1px solid #e9f7ef; box-shadow:none; }
     .btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
 
     /* proof area */
     .proof { margin-top:12px; display:grid; gap:8px; }
-    label { font-weight:600; color:#1c2a29; font-size:13px; display:block; }
+    label { font-weight:600; color:#1c2a29; font-size:13px; }
     textarea { width:100%; min-height:86px; padding:10px; border-radius:10px; border:1px solid #e6f4ec; resize:vertical; font-family:inherit; }
-    input[type=file] { padding:8px 6px; border-radius:8px; border:1px dashed #e6f4ec; background:#fcfffc; max-width:100%; }
+    input[type=file] { padding:8px 6px; border-radius:8px; border:1px dashed #e6f4ec; background:#fcfffc }
 
     /* upload progress small */
     .upload-progress {
-      margin-top:8px; display:flex; gap:8px; align-items:center; min-width:0;
+      margin-top:8px; display:flex; gap:8px; align-items:center;
     }
     .upload-progress .bar {
       flex:1; background:#eef7ef; border-radius:999px; height:8px; overflow:hidden;
@@ -148,7 +121,7 @@
     .upload-progress .label { font-size:12px; color:var(--muted); min-width:46px; text-align:right }
 
     /* right column - sidebar */
-    .side-col { display:flex; flex-direction:column; gap:12px; position:sticky; top:28px; align-self:start; min-width:0; }
+    .side-col { display:flex; flex-direction:column; gap:12px; position:sticky; top:28px; align-self:start; }
     .hint { color:var(--muted); font-size:14px; }
 
     /* login */
@@ -169,18 +142,8 @@
 
     /* responsive */
     @media (max-width:980px){
-      body{ padding:18px; }
       .content { grid-template-columns: 1fr; }
       .side-col { position:relative; top:0 }
-      .task > div:first-child { flex-direction:column; align-items:flex-start; }
-      .task .task-actions { width:100%; text-align:left; }
-    }
-
-    @media (max-width:420px){
-      body{ padding:12px; }
-      .logo{ width:48px; height:48px; }
-      .task { padding:14px; }
-      .card { padding:14px; }
     }
   </style>
 </head>
@@ -476,4 +439,27 @@
         // show error message
         console.error('Submission error', err);
         if (typeof err === 'string') alert(err);
-        else if (err && err.message && err.message !== 'Missing proof') alert('Submission
+        else if (err && err.message && err.message !== 'Missing proof') alert('Submission failed: ' + err.message);
+      } finally {
+        // reset spinner & re-enable button after short delay (if task still exists)
+        setTimeout(() => {
+          // hide upload area if present
+          const uploadArea = document.getElementById(`upload-area-${taskId}`);
+          const uploadBar = document.getElementById(`upload-bar-${taskId}`);
+          const uploadLabel = document.getElementById(`upload-label-${taskId}`);
+          if (uploadBar) uploadBar.style.width = '0%';
+          if (uploadLabel) uploadLabel.style.display = 'none';
+          if (uploadArea) uploadArea.style.display = 'none';
+
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.removeAttribute('aria-busy');
+            btnText.style.opacity = '';
+            btnSpinner.style.display = 'none';
+          }
+        }, 900);
+      }
+    }
+  </script>
+</body>
+</html>
