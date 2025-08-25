@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -63,30 +64,35 @@ footer{margin-top:auto;padding:14px;text-align:center;background:transparent;col
         </div>
       </div>
     </div>
-  </header>  <div class="top-row">
+  </header>
+  <div class="top-row">
     <div class="card">
       <h3>Total Referred</h3>
       <div class="big" id="totalRef">—</div>
       <div class="muted">Users who signed up with your code</div>
-    </div><div class="card">
-  <h3>Activated</h3>
-  <div class="big" id="activatedCount">—</div>
-  <div class="muted">Users who meet activation criteria</div>
-</div>
+    </div>
+    <div class="card">
+      <h3>Activated</h3>
+      <div class="big" id="activatedCount">—</div>
+      <div class="muted">Users on premium or gold plan</div>
+    </div>
 
-<div class="card">
-  <h3>Search & Filter</h3>
-  <div class="controls">
-    <div class="search"><input id="searchInput" placeholder="Search username or email"/></div>
-    <div style="min-width:110px"><button id="refreshBtn" class="btn">Refresh</button></div>
+    <div class="card">
+      <h3>Search & Filter</h3>
+      <div class="controls">
+        <div class="search"><input id="searchInput" placeholder="Search username or email"/></div>
+        <div style="min-width:110px"><button id="refreshBtn" class="btn">Refresh</button></div>
+      </div>
+      <div class="muted" style="margin-top:6px">Type to filter the visible table</div>
+    </div>
   </div>
-  <div class="muted" style="margin-top:6px">Type to filter the visible table</div>
-</div>
 
-  </div>  <div class="tabs">
+  <div class="tabs">
     <div class="tab active" data-tab="activated">Activated</div>
     <div class="tab" data-tab="all">All Referrals</div>
-  </div>  <div class="container">
+  </div>
+
+  <div class="container">
     <div id="activated" class="tab-pane">
       <div class="table-card">
         <table aria-describedby="activated">
@@ -96,18 +102,23 @@ footer{margin-top:auto;padding:14px;text-align:center;background:transparent;col
           <tbody id="activatedBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
         </table>
       </div>
-    </div><div id="all" class="tab-pane" style="display:none">
-  <div class="table-card">
-    <table aria-describedby="all">
-      <thead>
-        <tr><th>Username</th><th>Email</th><th>Balance (₦)</th><th>Registered At</th></tr>
-      </thead>
-      <tbody id="allBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
-    </table>
-  </div>
-</div>
+    </div>
 
-  </div>  <footer>EasyPay © 2025</footer>  <script type="module">
+    <div id="all" class="tab-pane" style="display:none">
+      <div class="table-card">
+        <table aria-describedby="all">
+          <thead>
+            <tr><th>Username</th><th>Email</th><th>Balance (₦)</th><th>Registered At</th></tr>
+          </thead>
+          <tbody id="allBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>EasyPay © 2025</footer>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
@@ -135,48 +146,66 @@ footer{margin-top:auto;padding:14px;text-align:center;background:transparent;col
     const copyBtn = document.getElementById('copyBtn');
     const refreshBtn = document.getElementById('refreshBtn');
 
-    const allowedPlans = ['premium','gold','elite','diamond','platinum','sapphire','emerald','titanium','supreme','royalty'];
-
     let allRefs = [];
     let activatedRefs = [];
 
     function fmtDate(ts){
-      try{ const d = ts instanceof Date ? ts : (ts && ts.toDate ? ts.toDate() : new Date(ts));
-        return d.toLocaleString(); } catch(e){ return '-'; }
+      try{
+        if(!ts) return '-';
+        if (ts instanceof Date) return ts.toLocaleString();
+        if (ts && typeof ts.toDate === 'function') return ts.toDate().toLocaleString();
+        return new Date(ts).toLocaleString();
+      } catch(e){ return '-'; }
     }
 
     function renderRows(list, container){
-      if(!list.length){ container.innerHTML = '<tr><td colspan="4" class="no-data">No records found</td></tr>'; return }
+      if(!list.length){
+        container.innerHTML = '<tr><td colspan="4" class="no-data">No records found</td></tr>';
+        return;
+      }
       container.innerHTML = list.map(u=>{
-        const reg = fmtDate(u.registeredAt || u.createdAt || u.registered_at || u.created_at || new Date());
-        const bal = typeof u.balance === 'number' ? u.balance.toLocaleString('en-NG') : (u.balance || '0');
+        const reg = fmtDate(u.registeredAt || u.createdAt || u.registered_at || u.created_at || null);
+        const bal = (typeof u.balance === 'number') ? u.balance.toLocaleString('en-NG') : (u.balance || '0');
         return `<tr>
-          <td style="font-weight:600">${u.username || '-'}${u.username && u.isActivated?'<span style="margin-left:8px;background:#e8fdf1;color:var(--green-dark);padding:4px 8px;border-radius:999px;font-size:.7rem;font-weight:700">Activated</span>':''}</td>
-          <td>${u.email || '-'}</td>
+          <td style="font-weight:600">${escapeHtml(u.username || '-')}${u.username && u.isActivated?'<span style="margin-left:8px;background:#e8fdf1;color:var(--green-dark);padding:4px 8px;border-radius:999px;font-size:.7rem;font-weight:700">Activated</span>':''}</td>
+          <td>${escapeHtml(u.email || '-')}</td>
           <td>₦${bal}</td>
-          <td>${reg}</td>
-        </tr>`
-      }).join('')
+          <td>${escapeHtml(reg)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
     }
 
     function applyFilter(){
       const q = (searchInput.value||'').toLowerCase().trim();
-      if(!q){ renderRows(activatedRefs, activatedBody); renderRows(allRefs, allBody); return }
+      if(!q){
+        renderRows(activatedRefs, activatedBody);
+        renderRows(allRefs, allBody);
+        return;
+      }
       const f1 = activatedRefs.filter(u=> (u.username||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
       const f2 = allRefs.filter(u=> (u.username||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
-      renderRows(f1, activatedBody); renderRows(f2, allBody);
+      renderRows(f1, activatedBody);
+      renderRows(f2, allBody);
     }
 
     searchInput.addEventListener('input', applyFilter);
-    copyBtn.addEventListener('click', ()=>{ const code = refCodeEl.textContent || ''; navigator.clipboard.writeText(code).then(()=>{ copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent='Copy',1400) }) });
-    refreshBtn.addEventListener('click', loadData);
+    copyBtn.addEventListener('click', ()=>{
+      const code = refCodeEl.textContent || '';
+      navigator.clipboard.writeText(code).then(()=>{ copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent='Copy',1400) }).catch(()=>{ alert('Copy failed') });
+    });
+    refreshBtn.addEventListener('click', ()=> loadData(refCodeEl.textContent));
 
     document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', e=>{
       document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
       e.currentTarget.classList.add('active');
       const tab = e.currentTarget.dataset.tab;
       document.querySelectorAll('.tab-pane').forEach(p=>p.style.display='none');
-      document.getElementById(tab).style.display = 'block';
+      const el = document.getElementById(tab);
+      if(el) el.style.display = 'block';
     }));
 
     onAuthStateChanged(auth, async user=>{
@@ -184,11 +213,16 @@ footer{margin-top:auto;padding:14px;text-align:center;background:transparent;col
       const userRef = doc(db,'users',user.uid);
       const userSnap = await getDoc(userRef);
       const myData = userSnap.exists() ? userSnap.data() : {};
-      const myCode = myData.username || user.email || user.uid;
+      const myCode = (myData.username || user.email || user.uid || '').toString();
       refCodeEl.textContent = myCode;
       await loadData(myCode);
     });
 
+    /**
+     * loadData(myCode)
+     * - queries users where referral == myCode (so allRefs only contains users who signed up with the current user's code)
+     * - activatedRefs is strict: only users with plan === 'premium' OR 'gold' (case-insensitive)
+     */
     async function loadData(myCode){
       try{
         activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Loading…</td></tr>';
@@ -200,22 +234,29 @@ footer{margin-top:auto;padding:14px;text-align:center;background:transparent;col
         activatedRefs = [];
 
         snap.forEach(docSnap=>{
-          const d = docSnap.data();
+          const d = docSnap.data() || {};
           const user = {
-            username: d.username || d.name || '',
-            email: d.email || '',
-            balance: Number(d.balance) || Number(d.wallet) || 0,
-            registeredAt: d.createdAt || d.registeredAt || null,
-            plan: (d.plan||'').toString().toLowerCase(),
+            username: (d.username || d.name || '').toString(),
+            email: (d.email || '').toString(),
+            balance: Number(d.balance ?? d.wallet ?? 0) || 0,
+            registeredAt: d.createdAt || d.registeredAt || d.created_at || d.registered_at || null,
+            plan: (d.plan || '').toString().toLowerCase(),
             isActivated: false
           };
-          user.isActivated = allowedPlans.includes(user.plan) || user.balance > 0;
+
+          // === ACTIVATED if plan is 'premium' OR 'gold' ===
+          user.isActivated = (user.plan === 'premium' || user.plan === 'gold');
+
           allRefs.push(user);
           if(user.isActivated) activatedRefs.push(user);
         });
 
         // sort by date descending if registeredAt exists
-        const sortFn = (a,b)=> (b.registeredAt && a.registeredAt)? (new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime()) : 0;
+        const sortFn = (a,b)=> {
+          const ta = a.registeredAt ? (a.registeredAt.toDate ? a.registeredAt.toDate().getTime() : new Date(a.registeredAt).getTime()) : 0;
+          const tb = b.registeredAt ? (b.registeredAt.toDate ? b.registeredAt.toDate().getTime() : new Date(b.registeredAt).getTime()) : 0;
+          return tb - ta;
+        };
         allRefs.sort(sortFn);
         activatedRefs.sort(sortFn);
 
@@ -229,5 +270,6 @@ footer{margin-top:auto;padding:14px;text-align:center;background:transparent;col
         allBody.innerHTML = '<tr><td colspan="4" class="no-data">Failed to load referrals</td></tr>';
       }
     }
-  </script></body>
+  </script>
+</body>
 </html>
