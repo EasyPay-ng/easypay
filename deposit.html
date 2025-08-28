@@ -12,6 +12,9 @@
       --text: #333;
       --card-bg: #fff;
       --shadow: rgba(0, 102, 51, 0.1);
+      --status-pending: #f59e0b;
+      --status-approved: #10b981;
+      --status-rejected: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
@@ -34,15 +37,22 @@
     #msg { padding: 0 1rem; font-size: 0.95rem; min-height: 20px; }
     .history { margin: 1rem; padding-bottom: 12px; }
     .history h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+    .table-wrap { max-height: 300px; overflow: auto; border-radius: 8px; border: 1px solid #f0f6f3; background: #fff; padding: 6px; }
     table { width: 100%; border-collapse: collapse; }
+    thead th { position: sticky; top: 0; z-index: 2; background: var(--primary); color: #fff; padding: 0.6rem; text-align: left; font-size: 0.9rem; }
     th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; vertical-align: middle; }
-    th { background: var(--primary); color: #fff; position: sticky; top: 0; z-index: 1; }
+    .thumb { max-width: 72px; max-height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
+    .status-badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:0.8rem; font-weight:700; color:#fff; }
+    .status-pending { background: var(--status-pending); }
+    .status-approved { background: var(--status-approved); }
+    .status-rejected { background: var(--status-rejected); }
     #loading { text-align: center; padding: 0.5rem; display: none; color: #064; }
     .small { font-size: 0.82rem; color: #6b6b6b; }
     @media (max-width: 420px) {
       .container { margin: 10px; }
       input, button { font-size: 0.95rem; padding: 0.7rem; }
       th, td { font-size: 0.82rem; }
+      .table-wrap { max-height: 220px; }
     }
   </style>
 </head>
@@ -96,12 +106,16 @@
 
     <div class="history">
       <h3>Deposit Records</h3>
-      <table>
-        <thead>
-          <tr><th>Amt</th><th>Sender</th><th>Ref</th><th>Proof</th><th>Status</th><th>Date</th></tr>
-        </thead>
-        <tbody id="history"></tbody>
-      </table>
+
+      <!-- scrollable container -->
+      <div class="table-wrap" role="region" aria-label="Deposit records; scroll to view recent deposits">
+        <table>
+          <thead>
+            <tr><th>Amt</th><th>Sender</th><th>Ref</th><th>Proof</th><th>Status</th><th>Date</th></tr>
+          </thead>
+          <tbody id="history"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -160,10 +174,9 @@
       hist.innerHTML = '';
       const uname = usernameIn.value; if(!uname) return;
       try{
-        const snap = await db.collection('deposits').where('username','==',uname).get();
+        const snap = await db.collection('deposits').where('username','==',uname).orderBy('date','desc').get();
         const docs = [];
         snap.forEach(d=>docs.push(d.data()));
-        docs.sort((a,b)=> (b.date || 0) - (a.date || 0));
         if(docs.length === 0){
           hist.innerHTML = '<tr><td colspan="6" class="small">No deposit records yet</td></tr>';
           return;
@@ -172,7 +185,9 @@
           const tr = document.createElement('tr');
           const proofCell = d.proofUrl ? `<a href="${escapeHtml(d.proofUrl)}" target="_blank" rel="noopener">View</a>` : '—';
           const dateStr = d.date ? new Date(d.date).toLocaleString() : '-';
-          tr.innerHTML = `<td>₦${escapeHtml(String(d.amount || 0))}</td><td>${escapeHtml(d.senderName||'')}</td><td>${escapeHtml(d.refId||'')}</td><td>${proofCell}</td><td>${escapeHtml(d.status||'pending')}</td><td>${escapeHtml(dateStr)}</td>`;
+          const statusClass = d.status === 'approved' ? 'status-approved' : (d.status === 'rejected' ? 'status-rejected' : 'status-pending');
+          const statusHtml = `<span class="status-badge ${statusClass}">${escapeHtml((d.status||'pending').toUpperCase())}</span>`;
+          tr.innerHTML = `<td>₦${escapeHtml(String(d.amount || 0))}</td><td>${escapeHtml(d.senderName||'')}</td><td>${escapeHtml(d.refId||'')}</td><td>${proofCell}</td><td>${statusHtml}</td><td>${escapeHtml(dateStr)}</td>`;
           hist.appendChild(tr);
         });
       }catch(e){
