@@ -8,88 +8,236 @@
     :root {
       --primary: #00b66d;
       --bg: #f7fdf8;
-      --text: #333;
+      --text: #1f2937;
       --card-bg: #fff;
-      --shadow: rgba(0, 102, 51, 0.1);
+      --muted: #64748b;
+      --shadow: rgba(0, 102, 51, 0.08);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
-    .container { max-width: 480px; margin: 20px auto; background: var(--card-bg); border-radius: 16px; box-shadow: 0 4px 12px var(--shadow); overflow: hidden; }
-    .header { background: var(--primary); color: #fff; padding: 1rem; text-align: center; font-size: 1.2rem; font-weight: 600; }
-    .info { padding: 1rem; background: var(--primary-light); }
-    .info p { font-size: 0.9rem; margin: 0.5rem 0; }
-    form { display: flex; flex-direction: column; padding: 1rem; gap: 1rem; }
-    label { font-size: 0.9rem; font-weight: 500; color: #555; }
-    input { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
-    input:focus { outline: none; border-color: var(--primary); }
-    button { padding: 0.8rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px var(--shadow); }
-    button:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
-    #msg { padding: 0 1rem; font-size: 0.9rem; min-height: 18px; }
-    .history { margin: 1rem; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 24px 12px 80px; }
+    .container { max-width: 700px; margin: 18px auto; background: var(--card-bg); border-radius: 14px; box-shadow: 0 8px 24px var(--shadow); overflow: hidden; }
+    .header { background: linear-gradient(90deg, var(--primary), #00a15a); color: #fff; padding: 1.1rem 1rem; text-align: left; font-size: 1.25rem; font-weight: 700; display:flex; align-items:center; gap:12px; }
+    .header .title { flex:1 }
+    .grid { display: grid; grid-template-columns: 1fr 360px; gap: 1rem; padding: 1rem; }
+    .left { padding-right: 0.5rem; }
+    .right { background: #fbfffb; border-radius: 10px; padding: 0.8rem; }
+    .info p { font-size: 0.95rem; margin: 0.45rem 0; color: var(--muted); }
+    form { display: flex; flex-direction: column; gap: 12px; }
+    label { font-size: 0.9rem; font-weight: 600; color: #374151; }
+    input[type="text"], input[type="number"], input[type="file"], .file-drop { width: 100%; padding: 0.9rem; border: 1px solid #e6eef0; border-radius: 10px; font-size: 1rem; background: #fff; }
+    input:focus, .file-drop:focus { outline: none; border-color: var(--primary); box-shadow: 0 4px 14px rgba(0,182,109,0.08); }
+    .file-drop { display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; }
+    .hint { font-size: 0.85rem; color: var(--muted); }
+    .preview { margin-top:8px; border-radius:8px; overflow:hidden; max-height:160px; display:flex; align-items:center; justify-content:center; background:#f6fdf7; }
+    .preview img { max-width:100%; max-height:160px; object-fit:contain; }
+    .btn-row { display:flex; gap:10px; align-items:center; }
+    button { padding: 0.9rem 1rem; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 8px 28px rgba(0,182,109,0.12); }
+    button.secondary { background: transparent; border: 1px solid #e6eef0; color: var(--text); font-weight:600; }
+    button:disabled { background: #cbd5d9; cursor: not-allowed; box-shadow: none; }
+    #msg { padding: 0 4px; font-size: 0.95rem; min-height: 20px; }
+    .history { padding: 12px; }
     .history h3 { font-size: 1rem; margin-bottom: 0.5rem; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.85rem; }
-    th { background: var(--primary); color: #fff; }
+    th, td { padding: 0.6rem 0.5rem; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+    th { background: transparent; color: #374151; font-weight:700; }
+    .small { font-size: 0.82rem; color: var(--muted); }
     #loading { text-align: center; padding: 0.5rem; display: none; }
-    @media (max-width: 360px) {
-      .container { margin: 10px; }
-      form { gap: 0.8rem; }
-      input, button { font-size: 0.9rem; padding: 0.6rem; }
-      th, td { font-size: 0.8rem; }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .right { order: 2; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">Submit a Deposit</div>
-    <div class="info">
-      <p>📒 <strong>Account No:</strong> 8125600222</p>
-      <p>👤 <strong>Name:</strong> Onyeka Anointed Chidi</p>
-      <p>🏦 <strong>Bank:</strong> Opay/Paycom</p>
+    <div class="header">
+      <div class="title">Submit Deposit</div>
+      <div class="small">Send proof screenshot/receipt for faster processing</div>
+    </div><div class="grid">
+  <div class="left">
+    <div class="info" style="padding:0 0 8px 0">
+      <p>📒 <strong>Account No:</strong> <span class="small">8125600222</span></p>
+      <p>👤 <strong>Name:</strong> <span class="small">Onyeka Anointed Chidi</span></p>
+      <p>🏦 <strong>Bank:</strong> <span class="small">Opay / Paycom</span></p>
     </div>
+
     <form id="depositForm">
       <input type="hidden" id="userId" />
       <input type="hidden" id="username" />
+
       <div>
         <label for="amount">Amount</label>
-        <input type="number" id="amount" min="1" placeholder="Enter amount" required />
+        <input type="number" id="amount" min="1" placeholder="Enter amount (₦)" required />
       </div>
+
       <div>
         <label for="senderName">Sender Name</label>
         <input type="text" id="senderName" placeholder="Your name on transfer" required />
       </div>
+
+      <div>
+        <label for="proofFile">Proof of Payment (image)</label>
+
+        <!-- file drop area -->
+        <div tabindex="0" class="file-drop" id="dropArea">
+          <span class="hint">Drag & drop or click to choose an image (jpg, png, max 5MB)</span>
+          <button type="button" class="secondary" id="chooseBtn">Choose</button>
+        </div>
+
+        <input type="file" id="proofFile" accept="image/png,image/jpeg" style="display:none" />
+        <div class="preview" id="previewArea" style="display:none"></div>
+      </div>
+
       <div>
         <label for="refId">Reference ID</label>
         <input type="text" id="refId" readonly />
       </div>
-      <button id="submitBtn" type="button">Submit Deposit</button>
+
+      <div class="btn-row">
+        <button id="submitBtn" type="button">Submit Deposit</button>
+        <button id="clearBtn" type="button" class="secondary">Clear</button>
+      </div>
+
       <div id="loading">Submitting…</div>
       <div id="msg"></div>
     </form>
+  </div>
+
+  <div class="right">
     <div class="history">
       <h3>Deposit Records</h3>
       <table>
         <thead>
-          <tr><th>Amt</th><th>Sender</th><th>Ref</th><th>Status</th><th>Date</th></tr>
+          <tr><th>Amt</th><th>Sender</th><th>Ref</th><th>Proof</th><th>Status</th><th>Date</th></tr>
         </thead>
         <tbody id="history"></tbody>
       </table>
     </div>
   </div>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script>
+</div>
+
+  </div>  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>  <script>
+    // ====== CONFIG - Replace with your Imgur Client ID ======
+    const IMGUR_CLIENT_ID = 'fb533db21a59486'; // injected from user's screenshot // <-- put your Imgur Client ID here
+    // Note: Putting Client ID in frontend exposes it to users. For greater security, upload from server-side.
+
     const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c8f1e" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
+
     const userIdIn = document.getElementById('userId'), usernameIn = document.getElementById('username'), amtIn = document.getElementById('amount'), senderIn = document.getElementById('senderName'), refIn = document.getElementById('refId'), btn = document.getElementById('submitBtn'), msg = document.getElementById('msg'), load = document.getElementById('loading'), hist = document.getElementById('history');
-    const genRef = () => Math.random().toString(36).substr(2,9);
+    const proofFile = document.getElementById('proofFile'), dropArea = document.getElementById('dropArea'), previewArea = document.getElementById('previewArea'), chooseBtn = document.getElementById('chooseBtn'), clearBtn = document.getElementById('clearBtn');
+
+    const genRef = () => Math.random().toString(36).substr(2,9).toUpperCase();
     refIn.value = genRef();
-    auth.onAuthStateChanged(async user => { if(!user) return window.location.href='login.html'; const snap = await db.collection('users').doc(user.uid).get(); const data = snap.data()||{}; userIdIn.value = user.uid; usernameIn.value = data.username||user.email; loadHistory(); watchForApproval(); });
-    async function loadHistory(){ hist.innerHTML=''; const uname = usernameIn.value; if(!uname) return; const snap = await db.collection('deposits').where('username','==',uname).get(); const docs=[]; snap.forEach(d=>docs.push(d.data())); docs.sort((a,b)=>b.date - a.date); docs.forEach(d=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>₦${d.amount}</td><td>${d.senderName}</td><td>${d.refId}</td><td>${d.status}</td><td>${new Date(d.date).toLocaleString()}</td>`; hist.appendChild(tr); }); }
-    function watchForApproval(){ db.collection('deposits').where('userId','==',userIdIn.value).where('status','==','approved').where('processed','==',false).onSnapshot(snap=>{ snap.forEach(async ds=>{ const d=ds.data(), id=ds.id; await db.collection('users').doc(userIdIn.value).update({ balance: firebase.firestore.FieldValue.increment(d.amount) }); await db.collection('deposits').doc(id).update({ processed:true }); }); loadHistory(); }); }
-    btn.addEventListener('click',async()=>{ const uid=userIdIn.value, uname=usernameIn.value, amount=parseFloat(amtIn.value), sender=senderIn.value.trim(), refId=refIn.value; if(!amount||!sender) return alert('Please fill in all fields'); btn.disabled=true; load.style.display='block'; msg.textContent=''; try{ await db.collection('deposits').add({ userId:uid, username:uname, amount, senderName:sender, refId, status:'pending', processed:false, date:Date.now() }); msg.style.color='green'; msg.textContent='Request sent!'; amtIn.value=''; senderIn.value=''; refIn.value=genRef(); await loadHistory(); }catch(e){ msg.style.color='red'; msg.textContent='Submission failed.'; } finally{ btn.disabled=false; load.style.display='none'; } });
-  </script>
-</body>
-</html>
+
+    // Auth state
+    auth.onAuthStateChanged(async user => {
+      if(!user) return window.location.href='login.html';
+      const snap = await db.collection('users').doc(user.uid).get();
+      const data = snap.data()||{};
+      userIdIn.value = user.uid;
+      usernameIn.value = data.username||user.email||user.uid;
+      await loadHistory();
+      watchForApproval();
+    });
+
+    // Load deposit history for this username
+    async function loadHistory(){
+      hist.innerHTML='';
+      const uname = usernameIn.value; if(!uname) return;
+      const snap = await db.collection('deposits').where('username','==',uname).get();
+      const docs=[]; snap.forEach(d=>docs.push(d.data()));
+      docs.sort((a,b)=> (b.date || 0) - (a.date || 0));
+      docs.forEach(d=>{
+        const tr=document.createElement('tr');
+        const proofCell = d.proofUrl ? `<a href="${d.proofUrl}" target="_blank">View</a>` : '—';
+        tr.innerHTML=`<td>₦${d.amount}</td><td>${d.senderName}</td><td>${d.refId}</td><td>${proofCell}</td><td>${d.status}</td><td>${new Date(d.date).toLocaleString()}</td>`;
+        hist.appendChild(tr);
+      });
+    }
+
+    // Watch for approved deposits and credit user's balance once, then mark processed
+    function watchForApproval(){
+      db.collection('deposits').where('userId','==',userIdIn.value).where('status','==','approved').where('processed','==',false).onSnapshot(snap=>{
+        snap.forEach(async ds=>{
+          const d=ds.data(), id=ds.id;
+          try{ await db.collection('users').doc(userIdIn.value).update({ balance: firebase.firestore.FieldValue.increment(d.amount) }); await db.collection('deposits').doc(id).update({ processed:true }); }catch(e){ console.error(e); }
+        });
+        loadHistory();
+      });
+    }
+
+    // ===== Imgur upload helper using XHR so we can show progress =====
+    function uploadToImgur(file){
+      return new Promise((resolve,reject)=>{
+        if(!IMGUR_CLIENT_ID || IMGUR_CLIENT_ID==='' || IMGUR_CLIENT_ID==='YOUR_IMGUR_CLIENT_ID') return reject(new Error('Imgur Client ID not set'));
+        const form = new FormData();
+        form.append('image', file);
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST','https://api.imgur.com/3/image');
+        xhr.setRequestHeader('Authorization','Client-ID '+IMGUR_CLIENT_ID);
+        xhr.upload.onprogress = e => {
+          if(e.lengthComputable){ const pct = Math.round(e.loaded / e.total * 100); load.style.display='block'; load.textContent = 'Uploading image: '+pct+'%'; }
+        };
+        xhr.onload = () => {
+          try{
+            const res = JSON.parse(xhr.responseText);
+            if(res && res.success && res.data && res.data.link) resolve(res.data.link);
+            else reject(new Error('Imgur upload failed'));
+          }catch(err){ reject(err); }
+        };
+        xhr.onerror = () => reject(new Error('Network error during image upload'));
+        xhr.send(form);
+      });
+    }
+
+    // File selection & drag/drop handlers
+    chooseBtn.addEventListener('click', ()=> proofFile.click());
+    proofFile.addEventListener('change', handleFileSelect);
+
+    ['dragenter','dragover','dragleave','drop'].forEach(evt=> dropArea.addEventListener(evt, e=>e.preventDefault()));
+    dropArea.addEventListener('drop', e=>{
+      if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        proofFile.files = e.dataTransfer.files; handleFileSelect();
+      }
+    });
+
+    function handleFileSelect(){
+      const file = proofFile.files[0];
+      if(!file) return clearPreview();
+      if(!['image/jpeg','image/png'].includes(file.type)) { alert('Only JPG/PNG allowed'); proofFile.value=''; return; }
+      if(file.size > 5 * 1024 * 1024){ alert('File too large (max 5MB)'); proofFile.value=''; return; }
+      const reader = new FileReader();
+      reader.onload = e =>{
+        previewArea.style.display='flex'; previewArea.innerHTML = `<img src="${e.target.result}" alt="proof" />`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearPreview(){ previewArea.style.display='none'; previewArea.innerHTML=''; proofFile.value=''; }
+    clearBtn.addEventListener('click', ()=>{ amtIn.value=''; senderIn.value=''; clearPreview(); refIn.value = genRef(); msg.textContent=''; });
+
+    // Submit logic: require sender name, amount, and proof image
+    btn.addEventListener('click', async ()=>{
+      const uid=userIdIn.value, uname=usernameIn.value, amount=parseFloat(amtIn.value), sender = senderIn.value.trim(), refId = refIn.value;
+      if(!amount || amount <= 0) return alert('Enter a valid amount');
+      if(!sender) return alert('Enter sender name');
+      const file = proofFile.files[0];
+      if(!file) return alert('Please attach proof of payment (image)');
+
+      btn.disabled = true; load.style.display = 'block'; msg.textContent='';
+      try{
+        // upload proof
+        const proofUrl = await uploadToImgur(file);
+        load.textContent = 'Recording deposit…';
+
+        await db.collection('deposits').add({ userId:uid, username:uname, amount, senderName:sender, refId, proofUrl, status:'pending', processed:false, date:Date.now() });
+        msg.style.color='green'; msg.textContent='Deposit submitted — awaiting approval.';
+        amtIn.value=''; senderIn.value=''; clearPreview(); refIn.value = genRef(); await loadHistory();
+      }catch(e){ console.error(e); msg.style.color='red'; msg.textContent = e.message || 'Submission failed.'; }
+      finally{ btn.disabled=false; load.style.display='none'; }
+    });
+
+  </script></body>
+  </html>
