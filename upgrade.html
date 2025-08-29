@@ -116,7 +116,7 @@
       gap:12px;
       border: 1px solid rgba(4,90,40,0.03);
       transition: transform .14s ease, box-shadow .14s ease;
-      min-height: 300px; /* reduced */
+      min-height: 300px;
     }
     .plan-card:hover {
       transform: translateY(-6px);
@@ -137,6 +137,7 @@
 
     .badge.premium { background: linear-gradient(180deg,#15a65b,#078343); }
     .badge.gold { background: linear-gradient(180deg,#d0a33e,#b88617); color:#2b1f05; }
+    .badge.elite { background: linear-gradient(180deg,#6f22a7,#4b0d86); } /* purple-ish for elite */
 
     .plan-header { font-size:1.15rem; font-weight:700; color:#123824; }
     .plan-price { font-size:1.6rem; font-weight:800; color:var(--green-dark); margin-top:4px; }
@@ -164,6 +165,7 @@
       font-size:0.98rem;
     }
     .upgrade-btn.gold { background: linear-gradient(90deg,var(--accent-gold), #b88617); color:#2b1f05; box-shadow: 0 8px 20px rgba(184,134,23,0.10); }
+    .upgrade-btn.elite { background: linear-gradient(90deg,#7b3ad6,#5b13b0); color:#fff; box-shadow: 0 8px 20px rgba(91,19,176,0.10); }
 
     .tag { display:inline-block; padding:6px 8px; border-radius:999px; font-weight:700; background:rgba(0,159,77,0.08); color:var(--green-dark); font-size:0.82rem; }
 
@@ -240,6 +242,33 @@
         </div>
       </article>
 
+      <!-- Elite (NEW) -->
+      <article class="plan-card" aria-labelledby="eliteTitle">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="plan-top" style="width:100%">
+            <div class="badge elite" aria-hidden="true">E</div>
+            <div style="flex:1;text-align:left">
+              <div id="eliteTitle" class="plan-header">Elite</div>
+              <div class="plan-price"><span class="naira">₦</span>3,000</div>
+              <div class="plan-duration">Valid for 7 days (weekly)</div>
+            </div>
+          </div>
+
+          <p class="plan-desc"><strong>Earn ₦600 daily.</strong> Elite is a weekly activation that pays ₦600 per day for 7 days. Designed for users seeking higher daily returns.</p>
+
+          <ul class="plan-features" aria-hidden="false">
+            <li><i class="fas fa-check-circle"></i> Earn ₦600 daily (₦4,200 over 7 days)</li>
+            <li><i class="fas fa-check-circle"></i> Weekly activation period (7 days)</li>
+            <li><i class="fas fa-check-circle"></i> Priority activation & support</li>
+          </ul>
+        </div>
+
+        <div class="plan-footer" aria-hidden="false">
+          <!-- Redirect to upgrade-3.html as requested -->
+          <button class="upgrade-btn elite" onclick="location.href='upgrade-3.html'" aria-label="Activate Elite plan">Activate Elite</button>
+        </div>
+      </article>
+
       <!-- Gold -->
       <article class="plan-card" aria-labelledby="goldTitle">
         <div style="display:flex;flex-direction:column;align-items:center">
@@ -281,4 +310,4 @@
     }, { once: true });
   </script>
 </body>
-</html>
+                  </html>
