@@ -77,11 +77,10 @@
   <script>
     (function(){
       // ---------- CONFIG ----------
-      // Imgur Client ID injected (from your screenshot)
       const IMGUR_CLIENT_ID = 'fb533db21a59486';
 
-      // Admin UID quick-list (optional). Add UIDs here to allow admin access quickly.
-      const ADMIN_UIDS = [ /* 'UID_HERE' */ ];
+      // Only allow this exact email to access the admin panel:
+      const ALLOWED_ADMIN_EMAIL = 'easypay27.ng@gmail.com';
 
       // Firebase config (unchanged)
       const cfg = {
@@ -107,7 +106,6 @@
 
       // ---------- state ----------
       let currentUser = null;
-      let isAdmin = false;
       let depositsCache = []; // array of { id, ...data }
 
       // ---------- helpers ----------
@@ -152,7 +150,7 @@
 
           snap.forEach(docSnap => depositsCache.push({ id: docSnap.id, ...docSnap.data() }));
 
-          // if refIdFilter, we already fetched matching results; sort locally by date desc
+          // sort locally by date desc for consistency
           depositsCache.sort((a,b) => {
             const at = a.date && a.date.seconds ? a.date.seconds*1000 : a.date || 0;
             const bt = b.date && b.date.seconds ? b.date.seconds*1000 : b.date || 0;
@@ -211,7 +209,6 @@
       async function handleApprove(depositDoc) {
         if(!confirm(`Approve deposit ₦${depositDoc.amount} for ${depositDoc.username || depositDoc.userId || 'user'}?`)) return;
         try {
-          // depositDoc should contain userId ideally; fall back to username doc id if not.
           const depositRef = db.collection('deposits').doc(depositDoc.id);
 
           await db.runTransaction(async tx => {
@@ -286,29 +283,23 @@
         } catch (err) { showErr(err); }
       }
 
-      // ---------- Auth & admin check ----------
+      // ---------- Auth & strict email admin check ----------
       auth.onAuthStateChanged(async user => {
         if(!user) {
-          // not logged in
           adminNote.textContent = 'Not signed in. Please sign in to access admin.';
-          // optionally redirect to login page
-          // window.location.href = 'login.html';
           return;
         }
         currentUser = user;
-        // quick admin check: ADMIN_UIDS or isAdmin flag on user doc
-        try {
-          const userDoc = await db.collection('users').doc(user.uid).get();
-          const data = userDoc.exists ? userDoc.data() : {};
-          isAdmin = ADMIN_UIDS.includes(user.uid) || (data && data.isAdmin === true);
-        } catch (e) { console.warn('admin check error', e); isAdmin = ADMIN_UIDS.includes(user.uid); }
 
-        if(!isAdmin) {
-          adminNote.textContent = 'You are not an admin.';
+        // Strict email check (case-insensitive)
+        const userEmail = (user.email || '').toLowerCase();
+        if(userEmail !== ALLOWED_ADMIN_EMAIL.toLowerCase()){
+          // Not authorized — replace body with message and stop
           document.body.innerHTML = '<div style="padding:24px;font-family:Arial,Helvetica,sans-serif">Not authorized</div>';
           return;
         }
-        adminNote.textContent = 'Admin: ' + user.uid;
+
+        adminNote.textContent = 'Admin: ' + user.email;
         // initial load
         await loadAdmin();
       });
@@ -320,10 +311,7 @@
       statusFilter.onchange = () => loadAdmin(searchInput.value.trim(), statusFilter.value);
 
       // initial DOM-ready load (in case auth already has a user)
-      document.addEventListener('DOMContentLoaded', () => {
-        // nothing else — actual load will run after auth state established
-      });
-
+      document.addEventListener('DOMContentLoaded', () => {});
     })();
   </script>
 </body>
