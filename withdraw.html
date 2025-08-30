@@ -72,8 +72,8 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
   <div id="planNotice" class="plan-alert" style="display:none"></div>  <div id="formCard" class="form-card">
     <h2>Make a Withdrawal</h2>
     <div class="form-group">
-      <label for="amount">Amount (₦200–₦300)</label>
-      <input type="number" id="amount" placeholder="Enter amount (max ₦300)" />
+      <label for="amount">Amount (₦200–₦500)</label>
+      <input type="number" id="amount" min="200" max="500" placeholder="Enter amount (max ₦500)" />
     </div>
     <div class="form-group">
       <label for="bank">Select Bank</label>
@@ -150,8 +150,8 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
       btn.innerHTML = '<span class="spinner"></span>Processing...';
       try {
         const amount = parseFloat(document.getElementById('amount').value);
-        if (isNaN(amount) || amount < 200 || amount > 300) {
-          alert('Please enter a value between ₦200 and ₦300.');
+        if (isNaN(amount) || amount < 200 || amount > 500) {
+          alert('Please enter a value between ₦200 and ₦500.');
           return;
         }
         const bank = document.getElementById('bank').value;
