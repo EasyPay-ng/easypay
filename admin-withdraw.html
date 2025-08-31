@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta charset="UTF-8" />
+<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Manage Withdrawals</title>
   <script type="module">
@@ -37,43 +36,57 @@ async function loadWithdrawals() {
 
   const allDocs = [];
   let totalNet = 0;
+  const userPathsSet = new Set(); // to collect which user docs we need to fetch
 
-  // Use for..of so we can await fetching user doc if needed
-  for (const docSnap of snapshot.docs) {
+  // First pass: collect withdrawal info (no awaiting inside loop)
+  snapshot.forEach(docSnap => {
     const data = docSnap.data();
 
-    // ✅ Only add Successful withdrawals to total
+    // Only add Successful withdrawals to total
     if (typeof data.amount === "number" && data.status === "Successful") {
       const net = data.amount * 0.95;
       totalNet += net;
     }
 
-    // Try to determine username and plan. If the withdrawal doc doesn't include a plan,
-    // attempt to read it from the parent user document (e.g. users/<username>)
     const parts = docSnap.ref.path.split("/");
-    // Expecting path like: users/<username>/withdrawals/<withdrawId>
-    const username = data.username || (parts.length >= 2 ? parts[1] : "unknown");
+    // uid is the parent document id (usually the user uid)
+    const uid = data.uid || (parts.length >= 2 ? parts[1] : null);
+    const shortUid = uid ? uid.toString().slice(0,5) : 'N/A';
 
-    let plan = data.plan;
-    if (!plan) {
-      try {
-        if (parts.length >= 2) {
-          const userDocRef = doc(db, parts[0], parts[1]);
-          const userSnap = await getDoc(userDocRef);
-          if (userSnap.exists()) plan = userSnap.data().plan || null;
-        }
-      } catch (err) {
-        console.warn('Could not fetch user plan for', docSnap.ref.path, err);
-      }
-    }
+    // plan may exist on withdrawal doc; if not, we'll fetch from the parent user doc later
+    const planFromWithdrawal = data.plan || null;
+    const userPath = parts.length >= 2 ? `${parts[0]}/${parts[1]}` : null;
+    if (!planFromWithdrawal && userPath) userPathsSet.add(userPath);
 
     allDocs.push({
       path: docSnap.ref.path,
       data,
-      username,
-      plan: plan || 'N/A'
+      uid,
+      shortUid,
+      plan: planFromWithdrawal, // can be null for now
+      userPath
     });
-  }
+  });
+
+  // Fetch user documents for any users that didn't have plan set on withdrawal
+  const userPaths = Array.from(userPathsSet);
+  const userFetchPromises = userPaths.map(p => {
+    const [col, id] = p.split("/");
+    return getDoc(doc(db, col, id)).then(snap => ({ path: p, snap }));
+  });
+
+  const userResults = await Promise.all(userFetchPromises);
+  const userPlanMap = {};
+  userResults.forEach(({ path, snap }) => {
+    userPlanMap[path] = (snap && snap.exists()) ? (snap.data().plan || 'N/A') : 'N/A';
+  });
+
+  // Fill missing plans from fetched user docs
+  allDocs.forEach(item => {
+    if (!item.plan) {
+      item.plan = item.userPath && userPlanMap[item.userPath] ? userPlanMap[item.userPath] : 'N/A';
+    }
+  });
 
   const sorted = sortWithdrawals(allDocs);
   document.getElementById("totalAmount").textContent = 
@@ -96,8 +109,8 @@ async function loadWithdrawals() {
       <td>${d.bank || 'N/A'}</td>
       <td>${d.accNumber || 'N/A'}</td>
       <td>${d.accName || 'N/A'}</td>
-      <td>${item.plan}</td>
-      <td>${item.username}</td>
+      <td>${item.plan || 'N/A'}</td>
+      <td>${item.shortUid}</td>
       <td>
         <select data-path="${item.path}" onchange="updateStatus(this)">
           <option value="Pending" ${d.status === "Pending" ? "selected" : ""}>Pending</option>
@@ -110,7 +123,7 @@ async function loadWithdrawals() {
   });
 }
 
-// ✅ Fix: use ...path.split("/") for doc reference
+// Use doc(db, ...path.split("/")) for doc reference
 window.updateStatus = async function(selectEl) {
   const path = selectEl.getAttribute("data-path");
   const newStatus = selectEl.value;
@@ -181,7 +194,7 @@ loadWithdrawals();
         <th>Account Number</th>
         <th>Account Name</th>
         <th>Plan</th>
-        <th>Username</th>
+        <th>UID (first 5)</th>
         <th>Status</th>
       </tr>
     </thead>
