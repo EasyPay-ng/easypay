@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,24 +12,55 @@
     button#logoutBtn { background:#fff; color:#009f4d; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer; }
     button#logoutBtn:hover { background:#e0f6e8; }
     .container { padding:20px; max-width:900px; margin:0 auto; }
-    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-top:20px; }
+    .search-row { display:flex; gap:10px; align-items:center; margin-bottom:12px; }
+    .search-input {
+      flex:1;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid #dfeee2;
+      font-size:1rem;
+      box-shadow:0 2px 6px rgba(0,0,0,0.03);
+    }
+    .search-btn, .clear-btn {
+      background:#009f4d;
+      color:#fff;
+      border:none;
+      padding:9px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .clear-btn { background:#6fcf8c; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-top:8px; }
     thead { background:#009f4d; color:#fff; }
-    th, td { padding:12px 15px; text-align:left; border-bottom:1px solid #e0e0e0; }
+    th, td { padding:12px 15px; text-align:left; border-bottom:1px solid #e0e0e0; vertical-align:middle; }
     tr:hover { background:#f0fff0; }
     .view-btn { background:#009f4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.9rem; }
     .view-btn:hover { background:#018f45; }
     .timestamp { font-size:0.9rem; color:#555; }
     .no-data { text-align:center; margin-top:40px; color:#666; font-size:1rem; }
+    .small-muted { font-size:0.9rem; color:#666; }
   </style>
 </head>
 <body>
   <header>
     <h2>Upgrade Requests</h2>
     <button id="logoutBtn">Logout</button>
-  </header>  <div class="container">
+  </header>
+
+  <div class="container">
+    <div class="search-row">
+      <input id="searchInput" class="search-input" type="text" placeholder="Search username (type any part of username)..." />
+      <button id="searchBtn" class="search-btn">Search</button>
+      <button id="clearBtn" class="clear-btn">Clear</button>
+    </div>
+
     <div id="resultsContainer"></div>
     <p id="noDataMsg" class="no-data" style="display:none;">No upgrade requests found.</p>
-  </div>  <script type="module">
+    <p id="note" class="small-muted" style="display:none;">Showing <span id="shownCount">0</span> of <span id="totalCount">0</span> requests</p>
+  </div>
+
+  <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
     import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
@@ -49,6 +81,14 @@
     const resultsContainer = document.getElementById('resultsContainer');
     const noDataMsg = document.getElementById('noDataMsg');
     const logoutBtn = document.getElementById('logoutBtn');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const note = document.getElementById('note');
+    const shownCountEl = document.getElementById('shownCount');
+    const totalCountEl = document.getElementById('totalCount');
+
+    let allRequests = []; // cached array of all requests (for client-side filtering)
 
     // Only load if admin is signed in
     onAuthStateChanged(auth, user => {
@@ -63,6 +103,22 @@
       signOut(auth).then(() => window.location.href = 'login.html');
     });
 
+    searchBtn.addEventListener('click', () => {
+      applyFilter(searchInput.value);
+    });
+
+    // allow pressing Enter in input to search
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        applyFilter(searchInput.value);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      renderTable(allRequests);
+    });
+
     async function loadRequests() {
       const q = query(
         collection(db, 'upgradeRequests'),
@@ -71,6 +127,45 @@
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
+        allRequests = [];
+        renderTable([]);
+        return;
+      }
+
+      // build array
+      allRequests = snapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          username: data.username || '',
+          senderName: data.senderName || '',
+          proofURL: data.proofURL || '',
+          requestedAt: data.requestedAt ? (typeof data.requestedAt.toDate === 'function' ? data.requestedAt.toDate() : new Date(data.requestedAt)) : null,
+          raw: data
+        };
+      });
+
+      renderTable(allRequests);
+    }
+
+    // filter is case-insensitive substring match
+    function applyFilter(queryStr) {
+      const q = (queryStr || '').trim().toLowerCase();
+      if (!q) {
+        renderTable(allRequests);
+        return;
+      }
+      const filtered = allRequests.filter(r => (r.username || '').toLowerCase().includes(q));
+      renderTable(filtered, q);
+    }
+
+    function renderTable(arr, filterQuery = '') {
+      totalCountEl.textContent = allRequests.length;
+      shownCountEl.textContent = arr.length;
+      note.style.display = allRequests.length ? 'block' : 'none';
+
+      if (!arr.length) {
+        resultsContainer.innerHTML = '';
         noDataMsg.style.display = 'block';
         return;
       }
@@ -88,25 +183,51 @@
       table.appendChild(thead);
 
       const tbody = document.createElement('tbody');
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
+
+      arr.forEach(item => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${data.username}</td>
-          <td>${data.senderName}</td>
-          <td>
-            <button class="view-btn" onclick="window.open('${data.proofURL}', '_blank')">
-              View Proof
-            </button>
-          </td>
-          <td class="timestamp">${data.requestedAt.toDate().toLocaleString()}</td>
-        `;
+
+        const tdUser = document.createElement('td');
+        tdUser.textContent = item.username || '-';
+
+        const tdSender = document.createElement('td');
+        tdSender.textContent = item.senderName || '-';
+
+        const tdProof = document.createElement('td');
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'view-btn';
+        viewBtn.type = 'button';
+        viewBtn.textContent = 'View Proof';
+        viewBtn.addEventListener('click', () => {
+          if (item.proofURL) {
+            window.open(item.proofURL, '_blank');
+          } else {
+            alert('No proof URL available for this request.');
+          }
+        });
+        tdProof.appendChild(viewBtn);
+
+        const tdTime = document.createElement('td');
+        tdTime.className = 'timestamp';
+        tdTime.textContent = item.requestedAt ? item.requestedAt.toLocaleString() : '-';
+
+        tr.appendChild(tdUser);
+        tr.appendChild(tdSender);
+        tr.appendChild(tdProof);
+        tr.appendChild(tdTime);
+
         tbody.appendChild(tr);
       });
 
       table.appendChild(tbody);
       resultsContainer.innerHTML = '';
       resultsContainer.appendChild(table);
+
+      // helpful UX: if search used, show clear button enabled
+      if (filterQuery) {
+        clearBtn.style.display = 'inline-block';
+      }
     }
-  </script></body>
+  </script>
+</body>
 </html>
