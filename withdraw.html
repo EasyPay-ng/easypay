@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8"/>  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay Withdrawal</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
   <style>
@@ -62,13 +61,17 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
 }
 .status-pending { background:#fd7e14; }
 .status-approved { background:#28a745; }
-.status-rejected { background:#dc3545; }  </style>
+.status-rejected { background:#dc3545; }
+.loading-overlay {
+  position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.7); z-index:9999; font-weight:700; color:var(--primary);
+}
+  </style>
 </head>
 <body>
   <div class="alert">
     Withdrawals take up to 48hrs. Please avoid complaints before then!
   </div>
-  <div id="planNotice" class="plan-alert" style="display:none"></div>  <div id="formCard" class="form-card">
+  <div id="planNotice" class="plan-alert" style="display:none"></div>  <div id="formCard" class="form-card" aria-busy="true">
     <h2>Make a Withdrawal</h2>
     <div class="form-group">
       <label for="amount">Amount (min ₦200 — max depends on your plan)</label>
@@ -103,7 +106,7 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
         </tbody>
       </table>
     </div>
-  </div>  <script type="module">
+  </div>  <div id="loadingOverlay" class="loading-overlay" style="display:flex">Checking session…</div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
@@ -116,6 +119,7 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
     const submitBtn = document.getElementById('submitBtn');
     const formCard = document.getElementById('formCard');
     const planNotice = document.getElementById('planNotice');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     // allowed plans
     const allowedPlans = ['premium','gold','elite'];
@@ -123,10 +127,53 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
     const planMax = { premium: 200, gold: 300, elite: 500 };
     const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours in ms
 
+    // helper: hide overlay and mark form ready
+    function readyUI() {
+      loadingOverlay.style.display = 'none';
+      formCard.setAttribute('aria-busy', 'false');
+    }
+
+    // helper: show overlay with message
+    function showOverlay(msg) {
+      loadingOverlay.style.display = 'flex';
+      loadingOverlay.textContent = msg;
+    }
+
+    // small safeguard: don't redirect immediately if auth isn't decided yet
+    let authResolved = false;
+
     onAuthStateChanged(auth, async user => {
-      if (!user) { alert('Please log in.'); location.href='login.html'; return; }
+      authResolved = true;
+      // if user is null, check auth.currentUser after a short grace period before redirecting
+      if (!user) {
+        // keep overlay for a tiny moment to allow firebase to finish any async auth restore
+        showOverlay('Checking session...');
+        setTimeout(() => {
+          const cur = auth.currentUser;
+          if (!cur) {
+            // no session; redirect to login
+            alert('Please log in.');
+            location.href = 'login.html';
+            return;
+          }
+          // if currentUser exists then re-run logic by returning early — the onAuthStateChanged listener will fire again
+        }, 600);
+        return;
+      }
+
+      // user exists — hide overlay and proceed
+      readyUI();
+
       const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
+      let userSnap;
+      try {
+        userSnap = await getDoc(userRef);
+      } catch (err) {
+        console.error('Failed to fetch user doc:', err);
+        alert('Failed to load account. Try reloading.');
+        return;
+      }
+
       const myData = userSnap.exists() ? userSnap.data() : {};
       const plan = (myData.plan || myData.accountType || myData.role || '').toString().toLowerCase();
 
@@ -145,7 +192,8 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
         const amountInput = document.getElementById('amount');
         amountInput.max = max;
 
-        submitBtn.addEventListener('click', () => submitWithdrawal(user.uid, plan));
+        // Use assignment instead of addEventListener to avoid duplicate handlers
+        submitBtn.onclick = () => submitWithdrawal(user.uid, plan);
       }
 
       // load withdrawals for viewing regardless of plan
@@ -256,4 +304,10 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
         tbody.innerHTML = '<tr><td colspan="5" class="no-log">Failed to load withdrawals</td></tr>';
       }
     }
+
+    // if auth hasn't resolved after a short while, show a persistent check message
+    setTimeout(() => {
+      if (!authResolved) showOverlay('Checking session — please wait...');
+    }, 500);
+
   </script></body></html>
