@@ -1,221 +1,423 @@
-<!DOCTYPE html><html lang="en"><head>    <meta charset="UTF-8"/>  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>  
-  <title>EasyPay Withdrawal</title>  
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>  
-  <style>  
-    :root {  
-      --primary: #00b66d;  
-      --bg: #f7fdf8;  
-      --text: #333;  
-      --card-bg: #fff;  
-      --shadow: rgba(0, 102, 51, 0.1);  
-    }  
-    * { box-sizing: border-box; margin:0; padding:0; }  
-    body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); padding-bottom:60px; }  
-    .alert {  
-      max-width:480px; margin:1rem auto; background:#fffbea; border:1px solid #ffeeba;  
-      color:#856404; padding:1rem; border-radius:8px; text-align:center;  
-      font-weight:600; box-shadow:0 4px 12px var(--shadow);  
-    }  
-    .plan-alert {  
-      max-width:480px; margin:0.5rem auto; padding:12px; border-radius:8px; text-align:center; font-weight:600;  
-      color:#fff; background:linear-gradient(90deg,#888 0%, #444 100%);  
-    }  
-    .form-card {  
-      max-width:480px; margin:1rem auto; background:var(--card-bg);  
-      border-radius:12px; box-shadow:0 4px 12px var(--shadow); padding:1.5rem;  
-    }  
-    .form-card.disabled { opacity:0.6; pointer-events:none }  
-    .form-card h2 { margin-bottom:1rem; font-size:1.2rem; color:var(--primary); }  
-    .form-group { margin-bottom:1rem; }  
-    label { display:block; margin-bottom:0.4rem; font-size:0.9rem; }  
-    input, select {  
-      width:100%; padding:0.8rem; border:1px solid #ddd; border-radius:6px;  
-      font-size:1rem;  
-    }  
-    input:focus, select:focus { outline:none; border-color:var(--primary); }  
-    button {  
-      width:100%; padding:0.8rem; background:var(--primary);  
-      color:#fff; border:none; border-radius:6px; font-size:1rem;  
-      font-weight:600; cursor:pointer; box-shadow:0 4px 12px var(--shadow);  
-      display:flex; align-items:center; justify-content:center;  
-    }  
-    button:disabled { background:#c8e9da; cursor:not-allowed; box-shadow:none; }  
-    .spinner { width:16px; height:16px; border:2px solid #fff; border-top:2px solid transparent;  
-      border-radius:50%; animation:spin 1s linear infinite; margin-right:8px; }  
-    @keyframes spin { to{transform:rotate(360deg);} }.table-card {  
-  max-width:480px; margin:1rem auto; background:var(--card-bg);  
-  border-radius:12px; box-shadow:0 4px 12px var(--shadow);  
-  overflow: hidden;  
-}  
-.table-card h3 { padding:1rem; font-size:1.1rem; color:var(--primary); }  
-.table-container {  
-  max-height: 300px;  
-  overflow-y: auto;  
-}  
-table { width:100%; border-collapse:collapse; }  
-th, td { padding:0.8rem; text-align:left; border-bottom:1px solid #eee; font-size:0.9rem; }  
-th { background:var(--primary); color:#fff; position:sticky; top:0; }  
-.no-log { text-align:center; padding:1rem; color:#666; }  
-.status { padding:4px 8px; border-radius:4px; color:#fff; font-weight:600; display:inline-block; font-size:0.8rem;  
-  box-shadow:0 0 8px var(--shadow);  
-}  
-.status-pending { background:#fd7e14; }  
-.status-approved { background:#28a745; }  
-.status-rejected { background:#dc3545; }  </style>  
-</head>  
-<body>  
-  <div class="alert">  
-    Withdrawals take up to 48hrs. Please avoid complaints before then!  
-  </div>  
-  <div id="planNotice" class="plan-alert" style="display:none"></div>  <div id="formCard" class="form-card">  
-    <h2>Make a Withdrawal</h2>  
-    <div class="form-group">  
-      <label for="amount">Amount (₦200–₦500)</label>  
-      <input type="number" id="amount" min="200" max="500" placeholder="Enter amount (max ₦500)" />  
-    </div>  
-    <div class="form-group">  
-      <label for="bank">Select Bank</label>  
-      <select id="bank">  
-        <option value="">-- Choose Bank --</option>  
-        <option>Access Bank</option><option>Kuda</option><option>PalmPay</option>  
-        <option>Moniepoint</option><option>Opay</option><option>GTBank</option>  
-        <option>First Bank</option><option>UBA</option><option>Zenith Bank</option>  
-        <option>Wema Bank</option><option>SmartCash PSB</option><option>Momo PSB</option>  
-      </select>  
-    </div>  
-    <div class="form-group">  
-      <label for="accName">Account Name</label>  
-      <input type="text" id="accName" placeholder="Recipient's Name" />  
-    </div>  
-    <div class="form-group">  
-      <label for="accNumber">Account Number</label>  
-      <input type="text" id="accNumber" placeholder="0123456789" />  
-    </div>  
-    <button id="submitBtn">Submit Withdrawal</button>  
-  </div>  <div class="table-card">  
-    <h3>Recent Withdrawals</h3>  
-    <div class="table-container">  
-      <table>  
-        <thead><tr><th>Date</th><th>Amt</th><th>Bank</th><th>Acct</th><th>Status</th></tr></thead>  
-        <tbody id="withdrawalTable">  
-          <tr><td colspan="5" class="no-log">Loading...</td></tr>  
-        </tbody>  
-      </table>  
-    </div>  
-  </div>  <script type="module">  
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";  
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";  
-    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";  const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.firebasestorage.app", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e", measurementId: "G-2FZKDQ47FZ" };  
-const app = initializeApp(firebaseConfig);  
-const auth = getAuth(app);  
-const db = getFirestore(app);  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay Withdrawal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #00b66d;
+      --bg: #f7fdf8;
+      --text: #333;
+      --card-bg: #fff;
+      --shadow: rgba(0, 102, 51, 0.1);
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); padding-bottom:60px; }
+    .alert {
+      max-width:720px; margin:1rem auto; background:#fffbea; border:1px solid #ffeeba;
+      color:#856404; padding:1rem; border-radius:8px; text-align:center;
+      font-weight:600; box-shadow:0 4px 12px var(--shadow);
+    }
+    .danger {
+      max-width:720px; margin:0.5rem auto; background:#fff5f5; border:1px solid #ffd6d6;
+      color:#8a1f1f; padding:0.9rem; border-radius:8px; text-align:center; font-weight:700;
+      box-shadow:0 4px 12px rgba(220,53,69,0.08);
+    }
+    .plan-alert {
+      max-width:480px; margin:0.5rem auto; padding:12px; border-radius:8px; text-align:center; font-weight:600;
+      color:#fff; background:linear-gradient(90deg,#888 0%, #444 100%);
+    }
+    .form-card {
+      max-width:480px; margin:1rem auto; background:var(--card-bg);
+      border-radius:12px; box-shadow:0 4px 12px var(--shadow); padding:1.5rem;
+    }
+    .form-card.disabled { opacity:0.6; pointer-events:none }
+    .form-card h2 { margin-bottom:1rem; font-size:1.2rem; color:var(--primary); }
+    .form-group { margin-bottom:1rem; }
+    label { display:block; margin-bottom:0.4rem; font-size:0.9rem; }
+    input, select {
+      width:100%; padding:0.8rem; border:1px solid #ddd; border-radius:6px;
+      font-size:1rem;
+    }
+    input:focus, select:focus { outline:none; border-color:var(--primary); }
+    button {
+      width:100%; padding:0.8rem; background:var(--primary);
+      color:#fff; border:none; border-radius:6px; font-size:1rem;
+      font-weight:600; cursor:pointer; box-shadow:0 4px 12px var(--shadow);
+      display:flex; align-items:center; justify-content:center;
+    }
+    button:disabled { background:#c8e9da; cursor:not-allowed; box-shadow:none; }
+    .spinner { width:16px; height:16px; border:2px solid #fff; border-top:2px solid transparent;
+      border-radius:50%; animation:spin 1s linear infinite; margin-right:8px; }
+    @keyframes spin { to{transform:rotate(360deg);} }
+    .table-card {
+      max-width:720px; margin:1rem auto; background:var(--card-bg);
+      border-radius:12px; box-shadow:0 4px 12px var(--shadow);
+      overflow: hidden;
+    }
+    .table-card h3 { padding:1rem; font-size:1.1rem; color:var(--primary); }
+    .table-container {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:0.8rem; text-align:left; border-bottom:1px solid #eee; font-size:0.9rem; }
+    th { background:var(--primary); color:#fff; position:sticky; top:0; }
+    .no-log { text-align:center; padding:1rem; color:#666; }
+    .status { padding:4px 8px; border-radius:4px; color:#fff; font-weight:600; display:inline-block; font-size:0.8rem;
+      box-shadow:0 0 8px var(--shadow);
+    }
+    .status-pending { background:#fd7e14; }
+    .status-approved { background:#28a745; }
+    .status-rejected { background:#dc3545; }
+    .info-note { max-width:480px; margin:0.5rem auto; padding:10px; text-align:center; color:#444; font-weight:600; }
+    .small { font-size:0.9rem; color:#444; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div class="alert">
+    Withdrawals take up to 48hrs. Please avoid complaints before then!
+  </div>
 
-const submitBtn = document.getElementById('submitBtn');  
-const formCard = document.getElementById('formCard');  
-const planNotice = document.getElementById('planNotice');  
+  <div class="danger">
+    ⚠️ Multiple withdrawals in a day will be <strong>rejected and not refunded</strong>. You may only request once per day.
+  </div>
 
-const allowedPlans = ['premium','gold']; // only these plans can withdraw  
+  <div id="planNotice" class="plan-alert" style="display:none"></div>
+  <div id="timeNotice" class="info-note" style="display:none"></div>
 
-onAuthStateChanged(auth, async user => {  
-  if (!user) { alert('Please log in.'); location.href='login.html'; return; }  
-  const userRef = doc(db, 'users', user.uid);  
-  const userSnap = await getDoc(userRef);  
-  const myData = userSnap.exists() ? userSnap.data() : {};  
-  const plan = (myData.plan || myData.accountType || myData.role || '').toString().toLowerCase();  
+  <div id="formCard" class="form-card">
+    <h2>Make a Withdrawal</h2>
 
-  // If user is not on allowed plan, disable withdrawal form but still show history  
-  if (!allowedPlans.includes(plan)) {  
-    formCard.classList.add('disabled');  
-    // disable form fields explicitly (safer for older browsers)  
-    Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);  
-    planNotice.style.display = 'block';  
-    planNotice.textContent = `Withdrawals are available to Premium and Gold users only. Your plan: ${myData.plan || 'Free'}.`;  
-  } else {  
-    // allowed — wire up submit  
-    submitBtn.addEventListener('click', () => submitWithdrawal(user.uid));  
-  }  
+    <div id="planInfo" class="small" style="display:none;"></div>
 
-  // load withdrawals for viewing regardless of plan  
-  loadWithdrawals(user.uid);  
-});  
+    <div class="form-group">
+      <label for="amount">Amount <span id="amountHint" class="small"></span></label>
+      <input type="number" id="amount" min="200" placeholder="Enter amount" />
+    </div>
+    <div class="form-group">
+      <label for="bank">Select Bank</label>
+      <select id="bank">
+        <option value="">-- Choose Bank --</option>
+        <option>Access Bank</option><option>Kuda</option><option>PalmPay</option>
+        <option>Moniepoint</option><option>Opay</option><option>GTBank</option>
+        <option>First Bank</option><option>UBA</option><option>Zenith Bank</option>
+        <option>Wema Bank</option><option>SmartCash PSB</option><option>Momo PSB</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="accName">Account Name</label>
+      <input type="text" id="accName" placeholder="Recipient's Name" />
+    </div>
+    <div class="form-group">
+      <label for="accNumber">Account Number</label>
+      <input type="text" id="accNumber" placeholder="0123456789" />
+    </div>
+    <button id="submitBtn">Submit Withdrawal</button>
+  </div>
 
-async function submitWithdrawal(uid) {  
-  const btn = submitBtn;  
-  const orig = btn.textContent;  
-  btn.disabled = true;  
-  btn.innerHTML = '<span class="spinner"></span>Processing...';  
-  try {  
-    const amount = parseFloat(document.getElementById('amount').value);  
-    if (isNaN(amount) || amount < 200 || amount > 500) {  
-      alert('Please enter a value between ₦200 and ₦500.');  
-      return;  
-    }  
-    const bank = document.getElementById('bank').value;  
-    const accName = document.getElementById('accName').value.trim();  
-    const accNumber = document.getElementById('accNumber').value.trim();  
-    if (!bank || !accName || !accNumber) {  
-      alert('Fill all fields correctly.');  
-      return;  
-    }  
+  <div class="table-card">
+    <h3>Recent Withdrawals</h3>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Date</th><th>Amt</th><th>Bank</th><th>Acct</th><th>Status</th></tr></thead>
+        <tbody id="withdrawalTable">
+          <tr><td colspan="5" class="no-log">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-    const userRef = doc(db, 'users', uid);  
-    const userDoc = await getDoc(userRef);  
-    const balance = Number(userDoc.data()?.balance) || 0;  
-    if (amount > balance) {  
-      alert('Insufficient balance.');  
-      return;  
-    }  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      collection,
+      addDoc,
+      query,
+      orderBy,
+      limit,
+      getDocs,
+      where
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-    // update balance and create withdrawal record  
-    await updateDoc(userRef, { balance: balance - amount });  
-    // store withdrawals as a subcollection under the user  
-    await addDoc(collection(userRef, 'withdrawals'), { timestamp: new Date(), amount, bank, accName, accNumber, status: 'pending' });  
-    alert('Withdrawal submitted.');  
-    ['amount', 'bank', 'accName', 'accNumber'].forEach(id => {  
-      const el = document.getElementById(id); if (el) el.value = '';  
-    });  
-    loadWithdrawals(uid);  
-  } catch (e) {  
-    console.error(e);  
-    alert('Error. Please retry.');  
-  } finally {  
-    btn.disabled = false;  
-    btn.textContent = orig;  
-  }  
-}  
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c1e",
+      measurementId: "G-2FZKDQ47FZ"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-async function loadWithdrawals(uid) {  
-  const tbody = document.getElementById('withdrawalTable');  
-  tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';  
-  try {  
-    const ref = collection(doc(db, 'users', uid), 'withdrawals');  
-    const q = query(ref, orderBy('timestamp', 'desc'), limit(20));  
-    const snap = await getDocs(q);  
-    if (snap.empty) {  
-      tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';  
-      return;  
-    }  
-    tbody.innerHTML = '';  
-    snap.forEach(ds => {  
-      const d = ds.data();  
-      let dt = new Date();  
-      if (d.timestamp) {  
-        if (d.timestamp.toDate) dt = d.timestamp.toDate();  
-        else if (d.timestamp.seconds) dt = new Date(d.timestamp.seconds * 1000);  
-        else dt = new Date(d.timestamp);  
-      }  
-      const date = dt.toLocaleString();  
-      const cls = d.status === 'approved' ? 'status-approved' : d.status === 'rejected' ? 'status-rejected' : 'status-pending';  
-      const icon = d.status && d.status.charAt(0).toLowerCase() === 'a' ? '✅' : d.status && d.status.charAt(0).toLowerCase() === 'r' ? '❌' : '⏳';  
-      const statusText = d.status ? (d.status.charAt(0).toUpperCase() + d.status.slice(1)) : 'Pending';  
-      tbody.innerHTML += `<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber || d.acc || '-'}</td><td><span class="status ${cls}">${icon} ${statusText}</span></td></tr>`;  
-    });  
-  } catch (err) {  
-    console.error(err);  
-    tbody.innerHTML = '<tr><td colspan="5" class="no-log">Failed to load withdrawals</td></tr>';  
-  }  
-}
+    const submitBtn = document.getElementById('submitBtn');
+    const formCard = document.getElementById('formCard');
+    const planNotice = document.getElementById('planNotice');
+    const timeNotice = document.getElementById('timeNotice');
+    const planInfo = document.getElementById('planInfo');
+    const amountHint = document.getElementById('amountHint');
 
-</script></body></html>
+    // Allowed plans and their limits / fee
+    const planDetails = {
+      premium: { max: 200, fee: 1000, display: 'Premium (₦1,000) — Max withdrawal ₦200' },
+      gold:    { max: 300, fee: 2000, display: 'Gold (₦2,000) — Max withdrawal ₦300' },
+      elite:   { max: 500, fee: 3000, display: 'Elite 🔥 (₦3,000) — Max withdrawal ₦500' }
+    };
+    const allowedPlans = Object.keys(planDetails); // ['premium','gold','elite']
 
+    let currentUid = null;
+    let currentPlanKey = null;
+    let currentPlanMax = 500; // default fallback
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) { alert('Please log in.'); location.href='login.html'; return; }
+      currentUid = user.uid;
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      const myData = userSnap.exists() ? userSnap.data() : {};
+      const planRaw = (myData.plan || myData.accountType || myData.role || 'free').toString().toLowerCase();
+      currentPlanKey = planRaw;
+
+      // update UI plan info & amount hint
+      if (allowedPlans.includes(planRaw)) {
+        currentPlanMax = planDetails[planRaw].max;
+        planInfo.style.display = 'block';
+        planInfo.innerHTML = `Plan: <strong>${planDetails[planRaw].display}</strong>.<br>Note: Multiple withdrawals in a day will be rejected and not refunded.`;
+        amountHint.textContent = `(min ₦200 — max ₦${currentPlanMax})`;
+        document.getElementById('amount').setAttribute('max', currentPlanMax);
+      } else {
+        // Not allowed — disable form
+        disableForm(`Withdrawals are available to Premium, Gold and Elite users only. Your plan: ${myData.plan || 'Free'}.`);
+        planInfo.style.display = 'block';
+        planInfo.innerHTML = `You currently do not have access to withdrawals. Available plans: Premium (₦1,000), Gold (₦2,000), Elite 🔥 (₦3,000).`;
+        amountHint.textContent = `(min ₦200)`;
+      }
+
+      // show allowed hours note
+      timeNotice.style.display = 'block';
+      timeNotice.textContent = 'Withdrawals allowed daily between 08:00 and 18:00 local time. You may request once per day.';
+
+      // wire up submit only if allowed
+      if (allowedPlans.includes(planRaw)) {
+        submitBtn.addEventListener('click', () => submitWithdrawal(user.uid));
+      }
+
+      // load withdrawals and evaluate daily limit + time window
+      await loadWithdrawals(user.uid);
+      await evaluateWithdrawPermissions(user.uid);
+    });
+
+    function disableForm(message) {
+      formCard.classList.add('disabled');
+      Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);
+      planNotice.style.display = 'block';
+      planNotice.textContent = message;
+    }
+
+    function enableForm() {
+      formCard.classList.remove('disabled');
+      Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = false);
+      planNotice.style.display = 'none';
+    }
+
+    function nowIsWithinWindow() {
+      const now = new Date();
+      const hour = now.getHours();
+      return hour >= 8 && hour < 18;
+    }
+
+    async function evaluateWithdrawPermissions(uid) {
+      // If outside allowed hours, disable form and show message
+      if (!nowIsWithinWindow()) {
+        disableForm('Withdrawals are currently closed. Allowed hours: 08:00 - 18:00 local time.');
+        return;
+      }
+
+      // check if user already made a withdrawal today (non-rejected). If yes -> disable until next day
+      try {
+        const withdrawalsRef = collection(doc(db, 'users', uid), 'withdrawals');
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // today 00:00 local
+        const startOfTomorrow = new Date(startOfToday); startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+        const q = query(
+          withdrawalsRef,
+          where('timestamp', '>=', startOfToday),
+          where('timestamp', '<', startOfTomorrow),
+          orderBy('timestamp', 'desc')
+        );
+        const snap = await getDocs(q);
+        let blocked = false;
+        let message = '';
+        if (!snap.empty) {
+          snap.forEach(docSnap => {
+            const d = docSnap.data();
+            const status = (d.status || '').toString().toLowerCase();
+            // treat anything other than 'rejected' as a used attempt today (pending/approved/processing)
+            if (status !== 'rejected') {
+              blocked = true;
+              if (status === 'pending') message = 'You already placed a withdrawal request today (pending). Next request after 00:00.';
+              else if (status === 'approved' || status === 'processed' || status === 'completed') message = 'You already had a processed withdrawal today. Next request after 00:00.';
+              else message = `You already made a withdrawal today (${status}). Next request after 00:00.`;
+            }
+          });
+        }
+
+        if (blocked) {
+          disableForm(message || 'You already made a withdrawal today. Next request after 00:00.');
+        } else {
+          // allowed: enable only if plan is allowed
+          if (allowedPlans.includes(currentPlanKey)) enableForm();
+        }
+      } catch (err) {
+        console.error('evaluateWithdrawPermissions error', err);
+        // on failure, be conservative and disable submit
+        disableForm('Unable to verify daily limit — try again later.');
+      }
+    }
+
+    async function submitWithdrawal(uid) {
+      const btn = submitBtn;
+      const orig = btn.textContent;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Processing...';
+      try {
+        // Final checks: time window and daily limit (re-check to avoid race)
+        if (!nowIsWithinWindow()) {
+          alert('Withdrawals are allowed only between 08:00 and 18:00 local time.');
+          return;
+        }
+
+        // re-check today's non-rejected withdrawals
+        const withdrawalsRef = collection(doc(db, 'users', uid), 'withdrawals');
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfTomorrow = new Date(startOfToday); startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+        const checkQ = query(
+          withdrawalsRef,
+          where('timestamp', '>=', startOfToday),
+          where('timestamp', '<', startOfTomorrow),
+          orderBy('timestamp','desc')
+        );
+        const checkSnap = await getDocs(checkQ);
+        let alreadyToday = false;
+        if (!checkSnap.empty) {
+          checkSnap.forEach(ds => {
+            const s = (ds.data().status || '').toString().toLowerCase();
+            if (s !== 'rejected') alreadyToday = true;
+          });
+        }
+        if (alreadyToday) {
+          alert('You have already made a withdrawal today. You may request again after 00:00.');
+          return;
+        }
+
+        const amountEl = document.getElementById('amount');
+        const amount = parseFloat(amountEl.value);
+        if (isNaN(amount) || amount < 200) {
+          alert('Please enter a value of at least ₦200.');
+          return;
+        }
+
+        // enforce plan-specific max
+        const planKey = currentPlanKey;
+        const planMax = planDetails[planKey]?.max || 500;
+        if (amount > planMax) {
+          alert(`Your plan (${planKey}) allows a maximum withdrawal of ₦${planMax}.`);
+          return;
+        }
+
+        const bank = document.getElementById('bank').value;
+        const accName = document.getElementById('accName').value.trim();
+        const accNumber = document.getElementById('accNumber').value.trim();
+        if (!bank || !accName || !accNumber) {
+          alert('Fill all fields correctly.');
+          return;
+        }
+
+        const userRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userRef);
+        const balance = Number(userDoc.data()?.balance) || 0;
+        if (amount > balance) {
+          alert('Insufficient balance.');
+          return;
+        }
+
+        // update balance and create withdrawal record
+        await updateDoc(userRef, { balance: balance - amount });
+        // store withdrawals as a subcollection under the user
+        await addDoc(collection(userRef, 'withdrawals'), {
+          timestamp: new Date(),
+          amount,
+          bank,
+          accName,
+          accNumber,
+          status: 'pending'
+        });
+
+        alert('Withdrawal submitted. It will be processed during working hours (08:00-18:00).');
+        ['amount', 'bank', 'accName', 'accNumber'].forEach(id => {
+          const el = document.getElementById(id); if (el) el.value = '';
+        });
+
+        // after submit, re-evaluate permissions (will disable since there's now a pending request today)
+        await loadWithdrawals(uid);
+        await evaluateWithdrawPermissions(uid);
+      } catch (e) {
+        console.error(e);
+        alert('Error. Please retry.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+
+    async function loadWithdrawals(uid) {
+      const tbody = document.getElementById('withdrawalTable');
+      tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';
+      try {
+        const ref = collection(doc(db, 'users', uid), 'withdrawals');
+        const q = query(ref, orderBy('timestamp', 'desc'), limit(20));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = '';
+        snap.forEach(ds => {
+          const d = ds.data();
+          let dt = new Date();
+          if (d.timestamp) {
+            if (d.timestamp.toDate) dt = d.timestamp.toDate();
+            else if (d.timestamp.seconds) dt = new Date(d.timestamp.seconds * 1000);
+            else dt = new Date(d.timestamp);
+          }
+          const date = dt.toLocaleString();
+          const cls = d.status === 'approved' ? 'status-approved' : d.status === 'rejected' ? 'status-rejected' : 'status-pending';
+          const icon = d.status && d.status.charAt(0).toLowerCase() === 'a' ? '✅' : d.status && d.status.charAt(0).toLowerCase() === 'r' ? '❌' : '⏳';
+          const statusText = d.status ? (d.status.charAt(0).toUpperCase() + d.status.slice(1)) : 'Pending';
+          tbody.innerHTML += `<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber || d.acc || '-'}</td><td><span class="status ${cls}">${icon} ${statusText}</span></td></tr>`;
+        });
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="5" class="no-log">Failed to load withdrawals</td></tr>';
+      }
+    }
+
+    // NOTE: This is client-side enforcement for UX. For security, enforce the same rules server-side (Firestore security rules or Cloud Function):
+    //  - deny multiple non-rejected withdrawals in the same day
+    //  - deny withdrawal creations outside allowed hours (08:00–18:00)
+    //  - validate plan-specific max and balance server-side to avoid client bypass.
+  </script>
+</body>
+  </html>
