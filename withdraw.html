@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8"/>  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>  <title>EasyPay Withdrawal</title>
+<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8"/>  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay Withdrawal</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -60,21 +61,17 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
 }
 .status-pending { background:#fd7e14; }
 .status-approved { background:#28a745; }
-.status-rejected { background:#dc3545; }
-.loading-overlay {
-  position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.7); z-index:9999; font-weight:700; color:var(--primary);
-}
-  </style>
+.status-rejected { background:#dc3545; }  </style>
 </head>
 <body>
   <div class="alert">
     Withdrawals take up to 48hrs. Please avoid complaints before then!
   </div>
-  <div id="planNotice" class="plan-alert" style="display:none"></div>  <div id="formCard" class="form-card" aria-busy="true">
+  <div id="planNotice" class="plan-alert" style="display:none"></div>  <div id="formCard" class="form-card">
     <h2>Make a Withdrawal</h2>
     <div class="form-group">
-      <label for="amount">Amount (min ₦200 — max depends on your plan)</label>
-      <input type="number" id="amount" min="200" placeholder="Enter amount" />
+      <label for="amount">Amount (₦200–₦500)</label>
+      <input type="number" id="amount" min="200" max="500" placeholder="Enter amount (max ₦500)" />
     </div>
     <div class="form-group">
       <label for="bank">Select Bank</label>
@@ -105,215 +102,151 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
         </tbody>
       </table>
     </div>
-  </div>  <div id="loadingOverlay" class="loading-overlay" style="display:flex">Checking session…</div>  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.firebasestorage.app", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e", measurementId: "G-2FZKDQ47FZ" };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.firebasestorage.app", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e", measurementId: "G-2FZKDQ47FZ" };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const submitBtn = document.getElementById('submitBtn');
+const formCard = document.getElementById('formCard');
+const planNotice = document.getElementById('planNotice');
 
-    const submitBtn = document.getElementById('submitBtn');
-    const formCard = document.getElementById('formCard');
-    const planNotice = document.getElementById('planNotice');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+const allowedPlans = ['premium','gold','elite']; // only these plans can withdraw
+const planMax = { premium: 200, gold: 300, elite: 500 };
+const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-    // allowed plans
-    const allowedPlans = ['premium','gold','elite'];
-    // per-plan max withdrawal map
-    const planMax = { premium: 200, gold: 300, elite: 500 };
-    const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours in ms
+onAuthStateChanged(auth, async user => {
+  if (!user) { alert('Please log in.'); location.href='login.html'; return; }
+  const userRef = doc(db, 'users', user.uid);
+  const userSnap = await getDoc(userRef);
+  const myData = userSnap.exists() ? userSnap.data() : {};
+  const plan = (myData.plan || myData.accountType || myData.role || '').toString().toLowerCase();
 
-    // helper: hide overlay and mark form ready
-    function readyUI() {
-      loadingOverlay.style.display = 'none';
-      formCard.setAttribute('aria-busy', 'false');
+  // If user is not on allowed plan, disable withdrawal form but still show history
+  if (!allowedPlans.includes(plan)) {
+    formCard.classList.add('disabled');
+    // disable form fields explicitly (safer for older browsers)
+    Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);
+    planNotice.style.display = 'block';
+    planNotice.textContent = `Withdrawals are available to Premium, Gold and Elite users only. Your plan: ${myData.plan || 'Free'}.`;
+  } else {
+    // allowed — wire up submit and set per-plan max
+    const amountInput = document.getElementById('amount');
+    const max = planMax[plan] || 500;
+    amountInput.max = max; // update input max based on plan
+    planNotice.style.display = 'block';
+    planNotice.textContent = `Plan: ${plan.charAt(0).toUpperCase() + plan.slice(1)} — Max withdrawal: ₦${max}.`;
+
+    submitBtn.addEventListener('click', () => submitWithdrawal(user.uid, plan));
+  }
+
+  // load withdrawals for viewing regardless of plan
+  loadWithdrawals(user.uid);
+});
+
+async function submitWithdrawal(uid, plan) {
+  const btn = submitBtn;
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Processing...';
+  try {
+    const amount = parseFloat(document.getElementById('amount').value);
+    if (isNaN(amount) || amount < 200) {
+      alert('Please enter a value between ₦200 and your plan maximum.');
+      return;
+    }
+    const maxForPlan = planMax[plan] || 500;
+    if (amount > maxForPlan) {
+      alert(`Your plan allows a maximum withdrawal of ₦${maxForPlan}.`);
+      return;
+    }
+    const bank = document.getElementById('bank').value;
+    const accName = document.getElementById('accName').value.trim();
+    const accNumber = document.getElementById('accNumber').value.trim();
+    if (!bank || !accName || !accNumber) {
+      alert('Fill all fields correctly.');
+      return;
     }
 
-    // helper: show overlay with message
-    function showOverlay(msg) {
-      loadingOverlay.style.display = 'flex';
-      loadingOverlay.textContent = msg;
+    const userRef = doc(db, 'users', uid);
+    const userDoc = await getDoc(userRef);
+    const data = userDoc.exists() ? userDoc.data() : {};
+    const balance = Number(data?.balance) || 0;
+    if (amount > balance) {
+      alert('Insufficient balance.');
+      return;
     }
 
-    // small safeguard: don't redirect — instead show disabled form and login link if no session
-    let authResolved = false;
-
-    onAuthStateChanged(auth, async user => {
-      authResolved = true;
-
-      if (!user) {
-        // hide overlay and show friendly login prompt instead of redirecting
-        readyUI();
-        formCard.classList.add('disabled');
-        Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);
-        planNotice.style.display = 'block';
-        planNotice.innerHTML = `You are not signed in. <a href="login.html">Sign in</a> to make withdrawals.`;
-        // clear withdrawal table (can't load without uid)
-        const tbody = document.getElementById('withdrawalTable');
-        tbody.innerHTML = '<tr><td colspan="5" class="no-log">Please sign in to view withdrawals.</td></tr>';
+    // cooldown check (once every 24 hours) using user's lastWithdrawal on their document
+    const lastRaw = data?.lastWithdrawal || null;
+    let lastDate = null;
+    if (lastRaw) {
+      if (lastRaw.toDate) lastDate = lastRaw.toDate();
+      else lastDate = new Date(lastRaw);
+    }
+    if (lastDate) {
+      const elapsed = Date.now() - lastDate.getTime();
+      if (elapsed < COOLDOWN_MS) {
+        const remainingMs = COOLDOWN_MS - elapsed;
+        const hrs = Math.floor(remainingMs / (1000*60*60));
+        const mins = Math.floor((remainingMs % (1000*60*60)) / (1000*60));
+        alert(`You can withdraw again in ${hrs} hour(s) and ${mins} minute(s).`);
         return;
       }
+    }
 
-      // user exists — hide overlay and proceed
-      readyUI();
-
-      const userRef = doc(db, 'users', user.uid);
-      let userSnap;
-      try {
-        userSnap = await getDoc(userRef);
-      } catch (err) {
-        console.error('Failed to fetch user doc:', err);
-        alert('Failed to load account. Try reloading.');
-        return;
-      }
-
-      const myData = userSnap.exists() ? userSnap.data() : {};
-      const plan = (myData.plan || myData.accountType || myData.role || '').toString().toLowerCase();
-
-      // If user is not on allowed plan, disable withdrawal form but still show history
-      if (!allowedPlans.includes(plan)) {
-        formCard.classList.add('disabled');
-        Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);
-        planNotice.style.display = 'block';
-        planNotice.textContent = `Withdrawals are available to Premium, Gold and Elite users only. Your plan: ${myData.plan || 'Free'}.`;
-      } else {
-        // allowed — show plan info and wire up submit
-        const max = planMax[plan] || 500;
-        planNotice.style.display = 'block';
-        planNotice.textContent = `Plan: ${plan.charAt(0).toUpperCase() + plan.slice(1)} — Max withdrawal: ₦${max}. Withdrawals allowed once every 24 hours.`;
-        // set max on input to help UX
-        const amountInput = document.getElementById('amount');
-        amountInput.max = max;
-
-        // show user's balance if available
-        const balance = Number(myData.balance) || 0;
-        if (balance < 200) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = 'Insufficient balance';
-        } else {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit Withdrawal';
-        }
-
-        // assign handler once
-        submitBtn.onclick = () => submitWithdrawal(user.uid, plan);
-      }
-
-      // load withdrawals for viewing regardless of plan
-      loadWithdrawals(user.uid);
+    // update balance and create withdrawal record; also set lastWithdrawal on user doc
+    await updateDoc(userRef, { balance: balance - amount, lastWithdrawal: new Date() });
+    // store withdrawals as a subcollection under the user
+    await addDoc(collection(userRef, 'withdrawals'), { timestamp: new Date(), amount, bank, accName, accNumber, status: 'pending' });
+    alert('Withdrawal submitted.');
+    ['amount', 'bank', 'accName', 'accNumber'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
     });
+    loadWithdrawals(uid);
+  } catch (e) {
+    console.error(e);
+    alert('Error. Please retry.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
 
-    function parseTimestampToDate(ts) {
-      if (!ts) return null;
-      try {
-        if (ts.toDate) return ts.toDate();
-        if (ts.seconds) return new Date(ts.seconds * 1000);
-        return new Date(ts);
-      } catch (e) { return null; }
+async function loadWithdrawals(uid) {
+  const tbody = document.getElementById('withdrawalTable');
+  tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';
+  try {
+    const ref = collection(doc(db, 'users', uid), 'withdrawals');
+    const q = query(ref, orderBy('timestamp', 'desc'), limit(20));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
+      return;
     }
-
-    async function submitWithdrawal(uid, plan) {
-      const btn = submitBtn;
-      const orig = btn.textContent;
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>Processing...';
-      try {
-        const amount = parseFloat(document.getElementById('amount').value);
-        if (isNaN(amount) || amount < 200) {
-          alert('Please enter a value of at least ₦200.');
-          return;
-        }
-        const maxForPlan = planMax[plan] || 500;
-        if (amount > maxForPlan) {
-          alert(`Your plan allows a maximum withdrawal of ₦${maxForPlan}.`);
-          return;
-        }
-        const bank = document.getElementById('bank').value;
-        const accName = document.getElementById('accName').value.trim();
-        const accNumber = document.getElementById('accNumber').value.trim();
-        if (!bank || !accName || !accNumber) {
-          alert('Fill all fields correctly.');
-          return;
-        }
-
-        const userRef = doc(db, 'users', uid);
-        const userDoc = await getDoc(userRef);
-        const data = userDoc.exists() ? userDoc.data() : {};
-        const balance = Number(data?.balance) || 0;
-        if (amount > balance) {
-          alert('Insufficient balance.');
-          return;
-        }
-
-        // cooldown check (once every 24 hours)
-        const lastWithdrawalDate = parseTimestampToDate(data?.lastWithdrawal) || null;
-        if (lastWithdrawalDate) {
-          const elapsed = Date.now() - lastWithdrawalDate.getTime();
-          if (elapsed < COOLDOWN_MS) {
-            const remainingMs = COOLDOWN_MS - elapsed;
-            const hrs = Math.floor(remainingMs / (1000*60*60));
-            const mins = Math.floor((remainingMs % (1000*60*60)) / (1000*60));
-            alert(`You can withdraw again in ${hrs} hour(s) and ${mins} minute(s).`);
-            return;
-          }
-        }
-
-        // all good — update balance and set lastWithdrawal to server timestamp, then add withdrawal record
-        await updateDoc(userRef, { balance: balance - amount, lastWithdrawal: serverTimestamp() });
-        await addDoc(collection(userRef, 'withdrawals'), { timestamp: serverTimestamp(), amount, bank, accName, accNumber, status: 'pending', plan: plan });
-
-        alert('Withdrawal submitted.');
-        ['amount', 'bank', 'accName', 'accNumber'].forEach(id => {
-          const el = document.getElementById(id); if (el) el.value = '';
-        });
-        loadWithdrawals(uid);
-      } catch (e) {
-        console.error(e);
-        alert('Error. Please retry.');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = orig;
+    tbody.innerHTML = '';
+    snap.forEach(ds => {
+      const d = ds.data();
+      let dt = new Date();
+      if (d.timestamp) {
+        if (d.timestamp.toDate) dt = d.timestamp.toDate();
+        else if (d.timestamp.seconds) dt = new Date(d.timestamp.seconds * 1000);
+        else dt = new Date(d.timestamp);
       }
-    }
+      const date = dt.toLocaleString();
+      const cls = d.status === 'approved' ? 'status-approved' : d.status === 'rejected' ? 'status-rejected' : 'status-pending';
+      const icon = d.status && d.status.charAt(0).toLowerCase() === 'a' ? '✅' : d.status && d.status.charAt(0).toLowerCase() === 'r' ? '❌' : '⏳';
+      const statusText = d.status ? (d.status.charAt(0).toUpperCase() + d.status.slice(1)) : 'Pending';
+      tbody.innerHTML += `<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber || d.acc || '-'}</td><td><span class="status ${cls}">${icon} ${statusText}</span></td></tr>`;
+    });
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="5" class="no-log">Failed to load withdrawals</td></tr>';
+  }
+}
 
-    async function loadWithdrawals(uid) {
-      const tbody = document.getElementById('withdrawalTable');
-      tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';
-      try {
-        const ref = collection(doc(db, 'users', uid), 'withdrawals');
-        const q = query(ref, orderBy('timestamp', 'desc'), limit(20));
-        const snap = await getDocs(q);
-        if (snap.empty) {
-          tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
-          return;
-        }
-        tbody.innerHTML = '';
-        snap.forEach(ds => {
-          const d = ds.data();
-          let dt = new Date();
-          if (d.timestamp) {
-            if (d.timestamp.toDate) dt = d.timestamp.toDate();
-            else if (d.timestamp.seconds) dt = new Date(d.timestamp.seconds * 1000);
-            else dt = new Date(d.timestamp);
-          }
-          const date = dt.toLocaleString();
-          const cls = d.status === 'approved' ? 'status-approved' : d.status === 'rejected' ? 'status-rejected' : 'status-pending';
-          const icon = d.status && d.status.charAt(0).toLowerCase() === 'a' ? '✅' : d.status && d.status.charAt(0).toLowerCase() === 'r' ? '❌' : '⏳';
-          const statusText = d.status ? (d.status.charAt(0).toUpperCase() + d.status.slice(1)) : 'Pending';
-          tbody.innerHTML += `<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber || d.acc || '-'}</td><td><span class="status ${cls}">${icon} ${statusText}</span></td></tr>`;
-        });
-      } catch (err) {
-        console.error(err);
-        tbody.innerHTML = '<tr><td colspan="5" class="no-log">Failed to load withdrawals</td></tr>';
-      }
-    }
+</script></body></html>
 
-    // if auth hasn't resolved after a short while, show a persistent check message
-    setTimeout(() => {
-      if (!authResolved) showOverlay('Checking session — please wait...');
-    }, 500);
-
-  </script></body></html>
