@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta charset="UTF-8"/>
+<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EasyPay Withdrawal</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
@@ -72,8 +71,8 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
   <div id="planNotice" class="plan-alert" style="display:none"></div>  <div id="formCard" class="form-card">
     <h2>Make a Withdrawal</h2>
     <div class="form-group">
-      <label for="amount">Amount (₦200–₦500)</label>
-      <input type="number" id="amount" min="200" max="500" placeholder="Enter amount (max ₦500)" />
+      <label for="amount">Amount (min ₦200 — max depends on your plan)</label>
+      <input type="number" id="amount" min="200" placeholder="Enter amount" />
     </div>
     <div class="form-group">
       <label for="bank">Select Bank</label>
@@ -107,9 +106,9 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
   </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.firebasestorage.app", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e", measurementId: "G-2FZKDQ47FZ" };
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.firebasestorage.app", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e", measurementId: "G-2FZKDQ47FZ" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -118,7 +117,11 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
     const formCard = document.getElementById('formCard');
     const planNotice = document.getElementById('planNotice');
 
-    const allowedPlans = ['premium','gold']; // only these plans can withdraw
+    // allowed plans
+    const allowedPlans = ['premium','gold','elite'];
+    // per-plan max withdrawal map
+    const planMax = { premium: 200, gold: 300, elite: 500 };
+    const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours in ms
 
     onAuthStateChanged(auth, async user => {
       if (!user) { alert('Please log in.'); location.href='login.html'; return; }
@@ -130,28 +133,48 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
       // If user is not on allowed plan, disable withdrawal form but still show history
       if (!allowedPlans.includes(plan)) {
         formCard.classList.add('disabled');
-        // disable form fields explicitly (safer for older browsers)
         Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);
         planNotice.style.display = 'block';
-        planNotice.textContent = `Withdrawals are available to Premium and Gold users only. Your plan: ${myData.plan || 'Free'}.`;
+        planNotice.textContent = `Withdrawals are available to Premium, Gold and Elite users only. Your plan: ${myData.plan || 'Free'}.`;
       } else {
-        // allowed — wire up submit
-        submitBtn.addEventListener('click', () => submitWithdrawal(user.uid));
+        // allowed — show plan info and wire up submit
+        const max = planMax[plan] || 500;
+        planNotice.style.display = 'block';
+        planNotice.textContent = `Plan: ${plan.charAt(0).toUpperCase() + plan.slice(1)} — Max withdrawal: ₦${max}. Withdrawals allowed once every 24 hours.`;
+        // set max on input to help UX
+        const amountInput = document.getElementById('amount');
+        amountInput.max = max;
+
+        submitBtn.addEventListener('click', () => submitWithdrawal(user.uid, plan));
       }
 
       // load withdrawals for viewing regardless of plan
       loadWithdrawals(user.uid);
     });
 
-    async function submitWithdrawal(uid) {
+    function parseTimestampToDate(ts) {
+      if (!ts) return null;
+      try {
+        if (ts.toDate) return ts.toDate();
+        if (ts.seconds) return new Date(ts.seconds * 1000);
+        return new Date(ts);
+      } catch (e) { return null; }
+    }
+
+    async function submitWithdrawal(uid, plan) {
       const btn = submitBtn;
       const orig = btn.textContent;
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Processing...';
       try {
         const amount = parseFloat(document.getElementById('amount').value);
-        if (isNaN(amount) || amount < 200 || amount > 500) {
-          alert('Please enter a value between ₦200 and ₦500.');
+        if (isNaN(amount) || amount < 200) {
+          alert('Please enter a value of at least ₦200.');
+          return;
+        }
+        const maxForPlan = planMax[plan] || 500;
+        if (amount > maxForPlan) {
+          alert(`Your plan allows a maximum withdrawal of ₦${maxForPlan}.`);
           return;
         }
         const bank = document.getElementById('bank').value;
@@ -164,16 +187,30 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
 
         const userRef = doc(db, 'users', uid);
         const userDoc = await getDoc(userRef);
-        const balance = Number(userDoc.data()?.balance) || 0;
+        const data = userDoc.exists() ? userDoc.data() : {};
+        const balance = Number(data?.balance) || 0;
         if (amount > balance) {
           alert('Insufficient balance.');
           return;
         }
 
-        // update balance and create withdrawal record
-        await updateDoc(userRef, { balance: balance - amount });
-        // store withdrawals as a subcollection under the user
-        await addDoc(collection(userRef, 'withdrawals'), { timestamp: new Date(), amount, bank, accName, accNumber, status: 'pending' });
+        // cooldown check (once every 24 hours)
+        const lastWithdrawalDate = parseTimestampToDate(data?.lastWithdrawal) || null;
+        if (lastWithdrawalDate) {
+          const elapsed = Date.now() - lastWithdrawalDate.getTime();
+          if (elapsed < COOLDOWN_MS) {
+            const remainingMs = COOLDOWN_MS - elapsed;
+            const hrs = Math.floor(remainingMs / (1000*60*60));
+            const mins = Math.floor((remainingMs % (1000*60*60)) / (1000*60));
+            alert(`You can withdraw again in ${hrs} hour(s) and ${mins} minute(s).`);
+            return;
+          }
+        }
+
+        // all good — update balance and set lastWithdrawal to server timestamp, then add withdrawal record
+        await updateDoc(userRef, { balance: balance - amount, lastWithdrawal: serverTimestamp() });
+        await addDoc(collection(userRef, 'withdrawals'), { timestamp: serverTimestamp(), amount, bank, accName, accNumber, status: 'pending', plan: plan });
+
         alert('Withdrawal submitted.');
         ['amount', 'bank', 'accName', 'accNumber'].forEach(id => {
           const el = document.getElementById(id); if (el) el.value = '';
