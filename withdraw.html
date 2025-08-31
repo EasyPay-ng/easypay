@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8"/>  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay Withdrawal</title>
+<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8"/>  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>  <title>EasyPay Withdrawal</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -139,25 +138,22 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
       loadingOverlay.textContent = msg;
     }
 
-    // small safeguard: don't redirect immediately if auth isn't decided yet
+    // small safeguard: don't redirect — instead show disabled form and login link if no session
     let authResolved = false;
 
     onAuthStateChanged(auth, async user => {
       authResolved = true;
-      // if user is null, check auth.currentUser after a short grace period before redirecting
+
       if (!user) {
-        // keep overlay for a tiny moment to allow firebase to finish any async auth restore
-        showOverlay('Checking session...');
-        setTimeout(() => {
-          const cur = auth.currentUser;
-          if (!cur) {
-            // no session; redirect to login
-            alert('Please log in.');
-            location.href = 'login.html';
-            return;
-          }
-          // if currentUser exists then re-run logic by returning early — the onAuthStateChanged listener will fire again
-        }, 600);
+        // hide overlay and show friendly login prompt instead of redirecting
+        readyUI();
+        formCard.classList.add('disabled');
+        Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);
+        planNotice.style.display = 'block';
+        planNotice.innerHTML = `You are not signed in. <a href="login.html">Sign in</a> to make withdrawals.`;
+        // clear withdrawal table (can't load without uid)
+        const tbody = document.getElementById('withdrawalTable');
+        tbody.innerHTML = '<tr><td colspan="5" class="no-log">Please sign in to view withdrawals.</td></tr>';
         return;
       }
 
@@ -192,7 +188,17 @@ th { background:var(--primary); color:#fff; position:sticky; top:0; }
         const amountInput = document.getElementById('amount');
         amountInput.max = max;
 
-        // Use assignment instead of addEventListener to avoid duplicate handlers
+        // show user's balance if available
+        const balance = Number(myData.balance) || 0;
+        if (balance < 200) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Insufficient balance';
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Withdrawal';
+        }
+
+        // assign handler once
         submitBtn.onclick = () => submitWithdrawal(user.uid, plan);
       }
 
