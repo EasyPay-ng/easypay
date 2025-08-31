@@ -43,75 +43,23 @@
 .avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }
 .profile-text { flex:1 }
 .greeting { font-weight:700; font-size:15px; color:var(--primary); line-height:1 }
-.sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }
-
-nav.menu { margin-top:14px; flex:1 }
-nav.menu ul { list-style:none; padding:0; margin:0 }
-nav.menu li { margin:8px 0; }
-nav.menu a {
-  display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827;
-  padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s;
-}
-nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); }
-nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; }
-nav.menu a span.label { font-weight:600; }
+.sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }nav.menu { margin-top:14px; flex:1 } nav.menu ul { list-style:none; padding:0; margin:0 } nav.menu li { margin:8px 0; } nav.menu a { display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827; padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s; } nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); } nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; } nav.menu a span.label { font-weight:600; }
 
 .note { margin-top:18px; font-size:13px; color:var(--muted) }
 
-/* ---------- MAIN ---------- */
-.main {
-  flex:1; margin-left:0; transition:margin-left .26s; width:100%;
-  min-height:100vh; display:flex; flex-direction:column;
-}
-.main.shift { margin-left:300px; }
+/* ---------- MAIN ---------- */ .main { flex:1; margin-left:0; transition:margin-left .26s; width:100%; min-height:100vh; display:flex; flex-direction:column; } .main.shift { margin-left:300px; }
 
-header {
-  background:linear-gradient(90deg,var(--primary),var(--primary-600));
-  color:#fff; padding:12px 14px; display:flex; align-items:center; gap:12px;
-  justify-content:space-between;
-}
-.hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center }
-.title { font-weight:700; font-size:16px }
-.profile-mini { display:flex; align-items:center; gap:10px }
-.profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }
+header { background:linear-gradient(90deg,var(--primary),var(--primary-600)); color:#fff; padding:12px 14px; display:flex; align-items:center; gap:12px; justify-content:space-between; } .hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center } .title { font-weight:700; font-size:16px } .profile-mini { display:flex; align-items:center; gap:10px } .profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }
 
-/* content area */
-.container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
+/* content area */ .container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
 
-/* top cards */
-.cards {
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap:12px;
-  margin-bottom:14px;
-}
-.card {
-  background:var(--card); border-radius:10px; padding:12px;
-  box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px;
-  min-height:78px;
-}
-.card .label { color:var(--muted); font-size:13px; }
-.card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* top cards */ .cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:14px; } .card { background:var(--card); border-radius:10px; padding:12px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px; min-height:78px; } .card .label { color:var(--muted); font-size:13px; } .card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-/* referral / code */
-.ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; overflow:hidden; }
-.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; width:100%; max-width:100%; box-sizing:border-box; overflow-x:auto; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary); -webkit-overflow-scrolling:touch; cursor:text; }
-.copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
+/* referral / code */ .ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; overflow:hidden; } .ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; width:100%; max-width:100%; box-sizing:border-box; overflow-x:auto; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary); -webkit-overflow-scrolling:touch; cursor:text; } .copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
 
-/* floating WhatsApp */
-.wa {
-  position:fixed; right:16px; bottom:16px; background:#25D366; color:#fff;
-  width:52px; height:52px; border-radius:999px; display:flex; align-items:center; justify-content:center;
-  box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;
-}
+/* floating WhatsApp */ .wa { position:fixed; right:16px; bottom:16px; background:#25D366; color:#fff; width:52px; height:52px; border-radius:999px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none; }
 
-/* responsive tweaks */
-@media (max-width:900px){
-  .sidebar{ width:86%; left:-100% }
-  .main.shift{ margin-left:0 }
-  .container{ padding:12px }
-  .card .value{ font-size:18px }
-}
+/* responsive tweaks */ @media (max-width:900px){ .sidebar{ width:86%; left:-100% } .main.shift{ margin-left:0 } .container{ padding:12px } .card .value{ font-size:18px } }
 
   </style>
 </head>
@@ -137,15 +85,10 @@ header {
     <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
     <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage Tasks</span></a></li>
     <li><a href="profile.html"><i class="emoji">🙍‍♂️</i><span class="label">Profile</span></a></li>
-    <li><a href="tap.html"><i class="emoji">🤙</i><span class="label">Tap&Earn</span></a></li>
+    <li><a href="tap.html"><i class="emoji">🤙</i><span class="label">Tap&Earn</span></a></li><li><a href="index.html"><i class="emoji">🚪</i><span class="label">Sign-Out</span></a></li>
 
-    <li><a href="index.html"><i class="emoji">🚪</i><span class="label">Sign-Out</span></a></li>
   </ul>
-</nav>
-
-<div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>
-
-  </aside>  <!-- overlay -->  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>  <!-- Main -->  <main class="main" id="main">
+</nav><div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>  </aside>  <!-- overlay -->  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>  <!-- Main -->  <main class="main" id="main">
     <header>
       <div style="display:flex; align-items:center; gap:12px;">
         <div class="hamburger" onclick="toggleSidebar()" aria-label="Open menu"><i class="fas fa-bars"></i></div>
@@ -154,6 +97,8 @@ header {
       <div class="profile-mini" id="profileMini">
         <img id="miniAvatar" src="" alt="" style="display:none" />
         <div id="miniName" style="color:#fff; font-weight:600">User</div>
+        <!-- short uid shown while username is resolving -->
+        <div id="miniUid" style="color:#fff; font-weight:600; margin-left:8px; font-size:13px; opacity:0.95"></div>
       </div>
     </header><div class="container">
   <!-- Top cards -->
@@ -165,24 +110,20 @@ header {
         <button class="copy-btn" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>
         <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>
       </div>
-    </div>
+    </div><div class="card">
+  <div class="label">Available for Withdrawal</div>
+  <div class="value">₦<span id="available">0.00</span></div>
+  <small class="label">Ready balance</small>
+</div>
 
-    <div class="card">
-      <div class="label">Available for Withdrawal</div>
-      <div class="value">₦<span id="available">0.00</span></div>
-      <small class="label">Ready balance</small>
-    </div>
+<!-- REPLACED: account age card (replaces previous referrals card) -->
+<div class="card">
+  <div class="label">Account Age</div>
+  <div class="value"><span id="accountAge">0 days</span></div>
+  <small class="label" id="accountSince">Member since —</small>
+</div>
 
-    <!-- REPLACED: account age card (replaces previous referrals card) -->
-    <div class="card">
-      <div class="label">Account Age</div>
-      <div class="value"><span id="accountAge">0 days</span></div>
-      <small class="label" id="accountSince">Member since —</small>
-    </div>
-  </div>
-
-  <!-- Referral Link -->
-  <div class="card ref-card" style="margin-bottom:12px;">
+  </div>  <!-- Referral Link -->  <div class="card ref-card" style="margin-bottom:12px;">
     <div style="flex:1">
       <div class="label">Referral Link</div>
       <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
@@ -193,216 +134,239 @@ header {
         <span id="hiddenRef" style="display:none" aria-hidden="true">loading...</span>
       </div>
     </div>
-  </div>
-
-  <!-- Daily Claim -->
-  <div class="card">
+  </div>  <!-- Daily Claim -->  <div class="card">
     <div class="label">Daily Claim</div>
     <div style="font-weight:700; font-size:16px; margin-top:6px">Claim ₦0.50 every 24 hours</div>
     <button class="copy-btn" id="claimBtn" style="margin-top:10px; max-width:160px;">Claim Now</button>
     <small id="claimStatus" class="label" style="margin-top:6px;"></small>
   </div>
-</div>
-
-  </main>  <!-- WhatsApp floating -->  <a class="wa" href="https://wa.me/2348132425678" target="_blank" title="Chat on WhatsApp">
+</div>  </main>  <!-- WhatsApp floating -->  <a class="wa" href="https://wa.me/2348132425678" target="_blank" title="Chat on WhatsApp">
     <i class="fab fa-whatsapp" style="font-size:20px"></i>
   </a>  <!-- FIREBASE & JS -->  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
-      getFirestore, collection, query, where, doc, onSnapshot, updateDoc, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      getFirestore, collection, query, where, doc, onSnapshot, runTransaction, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";// ---------- FIREBASE CONFIG ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.firebasestorage.app",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+  measurementId: "G-2FZKDQ47FZ"
+};
 
-    // ---------- FIREBASE CONFIG ----------
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.firebasestorage.app",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+// UI refs
+const sideUsername = document.getElementById('sideUsername');
+const greetingEl = document.getElementById('greeting');
+const avatarEl = document.getElementById('avatar');
+const avatarInitials = document.getElementById('avatarInitials');
+const miniName = document.getElementById('miniName');
+const miniAvatar = document.getElementById('miniAvatar');
+const miniUid = document.getElementById('miniUid');
 
-    // UI refs
-    const sideUsername = document.getElementById('sideUsername');
-    const greetingEl = document.getElementById('greeting');
-    const avatarEl = document.getElementById('avatar');
-    const avatarInitials = document.getElementById('avatarInitials');
-    const miniName = document.getElementById('miniName');
-    const miniAvatar = document.getElementById('miniAvatar');
+const balanceEl = document.getElementById('balance');
+const availableEl = document.getElementById('available');
+const accountAgeEl = document.getElementById('accountAge');
+const accountSinceEl = document.getElementById('accountSince');
+// visible placeholder element (non-clickable)
+const refCodeEl = document.getElementById('refCode') || document.getElementById('refCodeVisible');
+const hiddenRefEl = document.getElementById('hiddenRef');
+const copyRefBtn = document.getElementById('copyRefBtn');
+const claimBtn = document.getElementById('claimBtn');
+const claimStatus = document.getElementById('claimStatus');
 
-    const balanceEl = document.getElementById('balance');
-    const availableEl = document.getElementById('available');
-    const accountAgeEl = document.getElementById('accountAge');
-    const accountSinceEl = document.getElementById('accountSince');
-    // visible placeholder element (non-clickable)
-    const refCodeEl = document.getElementById('refCode') || document.getElementById('refCodeVisible');
-    const hiddenRefEl = document.getElementById('hiddenRef');
-    const copyRefBtn = document.getElementById('copyRefBtn');
-    const claimBtn = document.getElementById('claimBtn');
-    const claimStatus = document.getElementById('claimStatus');
+let userRefUnsub = null;
+let currentUid = null;
 
-    let userRefUnsub = null;
-    let currentUid = null;
+function greetByHour(h){
+  if (h >= 5 && h < 12) return "Good morning";
+  if (h >= 12 && h < 17) return "Good afternoon";
+  return "Good evening";
+}
 
-    function greetByHour(h){
-      // local hours (0-23) -> better split for more conventional greetings
-      if (h >= 5 && h < 12) return "Good morning";
-      if (h >= 12 && h < 17) return "Good afternoon";
-      return "Good evening";
+function initialsFromName(name) {
+  if (!name) return 'EP';
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+// utility: compute days between now and date (floor)
+function daysSince(date){
+  const now = Date.now();
+  const then = date instanceof Date ? date.getTime() : new Date(date).getTime();
+  if (!isFinite(then)) return 0;
+  const msPerDay = 24*60*60*1000;
+  const diff = Math.floor((now - then) / msPerDay);
+  return diff >= 0 ? diff : 0;
+}
+
+function formatMoney(val){
+  const n = Number(val || 0);
+  if (!isFinite(n)) return '0.00';
+  return n.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+// Set UI immediately from auth user (so it doesn't show 'User' while Firestore loads)
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href = 'login.html';
+  currentUid = user.uid;
+
+  // Show the short uid immediately (last 5 chars) while we resolve username — avoids 'User' flicker
+  try { miniUid.textContent = '#' + String(currentUid).slice(-5); } catch(e) { miniUid.textContent = ''; }
+
+  // immediate fallback name (before Firestore doc arrives)
+  const fallbackName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+  sideUsername.textContent = fallbackName;
+  miniName.textContent = fallbackName;
+  avatarInitials.textContent = initialsFromName(fallbackName);
+
+  // show greeting using local time + first name
+  const firstName = (fallbackName.split(' ')[0] || fallbackName);
+  greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${firstName}`;
+
+  // subscribe to user doc (realtime)
+  const uDocRef = doc(db, 'users', user.uid);
+  if (userRefUnsub) userRefUnsub();
+  userRefUnsub = onSnapshot(uDocRef, (snap) => {
+    if (!snap.exists()) {
+      // don't wipe UI when the doc temporarily doesn't exist; log for debugging
+      console.warn('User document does not exist for uid:', user.uid);
+      return;
+    }
+    const data = snap.data() || {};
+
+    // username precedence: Firestore username > auth displayName > email fallback
+    const username = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || (user.email ? user.email.split('@')[0] : 'User'));
+
+    // replace the uid short code with username on header when available
+    sideUsername.textContent = username;
+    miniName.textContent = username;
+    miniUid.textContent = ''; // clear short uid after username resolved
+
+    // update greeting to include the (possibly updated) first name
+    const displayFirst = (username.split(' ')[0] || username);
+    greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${displayFirst}`;
+
+    // avatar handling
+    if (data.photoURL) {
+      avatarEl.innerHTML = '<img src="'+escapeHtml(data.photoURL)+'" alt="avatar">';
+      miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
+    } else {
+      avatarEl.innerHTML = '<span id="avatarInitials">'+ initialsFromName(username) +'</span>';
+      miniAvatar.style.display = 'none';
     }
 
-    function initialsFromName(name) {
-      if (!name) return 'EP';
-      const parts = String(name).trim().split(/\s+/).filter(Boolean);
-      if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
+    // balances — robust parsing + keep UI stable if value missing
+    const balRaw = data.balance;
+    const bal = Number(balRaw);
+    const displayBal = isFinite(bal) ? bal : 0;
+    balanceEl.textContent = formatMoney(displayBal);
 
-    // utility: compute days between now and date (floor)
-    function daysSince(date){
-      const now = Date.now();
-      const then = date instanceof Date ? date.getTime() : new Date(date).getTime();
-      if (!isFinite(then)) return 0;
-      const msPerDay = 24*60*60*1000;
-      const diff = Math.floor((now - then) / msPerDay);
-      return diff >= 0 ? diff : 0;
-    }
+    // also show available (same as balance in this model) but keep it synced
+    availableEl.textContent = formatMoney(displayBal);
 
-    // Set UI immediately from auth user (so it doesn't show 'User' while Firestore loads)
-    onAuthStateChanged(auth, async user => {
-      if (!user) return location.href = 'login.html';
-      currentUid = user.uid;
-
-      // immediate fallback name (before Firestore doc arrives)
-      const fallbackName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-      sideUsername.textContent = fallbackName;
-      miniName.textContent = fallbackName;
-      avatarInitials.textContent = initialsFromName(fallbackName);
-
-      // show greeting using local time + first name
-      const firstName = (fallbackName.split(' ')[0] || fallbackName);
-      greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${firstName}`;
-
-      // subscribe to user doc (realtime)
-      const uDocRef = doc(db, 'users', user.uid);
-      if (userRefUnsub) userRefUnsub();
-      userRefUnsub = onSnapshot(uDocRef, (snap) => {
-        if (!snap.exists()) return;
-        const data = snap.data();
-
-        // username precedence: Firestore username > auth displayName > email fallback
-        const username = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || (user.email ? user.email.split('@')[0] : 'User'));
-        sideUsername.textContent = username;
-        miniName.textContent = username;
-
-        // update greeting to include the (possibly updated) first name
-        const displayFirst = (username.split(' ')[0] || username);
-        greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${displayFirst}`;
-
-        // avatar handling
-        if (data.photoURL) {
-          avatarEl.innerHTML = '<img src="'+escapeHtml(data.photoURL)+'" alt="avatar">';
-          miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
-        } else {
-          avatarEl.innerHTML = '<span id="avatarInitials">'+ initialsFromName(username) +'</span>';
-          miniAvatar.style.display = 'none';
-        }
-
-        // balances
-        const bal = Number(data.balance || 0);
-        balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
-
-        // build referral URL and store it hidden (visible text remains "Get referral link!")
-        try {
-          const encoded = encodeURIComponent(username);
-          const refUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encoded}`;
-          if (hiddenRefEl) hiddenRefEl.textContent = refUrl;
-          if (refCodeEl) {
-            refCodeEl.textContent = 'Get referral link!';
-            refCodeEl.setAttribute('title', 'Click Copy to copy your referral link');
-            refCodeEl.style.cursor = 'default';
-          }
-        } catch (e) {
-          if (hiddenRefEl) hiddenRefEl.textContent = username;
-          if (refCodeEl) refCodeEl.textContent = 'Get referral link!';
-        }
-
-        // ACCOUNT AGE — prefer Firestore `createdAt` if present, otherwise fall back to auth metadata.creationTime
-        let createdAtDate = null;
-        if (data.createdAt) {
-          if (typeof data.createdAt.toDate === 'function') createdAtDate = data.createdAt.toDate();
-          else if (typeof data.createdAt === 'number') createdAtDate = new Date(data.createdAt);
-          else createdAtDate = new Date(data.createdAt);
-        } else if (user.metadata && user.metadata.creationTime) {
-          createdAtDate = new Date(user.metadata.creationTime);
-        } else {
-          createdAtDate = new Date();
-        }
-
-        const days = daysSince(createdAtDate);
-        accountAgeEl.textContent = `${days} ${days === 1 ? 'day' : 'days'}`;
-        accountSinceEl.textContent = `Member since ${createdAtDate.toLocaleDateString()}`;
-
-        // ensure available shows latest
-        availableEl.textContent = balanceEl.textContent;
-      });
-
-      // claim handler — small note: using optimistic update via updateDoc; consider server transaction for production
-      claimBtn.addEventListener('click', async () => {
-        if (!currentUid) return;
-        try {
-          const uDocRef = doc(db, 'users', currentUid);
-
-          // take local display balance, parse it, add 0.5 and write back with timestamp
-          const localBal = Number(balanceEl.textContent.replace(/,/g,'')) || 0;
-          await updateDoc(uDocRef, {
-            balance: localBal + 0.5,
-            lastClaim: serverTimestamp()
-          });
-
-          claimBtn.disabled = true;
-          claimBtn.style.background = "#ccc";
-          claimStatus.textContent = "Claimed successfully! ₦0.50 added.";
-        } catch (err) {
-          console.error('Claim error:', err);
-          alert("Claim failed, try again.");
-        }
-      });
-    });
-
-    // simple escape
-    function escapeHtml(s){
-      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    // copy referral code
-    copyRefBtn.addEventListener('click', async () => {
-      // copy from the hidden element (preferred) — fallback to visible text if hidden missing
-      const text = (hiddenRefEl && hiddenRefEl.textContent) ? hiddenRefEl.textContent : (refCodeEl ? refCodeEl.textContent : '');
-      try {
-        await navigator.clipboard.writeText(text);
-        copyRefBtn.textContent = 'Copied';
-        setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
-      } catch (err) {
-        alert('Copy failed. Please copy the referral code from the link field.');
+    // build referral URL and store it hidden (visible text remains "Get referral link!")
+    try {
+      const encoded = encodeURIComponent(username);
+      const refUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encoded}`;
+      if (hiddenRefEl) hiddenRefEl.textContent = refUrl;
+      if (refCodeEl) {
+        refCodeEl.textContent = 'Get referral link!';
+        refCodeEl.setAttribute('title', 'Click Copy to copy your referral link');
+        refCodeEl.style.cursor = 'default';
       }
+    } catch (e) {
+      if (hiddenRefEl) hiddenRefEl.textContent = username;
+      if (refCodeEl) refCodeEl.textContent = 'Get referral link!';
+    }
+
+    // ACCOUNT AGE — prefer Firestore `createdAt` if present, otherwise fall back to auth metadata.creationTime
+    let createdAtDate = null;
+    if (data.createdAt) {
+      if (typeof data.createdAt.toDate === 'function') createdAtDate = data.createdAt.toDate();
+      else if (typeof data.createdAt === 'number') createdAtDate = new Date(data.createdAt);
+      else createdAtDate = new Date(data.createdAt);
+    } else if (user.metadata && user.metadata.creationTime) {
+      createdAtDate = new Date(user.metadata.creationTime);
+    } else {
+      createdAtDate = new Date();
+    }
+
+    const days = daysSince(createdAtDate);
+    accountAgeEl.textContent = `${days} ${days === 1 ? 'day' : 'days'}`;
+    accountSinceEl.textContent = `Member since ${createdAtDate.toLocaleDateString()}`;
+  }, (err)=>{
+    console.error('Snapshot error:', err);
+  });
+
+});
+
+// simple escape
+function escapeHtml(s){
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// copy referral code
+copyRefBtn.addEventListener('click', async () => {
+  // copy from the hidden element (preferred) — fallback to visible text if hidden missing
+  const text = (hiddenRefEl && hiddenRefEl.textContent) ? hiddenRefEl.textContent : (refCodeEl ? refCodeEl.textContent : '');
+  try {
+    await navigator.clipboard.writeText(text);
+    copyRefBtn.textContent = 'Copied';
+    setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
+  } catch (err) {
+    alert('Copy failed. Please copy the referral code from the link field.');
+  }
+});
+
+// CLAIM logic using a transaction to avoid race conditions or "lost update" that could leave balance blank
+claimBtn.addEventListener('click', async () => {
+  if (!currentUid) return alert('User not ready.');
+  claimBtn.disabled = true;
+  claimBtn.style.opacity = '0.7';
+  claimStatus.textContent = 'Processing...';
+  try {
+    const uRef = doc(db, 'users', currentUid);
+    await runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(uRef);
+      if (!snap.exists()) throw new Error('User document missing');
+      const docData = snap.data() || {};
+      const current = Number(docData.balance || 0);
+      if (!isFinite(current)) throw new Error('Invalid balance');
+      const newBal = Number((current + 0.5).toFixed(2));
+      transaction.update(uRef, { balance: newBal, lastClaim: serverTimestamp() });
     });
 
-    // ---------- sidebar toggle ----------
-    window.toggleSidebar = function toggleSidebar(){
-      const sb = document.getElementById('sidebar');
-      const main = document.getElementById('main');
-      const overlay = document.getElementById('overlay');
-      const active = sb.classList.toggle('active');
-      if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
-      else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
-    };
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
-  </script></body>
-      </html>
+    claimStatus.textContent = 'Claimed successfully! ₦0.50 added.';
+  } catch (err) {
+    console.error('Claim error:', err);
+    claimStatus.textContent = 'Claim failed. Try again.';
+    alert('Claim failed: ' + (err.message || 'unknown'));
+  } finally {
+    claimBtn.disabled = false;
+    claimBtn.style.opacity = '1';
+    setTimeout(()=> { claimStatus.textContent = ''; }, 3500);
+  }
+});
+
+// ---------- sidebar toggle ----------
+window.toggleSidebar = function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  const overlay = document.getElementById('overlay');
+  const active = sb.classList.toggle('active');
+  if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
+  else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
+};
+window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
+
+</script></body> </html>
+
