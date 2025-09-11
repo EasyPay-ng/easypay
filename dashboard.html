@@ -43,7 +43,9 @@
 .avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }
 .profile-text { flex:1 }
 .greeting { font-weight:700; font-size:15px; color:var(--primary); line-height:1 }
-.sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }nav.menu { margin-top:14px; flex:1 } nav.menu ul { list-style:none; padding:0; margin:0 } nav.menu li { margin:8px 0; } nav.menu a { display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827; padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s; } nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); } nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; } nav.menu a span.label { font-weight:600; }.note { margin-top:18px; font-size:13px; color:var(--muted) }
+.sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }nav.menu { margin-top:14px; flex:1 } nav.menu ul { list-style:none; padding:0; margin:0 } nav.menu li { margin:8px 0; } nav.menu a { display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827; padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s; } nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); } nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; } nav.menu a span.label { font-weight:600; }
+
+.note { margin-top:18px; font-size:13px; color:var(--muted) }
 
 /* ---------- MAIN ---------- */ .main { flex:1; margin-left:0; transition:margin-left .26s; width:100%; min-height:100vh; display:flex; flex-direction:column; } .main.shift { margin-left:300px; }
 
@@ -83,7 +85,9 @@ header { background:linear-gradient(90deg,var(--primary),var(--primary-600)); co
     <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
     <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage Tasks</span></a></li>
     <li><a href="profile.html"><i class="emoji">🙍‍♂️</i><span class="label">Profile</span></a></li>
-    <li><a href="tap.html"><i class="emoji">🤙</i><span class="label">Tap&Earn</span></a></li><li><a href="index.html"><i class="emoji">🚪</i><span class="label">Sign-Out</span></a></li>  </ul>
+    <li><a href="tap.html"><i class="emoji">🤙</i><span class="label">Tap&Earn</span></a></li><li><a href="index.html"><i class="emoji">🚪</i><span class="label">Sign-Out</span></a></li>
+
+  </ul>
 </nav><div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>  </aside>  <!-- overlay -->  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>  <!-- Main -->  <main class="main" id="main">
     <header>
       <div style="display:flex; align-items:center; gap:12px;">
@@ -110,11 +114,16 @@ header { background:linear-gradient(90deg,var(--primary),var(--primary-600)); co
   <div class="label">Available for Withdrawal</div>
   <div class="value">₦<span id="available">0.00</span></div>
   <small class="label">Ready balance</small>
-</div><!-- REPLACED: account age card (replaces previous referrals card) --><div class="card">
+</div>
+
+<!-- REPLACED: account age card (replaces previous referrals card) -->
+<div class="card">
   <div class="label">Account Age</div>
   <div class="value"><span id="accountAge">0 days</span></div>
   <small class="label" id="accountSince">Member since —</small>
-</div>  </div>  <!-- Referral Link -->  <div class="card ref-card" style="margin-bottom:12px;">
+</div>
+
+  </div>  <!-- Referral Link -->  <div class="card ref-card" style="margin-bottom:12px;">
     <div style="flex:1">
       <div class="label">Referral Link</div>
       <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
@@ -147,137 +156,216 @@ const firebaseConfig = {
   messagingSenderId: "862671358267",
   appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
   measurementId: "G-2FZKDQ47FZ"
-};const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
+};
 
-// UI refs const sideUsername = document.getElementById('sideUsername'); const greetingEl = document.getElementById('greeting'); const avatarEl = document.getElementById('avatar'); const avatarInitials = document.getElementById('avatarInitials'); const miniName = document.getElementById('miniName'); const miniAvatar = document.getElementById('miniAvatar'); const miniUid = document.getElementById('miniUid');
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const balanceEl = document.getElementById('balance'); const availableEl = document.getElementById('available'); const accountAgeEl = document.getElementById('accountAge'); const accountSinceEl = document.getElementById('accountSince'); // visible placeholder element (non-clickable) const refCodeEl = document.getElementById('refCode') || document.getElementById('refCodeVisible'); const hiddenRefEl = document.getElementById('hiddenRef'); const copyRefBtn = document.getElementById('copyRefBtn'); const claimBtn = document.getElementById('claimBtn'); const claimStatus = document.getElementById('claimStatus');
+// UI refs
+const sideUsername = document.getElementById('sideUsername');
+const greetingEl = document.getElementById('greeting');
+const avatarEl = document.getElementById('avatar');
+const avatarInitials = document.getElementById('avatarInitials');
+const miniName = document.getElementById('miniName');
+const miniAvatar = document.getElementById('miniAvatar');
+const miniUid = document.getElementById('miniUid');
 
-let userRefUnsub = null; let currentUid = null; let cooldownInterval = null; const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const balanceEl = document.getElementById('balance');
+const availableEl = document.getElementById('available');
+const accountAgeEl = document.getElementById('accountAge');
+const accountSinceEl = document.getElementById('accountSince');
+// visible placeholder element (non-clickable)
+const refCodeEl = document.getElementById('refCode') || document.getElementById('refCodeVisible');
+const hiddenRefEl = document.getElementById('hiddenRef');
+const copyRefBtn = document.getElementById('copyRefBtn');
+const claimBtn = document.getElementById('claimBtn');
+const claimStatus = document.getElementById('claimStatus');
 
-function greetByHour(h){ if (h >= 5 && h < 12) return "Good morning"; if (h >= 12 && h < 17) return "Good afternoon"; return "Good evening"; }
+let userRefUnsub = null;
+let currentUid = null;
 
-function initialsFromName(name) { if (!name) return 'EP'; const parts = String(name).trim().split(/\s+/).filter(Boolean); if (parts.length === 1) return parts[0].slice(0,2).toUpperCase(); return (parts[0][0] + parts[1][0]).toUpperCase(); }
-
-// utility: compute days between now and date (floor) function daysSince(date){ const now = Date.now(); const then = date instanceof Date ? date.getTime() : new Date(date).getTime(); if (!isFinite(then)) return 0; const msPerDay = 246060*1000; const diff = Math.floor((now - then) / msPerDay); return diff >= 0 ? diff : 0; }
-
-function formatMoney(val){ const n = Number(val || 0); if (!isFinite(n)) return '0.00'; return n.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2 }); }
-
-// time formatting for countdown function msToHms(ms) { if (ms <= 0) return '0s'; const totalSec = Math.floor(ms / 1000); const hrs = Math.floor(totalSec / 3600); const mins = Math.floor((totalSec % 3600) / 60); const secs = totalSec % 60; const parts = []; if (hrs) parts.push(hrs + 'h'); if (mins) parts.push(mins + 'm'); parts.push(secs + 's'); return parts.join(' '); }
-
-function clearCooldown() { if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; } claimBtn.disabled = false; claimBtn.style.opacity = '1'; claimStatus.textContent = ''; }
-
-function startCooldown(remainingMs) { // clamp remainingMs = Math.max(0, Number(remainingMs) || 0); if (remainingMs <= 0) return clearCooldown();
-
-// ensure previous interval cleared if (cooldownInterval) clearInterval(cooldownInterval); claimBtn.disabled = true; claimBtn.style.opacity = '0.6';
-
-// immediate update claimStatus.textContent = 'Next claim in ' + msToHms(remainingMs);
-
-cooldownInterval = setInterval(() => { remainingMs -= 1000; if (remainingMs <= 0) { clearCooldown(); return; } claimStatus.textContent = 'Next claim in ' + msToHms(remainingMs); }, 1000); }
-
-// Set UI immediately from auth user (so it doesn't show 'User' while Firestore loads) onAuthStateChanged(auth, async user => { if (!user) return location.href = 'login.html'; currentUid = user.uid;
-
-// Show the short uid immediately (last 5 chars) while we resolve username — avoids 'User' flicker try { miniUid.textContent = '#' + String(currentUid).slice(-5); } catch(e) { miniUid.textContent = ''; }
-
-// immediate fallback name (before Firestore doc arrives) const fallbackName = user.displayName || (user.email ? user.email.split('@')[0] : 'User'); sideUsername.textContent = fallbackName; miniName.textContent = fallbackName; avatarInitials.textContent = initialsFromName(fallbackName);
-
-// show greeting using local time + first name const firstName = (fallbackName.split(' ')[0] || fallbackName); greetingEl.textContent = ${greetByHour(new Date().getHours())}, ${firstName};
-
-// subscribe to user doc (realtime) const uDocRef = doc(db, 'users', user.uid); if (userRefUnsub) userRefUnsub(); userRefUnsub = onSnapshot(uDocRef, (snap) => { if (!snap.exists()) { // don't wipe UI when the doc temporarily doesn't exist; log for debugging console.warn('User document does not exist for uid:', user.uid); return; } const data = snap.data() || {};
-
-// username precedence: Firestore username > auth displayName > email fallback
-const username = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || (user.email ? user.email.split('@')[0] : 'User'));
-
-// replace the uid short code with username on header when available
-sideUsername.textContent = username;
-miniName.textContent = username;
-miniUid.textContent = ''; // clear short uid after username resolved
-
-// update greeting to include the (possibly updated) first name
-const displayFirst = (username.split(' ')[0] || username);
-greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${displayFirst}`;
-
-// avatar handling
-if (data.photoURL) {
-  avatarEl.innerHTML = '<img src="'+escapeHtml(data.photoURL)+'" alt="avatar">';
-  miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
-} else {
-  avatarEl.innerHTML = '<span id="avatarInitials">'+ initialsFromName(username) +'</span>';
-  miniAvatar.style.display = 'none';
+function greetByHour(h){
+  if (h >= 5 && h < 12) return "Good morning";
+  if (h >= 12 && h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
-// balances — robust parsing + keep UI stable if value missing
-const balRaw = data.balance;
-const bal = Number(balRaw);
-const displayBal = isFinite(bal) ? bal : 0;
-balanceEl.textContent = formatMoney(displayBal);
-
-// also show available (same as balance in this model) but keep it synced
-availableEl.textContent = formatMoney(displayBal);
-
-// build referral URL and store it hidden (visible text remains "Get referral link!")
-try {
-  const encoded = encodeURIComponent(username);
-  const refUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encoded}`;
-  if (hiddenRefEl) hiddenRefEl.textContent = refUrl;
-  if (refCodeEl) {
-    refCodeEl.textContent = 'Get referral link!';
-    refCodeEl.setAttribute('title', 'Click Copy to copy your referral link');
-    refCodeEl.style.cursor = 'default';
-  }
-} catch (e) {
-  if (hiddenRefEl) hiddenRefEl.textContent = username;
-  if (refCodeEl) refCodeEl.textContent = 'Get referral link!';
+function initialsFromName(name) {
+  if (!name) return 'EP';
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
-// ACCOUNT AGE — prefer Firestore `createdAt` if present, otherwise fall back to auth metadata.creationTime
-let createdAtDate = null;
-if (data.createdAt) {
-  if (typeof data.createdAt.toDate === 'function') createdAtDate = data.createdAt.toDate();
-  else if (typeof data.createdAt === 'number') createdAtDate = new Date(data.createdAt);
-  else createdAtDate = new Date(data.createdAt);
-} else if (user.metadata && user.metadata.creationTime) {
-  createdAtDate = new Date(user.metadata.creationTime);
-} else {
-  createdAtDate = new Date();
+// utility: compute days between now and date (floor)
+function daysSince(date){
+  const now = Date.now();
+  const then = date instanceof Date ? date.getTime() : new Date(date).getTime();
+  if (!isFinite(then)) return 0;
+  const msPerDay = 24*60*60*1000;
+  const diff = Math.floor((now - then) / msPerDay);
+  return diff >= 0 ? diff : 0;
 }
 
-const days = daysSince(createdAtDate);
-accountAgeEl.textContent = `${days} ${days === 1 ? 'day' : 'days'}`;
-accountSinceEl.textContent = `Member since ${createdAtDate.toLocaleDateString()}`;
+function formatMoney(val){
+  const n = Number(val || 0);
+  if (!isFinite(n)) return '0.00';
+  return n.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
 
-// ----- Claim cooldown handling -----
-// read lastClaim (may be Firestore Timestamp, number, or ISO)
-const lastClaim = data.lastClaim;
-if (lastClaim) {
-  let lastMs;
-  if (typeof lastClaim.toDate === 'function') lastMs = lastClaim.toDate().getTime();
-  else lastMs = new Date(lastClaim).getTime();
+// Set UI immediately from auth user (so it doesn't show 'User' while Firestore loads)
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href = 'login.html';
+  currentUid = user.uid;
 
-  if (isFinite(lastMs)) {
-    const elapsed = Date.now() - lastMs;
-    if (elapsed < MS_PER_DAY) {
-      startCooldown(MS_PER_DAY - elapsed);
-    } else {
-      clearCooldown();
+  // Show the short uid immediately (last 5 chars) while we resolve username — avoids 'User' flicker
+  try { miniUid.textContent = '#' + String(currentUid).slice(-5); } catch(e) { miniUid.textContent = ''; }
+
+  // immediate fallback name (before Firestore doc arrives)
+  const fallbackName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+  sideUsername.textContent = fallbackName;
+  miniName.textContent = fallbackName;
+  avatarInitials.textContent = initialsFromName(fallbackName);
+
+  // show greeting using local time + first name
+  const firstName = (fallbackName.split(' ')[0] || fallbackName);
+  greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${firstName}`;
+
+  // subscribe to user doc (realtime)
+  const uDocRef = doc(db, 'users', user.uid);
+  if (userRefUnsub) userRefUnsub();
+  userRefUnsub = onSnapshot(uDocRef, (snap) => {
+    if (!snap.exists()) {
+      // don't wipe UI when the doc temporarily doesn't exist; log for debugging
+      console.warn('User document does not exist for uid:', user.uid);
+      return;
     }
-  } else {
-    // unreadable timestamp — allow claim (can't determine)
-    clearCooldown();
-  }
-} else {
-  // never claimed yet
-  clearCooldown();
-}
+    const data = snap.data() || {};
 
-}, (err)=>{ console.error('Snapshot error:', err); });
+    // username precedence: Firestore username > auth displayName > email fallback
+    const username = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || (user.email ? user.email.split('@')[0] : 'User'));
+
+    // replace the uid short code with username on header when available
+    sideUsername.textContent = username;
+    miniName.textContent = username;
+    miniUid.textContent = ''; // clear short uid after username resolved
+
+    // update greeting to include the (possibly updated) first name
+    const displayFirst = (username.split(' ')[0] || username);
+    greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${displayFirst}`;
+
+    // avatar handling
+    if (data.photoURL) {
+      avatarEl.innerHTML = '<img src="'+escapeHtml(data.photoURL)+'" alt="avatar">';
+      miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
+    } else {
+      avatarEl.innerHTML = '<span id="avatarInitials">'+ initialsFromName(username) +'</span>';
+      miniAvatar.style.display = 'none';
+    }
+
+    // balances — robust parsing + keep UI stable if value missing
+    const balRaw = data.balance;
+    const bal = Number(balRaw);
+    const displayBal = isFinite(bal) ? bal : 0;
+    balanceEl.textContent = formatMoney(displayBal);
+
+    // also show available (same as balance in this model) but keep it synced
+    availableEl.textContent = formatMoney(displayBal);
+
+    // build referral URL and store it hidden (visible text remains "Get referral link!")
+    try {
+      const encoded = encodeURIComponent(username);
+      const refUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encoded}`;
+      if (hiddenRefEl) hiddenRefEl.textContent = refUrl;
+      if (refCodeEl) {
+        refCodeEl.textContent = 'Get referral link!';
+        refCodeEl.setAttribute('title', 'Click Copy to copy your referral link');
+        refCodeEl.style.cursor = 'default';
+      }
+    } catch (e) {
+      if (hiddenRefEl) hiddenRefEl.textContent = username;
+      if (refCodeEl) refCodeEl.textContent = 'Get referral link!';
+    }
+
+    // ACCOUNT AGE — prefer Firestore `createdAt` if present, otherwise fall back to auth metadata.creationTime
+    let createdAtDate = null;
+    if (data.createdAt) {
+      if (typeof data.createdAt.toDate === 'function') createdAtDate = data.createdAt.toDate();
+      else if (typeof data.createdAt === 'number') createdAtDate = new Date(data.createdAt);
+      else createdAtDate = new Date(data.createdAt);
+    } else if (user.metadata && user.metadata.creationTime) {
+      createdAtDate = new Date(user.metadata.creationTime);
+    } else {
+      createdAtDate = new Date();
+    }
+
+    const days = daysSince(createdAtDate);
+    accountAgeEl.textContent = `${days} ${days === 1 ? 'day' : 'days'}`;
+    accountSinceEl.textContent = `Member since ${createdAtDate.toLocaleDateString()}`;
+  }, (err)=>{
+    console.error('Snapshot error:', err);
+  });
 
 });
 
-// simple escape function escapeHtml(s){ return String(s || '').replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>'); }
+// simple escape
+function escapeHtml(s){
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
-// copy referral code copyRefBtn.addEventListener('click', async () => { // copy from the hidden element (preferred) — fallback to visible text if hidden missing const text = (hiddenRefEl && hiddenRefEl.textContent) ? hiddenRefEl.textContent : (refCodeEl ? refCodeEl.textContent : ''); try { await navigator.clipboard.writeText(text); copyRefBtn.textContent = 'Copied'; setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500); } catch (err) { alert('Copy failed. Please copy the referral code from the link field.'); } });
+// copy referral code
+copyRefBtn.addEventListener('click', async () => {
+  // copy from the hidden element (preferred) — fallback to visible text if hidden missing
+  const text = (hiddenRefEl && hiddenRefEl.textContent) ? hiddenRefEl.textContent : (refCodeEl ? refCodeEl.textContent : '');
+  try {
+    await navigator.clipboard.writeText(text);
+    copyRefBtn.textContent = 'Copied';
+    setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
+  } catch (err) {
+    alert('Copy failed. Please copy the referral code from the link field.');
+  }
+});
 
-// CLAIM logic using a transaction to avoid race conditions or "lost update" that could leave balance blank // This version enforces a strict 24-hour cooldown and shows a live countdown in the UI. claimBtn.addEventListener('click', async () => { if (!currentUid) return alert('User not ready.'); // If button disabled we simply return (countdown is active) if (claimBtn.disabled) return;
+// CLAIM logic using a transaction to avoid race conditions or "lost update" that could leave balance blank
+claimBtn.addEventListener('click', async () => {
+  if (!currentUid) return alert('User not ready.');
+  claimBtn.disabled = true;
+  claimBtn.style.opacity = '0.7';
+  claimStatus.textContent = 'Processing...';
+  try {
+    const uRef = doc(db, 'users', currentUid);
+    await runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(uRef);
+      if (!snap.exists()) throw new Error('User document missing');
+      const docData = snap.data() || {};
+      const current = Number(docData.balance || 0);
+      if (!isFinite(current)) throw new Error('Invalid balance');
+      const newBal = Number((current + 0.00000005).toFixed(2));
+      transaction.update(uRef, { balance: newBal, lastClaim: serverTimestamp() });
+    });
 
-claimBtn.disabled = true; claimBtn.style.opacity = '0.7'; claimStatus.textContent = 'Processing...'; try { const uRef = doc(db, 'users', currentUid); await runTransaction(db, async (transaction) => { const snap = await transaction.get(uRef); if (!snap.exists()) throw new Error('User document missing'); const docData =
+    claimStatus.textContent = 'Claimed successfully! ₦0.50 added.';
+  } catch (err) {
+    console.error('Claim error:', err);
+    claimStatus.textContent = 'Claim failed. Try again.';
+    alert('Claim failed: ' + (err.message || 'unknown'));
+  } finally {
+    claimBtn.disabled = false;
+    claimBtn.style.opacity = '1';
+    setTimeout(()=> { claimStatus.textContent = ''; }, 3500);
+  }
+});
+
+// ---------- sidebar toggle ----------
+window.toggleSidebar = function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  const overlay = document.getElementById('overlay');
+  const active = sb.classList.toggle('active');
+  if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
+  else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
+};
+window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
+
+</script></body> </html>
