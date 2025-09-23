@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -22,14 +23,17 @@
       padding:1rem 2rem;
       display:flex; justify-content:space-between; align-items:center;
       box-shadow:0 2px 6px var(--shadow);
+      gap:1rem;
     }
-    header h1 { font-size:1.5rem; }
+    header h1 { font-size:1.25rem; margin-right:auto; }
+    .header-controls { display:flex; gap:.5rem; align-items:center; }
     header button {
       background:var(--white); color:var(--green);
       border:none; padding:.5rem 1rem; border-radius:6px;
       cursor:pointer; font-weight:bold; box-shadow:0 2px 6px var(--shadow);
     }
     header button:hover { background:#e0f6e8; }
+    #statusMsg { color:var(--white); margin-left: .75rem; font-size:.95rem; opacity:0.95; }
     .container { padding:2rem; max-width:1000px; margin:auto; }
     .search-bar {
       display:flex; gap:.5rem; margin-bottom:1rem;
@@ -82,7 +86,11 @@
 <body>
   <header>
     <h1>Manage Users</h1>
-    <button id="logoutBtn">Logout</button>
+    <div class="header-controls">
+      <span id="statusMsg"></span>
+      <button id="resetBtn" title="Set all users' balances to 0">Reset Balances</button>
+      <button id="logoutBtn">Logout</button>
+    </div>
   </header>
   <main class="container">
     <div class="search-bar">
@@ -92,7 +100,10 @@
     <div id="tableWrap">
       <p class="no-data">Loading users…</p>
     </div>
-  </main>  <!-- Edit Modal -->  <div class="modal-backdrop" id="editModal">
+  </main>
+
+  <!-- Edit Modal -->
+  <div class="modal-backdrop" id="editModal">
     <div class="modal">
       <h2>Edit User</h2>
       <label>Username</label>
@@ -106,7 +117,10 @@
         <button id="saveEdit" class="btn edit">Save</button>
       </div>
     </div>
-  </div>  <!-- History Modal -->  <div class="modal-backdrop" id="historyModal">
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-backdrop" id="historyModal">
     <div class="modal">
       <h2>Transaction History</h2>
       <ul id="historyList" style="list-style:none;padding:0;max-height:300px;overflow:auto;"></ul>
@@ -114,12 +128,14 @@
         <button id="closeHistory">Close</button>
       </div>
     </div>
-  </div>  <script type="module">
+  </div>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
     import {
       getFirestore, collection, getDocs, doc, updateDoc,
-      query, orderBy, limit, getDocs as getSubDocs, addDoc, serverTimestamp
+      query, orderBy, limit, getDocs as getSubDocs, addDoc, serverTimestamp, writeBatch
     } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     const cfg = { apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain:"easypay-6bce8.firebaseapp.com", projectId:"easypay-6bce8" };
@@ -132,6 +148,8 @@
     const logoutBtn     = document.getElementById("logoutBtn");
     const searchInput   = document.getElementById("searchInput");
     const searchBtn     = document.getElementById("searchBtn");
+    const resetBtn      = document.getElementById("resetBtn");
+    const statusMsg     = document.getElementById("statusMsg");
 
     let users = [], editingUid = null;
 
@@ -170,7 +188,6 @@
         wrap.innerHTML = `<p class="no-data">No users found.</p>`;
         return;
       }
-      const MS_DAY = 24*60*60*1000;
       let html = `<table><thead><tr><th>Username</th><th>UID</th><th>Balance</th><th>Actions</th></tr></thead><tbody>`;
       for(const u of list){
         html += `<tr>
@@ -251,9 +268,9 @@
         historyList.innerHTML = '';
         snap.forEach(d=>{
           const t = d.data();
-          const time = t.timestamp?.toDate().toLocaleString()||'';
-          historyList.innerHTML += `<li>
-            <strong>${t.type}</strong>: ₦${t.amount.toFixed(2)}<br>
+          const time = t.timestamp?.toDate?.().toLocaleString?.()||'';
+          historyList.innerHTML += `<li style="padding:.5rem 0;border-bottom:1px solid #eee;">
+            <strong>${t.type}</strong>: ₦${(t.amount||0).toFixed(2)}<br>
             <em>${t.remark||''}</em><br>
             <small>${time}</small>
           </li>`;
@@ -261,5 +278,69 @@
       }
     }
     closeHistory.onclick = ()=> historyModal.style.display='none';
-  </script></body>
-</html>
+
+    // ===== Reset balances logic =====
+    resetBtn.onclick = async () => {
+      const ok = confirm('This will set *every* user balance to 0 and record an admin transaction for each changed balance. This action cannot be undone. Proceed?');
+      if(!ok) return;
+
+      resetBtn.disabled = true;
+      statusMsg.textContent = 'Preparing reset...';
+      try {
+        const snap = await getDocs(collection(db,'users'));
+        const allUsers = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+        if(allUsers.length === 0) {
+          alert('No users found.');
+          statusMsg.textContent = '';
+          resetBtn.disabled = false;
+          return;
+        }
+
+        const BATCH_LIMIT = 450; // conservative (Firestore limit is 500)
+        let processed = 0;
+
+        for(let i = 0; i < allUsers.length; i += BATCH_LIMIT) {
+          const chunk = allUsers.slice(i, i + BATCH_LIMIT);
+          const batch = writeBatch(db);
+
+          chunk.forEach(u => {
+            const uid = u.id;
+            const oldBal = Number(u.balance || 0);
+            // Only update if different from 0
+            if (oldBal !== 0) {
+              const userRef = doc(db, 'users', uid);
+              batch.update(userRef, { balance: 0 });
+              // create a transaction doc (generated id)
+              const txRef = doc(collection(db, 'users', uid, 'transactionHistory'));
+              batch.set(txRef, {
+                type: 'Admin Balance Reset',
+                amount: -oldBal,
+                remark: 'Reset all balances to 0',
+                timestamp: serverTimestamp()
+              });
+            }
+          });
+
+          await batch.commit();
+          processed += chunk.length;
+          statusMsg.textContent = `Committed ${Math.min(processed, allUsers.length)} / ${allUsers.length} (chunks processed)`;
+          // small delay (optional) to give UI time to update
+          await new Promise(r => setTimeout(r, 300));
+        }
+
+        statusMsg.textContent = 'All balances reset to 0';
+        await loadUsers();
+        setTimeout(()=> statusMsg.textContent = '', 4000);
+        alert('Balances reset finished.');
+      } catch (err) {
+        console.error('Reset balances error:', err);
+        alert('Error resetting balances: ' + (err.message||err));
+        statusMsg.textContent = 'Error during reset';
+      } finally {
+        resetBtn.disabled = false;
+      }
+    };
+  </script>
+</body>
+  </html>
+  
