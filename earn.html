@@ -1,107 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EasyPay — Available Tasks (Fit-to-Page)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EasyPay — Available Tasks (Fit + Working Firebase)</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg: #f6fff7;
-      --card: #ffffff;
-      --accent: #00b66d;
-      --accent-700: #059c56;
-      --muted: #6b7280;
-      --text: #0f1720;
-      --glass: rgba(255,255,255,0.7);
-      --shadow: 0 12px 30px rgba(16,24,40,0.06);
-      --radius: 14px;
-      --max-width: 1100px;
+      --bg:#f6fff7; --card:#fff; --accent:#00b66d; --accent-700:#059c56;
+      --muted:#6b7280; --text:#0f1720; --shadow:0 12px 30px rgba(16,24,40,0.06);
+      --radius:14px; --max-width:1100px;
     }
-
-    /* base / full-height layout */
-    html,body { height:100%; }
+    html,body{height:100%}
     *{box-sizing:border-box}
     body{
-      margin:0; font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-      background: linear-gradient(180deg,#f8fff9 0%,var(--bg) 100%);
-      color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      display:flex; flex-direction:column; min-height:100vh;
-      padding:12px; /* small outer padding */
-      overflow:hidden; /* we'll manage scroll inside */
+      margin:0;font-family:'Poppins',system-ui,Roboto,Arial;
+      background:linear-gradient(180deg,#f8fff9 0%,var(--bg) 100%);
+      color:var(--text); display:flex; flex-direction:column; min-height:100vh;
+      padding:12px; overflow:hidden;
     }
-
-    /* centered app wrapper that fills viewport height */
     #fitWrapper { width:100%; height:100%; display:flex; align-items:stretch; justify-content:center }
-    .wrap { max-width:var(--max-width); margin:0 auto; width:100%; display:flex; flex-direction:column; height:100%; }
-
-    /* NAV */
-    .nav {
-      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; flex:0 0 auto;
-    }
+    .wrap { max-width:var(--max-width); width:100%; display:flex; flex-direction:column; height:100%; }
+    .nav { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; flex:0 0 auto; }
     .brand { display:flex; gap:14px; align-items:center }
-    .logo { width:64px; height:64px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--accent),var(--accent-700)); color:#fff; font-weight:700; font-size:20px; box-shadow:var(--shadow); }
-    .brand h1 { margin:0; font-size:20px }
-    .brand p { margin:0; font-size:13px; color:var(--muted) }
-
-    .nav-actions { display:flex; gap:12px; align-items:center }
-    .btn { background:var(--accent); color:#fff; border:0; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700; box-shadow: 0 8px 18px rgba(0,0,0,0.06); display:inline-flex; gap:10px; align-items:center }
-    .btn.ghost { background:#fff; color:var(--accent); border:1px solid #e9f7ef }
-    .pill { background:#fff; padding:8px 12px; border-radius:999px; display:inline-flex; align-items:center; gap:10px; box-shadow:0 6px 18px rgba(10,40,20,0.03); }
-    .pill strong { color:var(--accent-700) }
-
-    /* layout: content fills remaining space; task list scrolls inside */
-    .content { display:grid; grid-template-columns: 1fr 320px; gap:14px; align-items:start; flex:1 1 auto; min-height:0; }
-
-    /* TASK LIST - make this area scrollable so the whole page fits */
-    .task-column { display:flex; flex-direction:column; gap:10px; min-height:0; }
-    .task-list-container { background:var(--card); border-radius:14px; padding:10px; box-shadow:var(--shadow); border:1px solid #eef7f0; flex:0 0 auto }
-
-    .task-list { display:grid; gap:10px; padding:10px; overflow:auto; min-height:0; }
-
-    .task-card { background:var(--card); border-radius:12px; padding:12px; box-shadow:0 8px 18px rgba(10,40,20,0.03); border:1px solid #f1fbf4; display:flex; gap:10px; align-items:flex-start }
-    .task-main { flex:1 }
-    .task-title { margin:0 0 6px 0; font-size:16px; color:var(--accent-700) }
-    .task-meta { font-size:13px; color:var(--muted); margin-bottom:6px }
-    .task-desc { color:#23312c; margin:0 0 10px 0; line-height:1.4 }
-
-    .task-side { min-width:120px; text-align:right }
-    .task-side .earn { font-weight:800; color:var(--accent-700); font-size:16px }
-    .task-side small { display:block; color:var(--muted); margin-top:6px }
-
-    .progress { margin-top:8px }
-    .progress-bar { height:8px; background:#eef7ef; border-radius:999px; overflow:hidden }
-    .progress-bar > i { display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-700)); transition:width .3s ease }
-    .progress-info { font-size:12px; color:var(--muted); margin-top:6px }
-
-    /* sidebar */
-    .sidebar { position:sticky; top:12px; display:flex; flex-direction:column; gap:10px; align-self:start }
-    .card { background:var(--card); border-radius:12px; padding:10px; box-shadow:var(--shadow); border:1px solid #eef7f0 }
-    .muted { color:var(--muted) }
-
-    /* modal for proof submission */
-    .modal-backdrop { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:999 }
-    .modal { width:100%; max-width:520px; background:#fff; border-radius:12px; padding:14px; box-shadow:0 20px 40px rgba(0,0,0,0.18) }
-    .modal h3 { margin:0 0 8px 0 }
-    .modal label { font-weight:600; font-size:13px; color:#1c2a29 }
-    .modal textarea { width:100%; min-height:90px; padding:8px; margin-top:8px; border-radius:8px; border:1px solid #e6f4ec; resize:vertical }
-    .modal .row { display:flex; gap:8px; margin-top:10px; align-items:center }
-    .modal .row input[type=file] { flex:1 }
-    .modal .actions { display:flex; justify-content:flex-end; gap:8px; margin-top:10px }
-
-    .small { font-size:13px }
-
-    /* fit-to-page helper: use transform to scale content to viewport when needed */
-    .fit-scale { transform-origin: top center; will-change: transform; }
-
-    /* responsive tweaks */
-    @media (max-width:640px){
-      .logo { width:48px; height:48px; font-size:16px }
-      .brand h1 { font-size:18px }
-      .content { grid-template-columns: 1fr; }
-      .sidebar { position:relative; top:0 }
-      .nav-actions { gap:8px }
-    }
+    .logo { width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent-700));color:#fff;font-weight:700;font-size:18px;box-shadow:var(--shadow) }
+    .nav-actions{display:flex;gap:8px;align-items:center}
+    .pill{background:#fff;padding:8px 10px;border-radius:999px;box-shadow:0 6px 18px rgba(10,40,20,0.03);display:inline-flex;gap:8px;align-items:center}
+    .btn{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    .btn.ghost{background:#fff;color:var(--accent);border:1px solid #e9f7ef}
+    .content{display:grid;grid-template-columns:1fr 320px;gap:12px;flex:1 1 auto;min-height:0}
+    .task-column{display:flex;flex-direction:column;gap:8px;min-height:0}
+    .task-list-container{background:var(--card);border-radius:12px;padding:10px;box-shadow:var(--shadow);border:1px solid #eef7f0}
+    .task-list{display:grid;gap:10px;padding:10px;overflow:auto;min-height:0}
+    .task-card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 8px 18px rgba(10,40,20,0.03);border:1px solid #f1fbf4;display:flex;gap:10px;align-items:flex-start}
+    .task-title{margin:0;font-size:16px;color:var(--accent-700)}
+    .task-meta{font-size:13px;color:var(--muted);margin-bottom:6px}
+    .task-desc{margin:0 0 8px 0;color:#23312c;line-height:1.4}
+    .task-side{min-width:120px;text-align:right}
+    .earn{font-weight:800;color:var(--accent-700);font-size:16px}
+    .progress-bar{height:8px;background:#eef7ef;border-radius:999px;overflow:hidden}
+    .progress-bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-700));transition:width .3s}
+    .sidebar{position:sticky;top:12px;display:flex;flex-direction:column;gap:10px;align-self:start}
+    .card{background:var(--card);border-radius:12px;padding:10px;box-shadow:var(--shadow);border:1px solid #eef7f0}
+    .muted{color:var(--muted)}
+    .modal-backdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:999}
+    .modal{width:100%;max-width:520px;background:#fff;border-radius:12px;padding:14px}
+    .fit-scale{transform-origin:top center;will-change:transform}
+    @media (max-width:640px){ .content{grid-template-columns:1fr} .logo{width:48px;height:48px} }
   </style>
 </head>
 <body>
@@ -111,14 +56,14 @@
         <div class="brand">
           <div class="logo">EP</div>
           <div>
-            <h1>EasyPay — Available Tasks</h1>
-            <p class="muted">Complete tasks, upload proof, get paid. Honest users move faster.</p>
+            <div style="font-weight:700">EasyPay — Available Tasks</div>
+            <div class="muted" style="font-size:13px">Complete tasks, upload proof, get paid.</div>
           </div>
         </div>
 
         <div class="nav-actions">
-          <div class="pill"><span class="muted">Signed in as</span><strong id="userEmail">—</strong></div>
-          <div class="pill small"><span class="muted">Balance</span><strong id="userBalance">₦0.00</strong></div>
+          <div class="pill"><small class="muted">Signed in as</small><strong id="userEmail">—</strong></div>
+          <div class="pill"><small class="muted">Balance</small><strong id="userBalance">₦0.00</strong></div>
           <button id="logoutBtn" class="btn ghost">Sign Out</button>
         </div>
       </nav>
@@ -126,14 +71,13 @@
       <div class="content">
         <section class="task-column">
           <div class="task-list-container">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
               <div>
                 <h3 style="margin:0">Available Tasks</h3>
                 <p class="muted small" id="taskSummary">Loading…</p>
               </div>
-
-              <div style="display:flex; gap:8px; align-items:center">
-                <input id="search" placeholder="Search tasks" style="padding:8px 12px; border-radius:10px; border:1px solid #eef7f0" />
+              <div style="display:flex;gap:8px;align-items:center">
+                <input id="search" placeholder="Search tasks" style="padding:8px 10px;border-radius:8px;border:1px solid #eef7f0" />
                 <button id="refreshBtn" class="btn">Refresh</button>
               </div>
             </div>
@@ -150,42 +94,33 @@
 
           <div class="card">
             <h4 style="margin:0 0 8px 0">Tips</h4>
-            <ul style="margin:0; padding-left:18px; color:var(--muted)">
+            <ul style="margin:0;padding-left:18px;color:var(--muted)">
               <li>Use clear screenshots and concise proof text.</li>
               <li>Include time and brief description in your proof.</li>
               <li>Don't submit duplicates — repeated attempts may be rejected.</li>
             </ul>
-          </div>
-
-          <div class="card">
-            <h4 style="margin:0 0 8px 0">Need help?</h4>
-            <p class="muted small">Contact support via WhatsApp or the admin panel.</p>
           </div>
         </aside>
       </div>
     </div>
   </div>
 
-  <!-- modal for proof submission -->
+  <!-- modal -->
   <div class="modal-backdrop" id="proofModal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal" role="dialog">
       <h3 id="modalTitle">Submit Proof</h3>
       <p class="muted small" id="modalTaskTitle">Task title</p>
-
       <label for="proofText">Text proof</label>
-      <textarea id="proofText" placeholder="What you did, time, link or reference"></textarea>
-
-      <div class="row">
-        <label style="min-width:80px">Image</label>
+      <textarea id="proofText" style="width:100%;min-height:90px;padding:8px;margin-top:6px;border-radius:8px;border:1px solid #e6f4ec"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
         <input type="file" id="proofFile" accept="image/*" />
+        <div style="flex:1">
+          <div class="progress-bar"><i id="uploadIndicator"></i></div>
+        </div>
+        <div id="uploadPercent" style="min-width:44px;text-align:right">0%</div>
       </div>
 
-      <div class="row" style="margin-top:10px">
-        <div class="progress-bar" style="flex:1"><i id="uploadIndicator"></i></div>
-        <div style="min-width:60px; text-align:right" id="uploadPercent">0%</div>
-      </div>
-
-      <div class="actions">
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
         <button id="cancelModal" class="btn ghost">Cancel</button>
         <button id="confirmSubmit" class="btn">Submit Proof</button>
       </div>
@@ -198,7 +133,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // config (unchanged)
+    // firebase config (unchanged)
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -229,91 +164,102 @@
     const appWrap = document.getElementById('appWrap');
 
     let currentUser = null;
-    let openTask = null; // { id, data, payout }
+    let openTask = null;
+    let tasksUnsub = null;
+    let subsUnsub = null;
 
-    // Fit-to-page: scale appWrap to fit viewport height when needed
-    function scaleToFit() {
-      // reset transform to measure natural height
+    // Fit-to-page scaler
+    function scaleToFit(){
       appWrap.style.transform = '';
       const wrapper = document.getElementById('fitWrapper');
-      const availableH = wrapper.clientHeight; // viewport available inside padding
-      const neededH = appWrap.scrollHeight; // natural height
-      // Only scale when content is taller than available height
+      const availableH = wrapper.clientHeight;
+      const neededH = appWrap.scrollHeight;
       if (neededH > availableH) {
-        const scale = Math.max(0.5, availableH / neededH); // min scale 0.5 for readability
+        const scale = Math.max(0.45, availableH / neededH);
         appWrap.style.transform = `scale(${scale})`;
-        // center horizontally when scaled
         appWrap.style.margin = '0 auto';
       } else {
         appWrap.style.transform = '';
         appWrap.style.margin = '';
       }
     }
+    window.addEventListener('load', ()=> setTimeout(scaleToFit,150));
+    window.addEventListener('resize', ()=> setTimeout(scaleToFit,80));
+    window.addEventListener('orientationchange', ()=> setTimeout(scaleToFit,150));
 
-    // call on load and on resize/orientation change
-    window.addEventListener('load', () => { setTimeout(scaleToFit, 150); });
-    window.addEventListener('resize', () => { setTimeout(scaleToFit, 80); });
-    window.addEventListener('orientationchange', () => { setTimeout(scaleToFit, 150); });
-
-    // auth
     logoutBtn.onclick = () => auth.signOut();
 
-    auth.onAuthStateChanged(async user => {
-      if (!user) return; // page should show login elsewhere
-      currentUser = user;
-      userEmailEl.textContent = user.email || (user.displayName || '');
-      // fetch simple balance if present
-      const udoc = await db.collection('users').doc(user.uid).get().catch(()=>null);
-      if (udoc && udoc.exists) userBalanceEl.textContent = '₦' + ((udoc.data().balance||0).toFixed(2));
-      await loadTasks(user.uid);
-      // live updates on user's own submissions to refresh available tasks
-      db.collection('task_submissions').where('userId','==',user.uid).onSnapshot(()=> loadTasks(user.uid));
-    });
+    // subscribe to realtime tasks and user's submissions
+    async function subscribeToRealtime(uid){
+      // cleanup previous listeners
+      if (tasksUnsub) tasksUnsub();
+      if (subsUnsub) subsUnsub();
 
-    refreshBtn.onclick = () => currentUser && loadTasks(currentUser.uid);
-    searchInput.addEventListener('input', () => currentUser && loadTasks(currentUser.uid));
+      tasksUnsub = db.collection('tasks').where('status','==','approved')
+        .onSnapshot(tasksSnap => {
+          // convert to array of {id, data}
+          window.__tasks = tasksSnap.docs.map(d => ({ id:d.id, data:d.data() }));
+          computeAndRender();
+        }, err => {
+          console.error('tasks snapshot error', err);
+          taskSummary.textContent = 'Error loading tasks';
+        });
 
-    async function loadTasks(uid) {
+      subsUnsub = db.collection('task_submissions').where('userId','==', uid)
+        .onSnapshot(subsSnap => {
+          // set of taskIds user has already submitted (except rejected)
+          window.__userSubs = new Set(subsSnap.docs.map(d => d.data()).filter(s => s.status !== 'rejected').map(s => s.taskId));
+          computeAndRender();
+        }, err => {
+          console.error('subs snapshot error', err);
+        });
+    }
+
+    // compute counts and render tasks. This is called when either tasks or userSubs updates.
+    async function computeAndRender(){
+      const tasks = window.__tasks || [];
+      const userSubs = window.__userSubs || new Set();
+      const q = (searchInput.value||'').trim().toLowerCase();
+
+      // show total tasks immediately
+      const totalTasks = tasks.length;
+      taskSummary.textContent = `Found ${totalTasks} tasks — calculating available...`;
+
+      // We'll count approved submissions per task by querying task_submissions once per task.
+      // (If you expect many tasks, we can optimize further.)
+      let available = 0;
       taskContainer.innerHTML = '';
-      taskSummary.textContent = 'Loading tasks...';
-      try {
-        const [tasksSnap, userSubsSnap] = await Promise.all([
-          db.collection('tasks').where('status','==','approved').get(),
-          db.collection('task_submissions').where('userId','==',uid).get()
-        ]);
+      for (const t of tasks){
+        if (userSubs.has(t.id)) continue;
+        if (q && !((t.data.taskTitle||'').toLowerCase().includes(q) || (t.data.description||'').toLowerCase().includes(q))) continue;
 
-        const userSubMap = new Set(userSubsSnap.docs.map(d=>d.data()).filter(s=>s.status!=='rejected').map(s=>s.taskId));
-        const tasks = tasksSnap.docs.map(d=>({ id:d.id, data:d.data() }));
-        // sort by createdAt if present
-        tasks.sort((a,b)=> (b.data.createdAt?.toMillis?.()||0) - (a.data.createdAt?.toMillis?.()||0));
-
-        // apply search filter
-        const q = (searchInput.value || '').trim().toLowerCase();
-
-        let available = 0;
-        for (const t of tasks) {
-          if (userSubMap.has(t.id)) continue; // user already submitted
-          if (q && !(t.data.taskTitle || '').toLowerCase().includes(q) && !(t.data.description||'').toLowerCase().includes(q)) continue;
-
-          // check global approvals to avoid over-serving the task
-          const approvedSnap = await db.collection('task_submissions').where('taskId','==',t.id).where('status','==','approved').get();
+        // get approved count for this task (fast for small to medium dataset)
+        try {
+          const approvedSnap = await db.collection('task_submissions')
+            .where('taskId','==', t.id)
+            .where('status','==','approved')
+            .get();
           const approvedCount = approvedSnap.size;
-          if (approvedCount < (t.data.workersNeeded || 1)) {
+          const needed = t.data.workersNeeded || 1;
+          if (approvedCount < needed){
             renderTask(t.id, t.data);
             available++;
           }
+        } catch (err) {
+          console.error('error counting approved for', t.id, err);
+          // on error, still render (optimistic)
+          renderTask(t.id, t.data);
+          available++;
         }
-
-        taskSummary.textContent = `${available} task(s) available`;
-        // After tasks render, ensure fit-to-page scaling updates
-        setTimeout(scaleToFit, 80);
-      } catch (err) {
-        console.error('loadTasks error', err);
-        taskSummary.textContent = 'Error loading tasks';
       }
+
+      taskSummary.textContent = `Found ${totalTasks} tasks — ${available} available for you`;
+      // ensure scaler recalculates after DOM changes
+      setTimeout(scaleToFit, 80);
     }
 
-    function renderTask(id, data) {
+    // basic task render (same as before)
+    function renderTask(id, data){
       const price = data.costPerUser || ((data.totalBudget||0) / (data.workersNeeded||1));
       const userPay = +(price*0.7).toFixed(2);
 
@@ -321,14 +267,12 @@
       card.className = 'task-card';
       card.id = `task-${id}`;
       card.innerHTML = `
-        <div class="task-main">
-          <h3 class="task-title">${escapeHtml(data.taskTitle || 'Untitled Task')}</h3>
+        <div style="flex:1">
+          <h4 class="task-title">${escapeHtml(data.taskTitle || 'Untitled Task')}</h4>
           <div class="task-meta">${escapeHtml(data.category || 'General')} • ${escapeHtml(String(data.workersNeeded || 1))} slots</div>
           <p class="task-desc">${escapeHtml(data.description || '')}</p>
-          <div class="progress">
-            <div class="progress-bar"><i id="pbar-${id}"></i></div>
-            <div class="progress-info" id="plabel-${id}">0 / ${data.workersNeeded || 1} completed</div>
-          </div>
+          <div class="progress-bar"><i id="pbar-${id}"></i></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px" id="plabel-${id}">0 / ${data.workersNeeded || 1} completed</div>
         </div>
         <div class="task-side">
           <div class="earn">₦${userPay}</div>
@@ -339,13 +283,12 @@
           </div>
         </div>
       `;
-
       taskContainer.appendChild(card);
 
       document.getElementById(`open-${id}`).onclick = () => window.open(data.link || '#', '_blank');
       document.getElementById(`submit-${id}`).onclick = () => openProofModal(id, data, userPay);
 
-      // live progress
+      // live progress listener for this task (keeps UI reactive)
       db.collection('task_submissions').where('taskId','==',id).where('status','==','approved')
         .onSnapshot(snap => {
           const done = snap.size;
@@ -355,17 +298,19 @@
           const label = document.getElementById(`plabel-${id}`);
           if (bar) bar.style.width = pct + '%';
           if (label) label.textContent = `${done} / ${total} completed`;
-          if (done >= total) {
+          if (done >= total){
             const el = document.getElementById(`task-${id}`);
             if (el) el.remove();
+            // recompute scale after a card disappears
+            setTimeout(scaleToFit, 80);
           }
         });
     }
 
-    function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // ===== proof modal =====
-    function openProofModal(taskId, data, payout) {
+    // proof modal helpers
+    function openProofModal(taskId, data, payout){
       openTask = { id: taskId, data, payout };
       modalTaskTitle.textContent = data.taskTitle || 'Task';
       proofText.value = '';
@@ -374,23 +319,18 @@
       uploadPercent.textContent = '0%';
       proofModal.style.display = 'flex';
     }
-
-    cancelModal.onclick = () => { proofModal.style.display = 'none'; };
+    cancelModal.onclick = () => proofModal.style.display = 'none';
 
     confirmSubmit.onclick = async () => {
       if (!openTask || !currentUser) return;
       const text = proofText.value.trim();
       const file = proofFile.files && proofFile.files[0];
       if (!text || !file) { alert('Please provide text proof and an image.'); return; }
-
-      // disable while uploading
       confirmSubmit.disabled = true; confirmSubmit.textContent = 'Uploading...';
       try {
         const url = await uploadToImgur(file, p => {
-          uploadIndicator.style.width = p + '%';
-          uploadPercent.textContent = p + '%';
+          uploadIndicator.style.width = p + '%'; uploadPercent.textContent = p + '%';
         });
-
         await db.collection('task_submissions').add({
           taskId: openTask.id,
           userId: currentUser.uid,
@@ -401,13 +341,10 @@
           status: 'pending',
           submittedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        // UI feedback
         proofModal.style.display = 'none';
         const taskEl = document.getElementById(`task-${openTask.id}`);
         if (taskEl) taskEl.remove();
-        alert('Proof submitted. It will be reviewed by admin.');
-        // after removing, recalc scale
+        alert('Proof submitted and awaiting review.');
         setTimeout(scaleToFit, 80);
       } catch (err) {
         console.error('submit error', err);
@@ -417,20 +354,71 @@
       }
     };
 
-    // Imgur upload helper
-    function uploadToImgur(file, onProgress) {
-      return new Promise((resolve, reject) => {
+    function uploadToImgur(file, onProgress){
+      return new Promise((res, rej) => {
         const reader = new FileReader();
         reader.onload = () => {
           const base64 = reader.result.split(',')[1];
-          const form = new FormData();
-          form.append('image', base64);
+          const form = new FormData(); form.append('image', base64);
           const xhr = new XMLHttpRequest();
-          xhr.open('POST', 'https://api.imgur.com/3/image');
-          xhr.setRequestHeader('Authorization', 'Client-ID fb533db21a59486');
-          xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100)); };
+          xhr.open('POST','https://api.imgur.com/3/image');
+          xhr.setRequestHeader('Authorization','Client-ID fb533db21a59486');
+          xhr.upload.onprogress = e => e.lengthComputable && onProgress(Math.round(e.loaded/e.total*100));
           xhr.onload = () => {
             try {
               const j = JSON.parse(xhr.responseText);
-              if (j && j.success) resolve(j.data.link);
-              el
+              if (j && j.success) res(j.data.link);
+              else rej((j && j.data && j.data.error) || 'Upload failed');
+            } catch (err){ rej('Invalid response from Imgur') }
+          };
+          xhr.onerror = () => rej('Upload failed (network)');
+          xhr.send(form);
+        };
+        reader.onerror = () => rej('File read error');
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // AUTH & start subscriptions
+    auth.onAuthStateChanged(async user => {
+      console.log('auth state changed', !!user, user && user.email);
+      if (!user) {
+        // Not signed in - show placeholder (you may redirect to login instead)
+        document.getElementById('userEmail').textContent = 'Not signed in';
+        document.getElementById('userBalance').textContent = '₦0.00';
+        // clean listeners
+        if (tasksUnsub) tasksUnsub(); tasksUnsub = null;
+        if (subsUnsub) subsUnsub(); subsUnsub = null;
+        taskContainer.innerHTML = '';
+        taskSummary.textContent = 'Please sign in to see tasks';
+        setTimeout(scaleToFit, 80);
+        return;
+      }
+
+      currentUser = user;
+      userEmailEl.textContent = user.email || (user.displayName || '');
+      // try to load small user profile (balance)
+      try {
+        const udoc = await db.collection('users').doc(user.uid).get();
+        if (udoc && udoc.exists) userBalanceEl.textContent = '₦' + ((udoc.data().balance||0).toFixed(2));
+        else userBalanceEl.textContent = '₦0.00';
+      } catch (err) {
+        console.error('user doc error', err);
+        userBalanceEl.textContent = '₦0.00';
+      }
+
+      // subscribe to realtime data
+      subscribeToRealtime(user.uid);
+    });
+
+    // manual refresh/search
+    refreshBtn.onclick = () => {
+      if (currentUser) computeAndRender();
+    };
+    searchInput.addEventListener('input', () => { if (currentUser) computeAndRender(); });
+
+    // ensure scale runs if page changed size
+    window.addEventListener('resize', ()=> setTimeout(scaleToFit,60));
+  </script>
+</body>
+</html>
