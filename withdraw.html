@@ -1,150 +1,232 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay Withdrawal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EasyPay — Withdrawals (Confirm with Fee)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #00b66d;
-      --bg: #f7fdf8;
-      --text: #333;
-      --card-bg: #fff;
-      --shadow: rgba(0, 102, 51, 0.1);
+    :root{
+      --bg:#f3fff7;
+      --card:#ffffff;
+      --accent:#00b66d;
+      --accent-600:#0fa05a;
+      --muted:#6b7280;
+      --text:#0f1720;
+      --danger:#dc3545;
+      --shadow: 0 12px 30px rgba(7, 55, 30, 0.06);
+      --radius:12px;
+      --min-withdraw:1000;
+      --fee-rate:0.06; /* 6% fee */
     }
-    * { box-sizing: border-box; margin:0; padding:0; }
-    body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); padding-bottom:60px; }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+      background:linear-gradient(180deg,#f8fff9 0%,var(--bg) 100%);
+      color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding:28px;
+    }
+
+    .container { max-width:1100px; margin:0 auto; display:grid; grid-template-columns: 1fr 420px; gap:20px; align-items:start; }
+
+    header.appbar {
+      grid-column:1/-1; display:flex; justify-content:space-between; align-items:center; gap:12px;
+      padding:18px; border-radius:var(--radius); background:linear-gradient(90deg,var(--accent),var(--accent-600));
+      color:#fff; box-shadow:var(--shadow);
+    }
+    header.appbar h1 { margin:0; font-size:18px; font-weight:700; letter-spacing:0.2px; }
+    header.appbar p { margin:0; opacity:.95; font-size:13px; font-weight:600; }
+
+    .card {
+      background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow);
+      border:1px solid rgba(6,120,70,0.04);
+    }
+
     .alert {
-      max-width:720px; margin:1rem auto; background:#fffbea; border:1px solid #ffeeba;
-      color:#856404; padding:1rem; border-radius:8px; text-align:center;
-      font-weight:600; box-shadow:0 4px 12px var(--shadow);
+      display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:10px;
+      background:linear-gradient(180deg,#fffefa,#fff7e6); border:1px solid #ffeeba; color:#856404; font-weight:600;
     }
-    .danger {
-      max-width:720px; margin:0.5rem auto; background:#fff5f5; border:1px solid #ffd6d6;
-      color:#8a1f1f; padding:0.9rem; border-radius:8px; text-align:center; font-weight:700;
-      box-shadow:0 4px 12px rgba(220,53,69,0.08);
+    .warning { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:10px; background:#fff5f5; border:1px solid #ffd6d6; color:var(--danger); font-weight:700; }
+
+    form { display:grid; gap:12px; }
+
+    label { display:block; font-weight:600; color:#26322c; margin-bottom:6px; }
+    .input, input, select, textarea {
+      width:100%; padding:12px 14px; border-radius:10px; border:1px solid #e6f4ec; font-size:14px; color:var(--text);
+      background:#fff;
     }
-    .plan-alert {
-      max-width:480px; margin:0.5rem auto; padding:12px; border-radius:8px; text-align:center; font-weight:600;
-      color:#fff; background:linear-gradient(90deg,#888 0%, #444 100%);
+    .input-row { display:flex; gap:12px; align-items:center; }
+    .input-row > * { flex:1; }
+
+    .muted { color:var(--muted); font-size:13px; }
+    .small-note { font-size:13px; color:var(--muted); }
+
+    .actions { display:flex; gap:12px; align-items:center; margin-top:6px; }
+    button.primary {
+      background:var(--accent); color:#fff; border:0; padding:12px 16px; border-radius:10px; font-weight:700; cursor:pointer;
+      box-shadow: 0 10px 24px rgba(6,120,70,0.12);
     }
-    .form-card {
-      max-width:480px; margin:1rem auto; background:var(--card-bg);
-      border-radius:12px; box-shadow:0 4px 12px var(--shadow); padding:1.5rem;
+    button.ghost { background:#fff; color:var(--accent); border:1px solid rgba(0,182,109,0.08); padding:10px 14px; border-radius:10px; cursor:pointer; }
+
+    button:disabled { background:#d9eede; cursor:not-allowed; box-shadow:none; color:rgba(0,0,0,0.4); }
+
+    .summary { display:flex; flex-direction:column; gap:10px; }
+    .summary .box { padding:14px; border-radius:10px; background:linear-gradient(180deg,#fff,#fbfffb); border:1px solid rgba(6,120,70,0.04); }
+    .summary .box strong { display:block; font-size:18px; color:var(--accent); }
+    .summary .box p { margin:6px 0 0 0; color:var(--muted); font-weight:600; }
+
+    .table-wrap { margin-top:14px; border-radius:10px; overflow:hidden; border:1px solid rgba(15,23,36,0.04); }
+    table { width:100%; border-collapse:collapse; min-width:320px; }
+    thead th {
+      background:linear-gradient(90deg,var(--accent),var(--accent-600)); color:#fff; text-align:left; padding:12px 14px; font-weight:700; font-size:13px;
     }
-    .form-card.disabled { opacity:0.6; pointer-events:none }
-    .form-card h2 { margin-bottom:1rem; font-size:1.2rem; color:var(--primary); }
-    .form-group { margin-bottom:1rem; }
-    label { display:block; margin-bottom:0.4rem; font-size:0.9rem; }
-    input, select {
-      width:100%; padding:0.8rem; border:1px solid #ddd; border-radius:6px;
-      font-size:1rem;
-    }
-    input:focus, select:focus { outline:none; border-color:var(--primary); }
-    button {
-      width:100%; padding:0.8rem; background:var(--primary);
-      color:#fff; border:none; border-radius:6px; font-size:1rem;
-      font-weight:600; cursor:pointer; box-shadow:0 4px 12px var(--shadow);
-      display:flex; align-items:center; justify-content:center;
-    }
-    button:disabled { background:#c8e9da; cursor:not-allowed; box-shadow:none; }
-    .spinner { width:16px; height:16px; border:2px solid #fff; border-top:2px solid transparent;
-      border-radius:50%; animation:spin 1s linear infinite; margin-right:8px; }
-    @keyframes spin { to{transform:rotate(360deg);} }
-    .table-card {
-      max-width:720px; margin:1rem auto; background:var(--card-bg);
-      border-radius:12px; box-shadow:0 4px 12px var(--shadow);
-      overflow: hidden;
-    }
-    .table-card h3 { padding:1rem; font-size:1.1rem; color:var(--primary); }
-    .table-container {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    table { width:100%; border-collapse:collapse; }
-    th, td { padding:0.8rem; text-align:left; border-bottom:1px solid #eee; font-size:0.9rem; }
-    th { background:var(--primary); color:#fff; position:sticky; top:0; }
-    .no-log { text-align:center; padding:1rem; color:#666; }
-    .status { padding:4px 8px; border-radius:4px; color:#fff; font-weight:600; display:inline-block; font-size:0.8rem;
-      box-shadow:0 0 8px var(--shadow);
-    }
-    .status-pending { background:#fd7e14; }
+    tbody td { padding:12px 14px; border-bottom:1px solid #f1f6f3; color:#24332b; font-size:14px; vertical-align:middle; }
+    tbody tr:nth-child(even) td { background:#fbfff9; }
+    .status { padding:6px 8px; border-radius:8px; color:#fff; font-weight:700; font-size:13px; display:inline-block; }
+    .status-pending { background:#f59f2b; }
     .status-approved { background:#28a745; }
-    .status-rejected { background:#dc3545; }
-    .info-note { max-width:480px; margin:0.5rem auto; padding:10px; text-align:center; color:#444; font-weight:600; }
-    .small { font-size:0.9rem; color:#444; margin-top:6px; }
+    .status-rejected { background:var(--danger); }
+
+    /* confirmation modal */
+    .modal-backdrop { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:9999; }
+    .modal { width:100%; max-width:520px; background:#fff; border-radius:12px; padding:18px; box-shadow:0 20px 40px rgba(0,0,0,0.18); }
+    .modal h3 { margin:0 0 12px 0; }
+    .modal .line { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee; }
+    .modal .total { font-size:18px; font-weight:800; color:var(--accent); padding-top:10px; }
+    .modal .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+    .spinner { width:16px; height:16px; border:2px solid #fff; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite; display:inline-block; margin-right:8px; }
+    @keyframes spin { to{transform:rotate(360deg);} }
+
+    @media (max-width:980px){
+      .container { grid-template-columns:1fr; padding:18px; gap:12px; }
+      header.appbar { flex-direction:column; align-items:flex-start; gap:8px; }
+    }
   </style>
 </head>
 <body>
-  <div class="alert">
-    Withdrawals take up to 48hrs. Please avoid complaints before then!
+  <div class="container">
+    <header class="appbar">
+      <div>
+        <h1>EasyPay — Withdraw Funds</h1>
+        <p>Withdraw to your bank — processed during working hours (08:00 — 17:00).</p>
+      </div>
+      <div style="text-align:right">
+        <div class="small-note" id="userEmailDisplay">—</div>
+        <div style="margin-top:8px" class="small-note" id="userBalanceDisplay">Balance: ₦0.00</div>
+      </div>
+    </header>
+
+    <!-- LEFT: Form + table -->
+    <div>
+      <div class="card" id="alertsCard">
+        <div class="alert"><strong>Processing time:</strong> Withdrawals are processed during working hours, 08:00 — 17:00 local time.</div>
+        <div class="warning" style="margin-top:10px"><strong>Note:</strong> Only Premium, Gold and Elite users may request withdrawals. One non-rejected withdrawal per day.</div>
+      </div>
+
+      <div class="card" id="formCard">
+        <h3 style="margin:0 0 12px 0; color:var(--accent)">Request Withdrawal</h3>
+
+        <form id="withdrawForm" onsubmit="return false;">
+          <div class="small-note">Minimum withdrawal is <strong>₦1,000</strong>. A fee of <strong>6%</strong> applies — the confirmation will show the amount you'll receive.</div>
+
+          <div>
+            <label for="amount">Amount (₦)</label>
+            <input id="amount" type="number" class="input" min="1000" placeholder="Enter amount — min ₦1,000" />
+          </div>
+
+          <div class="input-row">
+            <div>
+              <label for="bank">Bank</label>
+              <select id="bank" class="input">
+                <option value="">Choose bank</option>
+                <option>Access Bank</option><option>Kuda</option><option>PalmPay</option>
+                <option>Moniepoint</option><option>Opay</option><option>GTBank</option>
+                <option>First Bank</option><option>UBA</option><option>Zenith Bank</option>
+                <option>Wema Bank</option><option>SmartCash PSB</option><option>Momo PSB</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="accNumber">Account Number</label>
+              <input id="accNumber" class="input" type="text" placeholder="0123456789" />
+            </div>
+          </div>
+
+          <div>
+            <label for="accName">Account Name</label>
+            <input id="accName" class="input" type="text" placeholder="Recipient's name" />
+          </div>
+
+          <div class="actions" style="margin-top:12px">
+            <button id="submitBtn" class="primary">Submit Withdrawal</button>
+            <button id="cancelBtn" class="ghost" type="button" onclick="clearForm()">Clear</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3 style="margin:0 0 12px 0; color:var(--accent)">Recent Withdrawals</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Amount</th><th>Bank</th><th>Account</th><th>Status</th></tr>
+            </thead>
+            <tbody id="withdrawalTable">
+              <tr><td colspan="5" style="text-align:center; padding:18px; color:var(--muted)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: summary and info -->
+    <aside class="summary">
+      <div class="box card">
+        <strong id="summaryBalance">₦0.00</strong>
+        <p class="muted" id="summaryPlan">Plan: —</p>
+      </div>
+
+      <div class="box card">
+        <strong>Rules & Hours</strong>
+        <p class="muted">Withdrawals allowed daily between <strong>08:00</strong> and <strong>17:00</strong>. One non-rejected withdrawal per day. Only Premium/Gold/Elite accounts.</p>
+      </div>
+
+      <div class="box card">
+        <strong>Support</strong>
+        <p class="muted">If your withdrawal is delayed beyond working hours, contact support.</p>
+      </div>
+    </aside>
   </div>
 
-  <div class="danger">
-    ⚠️ Multiple withdrawals in a day will be <strong>rejected and not refunded</strong>. You may only request once per day.
-  </div>
+  <!-- Confirmation Modal -->
+  <div class="modal-backdrop" id="confirmModal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Confirm Withdrawal</h3>
 
-  <div id="planNotice" class="plan-alert" style="display:none"></div>
-  <div id="timeNotice" class="info-note" style="display:none"></div>
+      <div class="line"><div>Requested</div><div id="c_requested">₦0.00</div></div>
+      <div class="line"><div>Withdrawal fee (6%)</div><div id="c_fee">₦0.00</div></div>
+      <div class="line"><div>Amount to receive</div><div id="c_receive"><strong>₦0.00</strong></div></div>
+      <div class="line"><div>Bank</div><div id="c_bank">—</div></div>
+      <div class="line"><div>Account</div><div id="c_account">—</div></div>
+      <div class="line"><div>Your balance</div><div id="c_balance">₦0.00</div></div>
 
-  <div id="formCard" class="form-card">
-    <h2>Make a Withdrawal</h2>
+      <div class="total" id="c_total">Net: ₦0.00</div>
 
-    <div id="planInfo" class="small" style="display:none;"></div>
-
-    <div class="form-group">
-      <label for="amount">Amount <span id="amountHint" class="small"></span></label>
-      <input type="number" id="amount" min="200" placeholder="Enter amount" />
-    </div>
-    <div class="form-group">
-      <label for="bank">Select Bank</label>
-      <select id="bank">
-        <option value="">-- Choose Bank --</option>
-        <option>Access Bank</option><option>Kuda</option><option>PalmPay</option>
-        <option>Moniepoint</option><option>Opay</option><option>GTBank</option>
-        <option>First Bank</option><option>UBA</option><option>Zenith Bank</option>
-        <option>Wema Bank</option><option>SmartCash PSB</option><option>Momo PSB</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="accName">Account Name</label>
-      <input type="text" id="accName" placeholder="Recipient's Name" />
-    </div>
-    <div class="form-group">
-      <label for="accNumber">Account Number</label>
-      <input type="text" id="accNumber" placeholder="0123456789" />
-    </div>
-    <button id="submitBtn">Submit Withdrawal</button>
-  </div>
-
-  <div class="table-card">
-    <h3>Recent Withdrawals</h3>
-    <div class="table-container">
-      <table>
-        <thead><tr><th>Date</th><th>Amt</th><th>Bank</th><th>Acct</th><th>Status</th></tr></thead>
-        <tbody id="withdrawalTable">
-          <tr><td colspan="5" class="no-log">Loading...</td></tr>
-        </tbody>
-      </table>
+      <div class="actions" style="margin-top:12px">
+        <button id="cancelConfirm" class="ghost">Cancel</button>
+        <button id="confirmPost" class="primary">Confirm & Send</button>
+      </div>
     </div>
   </div>
 
+  <!-- Firebase modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import {
-      getFirestore,
-      doc,
-      getDoc,
-      updateDoc,
-      collection,
-      addDoc,
-      query,
-      orderBy,
-      limit,
-      getDocs,
-      where
+      getFirestore, doc, getDoc, updateDoc, collection, addDoc,
+      query, orderBy, limit, getDocs, where
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -161,93 +243,110 @@
     const db = getFirestore(app);
 
     const submitBtn = document.getElementById('submitBtn');
-    const formCard = document.getElementById('formCard');
-    const planNotice = document.getElementById('planNotice');
-    const timeNotice = document.getElementById('timeNotice');
-    const planInfo = document.getElementById('planInfo');
-    const amountHint = document.getElementById('amountHint');
+    const amountEl = document.getElementById('amount');
+    const bankEl = document.getElementById('bank');
+    const accNameEl = document.getElementById('accName');
+    const accNumberEl = document.getElementById('accNumber');
+    const withdrawalTable = document.getElementById('withdrawalTable');
+    const userEmailDisplay = document.getElementById('userEmailDisplay');
+    const userBalanceDisplay = document.getElementById('userBalanceDisplay');
+    const summaryBalance = document.getElementById('summaryBalance');
+    const summaryPlan = document.getElementById('summaryPlan');
 
-    // Allowed plans and their max withdrawal (only max is displayed — no prices)
-    const planDetails = {
-      premium: { max: 200, display: 'Premium — Max withdrawal ₦200' },
-      gold:    { max: 300, display: 'Gold — Max withdrawal ₦300' },
-      elite:   { max: 500, display: 'Elite 🔥 — Max withdrawal ₦500' }
-    };
-    const allowedPlans = Object.keys(planDetails); // ['premium','gold','elite']
+    const confirmModal = document.getElementById('confirmModal');
+    const cancelConfirm = document.getElementById('cancelConfirm');
+    const confirmPost = document.getElementById('confirmPost');
+    const c_requested = document.getElementById('c_requested');
+    const c_fee = document.getElementById('c_fee');
+    const c_receive = document.getElementById('c_receive');
+    const c_bank = document.getElementById('c_bank');
+    const c_account = document.getElementById('c_account');
+    const c_balance = document.getElementById('c_balance');
+    const c_total = document.getElementById('c_total');
+
+    // allowed plans and constants
+    const allowedPlans = ['premium','gold','elite'];
+    const MIN_WITHDRAW = Number(getComputedStyle(document.documentElement).getPropertyValue('--min-withdraw')) || 1000;
+    const FEE_RATE = Number(getComputedStyle(document.documentElement).getPropertyValue('--fee-rate')) || 0.06;
 
     let currentUid = null;
-    let currentPlanKey = null;
-    let currentPlanMax = 500; // default fallback
+    let currentPlan = 'free';
+    let currentUserBalance = 0;
 
-    onAuthStateChanged(auth, async user => {
-      if (!user) { alert('Please log in.'); location.href='login.html'; return; }
-      currentUid = user.uid;
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      const myData = userSnap.exists() ? userSnap.data() : {};
-      const planRaw = (myData.plan || myData.accountType || myData.role || 'free').toString().toLowerCase();
-      currentPlanKey = planRaw;
-
-      // update UI plan info & amount hint (only max withdrawal displayed)
-      if (allowedPlans.includes(planRaw)) {
-        currentPlanMax = planDetails[planRaw].max;
-        planInfo.style.display = 'block';
-        planInfo.innerHTML = `Plan: <strong>${planDetails[planRaw].display}</strong>.<br>Note: Multiple withdrawals in a day will be rejected and not refunded.`;
-        amountHint.textContent = `(min ₦200 — max ₦${currentPlanMax})`;
-        document.getElementById('amount').setAttribute('max', currentPlanMax);
-      } else {
-        // Not allowed — disable form
-        disableForm(`Withdrawals are available to Premium, Gold and Elite users only. Your plan: ${myData.plan || 'Free'}.`);
-        planInfo.style.display = 'block';
-        planInfo.innerHTML = `You currently do not have access to withdrawals. Available plans: Premium, Gold, Elite.`;
-        amountHint.textContent = `(min ₦200)`;
-      }
-
-      // show allowed hours note
-      timeNotice.style.display = 'block';
-      timeNotice.textContent = 'Withdrawals allowed daily between 08:00 and 18:00 local time. You may request once per day.';
-
-      // wire up submit only if allowed
-      if (allowedPlans.includes(planRaw)) {
-        submitBtn.addEventListener('click', () => submitWithdrawal(user.uid));
-      }
-
-      // load withdrawals and evaluate daily limit + time window
-      await loadWithdrawals(user.uid);
-      await evaluateWithdrawPermissions(user.uid);
-    });
-
-    function disableForm(message) {
-      formCard.classList.add('disabled');
-      Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);
-      planNotice.style.display = 'block';
-      planNotice.textContent = message;
-    }
-
-    function enableForm() {
-      formCard.classList.remove('disabled');
-      Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = false);
-      planNotice.style.display = 'none';
+    function formatCurrency(n){
+      const v = Number(n) || 0;
+      return '₦' + v.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
     }
 
     function nowIsWithinWindow() {
       const now = new Date();
       const hour = now.getHours();
-      return hour >= 8 && hour < 18;
+      // allowed hours: 08:00 - 17:00 (>=8 && <17)
+      return hour >= 8 && hour < 17;
     }
 
-    async function evaluateWithdrawPermissions(uid) {
-      // If outside allowed hours, disable form and show message
-      if (!nowIsWithinWindow()) {
-        disableForm('Withdrawals are currently closed. Allowed hours: 08:00 - 18:00 local time.');
-        return;
-      }
+    function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function clearForm() {
+      amountEl.value = '';
+      bankEl.value = '';
+      accNameEl.value = '';
+      accNumberEl.value = '';
+    }
 
-      // check if user already made a withdrawal today (non-rejected). If yes -> disable until next day
+    // load withdrawals list
+    async function loadWithdrawals(uid) {
+      withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:14px; color:var(--muted)">Loading...</td></tr>';
+      try {
+        const ref = collection(doc(db, 'users', uid), 'withdrawals');
+        const q = query(ref, orderBy('timestamp', 'desc'), limit(20));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:14px; color:var(--muted)">No withdrawals yet.</td></tr>';
+          return;
+        }
+        let html = '';
+        snap.forEach(ds => {
+          const d = ds.data();
+          let dt = new Date();
+          if (d.timestamp) {
+            if (typeof d.timestamp.toDate === 'function') dt = d.timestamp.toDate();
+            else if (d.timestamp.seconds) dt = new Date(d.timestamp.seconds * 1000);
+            else dt = new Date(d.timestamp);
+          }
+          const date = dt.toLocaleString();
+          const status = (d.status || 'pending').toLowerCase();
+          const cls = status === 'approved' ? 'status-approved' : status === 'rejected' ? 'status-rejected' : 'status-pending';
+          const icon = status === 'approved' ? '✅' : status === 'rejected' ? '❌' : '⏳';
+          const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+          // show requested and net amount if available
+          const requested = d.amountRequested ? formatCurrency(d.amountRequested) : (d.amount ? formatCurrency(d.amount) : '-');
+          const net = d.amountToReceive ? formatCurrency(d.amountToReceive) : '-';
+          html += `<tr>
+            <td>${date}</td>
+            <td>${requested}</td>
+            <td>${escapeHtml(d.bank || '-')}</td>
+            <td>${escapeHtml(d.accNumber || d.acc || '-')}</td>
+            <td><div style="display:flex;flex-direction:column;gap:6px"><span class="status ${cls}">${icon} ${statusText}</span><small style="color:var(--muted)">Net: ${net}</small></div></td>
+          </tr>`;
+        });
+        withdrawalTable.innerHTML = html;
+      } catch (err) {
+        console.error('loadWithdrawals error', err);
+        withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:14px; color:var(--muted)">Failed to load withdrawals</td></tr>';
+      }
+    }
+
+    // checks: hours & daily one-request rule & plan eligibility
+    async function evaluateWithdrawPermissions(uid) {
+      // hours
+      if (!nowIsWithinWindow()) {
+        disableForm('Withdrawals are allowed 08:00 — 17:00 only.');
+        return false;
+      }
       try {
         const withdrawalsRef = collection(doc(db, 'users', uid), 'withdrawals');
         const now = new Date();
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // today 00:00 local
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const startOfTomorrow = new Date(startOfToday); startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
 
         const q = query(
@@ -263,161 +362,68 @@
           snap.forEach(docSnap => {
             const d = docSnap.data();
             const status = (d.status || '').toString().toLowerCase();
-            // treat anything other than 'rejected' as a used attempt today (pending/approved/processing)
             if (status !== 'rejected') {
               blocked = true;
               if (status === 'pending') message = 'You already placed a withdrawal request today (pending). Next request after 00:00.';
-              else if (status === 'approved' || status === 'processed' || status === 'completed') message = 'You already had a processed withdrawal today. Next request after 00:00.';
               else message = `You already made a withdrawal today (${status}). Next request after 00:00.`;
             }
           });
         }
-
         if (blocked) {
-          disableForm(message || 'You already made a withdrawal today. Next request after 00:00.');
+          disableForm(message || 'You already made a withdrawal today.');
+          return false;
         } else {
-          // allowed: enable only if plan is allowed
-          if (allowedPlans.includes(currentPlanKey)) enableForm();
+          if (!allowedPlans.includes((currentPlan || '').toLowerCase())) {
+            disableForm(`Withdrawals available to Premium, Gold and Elite users only. Your plan: ${currentPlan || 'Free'}.`);
+            return false;
+          }
+          enableForm();
+          return true;
         }
       } catch (err) {
         console.error('evaluateWithdrawPermissions error', err);
-        // on failure, be conservative and disable submit
         disableForm('Unable to verify daily limit — try again later.');
+        return false;
       }
     }
 
-    async function submitWithdrawal(uid) {
-      const btn = submitBtn;
-      const orig = btn.textContent;
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>Processing...';
-      try {
-        // Final checks: time window and daily limit (re-check to avoid race)
-        if (!nowIsWithinWindow()) {
-          alert('Withdrawals are allowed only between 08:00 and 18:00 local time.');
-          return;
-        }
-
-        // re-check today's non-rejected withdrawals
-        const withdrawalsRef = collection(doc(db, 'users', uid), 'withdrawals');
-        const now = new Date();
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const startOfTomorrow = new Date(startOfToday); startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
-        const checkQ = query(
-          withdrawalsRef,
-          where('timestamp', '>=', startOfToday),
-          where('timestamp', '<', startOfTomorrow),
-          orderBy('timestamp','desc')
-        );
-        const checkSnap = await getDocs(checkQ);
-        let alreadyToday = false;
-        if (!checkSnap.empty) {
-          checkSnap.forEach(ds => {
-            const s = (ds.data().status || '').toString().toLowerCase();
-            if (s !== 'rejected') alreadyToday = true;
-          });
-        }
-        if (alreadyToday) {
-          alert('You have already made a withdrawal today. You may request again after 00:00.');
-          return;
-        }
-
-        const amountEl = document.getElementById('amount');
-        const amount = parseFloat(amountEl.value);
-        if (isNaN(amount) || amount < 200) {
-          alert('Please enter a value of at least ₦200.');
-          return;
-        }
-
-        // enforce plan-specific max
-        const planKey = currentPlanKey;
-        const planMax = planDetails[planKey]?.max || 500;
-        if (amount > planMax) {
-          alert(`Your plan (${planKey}) allows a maximum withdrawal of ₦${planMax}.`);
-          return;
-        }
-
-        const bank = document.getElementById('bank').value;
-        const accName = document.getElementById('accName').value.trim();
-        const accNumber = document.getElementById('accNumber').value.trim();
-        if (!bank || !accName || !accNumber) {
-          alert('Fill all fields correctly.');
-          return;
-        }
-
-        const userRef = doc(db, 'users', uid);
-        const userDoc = await getDoc(userRef);
-        const balance = Number(userDoc.data()?.balance) || 0;
-        if (amount > balance) {
-          alert('Insufficient balance.');
-          return;
-        }
-
-        // update balance and create withdrawal record
-        await updateDoc(userRef, { balance: balance - amount });
-        // store withdrawals as a subcollection under the user
-        await addDoc(collection(userRef, 'withdrawals'), {
-          timestamp: new Date(),
-          amount,
-          bank,
-          accName,
-          accNumber,
-          status: 'pending'
-        });
-
-        alert('Withdrawal submitted. It will be processed during working hours (08:00-18:00).');
-        ['amount', 'bank', 'accName', 'accNumber'].forEach(id => {
-          const el = document.getElementById(id); if (el) el.value = '';
-        });
-
-        // after submit, re-evaluate permissions (will disable since there's now a pending request today)
-        await loadWithdrawals(uid);
-        await evaluateWithdrawPermissions(uid);
-      } catch (e) {
-        console.error(e);
-        alert('Error. Please retry.');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = orig;
-      }
+    function disableForm(message) {
+      const formCard = document.getElementById('formCard');
+      formCard.classList.add('disabled');
+      Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = true);
+      summaryPlan.textContent = message;
     }
-
-    async function loadWithdrawals(uid) {
-      const tbody = document.getElementById('withdrawalTable');
-      tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';
-      try {
-        const ref = collection(doc(db, 'users', uid), 'withdrawals');
-        const q = query(ref, orderBy('timestamp', 'desc'), limit(20));
-        const snap = await getDocs(q);
-        if (snap.empty) {
-          tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
-          return;
-        }
-        tbody.innerHTML = '';
-        snap.forEach(ds => {
-          const d = ds.data();
-          let dt = new Date();
-          if (d.timestamp) {
-            if (d.timestamp.toDate) dt = d.timestamp.toDate();
-            else if (d.timestamp.seconds) dt = new Date(d.timestamp.seconds * 1000);
-            else dt = new Date(d.timestamp);
-          }
-          const date = dt.toLocaleString();
-          const cls = d.status === 'approved' ? 'status-approved' : d.status === 'rejected' ? 'status-rejected' : 'status-pending';
-          const icon = d.status && d.status.charAt(0).toLowerCase() === 'a' ? '✅' : d.status && d.status.charAt(0).toLowerCase() === 'r' ? '❌' : '⏳';
-          const statusText = d.status ? (d.status.charAt(0).toUpperCase() + d.status.slice(1)) : 'Pending';
-          tbody.innerHTML += `<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber || d.acc || '-'}</td><td><span class="status ${cls}">${icon} ${statusText}</span></td></tr>`;
-        });
-      } catch (err) {
-        console.error(err);
-        tbody.innerHTML = '<tr><td colspan="5" class="no-log">Failed to load withdrawals</td></tr>';
-      }
+    function enableForm() {
+      const formCard = document.getElementById('formCard');
+      formCard.classList.remove('disabled');
+      Array.from(formCard.querySelectorAll('input, select, button')).forEach(el => el.disabled = false);
+      summaryPlan.textContent = `Plan: ${currentPlan ? capitalize(currentPlan) : '—'}`;
     }
+    function capitalize(s){ return String(s||'').charAt(0).toUpperCase()+String(s||'').slice(1); }
 
-    // NOTE: This is client-side enforcement for UX. For security, enforce the same rules server-side (Firestore security rules or Cloud Function):
-    //  - deny multiple non-rejected withdrawals in the same day
-    //  - deny withdrawal creations outside allowed hours (08:00–18:00)
-    //  - validate plan-specific max and balance server-side to avoid client bypass.
-  </script>
-</body>
-</html>
+    // Show confirmation modal (validate basic fields first)
+    function showConfirmationModal() {
+      const amount = Number(amountEl.value);
+      const bank = bankEl.value.trim();
+      const accName = accNameEl.value.trim();
+      const accNumber = accNumberEl.value.trim();
+
+      if (!amount || amount < MIN_WITHDRAW) { alert(`Enter an amount of at least ₦${MIN_WITHDRAW.toLocaleString()}.`); return; }
+      if (!bank || !accName || !accNumber) { alert('Please complete bank details.'); return; }
+      if (!allowedPlans.includes((currentPlan||'').toLowerCase())) { alert('Your account is not eligible for withdrawals.'); return; }
+      if (!nowIsWithinWindow()) { alert('Withdrawals allowed 08:00 — 17:00 only.'); return; }
+
+      // compute fee and receive amount
+      const fee = roundTo2(amount * FEE_RATE);
+      const receive = roundTo2(amount - fee);
+
+      // populate modal
+      c_requested.textContent = formatCurrency(amount);
+      c_fee.textContent = formatCurrency(fee);
+      c_receive.textContent = formatCurrency(receive);
+      c_bank.textContent = escapeHtml(bank);
+      c_account.textContent = escapeHtml(accNumber + (accName ? ' — ' + escapeHtml(accName) : ''));
+      c_balance.textContent = formatCurrency(currentUserBalance);
+      c_total.textContent = `Net: ${formatCurrency(receive)}`;
+
+ 
