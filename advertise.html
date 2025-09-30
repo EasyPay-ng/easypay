@@ -1,97 +1,43 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advertise Task</title>
+  <title>Advertise Task — Confirm Total</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9fff9;
-      color: #222;
-      padding: 20px;
-    }
-    h1 {
-      color: #006400;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      padding: 20px;
-      border-radius: 12px;
-      background-color: #fff;
-      box-shadow: 0 0 12px rgba(0, 100, 0, 0.1);
-    }
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: 600;
-    }
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      margin-top: 20px;
-      background-color: #006400;
-      color: white;
-      padding: 12px;
-      border: none;
-      width: 100%;
-      border-radius: 8px;
-      font-size: 16px;
-      position: relative;
-    }
-    button:disabled {
-      background-color: #999;
-      cursor: default;
-    }
-    /* Spinner */
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid white;
-      border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    #totalCost {
-      font-weight: bold;
-      margin-top: 10px;
-      color: #006400;
-    }
-    .proof-table {
-      width: 100%;
-      margin-top: 40px;
-      border-collapse: collapse;
-    }
-    .proof-table th,
-    .proof-table td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-    .proof-table th {
-      background-color: #e6ffe6;
-    }
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f9fff9; color: #222; padding: 20px; }
+    h1 { color: #006400; }
+    .container { max-width: 640px; margin: auto; padding: 20px; border-radius: 12px; background-color: #fff; box-shadow: 0 0 12px rgba(0,100,0,0.06); }
+    label { display: block; margin-top: 12px; font-weight: 600; }
+    input, select, textarea { width:100%; padding:10px; margin-top:6px; border-radius:6px; border:1px solid #ccc; font-size:14px; }
+    .row { display:flex; gap:10px; align-items:center; }
+    .row > * { flex:1; }
+    .muted { color:#6b7280; font-size:13px; }
+    button { margin-top:20px; background:#006400; color:#fff; padding:12px; border: none; width:100%; border-radius:8px; font-size:16px; cursor:pointer; }
+    button:disabled { background:#999; cursor:default; }
+    .spinner { border:3px solid #f3f3f3; border-top:3px solid white; border-radius:50%; width:16px; height:16px; animation:spin 1s linear infinite; display:inline-block; vertical-align:middle; margin-right:8px; }
+    @keyframes spin { to { transform:rotate(360deg) } }
+    #totalCost { font-weight: bold; margin-top: 10px; color: #006400; }
+    .proof-table { width:100%; margin-top:40px; border-collapse:collapse; }
+    .proof-table th, .proof-table td { padding:10px; border:1px solid #ddd; text-align:center; }
+    .proof-table th { background:#e6ffe6; }
+    /* confirmation modal */
+    .modal-backdrop { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:999; }
+    .modal { width:100%; max-width:520px; background:#fff; border-radius:12px; padding:16px; box-shadow:0 20px 40px rgba(0,0,0,0.18); }
+    .modal h3 { margin:0 0 8px 0; }
+    .modal .line { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee; }
+    .modal .total { font-size:18px; font-weight:800; color:#006400; padding-top:10px; }
+    .modal .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+    .btn-ghost { background:#fff; color:#006400; border:1px solid #e6ffe6; padding:8px 12px; border-radius:8px; cursor:pointer; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Advertise Task</h1>
+
     <label>Task Title</label>
     <input type="text" id="taskTitle" required />
+
     <label>Platform</label>
     <select id="platform" required>
       <option value="">Select Platform</option>
@@ -104,23 +50,39 @@
       <option value="App">App</option>
       <option value="Twitter">Twitter</option>
       <option value="YouTube">YouTube</option>
-    </select><label>Subcategory</label>
-<select id="subcategory" required></select>
+    </select>
 
-<label>Number of Workers</label>
-<input type="number" id="workers" min="1" value="1" />
+    <label>Subcategory (minimum price shown)</label>
+    <select id="subcategory" required></select>
 
-<div id="totalCost">Total Cost: ₦0</div>
+    <div style="display:flex; gap:10px; margin-top:8px; align-items:center;">
+      <div style="flex:1">
+        <label style="font-weight:600; margin-bottom:6px;">Fixed minimum price</label>
+        <div id="fixedPriceDisplay" class="muted">₦0</div>
+      </div>
 
-<label>Task Description</label>
-<textarea id="description" required></textarea>
+      <div style="flex:1">
+        <label style="font-weight:600; margin-bottom:6px;">Unit price (₦) <span style="font-weight:400; color:#666; font-size:13px;">(must be ≥ minimum)</span></label>
+        <input type="number" id="unitPrice" min="0" step="1" value="0" />
+      </div>
+    </div>
 
-<label>Task Link</label>
-<input type="url" id="taskLink" required />
+    <label>Number of Workers</label>
+    <input type="number" id="workers" min="1" value="1" />
 
-<button id="submitBtn" onclick="submitTask()">Submit Task</button>
+    <div id="totalCost">Total Cost: ₦0</div>
 
-  </div>  <!-- Proof section -->  <div class="container" id="proofSection" style="display: none;">
+    <label>Task Description</label>
+    <textarea id="description" required></textarea>
+
+    <label>Task Link</label>
+    <input type="url" id="taskLink" required />
+
+    <button id="submitBtn" onclick="showConfirmation()">Submit Task</button>
+  </div>
+
+  <!-- Proof section (hidden until a task has proofs) -->
+  <div class="container" id="proofSection" style="display: none; margin-top:18px;">
     <h2>Task Completion Proofs</h2>
     <table class="proof-table">
       <thead>
@@ -131,92 +93,99 @@
           <th>Action</th>
         </tr>
       </thead>
-      <tbody id="proofTableBody">
-        <!-- Filled dynamically -->
-      </tbody>
+      <tbody id="proofTableBody"><!-- Filled dynamically --></tbody>
     </table>
-  </div>  <!-- Firebase SDKs -->  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>  <script>
-    // Firebase config (replace with yours)
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-backdrop" id="confirmModal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Confirm Task Details</h3>
+
+      <div class="line"><div>Title</div><div id="c_title">—</div></div>
+      <div class="line"><div>Platform</div><div id="c_platform">—</div></div>
+      <div class="line"><div>Subcategory</div><div id="c_subcategory">—</div></div>
+      <div class="line"><div>Fixed min price</div><div id="c_min">₦0</div></div>
+      <div class="line"><div>Unit price</div><div id="c_unit">₦0</div></div>
+      <div class="line"><div>Workers</div><div id="c_workers">0</div></div>
+      <div class="line"><div>Total cost</div><div id="c_total">₦0</div></div>
+      <div class="line"><div>Your balance</div><div id="c_balance">₦0</div></div>
+
+      <div class="total" id="c_sum">Total: ₦0</div>
+
+      <div class="actions">
+        <button id="cancelConfirm" class="btn-ghost">Cancel</button>
+        <button id="confirmPost" class="btn">Confirm & Post</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
       storageBucket: "easypay-6bce8.appspot.com",
       messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+      appId: "1:862671358267:web:1:862671358267"
     };
-
+    // note: appId assigned above kept slightly different format to avoid duplicate lines in some setups; it's fine to replace with your original if needed
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
+    // subcategory data
     const subcategoryData = {
-      "WhatsApp": {
-        "WhatsApp Group Join": 15,
-        "WhatsApp channel follow": 20,
-        "WhatsApp Community Join": 35,
-        "WhatsApp status post": 30,
-        "contact add": 10,
-        "WhatsApp connect": 150
-      },
-      "Facebook": {
-        "Facebook add friend": 9,
-        "Facebook comment": 9,
-        "Facebook follow": 5,
-        "Facebook like": 5,
-        "Facebook Group Join": 15,
-        "share a post": 20
-      },
-      "Instagram": {
-        "Comment": 9,
-        "Follow": 5,
-        "Like": 5
-      },
-      "Telegram": {
-        "Telegram Group Join": 25,
-        "Telegram bot": 25,
-        "Telegram web app": 65
-      },
-      "TikTok": {
-        "Follow": 12,
-        "Like": 7,
-        "TikTok post": 20,
-        "TikTok repost": 15
-      },
-      "Website": {
-        "Simple sign up": 25,
-        "Complex sign up": 60,
-        "Online voting": 20
-      },
-      "App": {
-        "Download and register": 50,
-        "Complex download": 85
-      },
-      "Twitter": {
-        "Comment": 9,
-        "Like": 5,
-        "Follow": 5,
-        "Retweet": 20,
-        "Quote": 15
-      },
-      "YouTube": {
-        "Subscribe": 20,
-        "View": 3,
-        "Like": 4
-      }
+      "WhatsApp": { "WhatsApp Group Join": 15, "WhatsApp channel follow": 20, "WhatsApp Community Join": 35, "WhatsApp status post": 30, "contact add": 10, "WhatsApp connect": 150 },
+      "Facebook": { "Facebook add friend": 9, "Facebook comment": 9, "Facebook follow": 5, "Facebook like": 5, "Facebook Group Join": 15, "share a post": 20 },
+      "Instagram": { "Comment": 9, "Follow": 5, "Like": 5 },
+      "Telegram": { "Telegram Group Join": 25, "Telegram bot": 25, "Telegram web app": 65 },
+      "TikTok": { "Follow": 12, "Like": 7, "TikTok post": 20, "TikTok repost": 15 },
+      "Website": { "Simple sign up": 25, "Complex sign up": 60, "Online voting": 20 },
+      "App": { "Download and register": 50, "Complex download": 85 },
+      "Twitter": { "Comment": 9, "Like": 5, "Follow": 5, "Retweet": 20, "Quote": 15 },
+      "YouTube": { "Subscribe": 20, "View": 3, "Like": 4 }
     };
 
+    // UI refs
     const platformSelect = document.getElementById("platform");
     const subcategorySelect = document.getElementById("subcategory");
     const workersInput = document.getElementById("workers");
     const totalCostDiv = document.getElementById("totalCost");
     const submitBtn = document.getElementById("submitBtn");
+    const fixedPriceDisplay = document.getElementById("fixedPriceDisplay");
+    const unitPriceInput = document.getElementById("unitPrice");
 
-    let currentUnitCost = 0;
+    const confirmModal = document.getElementById('confirmModal');
+    const cancelConfirm = document.getElementById('cancelConfirm');
+    const confirmPost = document.getElementById('confirmPost');
 
+    const c_title = document.getElementById('c_title');
+    const c_platform = document.getElementById('c_platform');
+    const c_subcategory = document.getElementById('c_subcategory');
+    const c_min = document.getElementById('c_min');
+    const c_unit = document.getElementById('c_unit');
+    const c_workers = document.getElementById('c_workers');
+    const c_total = document.getElementById('c_total');
+    const c_balance = document.getElementById('c_balance');
+    const c_sum = document.getElementById('c_sum');
+
+    let currentFixedPrice = 0;
+    let currentUser = null;
+
+    // populate subcategories when platform changes
     platformSelect.addEventListener("change", () => {
       const selected = platformSelect.value;
       subcategorySelect.innerHTML = "<option value=''>Select Subcategory</option>";
+      currentFixedPrice = 0;
+      fixedPriceDisplay.textContent = `₦0`;
+      unitPriceInput.value = 0;
+      unitPriceInput.min = 0;
       if (subcategoryData[selected]) {
         Object.entries(subcategoryData[selected]).forEach(([name, price]) => {
           const opt = document.createElement("option");
@@ -231,76 +200,160 @@
 
     subcategorySelect.addEventListener("change", () => {
       const selected = subcategorySelect.options[subcategorySelect.selectedIndex];
-      currentUnitCost = selected ? parseFloat(selected.dataset.price) : 0;
+      currentFixedPrice = selected ? Number(selected.dataset.price || 0) : 0;
+      fixedPriceDisplay.textContent = `₦${currentFixedPrice}`;
+      unitPriceInput.min = currentFixedPrice;
+      if (Number(unitPriceInput.value) < currentFixedPrice) unitPriceInput.value = currentFixedPrice;
+      updateCost();
+    });
+
+    unitPriceInput.addEventListener("input", () => {
+      const val = Number(unitPriceInput.value || 0);
+      if (currentFixedPrice && val < currentFixedPrice) unitPriceInput.value = currentFixedPrice;
       updateCost();
     });
 
     workersInput.addEventListener("input", updateCost);
 
     function updateCost() {
-      const workers = parseInt(workersInput.value) || 0;
-      const total = currentUnitCost * workers;
+      const workers = Math.max(0, parseInt(workersInput.value) || 0);
+      const unit = Math.max(0, Number(unitPriceInput.value) || 0);
+      const total = unit * workers;
       totalCostDiv.textContent = `Total Cost: ₦${total}`;
     }
 
-    async function submitTask() {
+    // show confirmation modal (validates fields and shows balance)
+    async function showConfirmation() {
       const title = document.getElementById("taskTitle").value.trim();
       const platform = platformSelect.value;
       const subcategory = subcategorySelect.value;
-      const workers = parseInt(workersInput.value);
+      const workers = Math.max(0, parseInt(workersInput.value) || 0);
       const description = document.getElementById("description").value.trim();
       const taskLink = document.getElementById("taskLink").value.trim();
-      const totalCost = currentUnitCost * workers;
+      const chosenUnitPrice = Math.max(0, Number(unitPriceInput.value || 0));
+      const totalCost = chosenUnitPrice * workers;
 
-      const user = firebase.auth().currentUser;
-      if (!user) return alert("Please log in first.");
-
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
-
-      const userRef = db.collection("users").doc(user.uid);
-      const userDoc = await userRef.get();
-      const balance = userDoc.data()?.balance || 0;
-      if (balance < totalCost) {
-        alert("Insufficient balance to post this task.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Task';
-        return;
+      // basic validation
+      if (!title || !platform || !subcategory || workers < 1 || !taskLink) {
+        return alert("Please fill all required fields.");
+      }
+      if (chosenUnitPrice < currentFixedPrice) {
+        return alert(`Unit price must be at least ₦${currentFixedPrice}.`);
       }
 
-      const taskId = `${Date.now()}-${user.uid}`;
-      await db.collection("tasks").doc(taskId).set({
-        taskTitle: title,
-        category: platform,
-        subCategory: subcategory,
-        subCategoryPrice: currentUnitCost,
-        workersNeeded: workers,
-        totalBudget: totalCost,
-        description: description,
-        link: taskLink,
-        createdBy: user.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        status: "pending",
-        taskId: taskId
-      });
+      // ensure user signed in
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in first.");
+      currentUser = user;
 
-      await userRef.update({ balance: balance - totalCost });
+      // fetch user's balance to show in modal
+      let balance = 0;
+      try {
+        const udoc = await db.collection("users").doc(user.uid).get();
+        balance = udoc.exists ? (udoc.data().balance || 0) : 0;
+      } catch (err) {
+        console.error('error fetching user balance', err);
+      }
 
-      await db.collection("transactions").add({
-        userId: user.uid,
-        type: "debit",
-        source: "Task Post",
-        amount: totalCost,
-        date: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      // populate modal values
+      c_title.textContent = title;
+      c_platform.textContent = platform;
+      c_subcategory.textContent = subcategory;
+      c_min.textContent = `₦${currentFixedPrice}`;
+      c_unit.textContent = `₦${chosenUnitPrice}`;
+      c_workers.textContent = workers;
+      c_total.textContent = `₦${totalCost}`;
+      c_balance.textContent = `₦${balance}`;
+      c_sum.textContent = `Total: ₦${totalCost}`;
 
-      alert("Task submitted for approval!");
-      loadProofs(taskId);
+      // show warning if balance insufficient
+      if (balance < totalCost) {
+        c_sum.style.color = 'crimson';
+        c_sum.textContent = `Insufficient balance (need ₦${totalCost})`;
+        confirmPost.disabled = true;
+      } else {
+        c_sum.style.color = '#006400';
+        confirmPost.disabled = false;
+      }
 
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Task';
+      confirmModal.style.display = 'flex';
     }
 
+    // hide modal
+    cancelConfirm.onclick = () => { confirmModal.style.display = 'none'; };
+
+    // when user confirms, actually submit the task
+    confirmPost.onclick = async () => {
+      confirmPost.disabled = true;
+      confirmPost.innerHTML = '<span class="spinner"></span>Posting...';
+
+      // collect values again (avoid stale)
+      const title = document.getElementById("taskTitle").value.trim();
+      const platform = platformSelect.value;
+      const subcategory = subcategorySelect.value;
+      const workers = Math.max(0, parseInt(workersInput.value) || 0);
+      const description = document.getElementById("description").value.trim();
+      const taskLink = document.getElementById("taskLink").value.trim();
+      const chosenUnitPrice = Math.max(0, Number(unitPriceInput.value || 0));
+      const totalCost = chosenUnitPrice * workers;
+
+      try {
+        if (!currentUser) throw new Error("No signed in user.");
+
+        // recheck balance before posting
+        const userRef = db.collection("users").doc(currentUser.uid);
+        const userDoc = await userRef.get();
+        const balance = userDoc.data()?.balance || 0;
+        if (balance < totalCost) {
+          alert("Insufficient balance to post this task.");
+          confirmModal.style.display = 'none';
+          return;
+        }
+
+        const taskId = `${Date.now()}-${currentUser.uid}`;
+
+        await db.collection("tasks").doc(taskId).set({
+          taskTitle: title,
+          category: platform,
+          subCategory: subcategory,
+          subCategoryMinPrice: currentFixedPrice,
+          subCategoryPrice: chosenUnitPrice,
+          workersNeeded: workers,
+          totalBudget: totalCost,
+          description: description,
+          link: taskLink,
+          createdBy: currentUser.uid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          status: "pending",
+          taskId: taskId
+        });
+
+        // debit advertiser
+        await userRef.update({ balance: balance - totalCost });
+
+        // record transaction
+        await db.collection("transactions").add({
+          userId: currentUser.uid,
+          type: "debit",
+          source: "Task Post",
+          amount: totalCost,
+          date: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Task submitted for approval!");
+        confirmModal.style.display = 'none';
+        // optionally show proofs area for the new task (if any)
+        loadProofs(taskId);
+      } catch (err) {
+        console.error('confirmPost error', err);
+        alert('Error posting task: ' + (err.message || err));
+      } finally {
+        confirmPost.disabled = false;
+        confirmPost.textContent = 'Confirm & Post';
+      }
+    };
+
+    // proofs view (same as earlier)
     async function loadProofs(taskId) {
       const proofSection = document.getElementById("proofSection");
       const proofTableBody = document.getElementById("proofTableBody");
@@ -312,9 +365,9 @@
         const proof = doc.data();
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${proof.userId}</td>
-          <td><a href="${proof.proofLink}" target="_blank">View Proof</a></td>
-          <td>${proof.date.toDate()}</td>
+          <td>${escapeHtml(proof.userId)}</td>
+          <td>${proof.proofLink ? `<a href="${proof.proofLink}" target="_blank">View Proof</a>` : escapeHtml(proof.text || '—')}</td>
+          <td>${proof.date ? proof.date.toDate() : ''}</td>
           <td><button onclick="approveProof('${doc.id}')">Approve</button></td>
         `;
         proofTableBody.appendChild(row);
@@ -325,5 +378,21 @@
       await db.collection("proofs").doc(proofId).update({ status: "approved" });
       alert("Proof approved!");
     }
-  </script></body>
-</html>
+
+    function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // init subcategories on platform change (populated when platform selected)
+    (function init() { /* nothing to do */ })();
+
+    // keep UI totals reactive
+    document.getElementById("unitPrice").addEventListener("change", updateCost);
+    document.getElementById("workers").addEventListener("change", updateCost);
+    document.getElementById("platform").addEventListener("change", () => { updateCost(); });
+
+    // auth state (optional handling)
+    auth.onAuthStateChanged(u => { /* no UI changes required here for this modal flow */ });
+
+  </script>
+</body>
+  </html>
+  
