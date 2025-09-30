@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EasyPay — Withdrawals (Fixed)</title>
+  <title>EasyPay — Withdrawals (Realtime)</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -57,7 +57,7 @@
     .modal .total{font-size:18px;font-weight:800;color:var(--accent);padding-top:10px}
     .spinner{width:16px;height:16px;border:2px solid #fff;border-top:2px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin-right:8px}
     @keyframes spin{to{transform:rotate(360deg)}}
-    /* debug box */
+    /* debug */
     #debug{max-width:1100px;margin:12px auto 0;padding:8px 12px;background:#fff2f2;border:1px solid #ffd6d6;border-radius:8px;color:var(--danger);display:none}
     @media (max-width:980px){ .container{grid-template-columns:1fr} header.appbar{flex-direction:column;align-items:flex-start;gap:8px} }
   </style>
@@ -173,10 +173,10 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import {
       getFirestore, doc, getDoc, updateDoc, collection, addDoc,
-      query, orderBy, limit, getDocs, where, serverTimestamp, Timestamp
+      query, orderBy, limit, getDocs, where, serverTimestamp, Timestamp, onSnapshot
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-    // correct config (kept from your project)
+    // config — same project values you used
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
@@ -191,7 +191,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // DOM
+    // DOM refs
     const submitBtn = document.getElementById('submitBtn');
     const amountEl = document.getElementById('amount');
     const bankEl = document.getElementById('bank');
@@ -217,48 +217,53 @@
 
     // constants & state
     const allowedPlans = ['premium','gold','elite'];
-    const MIN_WITHDRAW = 1000; // enforce min
+    const MIN_WITHDRAW = 1000;
     const FEE_RATE = 0.06;
     let currentUid = null;
     let currentPlan = 'free';
     let currentUserBalance = 0;
 
+    // unsubscribe handles
+    let unsubUserDoc = null;
+    let unsubWithdrawals = null;
+
+    // helpers
     function formatCurrency(n){ const v = Number(n)||0; return '₦' + v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
     function roundTo2(n){ return Math.round((Number(n)||0)*100)/100; }
     function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function clearForm(){ amountEl.value=''; bankEl.value=''; accNameEl.value=''; accNumberEl.value=''; }
     function showDebug(msg){ debugBox.style.display = 'block'; debugBox.textContent = msg; console.warn(msg); }
     function hideDebug(){ debugBox.style.display = 'none'; debugBox.textContent = ''; }
+    function capitalize(s){ return String(s||'').charAt(0).toUpperCase()+String(s||'').slice(1); }
 
     function nowIsWithinWindow(){
       const now = new Date(); const hour = now.getHours();
-      return hour >= 8 && hour < 17; // 08:00 — 16:59 allowed
+      return hour >= 8 && hour < 17;
     }
 
-    // Load withdrawals
-    async function loadWithdrawals(uid){
-      withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--muted)">Loading...</td></tr>';
+    // normalize timestamp to Date
+    function toDate(ts){
+      if (!ts) return new Date();
+      if (typeof ts.toDate === 'function') return ts.toDate();
+      if (ts.seconds) return new Date(ts.seconds * 1000);
+      return new Date(ts);
+    }
+
+    // render withdrawals snapshot
+    function renderWithdrawalsSnapshot(snap){
       try {
-        const ref = collection(doc(db,'users',uid),'withdrawals');
-        const q = query(ref, orderBy('timestamp','desc'), limit(20));
-        const snap = await getDocs(q);
-        if (snap.empty) {
+        if (!snap || snap.empty) {
           withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--muted)">No withdrawals yet.</td></tr>';
           return;
         }
         let html = '';
-        snap.forEach(ds=>{
-          const d = ds.data();
-          let dt = new Date();
-          if (d.timestamp) {
-            if (typeof d.timestamp.toDate==='function') dt = d.timestamp.toDate();
-            else if (d.timestamp.seconds) dt = new Date(d.timestamp.seconds*1000);
-            else dt = new Date(d.timestamp);
-          }
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const dt = toDate(d.timestamp);
           const date = dt.toLocaleString();
-          const status = (d.status||'pending').toLowerCase();
-          const cls = status==='approved' ? 'status-approved' : status==='rejected' ? 'status-rejected' : 'status-pending';
-          const icon = status==='approved' ? '✅' : status==='rejected' ? '❌' : '⏳';
+          const status = (d.status || 'pending').toLowerCase();
+          const cls = status === 'approved' ? 'status-approved' : status === 'rejected' ? 'status-rejected' : 'status-pending';
+          const icon = status === 'approved' ? '✅' : status === 'rejected' ? '❌' : '⏳';
           const requested = d.amountRequested ? formatCurrency(d.amountRequested) : (d.amount ? formatCurrency(d.amount) : '-');
           const net = d.amountToReceive ? formatCurrency(d.amountToReceive) : '-';
           html += `<tr>
@@ -270,44 +275,63 @@
           </tr>`;
         });
         withdrawalTable.innerHTML = html;
-      } catch(err){
-        console.error('loadWithdrawals failed',err);
-        withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--muted)">Failed to load withdrawals</td></tr>';
-        showDebug('Error loading withdrawals: ' + (err.message || err));
+      } catch (err) {
+        console.error('renderWithdrawalsSnapshot error', err);
+        withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--muted)">Failed to render withdrawals</td></tr>';
+        showDebug('Failed to render withdrawals: ' + (err.message || err));
       }
     }
 
+    // cleanup previous listeners
+    function cleanupListeners(){
+      if (typeof unsubUserDoc === 'function') { try { unsubUserDoc(); } catch(e){} unsubUserDoc = null; }
+      if (typeof unsubWithdrawals === 'function') { try { unsubWithdrawals(); } catch(e){} unsubWithdrawals = null; }
+    }
+
+    // evaluate permissions (hours, daily one non-rejected)
     async function evaluateWithdrawPermissions(uid){
       if (!nowIsWithinWindow()){
         disableForm('Withdrawals are allowed 08:00 — 17:00 only.');
         return false;
       }
       try {
-        const ref = collection(doc(db,'users',uid),'withdrawals');
+        const withdrawalsRef = collection(doc(db,'users',uid),'withdrawals');
         const now = new Date();
-        const start = Timestamp.fromDate(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
-        const end = Timestamp.fromDate(new Date(now.getFullYear(), now.getMonth(), now.getDate()+1));
-        const q = query(ref, where('timestamp','>=',start), where('timestamp','<',end), orderBy('timestamp','desc'));
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfTomorrow = new Date(startOfToday); startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+        // compare using Timestamp.fromDate for queries
+        const q = query(
+          withdrawalsRef,
+          where('timestamp','>=', Timestamp.fromDate(startOfToday)),
+          where('timestamp','<',  Timestamp.fromDate(startOfTomorrow)),
+          orderBy('timestamp','desc')
+        );
         const snap = await getDocs(q);
-        let blocked=false, message='';
-        if (!snap.empty){
-          snap.forEach(d=>{
-            const st = (d.data().status||'').toString().toLowerCase();
-            if (st !== 'rejected'){
-              blocked=true;
-              message = st==='pending' ? 'You already placed a withdrawal request today (pending). Next request after 00:00.' : `You already made a withdrawal today (${st}). Next request after 00:00.`;
+        let blocked = false, message = '';
+        if (!snap.empty) {
+          snap.forEach(ds => {
+            const s = (ds.data().status || '').toString().toLowerCase();
+            if (s !== 'rejected') {
+              blocked = true;
+              if (s === 'pending') message = 'You already placed a withdrawal request today (pending). Next request after 00:00.';
+              else message = `You already made a withdrawal today (${s}). Next request after 00:00.`;
             }
           });
         }
-        if (blocked){ disableForm(message||'You already made a withdrawal today.'); return false; }
-        if (!allowedPlans.includes((currentPlan||'').toLowerCase())){
-          disableForm(`Withdrawals available to Premium, Gold and Elite users only. Your plan: ${currentPlan||'Free'}.`);
+        if (blocked) {
+          disableForm(message || 'You already made a withdrawal today.');
           return false;
+        } else {
+          if (!allowedPlans.includes((currentPlan || '').toLowerCase())) {
+            disableForm(`Withdrawals available to Premium, Gold and Elite users only. Your plan: ${currentPlan || 'Free'}.`);
+            return false;
+          }
+          enableForm();
+          return true;
         }
-        enableForm();
-        return true;
-      } catch(err){
-        console.error('evaluateWithdrawPermissions failed',err);
+      } catch (err) {
+        console.error('evaluateWithdrawPermissions error', err);
         showDebug('Error verifying daily limit: ' + (err.message || err));
         disableForm('Unable to verify daily limit — try again later.');
         return false;
@@ -317,17 +341,16 @@
     function disableForm(message){
       const formCard = document.getElementById('formCard');
       formCard.classList.add('disabled');
-      Array.from(formCard.querySelectorAll('input,select,button')).forEach(el=>el.disabled=true);
+      Array.from(formCard.querySelectorAll('input,select,button')).forEach(el => el.disabled = true);
       summaryPlan.textContent = message;
     }
     function enableForm(){
       const formCard = document.getElementById('formCard');
       formCard.classList.remove('disabled');
-      Array.from(formCard.querySelectorAll('input,select,button')).forEach(el=>el.disabled=false);
+      Array.from(formCard.querySelectorAll('input,select,button')).forEach(el => el.disabled = false);
       summaryPlan.textContent = allowedPlans.includes((currentPlan||'').toLowerCase()) ? `Plan: ${capitalize(currentPlan)}` : `Plan: ${capitalize(currentPlan)} — withdraws unavailable`;
       hideDebug();
     }
-    function capitalize(s){ return String(s||'').charAt(0).toUpperCase()+String(s||'').slice(1); }
 
     // Show confirmation modal
     function showConfirmationModal(){
@@ -362,16 +385,5 @@
       confirmModal.style.display = 'flex';
     }
 
-    // Final confirm action
-    confirmPost.addEventListener('click', async ()=>{
-      confirmPost.disabled = true;
-      const orig = confirmPost.textContent;
-      confirmPost.innerHTML = '<span class="spinner"></span>Sending...';
-      try {
-        if (!currentUid) throw new Error('No signed-in user');
-        if (!nowIsWithinWindow()) { alert('Withdrawals allowed 08:00 — 17:00 only.'); return; }
-
-        // daily check (serverTimestamp stored -> compare against Timestamp)
-        const ref = collection(doc(db,'users',currentUid),'withdrawals');
-        const now = new Date();
-        con
+    // Final confirm action (single handler)
+    confirmPost.addEventListener('click', async () =
