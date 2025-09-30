@@ -1,192 +1,199 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EasyPay — Withdrawals (Realtime)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyPay Withdrawal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
   <style>
     :root{
-      --bg:#f3fff7; --card:#fff; --accent:#00b66d; --accent-600:#0fa05a;
-      --muted:#6b7280; --text:#0f1720; --danger:#dc3545; --shadow:0 12px 30px rgba(7,55,30,0.06);
-      --radius:12px; --min-withdraw:1000; --fee-rate:0.06;
+      --primary:#00b66d;
+      --dark:#0f2b1f;
+      --muted:#6b7280;
+      --bg:#f6fff7;
+      --card:#fff;
+      --radius:14px;
+      --shadow:0 12px 30px rgba(6,120,70,0.06);
+      --fee-rate:0.06;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0;font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-      background:linear-gradient(180deg,#f8fff9 0%,var(--bg) 100%); color:var(--text);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      padding:28px 20px; display:flex; justify-content:center;
+      margin:0; font-family:'Poppins',system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+      background: linear-gradient(180deg,#f8fff9 0%, var(--bg) 100%);
+      color:var(--dark); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding:28px;
     }
-    .stage { width:100%; max-width:1100px; }
-    .container { display:grid; grid-template-columns:1fr 420px; gap:20px; align-items:start; min-height:0; }
-    header.appbar { grid-column:1/-1; display:flex; justify-content:space-between; align-items:center; gap:12px;
-      padding:18px; border-radius:var(--radius); background:linear-gradient(90deg,var(--accent),var(--accent-600));
-      color:#fff; box-shadow:var(--shadow);
+    .stage { max-width:980px; margin:0 auto; position:relative; }
+    header.top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .logo{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--primary),#0aa75a);color:#fff;font-weight:700;box-shadow:var(--shadow)}
+    h1{font-size:20px;margin:0 0 2px 0}
+    .subtitle{margin:0;color:var(--muted);font-size:13px}
+    /* badge */
+    .badge {
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; font-weight:700;
+      color:#fff; font-size:13px; box-shadow:0 8px 24px rgba(6,120,70,0.08);
     }
-    header.appbar h1{margin:0;font-size:18px}
-    .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid rgba(6,120,70,0.04)}
-    .alert{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:linear-gradient(180deg,#fffefa,#fff7e6);border:1px solid #ffeeba;color:#856404;font-weight:600}
-    .warning{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:#fff5f5;border:1px solid #ffd6d6;color:var(--danger);font-weight:700}
-    form{display:grid;gap:12px}
-    label{display:block;font-weight:600;color:#26322c;margin-bottom:6px}
-    .input,input,select,textarea{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #e6f4ec;font-size:14px;background:#fff}
-    .input-row{display:flex;gap:12px}
-    .input-row>*{flex:1}
-    .muted{color:var(--muted);font-size:13px}
-    .small-note{font-size:13px;color:var(--muted)}
-    .actions{display:flex;gap:12px;align-items:center}
-    button.primary{background:var(--accent);color:#fff;border:0;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(6,120,70,0.12)}
-    button.ghost{background:#fff;color:var(--accent);border:1px solid rgba(0,182,109,0.08);padding:10px 14px;border-radius:10px;cursor:pointer}
-    button:disabled{background:#d9eede;cursor:not-allowed}
-    .summary{display:flex;flex-direction:column;gap:10px}
-    .summary .box{padding:14px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfffb);border:1px solid rgba(6,120,70,0.04)}
-    table{width:100%;border-collapse:collapse;min-width:320px}
-    thead th{background:linear-gradient(90deg,var(--accent),var(--accent-600));color:#fff;text-align:left;padding:12px 14px;font-weight:700;font-size:13px}
-    tbody td{padding:12px 14px;border-bottom:1px solid #f1f6f3;color:#24332b;font-size:14px;vertical-align:middle}
+    .badge.open { background: linear-gradient(90deg,#00b66d,#0aa75a); }
+    .badge.closed { background: linear-gradient(90deg,#888,#666); }
+
+    .layout { display:grid; grid-template-columns:1fr 360px; gap:18px; align-items:start; }
+
+    .card { background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); border:1px solid rgba(6,120,70,0.04); }
+    .alert { background:#fffdf4; border:1px solid #fff0c2; color:#6a4f05; padding:12px 14px; border-radius:10px; box-shadow:0 6px 20px rgba(6,120,70,0.03); font-weight:600; margin-bottom:12px; }
+    .notice { background:#fff5f5; border:1px solid #ffd6d6; color:#8a1f1f; padding:12px 14px; border-radius:10px; font-weight:700; margin-bottom:12px; }
+    label{display:block;font-weight:600;margin-bottom:6px;color:#153b2d}
+    input,select{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #e9f6ef;background:#fbfffb;color:var(--dark)}
+    input:focus,select:focus{outline:none;box-shadow:0 6px 20px rgba(6,120,70,0.06);border-color:rgba(6,120,70,0.12)}
+    .form-row{display:flex;gap:12px}
+    .form-row>*{flex:1}
+    .hint{color:var(--muted);font-size:13px;margin-bottom:8px}
+    .controls{display:flex;gap:12px;margin-top:12px}
+    button{display:inline-flex;align-items:center;gap:10px;justify-content:center;background:var(--primary);color:#fff;border:0;padding:12px 16px;border-radius:10px;cursor:pointer;font-weight:700;box-shadow:0 10px 28px rgba(6,120,70,0.12)}
+    button.ghost{background:#fff;color:var(--primary);border:1px solid rgba(0,182,109,0.08);padding:10px 14px;border-radius:10px}
+    button:disabled{opacity:0.6;cursor:not-allowed}
+
+    .table-wrap{border-radius:12px;overflow:hidden;border:1px solid rgba(6,120,70,0.04);background:#fff}
+    table{width:100%;border-collapse:collapse;min-width:360px}
+    thead th{background:linear-gradient(90deg,var(--primary),#0aa75a);color:#fff;text-align:left;padding:12px;font-weight:700;font-size:13px;position:sticky;top:0}
+    tbody td{padding:12px;border-bottom:1px solid #f3fbf5;font-size:14px;color:#163723}
     tbody tr:nth-child(even) td{background:#fbfff9}
-    .status{padding:6px 8px;border-radius:8px;color:#fff;font-weight:700;font-size:13px;display:inline-block}
-    .status-pending{background:#f59f2b}
+    .no-log{text-align:center;padding:18px;color:var(--muted)}
+    .status{padding:6px 10px;border-radius:8px;color:#fff;font-weight:700;display:inline-block}
+    .status-pending{background:#fd7e14}
     .status-approved{background:#28a745}
-    .status-rejected{background:var(--danger)}
-    /* modal */
+    .status-rejected{background:#dc3545}
+
+    /* confirmation modal */
     .modal-backdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999}
     .modal{width:100%;max-width:520px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 20px 40px rgba(0,0,0,0.18)}
     .modal .line{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #eee}
-    .modal .total{font-size:18px;font-weight:800;color:var(--accent);padding-top:10px}
+    .modal .total{font-size:18px;font-weight:800;color:var(--primary);padding-top:10px}
     .spinner{width:16px;height:16px;border:2px solid #fff;border-top:2px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin-right:8px}
     @keyframes spin{to{transform:rotate(360deg)}}
-    /* debug */
-    #debug{max-width:1100px;margin:12px auto 0;padding:8px 12px;background:#fff2f2;border:1px solid #ffd6d6;border-radius:8px;color:var(--danger);display:none}
-    @media (max-width:980px){ .container{grid-template-columns:1fr} header.appbar{flex-direction:column;align-items:flex-start;gap:8px} }
+
+    @media (max-width:940px){ .layout{grid-template-columns:1fr} header.top{flex-direction:column;align-items:flex-start;gap:8px} }
   </style>
 </head>
 <body>
   <div class="stage">
-    <div class="container" id="grid">
-      <header class="appbar">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">EP</div>
         <div>
           <h1>EasyPay — Withdraw Funds</h1>
-          <p>Withdraw to your bank — processed during working hours (08:00 — 17:00).</p>
+          <p class="subtitle">Withdraw to your bank — processed during working hours (08:00 — 17:00).</p>
         </div>
-        <div style="text-align:right">
-          <div class="small-note" id="userEmailDisplay">—</div>
-          <div style="margin-top:8px" class="small-note" id="userBalanceDisplay">Balance: ₦0.00</div>
-        </div>
-      </header>
+      </div>
 
-      <!-- LEFT -->
+      <!-- badge shows open/closed -->
+      <div id="badgeWrap">
+        <div id="withdrawBadge" class="badge closed">Withdrawals: Closed</div>
+      </div>
+    </header>
+
+    <div class="layout">
       <div>
-        <div class="card" id="alertsCard">
-          <div class="alert"><strong>Processing time:</strong> Withdrawals are processed during working hours, 08:00 — 17:00 local time.</div>
-          <div class="warning" style="margin-top:10px"><strong>Note:</strong> Only Premium, Gold and Elite users may request withdrawals. One non-rejected withdrawal per day.</div>
-        </div>
+        <div class="alert">Withdrawals take up to 48hrs. Please avoid complaints before then!</div>
+        <div class="notice">⚠️ Multiple withdrawals in a single day will be rejected and not refunded.</div>
 
         <div class="card" id="formCard">
-          <h3 style="margin:0 0 12px 0;color:var(--accent)">Request Withdrawal</h3>
-          <form id="withdrawForm" onsubmit="return false">
-            <div class="small-note">Minimum withdrawal is <strong>₦1,000</strong>. A fee of <strong>6%</strong> applies — confirmation will show the net amount you'll receive.</div>
+          <h2>Make a Withdrawal</h2>
+          <div class="hint">Minimum withdrawal is <strong>₦1,000</strong>. Withdrawals processed 08:00–17:00 local time. One non-rejected withdrawal per day.</div>
 
-            <div><label for="amount">Amount (₦)</label><input id="amount" type="number" class="input" min="1000" placeholder="Enter amount — min ₦1,000" /></div>
+          <div class="form-group">
+            <label for="amount">Amount (₦) — minimum ₦1,000</label>
+            <input type="number" id="amount" min="1000" placeholder="Enter amount (min ₦1,000)" />
+          </div>
 
-            <div class="input-row">
-              <div><label for="bank">Bank</label>
-                <select id="bank" class="input">
-                  <option value="">Choose bank</option>
-                  <option>Access Bank</option><option>Kuda</option><option>PalmPay</option><option>Moniepoint</option>
-                  <option>Opay</option><option>GTBank</option><option>First Bank</option><option>UBA</option>
-                  <option>Zenith Bank</option><option>Wema Bank</option><option>SmartCash PSB</option><option>Momo PSB</option>
-                </select>
-              </div>
-              <div><label for="accNumber">Account Number</label><input id="accNumber" class="input" type="text" placeholder="0123456789" /></div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="bank">Select Bank</label>
+              <select id="bank">
+                <option value="">-- Choose Bank --</option>
+                <option>Access Bank</option><option>Kuda</option><option>PalmPay</option>
+                <option>Moniepoint</option><option>Opay</option><option>GTBank</option>
+                <option>First Bank</option><option>UBA</option><option>Zenith Bank</option>
+                <option>Wema Bank</option><option>SmartCash PSB</option><option>Momo PSB</option>
+              </select>
             </div>
 
-            <div><label for="accName">Account Name</label><input id="accName" class="input" type="text" placeholder="Recipient's name" /></div>
-
-            <div class="actions" style="margin-top:12px">
-              <button id="submitBtn" class="primary">Submit Withdrawal</button>
-              <button id="cancelBtn" class="ghost" type="button" onclick="clearForm()">Clear</button>
+            <div class="form-group" style="flex:1">
+              <label for="accNumber">Account Number</label>
+              <input type="text" id="accNumber" placeholder="0123456789" />
             </div>
-          </form>
+          </div>
+
+          <div class="form-group">
+            <label for="accName">Account Name</label>
+            <input type="text" id="accName" placeholder="Recipient's Name" />
+          </div>
+
+          <div class="controls">
+            <button id="submitBtn">Submit Withdrawal</button>
+            <button class="ghost" type="button" onclick="clearForm()">Clear</button>
+          </div>
         </div>
 
         <div class="card" style="margin-top:18px">
-          <h3 style="margin:0 0 12px 0;color:var(--accent)">Recent Withdrawals</h3>
-          <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(15,23,36,0.04)">
+          <h3 style="margin:0 0 12px 0;color:var(--primary)">Recent Withdrawals</h3>
+          <div class="table-wrap">
             <table>
               <thead>
-                <tr><th>Date</th><th>Requested</th><th>Bank</th><th>Account</th><th>Status (Net)</th></tr>
+                <tr><th>Date</th><th>Amt</th><th>Bank</th><th>Acct</th><th>Status</th></tr>
               </thead>
               <tbody id="withdrawalTable">
-                <tr><td colspan="5" style="text-align:center;padding:18px;color:var(--muted)">Loading...</td></tr>
+                <tr><td colspan="5" class="no-log">Loading...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT -->
-      <aside class="summary">
-        <div class="box card">
+      <aside class="card" style="display:flex;flex-direction:column;gap:12px">
+        <div>
           <strong id="summaryBalance">₦0.00</strong>
-          <p class="muted" id="summaryPlan">Plan: —</p>
+          <div class="hint" id="summaryPlan">Plan: —</div>
         </div>
 
-        <div class="box card">
+        <div>
           <strong>Rules & Hours</strong>
-          <p class="muted">Withdrawals allowed daily between <strong>08:00</strong> and <strong>17:00</strong>. One non-rejected withdrawal per day. Only Premium/Gold/Elite accounts.</p>
+          <div class="hint">Withdrawals allowed daily between <strong>08:00</strong> and <strong>17:00</strong>. One non-rejected withdrawal per day. Only Premium and Gold accounts.</div>
         </div>
 
-        <div class="box card">
+        <div>
           <strong>Support</strong>
-          <p class="muted">If your withdrawal is delayed beyond working hours, contact support.</p>
+          <div class="hint">If your withdrawal is delayed beyond working hours, contact support.</div>
         </div>
       </aside>
     </div>
-
-    <!-- CONFIRMATION MODAL -->
-    <div class="modal-backdrop" id="confirmModal">
-      <div class="modal" role="dialog" aria-modal="true">
-        <h3>Confirm Withdrawal</h3>
-        <div class="line"><div>Requested</div><div id="c_requested">₦0.00</div></div>
-        <div class="line"><div>Withdrawal fee (6%)</div><div id="c_fee">₦0.00</div></div>
-        <div class="line"><div>Amount to receive</div><div id="c_receive"><strong>₦0.00</strong></div></div>
-        <div class="line"><div>Bank</div><div id="c_bank">—</div></div>
-        <div class="line"><div>Account</div><div id="c_account">—</div></div>
-        <div class="line"><div>Your balance</div><div id="c_balance">₦0.00</div></div>
-        <div class="total" id="c_total">Net: ₦0.00</div>
-        <div class="actions" style="margin-top:12px">
-          <button id="cancelConfirm" class="ghost">Cancel</button>
-          <button id="confirmPost" class="primary">Confirm & Send</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- debug -->
-    <div id="debug" role="status" aria-live="polite"></div>
   </div>
 
-  <!-- Firebase modular SDK -->
+  <!-- confirmation modal (added) -->
+  <div class="modal-backdrop" id="confirmModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Confirm Withdrawal</h3>
+      <div class="line"><div>Requested</div><div id="c_requested">₦0.00</div></div>
+      <div class="line"><div>Withdrawal fee (6%)</div><div id="c_fee">₦0.00</div></div>
+      <div class="line"><div>Amount to receive</div><div id="c_receive"><strong>₦0.00</strong></div></div>
+      <div class="line"><div>Bank</div><div id="c_bank">—</div></div>
+      <div class="line"><div>Account</div><div id="c_account">—</div></div>
+      <div class="line"><div>Your balance</div><div id="c_balance">₦0.00</div></div>
+      <div class="total" id="c_total">Net: ₦0.00</div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+        <button id="cancelConfirm" class="ghost">Cancel</button>
+        <button id="confirmPost" class="primary">Confirm & Send</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc, updateDoc, collection, addDoc,
-      query, orderBy, limit, getDocs, where, serverTimestamp, Timestamp, onSnapshot
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-    // config — same project values you used
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.firebasestorage.app",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.firebasestorage.app", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c1e", measurementId: "G-2FZKDQ47FZ" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -199,10 +206,11 @@
     const accNumberEl = document.getElementById('accNumber');
     const withdrawalTable = document.getElementById('withdrawalTable');
     const userEmailDisplay = document.getElementById('userEmailDisplay');
-    const userBalanceDisplay = document.getElementById('userBalanceDisplay');
     const summaryBalance = document.getElementById('summaryBalance');
     const summaryPlan = document.getElementById('summaryPlan');
+    const withdrawBadge = document.getElementById('withdrawBadge');
 
+    // confirmation modal refs
     const confirmModal = document.getElementById('confirmModal');
     const cancelConfirm = document.getElementById('cancelConfirm');
     const confirmPost = document.getElementById('confirmPost');
@@ -213,168 +221,142 @@
     const c_account = document.getElementById('c_account');
     const c_balance = document.getElementById('c_balance');
     const c_total = document.getElementById('c_total');
-    const debugBox = document.getElementById('debug');
 
-    // constants & state
-    const allowedPlans = ['premium','gold','elite'];
+    const allowedPlans = ['premium','gold'];
     const MIN_WITHDRAW = 1000;
     const FEE_RATE = 0.06;
-    let currentUid = null;
-    let currentPlan = 'free';
-    let currentUserBalance = 0;
 
-    // unsubscribe handles
-    let unsubUserDoc = null;
-    let unsubWithdrawals = null;
+    // keep latest user data for modal (so we don't change submitWithdrawal)
+    let currentUserId = null;
+    let currentUserData = {}; // populated in onAuthStateChanged
 
-    // helpers
+    // utility functions
     function formatCurrency(n){ const v = Number(n)||0; return '₦' + v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-    function roundTo2(n){ return Math.round((Number(n)||0)*100)/100; }
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function clearForm(){ amountEl.value=''; bankEl.value=''; accNameEl.value=''; accNumberEl.value=''; }
-    function showDebug(msg){ debugBox.style.display = 'block'; debugBox.textContent = msg; console.warn(msg); }
-    function hideDebug(){ debugBox.style.display = 'none'; debugBox.textContent = ''; }
-    function capitalize(s){ return String(s||'').charAt(0).toUpperCase()+String(s||'').slice(1); }
+    function round2(n){ return Math.round((Number(n)||0)*100)/100; }
+    function clearForm(){ ['amount','bank','accName','accNumber'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; }); }
+    function nowIsWithinWindow(){ const h = new Date().getHours(); return h>=8 && h<17; }
 
-    function nowIsWithinWindow(){
-      const now = new Date(); const hour = now.getHours();
-      return hour >= 8 && hour < 17;
+    // update badge state
+    function updateBadge(){
+      if (nowIsWithinWindow()){
+        withdrawBadge.classList.remove('closed'); withdrawBadge.classList.add('open');
+        withdrawBadge.textContent = 'Withdrawals: Open';
+      } else {
+        withdrawBadge.classList.remove('open'); withdrawBadge.classList.add('closed');
+        withdrawBadge.textContent = 'Withdrawals: Closed';
+      }
     }
+    updateBadge();
+    // refresh badge every minute in case user keeps page open
+    setInterval(updateBadge, 60_000);
 
-    // normalize timestamp to Date
-    function toDate(ts){
-      if (!ts) return new Date();
-      if (typeof ts.toDate === 'function') return ts.toDate();
-      if (ts.seconds) return new Date(ts.seconds * 1000);
-      return new Date(ts);
-    }
-
-    // render withdrawals snapshot
-    function renderWithdrawalsSnapshot(snap){
+    // keep same functions intact (submitWithdrawal, loadWithdrawals) — we will call submitWithdrawal on confirm
+    async function submitWithdrawal(uid) {
+      // ORIGINAL FUNCTION (kept exactly as required by the user)
+      const btn = submitBtn;
+      const orig = btn.textContent;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Processing...';
       try {
-        if (!snap || snap.empty) {
-          withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--muted)">No withdrawals yet.</td></tr>';
+        const amount = parseFloat(document.getElementById('amount').value);
+        if (isNaN(amount) || amount < 1000) {
+          alert('Please enter a value of at least ₦1,000.');
           return;
         }
-        let html = '';
-        snap.forEach(docSnap => {
-          const d = docSnap.data();
-          const dt = toDate(d.timestamp);
-          const date = dt.toLocaleString();
-          const status = (d.status || 'pending').toLowerCase();
-          const cls = status === 'approved' ? 'status-approved' : status === 'rejected' ? 'status-rejected' : 'status-pending';
-          const icon = status === 'approved' ? '✅' : status === 'rejected' ? '❌' : '⏳';
-          const requested = d.amountRequested ? formatCurrency(d.amountRequested) : (d.amount ? formatCurrency(d.amount) : '-');
-          const net = d.amountToReceive ? formatCurrency(d.amountToReceive) : '-';
-          html += `<tr>
-            <td>${date}</td>
-            <td>${requested}</td>
-            <td>${escapeHtml(d.bank || '-')}</td>
-            <td>${escapeHtml(d.accNumber || d.acc || '-')}</td>
-            <td><div style="display:flex;flex-direction:column;gap:6px"><span class="status ${cls}">${icon} ${status.charAt(0).toUpperCase()+status.slice(1)}</span><small style="color:var(--muted)">Net: ${net}</small></div></td>
-          </tr>`;
-        });
-        withdrawalTable.innerHTML = html;
-      } catch (err) {
-        console.error('renderWithdrawalsSnapshot error', err);
-        withdrawalTable.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--muted)">Failed to render withdrawals</td></tr>';
-        showDebug('Failed to render withdrawals: ' + (err.message || err));
+        const bank = document.getElementById('bank').value;
+        const accName = document.getElementById('accName').value.trim();
+        const accNumber = document.getElementById('accNumber').value.trim();
+        if (!bank || !accName || !accNumber) {
+          alert('Fill all fields correctly.');
+          return;
+        }
+
+        const userRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userRef);
+        const balance = Number(userDoc.data()?.balance) || 0;
+        if (amount > balance) {
+          alert('Insufficient balance.');
+          return;
+        }
+
+        // update balance and create withdrawal record
+        await updateDoc(userRef, { balance: balance - amount });
+        await addDoc(collection(userRef, 'withdrawals'), { timestamp: new Date(), amount, bank, accName, accNumber, status: 'pending' });
+
+        alert('Withdrawal submitted.');
+        clearForm();
+        loadWithdrawals(uid);
+      } catch (e) {
+        console.error(e);
+        alert('Error. Please retry.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
       }
     }
 
-    // cleanup previous listeners
-    function cleanupListeners(){
-      if (typeof unsubUserDoc === 'function') { try { unsubUserDoc(); } catch(e){} unsubUserDoc = null; }
-      if (typeof unsubWithdrawals === 'function') { try { unsubWithdrawals(); } catch(e){} unsubWithdrawals = null; }
-    }
-
-    // evaluate permissions (hours, daily one non-rejected)
-    async function evaluateWithdrawPermissions(uid){
-      if (!nowIsWithinWindow()){
-        disableForm('Withdrawals are allowed 08:00 — 17:00 only.');
-        return false;
-      }
+    // original loadWithdrawals (kept intact)
+    async function loadWithdrawals(uid) {
+      const tbody = document.getElementById('withdrawalTable');
+      tbody.innerHTML = '<tr><td colspan="5" class="no-log">Loading...</td></tr>';
       try {
-        const withdrawalsRef = collection(doc(db,'users',uid),'withdrawals');
-        const now = new Date();
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const startOfTomorrow = new Date(startOfToday); startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
-
-        // compare using Timestamp.fromDate for queries
-        const q = query(
-          withdrawalsRef,
-          where('timestamp','>=', Timestamp.fromDate(startOfToday)),
-          where('timestamp','<',  Timestamp.fromDate(startOfTomorrow)),
-          orderBy('timestamp','desc')
-        );
+        const ref = collection(doc(db, 'users', uid), 'withdrawals');
+        const q = query(ref, orderBy('timestamp', 'desc'), limit(20));
         const snap = await getDocs(q);
-        let blocked = false, message = '';
-        if (!snap.empty) {
-          snap.forEach(ds => {
-            const s = (ds.data().status || '').toString().toLowerCase();
-            if (s !== 'rejected') {
-              blocked = true;
-              if (s === 'pending') message = 'You already placed a withdrawal request today (pending). Next request after 00:00.';
-              else message = `You already made a withdrawal today (${s}). Next request after 00:00.`;
-            }
-          });
+        if (snap.empty) {
+          tbody.innerHTML = '<tr><td colspan="5" class="no-log">No withdrawals yet.</td></tr>';
+          return;
         }
-        if (blocked) {
-          disableForm(message || 'You already made a withdrawal today.');
-          return false;
-        } else {
-          if (!allowedPlans.includes((currentPlan || '').toLowerCase())) {
-            disableForm(`Withdrawals available to Premium, Gold and Elite users only. Your plan: ${currentPlan || 'Free'}.`);
-            return false;
+        tbody.innerHTML = '';
+        snap.forEach(ds => {
+          const d = ds.data();
+          let dt = new Date();
+          if (d.timestamp) {
+            if (d.timestamp.toDate) dt = d.timestamp.toDate();
+            else if (d.timestamp.seconds) dt = new Date(d.timestamp.seconds * 1000);
+            else dt = new Date(d.timestamp);
           }
-          enableForm();
-          return true;
-        }
+          const date = dt.toLocaleString();
+          const cls = d.status === 'approved' ? 'status-approved' : d.status === 'rejected' ? 'status-rejected' : 'status-pending';
+          const icon = d.status && d.status.charAt(0).toLowerCase() === 'a' ? '✅' : d.status && d.status.charAt(0).toLowerCase() === 'r' ? '❌' : '⏳';
+          const statusText = d.status ? (d.status.charAt(0).toUpperCase() + d.status.slice(1)) : 'Pending';
+          tbody.innerHTML += `<tr><td>${date}</td><td>₦${d.amount}</td><td>${d.bank}</td><td>${d.accNumber || d.acc || '-'}</td><td><span class="status ${cls}">${icon} ${statusText}</span></td></tr>`;
+        });
       } catch (err) {
-        console.error('evaluateWithdrawPermissions error', err);
-        showDebug('Error verifying daily limit: ' + (err.message || err));
-        disableForm('Unable to verify daily limit — try again later.');
-        return false;
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="5" class="no-log">Failed to load withdrawals</td></tr>';
       }
     }
 
-    function disableForm(message){
-      const formCard = document.getElementById('formCard');
-      formCard.classList.add('disabled');
-      Array.from(formCard.querySelectorAll('input,select,button')).forEach(el => el.disabled = true);
-      summaryPlan.textContent = message;
-    }
-    function enableForm(){
-      const formCard = document.getElementById('formCard');
-      formCard.classList.remove('disabled');
-      Array.from(formCard.querySelectorAll('input,select,button')).forEach(el => el.disabled = false);
-      summaryPlan.textContent = allowedPlans.includes((currentPlan||'').toLowerCase()) ? `Plan: ${capitalize(currentPlan)}` : `Plan: ${capitalize(currentPlan)} — withdraws unavailable`;
-      hideDebug();
-    }
-
-    // Show confirmation modal
-    function showConfirmationModal(){
-      const amount = roundTo2(Number(amountEl.value));
+    // show confirm modal (new) — does not change submitWithdrawal
+    function showConfirmation(uid) {
+      const amount = round2(Number(amountEl.value));
       const bank = bankEl.value.trim();
       const accName = accNameEl.value.trim();
-      const accNum  = accNumberEl.value.trim();
-      if (!amount || amount < MIN_WITHDRAW){ alert(`Enter an amount ≥ ₦${MIN_WITHDRAW.toLocaleString()}`); return; }
-      if (!bank || !accName || !accNum){ alert('Complete bank details'); return; }
-      if (!allowedPlans.includes((currentPlan||'').toLowerCase())){ alert('Your account is not eligible for withdrawals.'); return; }
-      if (!nowIsWithinWindow()){ alert('Withdrawals allowed 08:00 — 17:00 only.'); return; }
+      const accNumber = accNumberEl.value.trim();
 
-      const fee = roundTo2(amount * FEE_RATE);
-      const net = roundTo2(amount - fee);
+      if (isNaN(amount) || amount < MIN_WITHDRAW) {
+        alert(`Enter an amount of at least ₦${MIN_WITHDRAW.toLocaleString()}.`);
+        return;
+      }
+      if (!bank || !accName || !accNumber) {
+        alert('Please complete bank details.');
+        return;
+      }
+      // compute fee & net
+      const fee = round2(amount * FEE_RATE);
+      const net = round2(amount - fee);
 
       c_requested.textContent = formatCurrency(amount);
       c_fee.textContent = formatCurrency(fee);
       c_receive.textContent = formatCurrency(net);
-      c_bank.textContent = escapeHtml(bank);
-      c_account.textContent = escapeHtml(accNum + (accName ? ' — ' + escapeHtml(accName) : ''));
-      c_balance.textContent = formatCurrency(currentUserBalance);
+      c_bank.textContent = bank;
+      c_account.textContent = `${accNumber} — ${accName}`;
+      c_balance.textContent = formatCurrency(currentUserData.balance || 0);
       c_total.textContent = `Net: ${formatCurrency(net)}`;
 
-      if (amount > currentUserBalance){
+      // if insufficient balance, disable confirm
+      if ((currentUserData.balance || 0) < amount) {
         c_total.style.color = 'crimson';
         confirmPost.disabled = true;
       } else {
@@ -382,8 +364,53 @@
         confirmPost.disabled = false;
       }
 
+      // show modal
       confirmModal.style.display = 'flex';
     }
 
-    // Final confirm action (single handler)
-    confirmPost.addEventListener('click', async () =
+    // confirm modal actions
+    cancelConfirm.addEventListener('click', ()=> { confirmModal.style.display = 'none'; });
+    confirmPost.addEventListener('click', async () => {
+      // call the original submit function (keeps all behavior)
+      confirmPost.disabled = true;
+      confirmPost.textContent = 'Sending...';
+      try {
+        if (!currentUserId) throw new Error('No current user id');
+        // call original function
+        await submitWithdrawal(currentUserId);
+        confirmModal.style.display = 'none';
+      } catch (e) {
+        console.error(e);
+        alert('Error: ' + (e.message || e));
+      } finally {
+        confirmPost.disabled = false;
+        confirmPost.textContent = 'Confirm & Send';
+      }
+    });
+
+    // onAuth: load user info, plan, balance, and wire submit to showConfirmation
+    onAuthStateChanged(auth, async user => {
+      if (!user) { alert('Please log in.'); location.href='login.html'; return; }
+      currentUserId = user.uid;
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        const myData = userSnap.exists() ? userSnap.data() : {};
+        currentUserData = myData; // store for modal
+        userEmailDisplay.textContent = user.email || user.displayName || user.uid;
+        summaryBalance.textContent = formatCurrency(myData.balance || 0);
+        summaryPlan.textContent = `Plan: ${myData.plan || '—'}`;
+
+        const plan = (myData.plan || myData.accountType || myData.role || '').toString().toLowerCase();
+        if (!allowedPlans.includes(plan)) {
+          // disable form
+          document.getElementById('formCard').classList.add('disabled');
+          Array.from(document.querySelectorAll('#formCard input,#formCard select,#formCard button')).forEach(el => el.disabled = true);
+          // (preserve original behavior of showing history)
+          // show plan notice (keeps consistent)
+        } else {
+          // wire submit to confirmation instead of directly calling submitWithdrawal
+          submitBtn.onclick = () => showConfirmation(user.uid);
+        }
+
+        // initial badge update (and sc
