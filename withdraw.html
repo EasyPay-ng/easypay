@@ -188,8 +188,8 @@
         const accName  = document.getElementById("accName").value.trim();
         const accNumber = document.getElementById("accNumber").value.trim();
 
-        if (isNaN(amount) || amount < 200 || !bank || !accName || !accNumber) {
-          alert("Please fill all fields correctly. Minimum is ₦200.");
+        if (isNaN(amount) || amount < 1000 || !bank || !accName || !accNumber) {
+          alert("Please fill all fields correctly. Minimum is ₦1000.");
           return;
         }
 
