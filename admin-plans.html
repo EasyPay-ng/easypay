@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -37,13 +38,15 @@
   <header>
     <h1>Manage User Plans</h1>
     <button id="logout">Logout</button>
-  </header>  <div class="container">
+  </header>
+  <div class="container">
     <div class="search">
       <input id="q" type="text" placeholder="Search by username…" />
       <button id="btnSearch"><i class="fas fa-search"></i> Search</button>
     </div>
     <div id="tableWrap"></div>
-  </div>  <script type="module">
+  </div>
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import {
       getFirestore,
@@ -111,8 +114,8 @@
       for (let u of list) {
         let activated = "-", daysLeft = "-";
         if (u.plan !== "basic" && u.planStart) {
-          // All plans now valid for 7 days
-          const maxDays = 7;
+          // All plans now valid for 30 days
+          const maxDays = 30;
           const elapsed = now - u.planStart;
           const left    = maxDays - Math.floor(elapsed / MS_DAY);
 
@@ -175,5 +178,6 @@
         : allUsers
       );
     }
-  </script></body>
+  </script>
+</body>
 </html>
