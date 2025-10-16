@@ -378,7 +378,6 @@
     function showMessage(text, type = 'info') {
       messageArea.innerHTML = `<div class="msg ${type === 'error' ? 'error' : 'info'}" role="status" aria-live="polite">${text}</div>`;
       setTimeout(() => {
-        // fade after 6s
         if (messageArea.firstChild) messageArea.removeChild(messageArea.firstChild);
       }, 6000);
     }
@@ -391,30 +390,58 @@
 
     // store current user uid
     let currentUid = null;
+    let balanceUnsub = null;
 
-    // ensure user is signed in; show balance live
+    // --- auth initialization guard ---
+    // We track whether the first onAuthStateChanged callback has run.
+    // If the first callback receives null we wait a short grace window for persistence restore
+    // before redirecting. Subsequent nulls are treated as signed-out.
+    let authFirstCallbackSeen = false;
+
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // not signed in — redirect to login
-        showMessage('Please sign in to activate a plan.', 'error');
-        setTimeout(() => window.location.href = 'login.html', 1200);
+      if (user) {
+        authFirstCallbackSeen = true;
+        currentUid = user.uid;
+
+        // if there's an existing snapshot unsubscribe first
+        if (balanceUnsub) { balanceUnsub(); balanceUnsub = null; }
+
+        const userRef = doc(db, 'users', user.uid);
+        balanceUnsub = onSnapshot(userRef, (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            const bal = Number(data.balance ?? 0);
+            userBalanceChip.textContent = `Balance: ${formatN(bal)}`;
+          } else {
+            userBalanceChip.textContent = `Balance: ${formatN(0)}`;
+          }
+        }, (err) => {
+          console.warn('balance snapshot error', err);
+          userBalanceChip.textContent = `Balance: ${formatN(0)}`;
+        });
+
         return;
       }
-      currentUid = user.uid;
-      const userRef = doc(db, 'users', user.uid);
-      // live balance updates
-      const unsub = onSnapshot(userRef, (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          const bal = Number(data.balance ?? 0);
-          userBalanceChip.textContent = `Balance: ${formatN(bal)}`;
-        } else {
-          userBalanceChip.textContent = `Balance: ${formatN(0)}`;
-        }
-      }, (err) => {
-        console.warn('balance snapshot error', err);
-        userBalanceChip.textContent = `Balance: ${formatN(0)}`;
-      });
+
+      // user is null
+      if (!authFirstCallbackSeen) {
+        // first callback and null -> give Firebase a short moment to restore persisted user
+        setTimeout(() => {
+          // if auth.currentUser still null, redirect
+          if (!auth.currentUser) {
+            showMessage('Please sign in to activate a plan.', 'error');
+            setTimeout(() => window.location.href = 'login.html', 1100);
+          } else {
+            // If the persistence restored the user in the meantime, do nothing; onAuthStateChanged will fire again with user
+          }
+        }, 800);
+        authFirstCallbackSeen = true;
+        return;
+      }
+
+      // subsequent nulls — user explicitly signed out or not authenticated
+      showMessage('Please sign in to activate a plan.', 'error');
+      setTimeout(() => window.location.href = 'login.html', 1100);
     });
 
     /**
@@ -430,14 +457,12 @@
         return;
       }
 
-      // Confirm user wants to proceed
       const ok = confirm(`Activate ${planLabel} for ${formatN(cost)}? This will deduct from your balance.`);
       if (!ok) return;
 
       const userRef = doc(db, 'users', currentUid);
 
       try {
-        // run transaction to ensure atomic read/write
         await runTransaction(db, async (tx) => {
           const snap = await tx.get(userRef);
           if (!snap.exists()) {
@@ -445,6 +470,13 @@
           }
           const data = snap.data();
           const curBal = Number(data.balance ?? 0);
+
+          // Prevent re-activating same or higher plan if status already active (optional)
+          // If you want to prevent re-activating while active uncomment below:
+          // if (data.status === 'active' && data.plan === planId) {
+          //   throw { code: 'already-active', message: 'Your account is already on this plan.' };
+          // }
+
           if (curBal < cost) {
             throw { code: 'insufficient-funds', message: `Insufficient balance: ${formatN(curBal)} — activation costs ${formatN(cost)}.` };
           }
@@ -453,7 +485,6 @@
           const now = Date.now();
           const expiresAt = now + (30 * 24 * 60 * 60 * 1000); // 30 days in ms
 
-          // update fields on user's document
           tx.update(userRef, {
             balance: newBal,
             plan: planId,
@@ -466,23 +497,4 @@
         });
 
         showMessage(`${planLabel} activated successfully — ${formatN(cost)} deducted from your balance.`, 'info');
-      } catch (err) {
-        if (err && err.code === 'insufficient-funds') {
-          showMessage(err.message, 'error');
-          // Offer recharge redirect
-          if (confirm('Your balance is insufficient. Would you like to recharge now?')) {
-            window.location.href = 'recharge.html';
-          }
-        } else {
-          console.error('Activation error', err);
-          showMessage('Activation failed — see console for details.', 'error');
-        }
-      }
-    }
-
-    // expose for inline onclick handlers
-    window.activatePlan = activatePlan;
-  </script>
-</body>
-  </html>
-
+      } catch (err)
