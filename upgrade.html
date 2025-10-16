@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
   <style>
+    /* (kept the responsive CSS from the last version unchanged) */
     :root{
       --bg: #f5fdf7;
       --green: #009f4d;
@@ -18,193 +19,105 @@
       --accent-gold: #c79b1b;
       --shadow-1: 0 6px 18px rgba(2, 48, 22, 0.06);
       --radius: 12px;
+      --gap: 14px;
+      --max-width: 1200px;
     }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    * { box-sizing: border-box; }
+    html,body{height:100%; margin:0;}
     body{
-      margin:0;
       font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: linear-gradient(180deg, #f7fff9 0%, var(--bg) 100%);
+      background: linear-gradient(180deg,#f7fff9 0%,var(--bg) 100%);
       color:#173231;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
       display:flex;
       flex-direction:column;
       min-height:100vh;
+      line-height:1.32;
     }
 
     header{
-      padding:18px 14px;
+      padding:18px clamp(12px, 3vw, 28px);
       background: linear-gradient(90deg, rgba(0,159,77,0.96), rgba(5,125,66,0.95));
-      color: #fff;
-      text-align:center;
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
       box-shadow: 0 6px 14px rgba(3,64,30,0.07);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    header h1{ margin:0; font-size:1.25rem; font-weight:700; letter-spacing: -0.4px; }
-    header p{ margin:.2rem 0 0; opacity:.95; font-weight:500; font-size:0.95rem }
-
-    .header-right { display:flex; gap:12px; align-items:center; }
-    .balance-chip { background: rgba(255,255,255,0.08); padding:8px 12px; border-radius:999px; font-weight:700; color:#fff; display:flex; gap:8px; align-items:center; font-size:0.95rem; }
-
-    .page {
-      width:100%;
-      max-width:1100px;
-      margin: 12px auto;
-      padding: 0 14px 36px;
-      flex:1;
-    }
-
-    .top-notes {
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      justify-content:space-between;
       flex-wrap:wrap;
-      margin: 12px 0;
     }
+    header .left { display:flex; gap:12px; align-items:center; }
+    header h1 { margin:0; font-size: clamp(1.0rem, 1.6vw, 1.25rem); font-weight:700; letter-spacing:-0.4px; }
+    header p.sub { margin:0; font-size: clamp(0.82rem, 1.1vw, 0.95rem); opacity:0.95; font-weight:500; }
 
-    .note {
-      flex:1 1 52%;
-      background:#fff;
-      border-left:4px solid var(--green);
-      padding:10px 12px;
-      border-radius:8px;
-      box-shadow:var(--shadow-1);
-      color:var(--muted);
-      font-weight:600;
-      font-size:0.93rem;
-      line-height:1.15;
-      min-height:48px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+    .header-right { display:flex; gap:12px; align-items:center; margin-left:auto; }
+    .balance-chip { background: rgba(255,255,255,0.08); padding:8px 12px; border-radius:999px; font-weight:700; color:#fff; display:flex; gap:8px; align-items:center; font-size: clamp(0.8rem, 1.1vw, 0.95rem); }
+
+    .page { width:100%; max-width: var(--max-width); margin: 12px auto; padding: 0 clamp(12px, 3vw, 28px) 36px; flex:1; }
+
+    .top-notes { display:flex; gap:var(--gap); align-items:flex-start; justify-content:space-between; flex-wrap:wrap; margin: 12px 0; }
+    .note, .danger { padding:10px 12px; border-radius:8px; box-shadow:var(--shadow-1); min-height:44px; display:flex; gap:10px; align-items:center; flex: 1 1 48%; font-weight:600; font-size:clamp(0.86rem, 1.1vw, 0.93rem); line-height:1.12; }
+    .note { background:#fff; border-left:4px solid var(--green); color:var(--muted); min-width:220px; }
     .note small { display:block; margin-top:6px; font-size:0.86rem; color:#5a6b64; font-weight:600; }
-
-    .danger {
-      flex:1 1 40%;
-      background: linear-gradient(180deg, #fff6f3, #fff8f5);
-      border:1px solid rgba(255,122,66,0.08);
-      padding:10px 12px;
-      border-radius:8px;
-      color:#7a2a1a;
-      box-shadow: 0 6px 14px rgba(204,80,48,0.05);
-      font-weight:700;
-      text-align:left;
-      font-size:0.95rem;
-      min-height:48px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+    .danger { background: linear-gradient(180deg,#fff6f3,#fff8f5); border:1px solid rgba(255,122,66,0.08); color:#7a2a1a; box-shadow:0 6px 14px rgba(204,80,48,0.05); min-width:200px; flex: 1 1 40%; }
     .danger .title { color:#b32305; font-size:0.92rem; font-weight:800; }
 
-    .plans {
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap:14px;
-      margin-top:12px;
-    }
-
-    .plan-card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), var(--card));
-      border-radius:12px;
-      padding:18px;
-      box-shadow: var(--shadow-1);
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      border: 1px solid rgba(4,90,40,0.03);
-      transition: transform .14s ease, box-shadow .14s ease;
-      min-height: 300px;
-    }
-    .plan-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 14px 30px rgba(6,84,40,0.06);
-    }
-
-    .plan-top {
-      display:flex;
-      align-items:center;
-      gap:10px;
-      width:100%;
-    }
-    .badge {
-      width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center;
-      font-weight:800; color:#fff; font-size:16px;
-      flex-shrink:0;
-    }
-
+    .plans { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: clamp(10px, 2.2vw, 20px); margin-top:18px; align-items:start; }
+    .plan-card { background: linear-gradient(180deg, rgba(255,255,255,0.98), var(--card)); border-radius:12px; padding:18px; box-shadow: var(--shadow-1); display:flex; flex-direction:column; gap:12px; border: 1px solid rgba(4,90,40,0.03); transition: transform .14s ease, box-shadow .14s ease; min-height:auto; }
+    .plan-card:hover { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(6,84,40,0.06); }
+    .plan-top { display:flex; align-items:center; gap:10px; width:100%; }
+    .badge { width: clamp(44px, 6vw, 56px); height: clamp(44px, 6vw, 56px); border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size: clamp(14px, 2.2vw, 18px); flex-shrink:0; }
     .badge.premium { background: linear-gradient(180deg,#15a65b,#078343); }
     .badge.gold { background: linear-gradient(180deg,#d0a33e,#b88617); color:#2b1f05; }
-    .badge.elite { background: linear-gradient(180deg,#6f22a7,#4b0d86); } /* purple-ish for elite */
-    .badge.diamond { background: linear-gradient(180deg,#00aaff,#0057b8); color:#fff; } /* blue diamond */
+    .badge.elite { background: linear-gradient(180deg,#6f22a7,#4b0d86); }
+    .badge.diamond { background: linear-gradient(180deg,#00aaff,#0057b8); color:#fff; }
 
-    .plan-header { font-size:1.15rem; font-weight:700; color:#123824; }
-    .plan-price { font-size:1.6rem; font-weight:800; color:var(--green-dark); margin-top:4px; }
-    .plan-price .naira { font-size:0.98rem; margin-right:6px; color:#0f6b3a; font-weight:700; vertical-align:middle; }
-
-    .plan-duration { color:var(--muted); font-weight:600; margin-top:4px; font-size:0.92rem; }
-    .plan-desc { color:#27423a; margin-top:8px; line-height:1.35; font-weight:600; flex:1; text-align:center; padding: 0 6px; font-size:0.95rem; }
-
-    .plan-features { list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:6px; align-items:flex-start; color:var(--muted); font-weight:600; font-size:0.92rem; }
+    .plan-header { font-size: clamp(1rem, 1.8vw, 1.15rem); font-weight:700; color:#123824; }
+    .plan-price { font-size: clamp(1.15rem, 2.8vw, 1.6rem); font-weight:800; color:var(--green-dark); margin-top:4px; }
+    .plan-duration { color:var(--muted); font-weight:600; margin-top:4px; font-size: clamp(.82rem, 1.2vw, .92rem); }
+    .plan-desc { color:#27423a; margin-top:8px; line-height:1.35; font-weight:600; text-align:center; padding: 0 6px; font-size: clamp(.9rem, 1.4vw, .95rem); }
+    .plan-features { list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:8px; align-items:flex-start; color:var(--muted); font-weight:600; font-size: clamp(.86rem, 1.1vw, .92rem); }
     .plan-features li { display:flex; gap:8px; align-items:center; }
     .plan-features li i { color:var(--green); min-width:18px; text-align:center; font-size:12px; }
-
-    .plan-footer { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:4px; }
-    .upgrade-btn {
-      background:var(--green);
-      color:#fff;
-      border:0;
-      padding:10px 14px;
-      border-radius:10px;
-      box-shadow: 0 6px 16px rgba(2,95,47,0.10);
-      font-weight:700;
-      cursor:pointer;
-      width:100%;
-      max-width:200px;
-      font-size:0.98rem;
-    }
+    .plan-footer { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:6px; }
+    .upgrade-btn { background:var(--green); color:#fff; border:0; padding:10px 14px; border-radius:10px; box-shadow: 0 6px 16px rgba(2,95,47,0.10); font-weight:700; cursor:pointer; width:100%; max-width:240px; font-size: clamp(.88rem, 1.5vw, .98rem); }
     .upgrade-btn.gold { background: linear-gradient(90deg,var(--accent-gold), #b88617); color:#2b1f05; box-shadow: 0 8px 20px rgba(184,134,23,0.10); }
     .upgrade-btn.elite { background: linear-gradient(90deg,#7b3ad6,#5b13b0); color:#fff; box-shadow: 0 8px 20px rgba(91,19,176,0.10); }
     .upgrade-btn.diamond { background: linear-gradient(90deg,#00b6ff,#0066cc); color:#fff; box-shadow: 0 8px 26px rgba(0,102,204,0.12); }
 
     .tag { display:inline-block; padding:6px 8px; border-radius:999px; font-weight:700; background:rgba(0,159,77,0.08); color:var(--green-dark); font-size:0.82rem; }
-
-    footer {
-      text-align:center;
-      padding:12px 10px;
-      color:var(--muted);
-      font-size:0.92rem;
-      margin-top:14px;
-    }
-
+    footer { text-align:center; padding:12px 10px; color:var(--muted); font-size:0.92rem; margin-top:14px; }
     .msg { padding:10px;border-radius:10px;margin-bottom:12px; font-weight:700 }
     .msg.info { background:#eefbf2; color:#1b5b32; border:1px solid rgba(2,120,60,0.06) }
     .msg.error { background:#fff6f3;color:#7a2a1a;border:1px solid rgba(204,80,48,0.06) }
 
-    @media (max-width:860px){
-      .top-notes { flex-direction:column; align-items:stretch; gap:8px; }
-      header h1{ font-size:1.4rem }
-      .plan-desc { font-size:0.94rem; }
-      .note, .danger { font-size:0.9rem; padding:8px 10px; min-height:44px; }
+    @media (max-width:720px) {
+      header { align-items:flex-start; padding:14px; }
+      .header-right { width:100%; justify-content:flex-start; margin-top:8px; }
+      .balance-chip { width:100%; justify-content:flex-start; padding:10px; }
+      .top-notes { gap:10px; flex-direction:column; }
+      .note, .danger { flex: 1 1 auto; width:100%; }
+      .plans { grid-template-columns: 1fr; gap:12px; margin-top:12px; }
+      .plan-card { padding:14px; }
+      .plan-desc { text-align:left; }
+      .plan-footer { flex-direction:column; }
+      .upgrade-btn { max-width:100%; width:100%; padding:12px; }
     }
+    @media (min-width:721px) and (max-width:1024px) { .plans { grid-template-columns: repeat(2, 1fr); gap:16px; } .badge { width:52px; height:52px; } }
+    @media (min-width:1025px) { .page { padding: 0 28px 48px; } .plans { grid-template-columns: repeat(3, 1fr); gap:20px; } .plans { align-items:stretch; } .plan-card { display:flex; flex-direction:column; justify-content:space-between; } }
   </style>
 </head>
 <body>
   <header role="banner" aria-label="Page header">
-    <div style="display:flex;align-items:center;gap:12px;margin-left:12px">
+    <div class="left">
       <h1>Choose Your Activation Plan</h1>
-      <div class="tag" aria-hidden="true">30 days</div>
+      <div class="tag" aria-hidden="true" style="margin-left:8px">30 days</div>
     </div>
-    <div class="header-right">
-      <div style="text-align:right">
-        <p style="margin:0;font-size:14px;opacity:0.95">Activate & start earning</p>
+
+    <div class="header-right" aria-hidden="false">
+      <div>
+        <p class="sub" style="margin:0">Activate & start earning</p>
         <div id="userBalanceChip" class="balance-chip" aria-live="polite">Balance: ₦0.00</div>
       </div>
     </div>
@@ -215,12 +128,10 @@
 
     <div class="top-notes" aria-live="polite">
       <div class="note" role="status" aria-atomic="true">
-        <div style="display:flex;gap:10px;align-items:center;">
-          <i class="fas fa-bolt" style="color:var(--green);font-size:18px;"></i>
-          <div>
-            <div style="font-weight:800;color:#184d36;font-size:0.98rem">Activation in ≤ 12 hours</div>
-            <small>Payments & proof verified — activation completed (max 12 hours, do not make more than 1 request within 12hrs).</small>
-          </div>
+        <i class="fas fa-bolt" style="color:var(--green);font-size:18px;"></i>
+        <div>
+          <div style="font-weight:800;color:#184d36;font-size:0.98rem">Activation in ≤ 12 hours</div>
+          <small>Payments & proof verified — activation completed (max 12 hours, do not make more than 1 request within 12hrs).</small>
         </div>
       </div>
 
@@ -237,10 +148,10 @@
 
       <!-- Premium -->
       <article class="plan-card" aria-labelledby="premiumTitle">
-        <div style="display:flex;flex-direction:column;align-items:center">
-          <div class="plan-top" style="width:100%">
+        <div>
+          <div class="plan-top">
             <div class="badge premium" aria-hidden="true">P</div>
-            <div style="flex:1;text-align:left">
+            <div style="flex:1">
               <div id="premiumTitle" class="plan-header">Premium</div>
               <div class="plan-price"><span class="naira">₦</span>3,000</div>
               <div class="plan-duration">Valid for 30 days</div>
@@ -257,16 +168,16 @@
         </div>
 
         <div class="plan-footer" aria-hidden="false">
-          <button class="upgrade-btn" onclick="activatePlan(3000,'premium','Premium',100)" aria-label="Activate Premium plan">Activate Premium — ₦3,000</button>
+          <button class="upgrade-btn" data-cost="3000" data-plan="premium" data-label="Premium" data-daily="100" aria-label="Activate Premium plan">Activate Premium — ₦3,000</button>
         </div>
       </article>
 
-      <!-- Diamond (NEW) -->
+      <!-- Diamond -->
       <article class="plan-card" aria-labelledby="diamondTitle">
-        <div style="display:flex;flex-direction:column;align-items:center">
-          <div class="plan-top" style="width:100%">
+        <div>
+          <div class="plan-top">
             <div class="badge diamond" aria-hidden="true">D</div>
-            <div style="flex:1;text-align:left">
+            <div style="flex:1">
               <div id="diamondTitle" class="plan-header">Diamond</div>
               <div class="plan-price"><span class="naira">₦</span>20,000</div>
               <div class="plan-duration">Valid for 30 days</div>
@@ -283,19 +194,19 @@
         </div>
 
         <div class="plan-footer" aria-hidden="false">
-          <button class="upgrade-btn diamond" onclick="activatePlan(20000,'diamond','Diamond',1600)" aria-label="Activate Diamond plan">Activate Diamond — ₦20,000</button>
+          <button class="upgrade-btn diamond" data-cost="20000" data-plan="diamond" data-label="Diamond" data-daily="1600" aria-label="Activate Diamond plan">Activate Diamond — ₦20,000</button>
         </div>
       </article>
 
       <!-- Elite -->
       <article class="plan-card" aria-labelledby="eliteTitle">
-        <div style="display:flex;flex-direction:column;align-items:center">
-          <div class="plan-top" style="width:100%">
+        <div>
+          <div class="plan-top">
             <div class="badge elite" aria-hidden="true">E</div>
-            <div style="flex:1;text-align:left">
+            <div style="flex:1">
               <div id="eliteTitle" class="plan-header">Elite</div>
               <div class="plan-price"><span class="naira">₦</span>10,000</div>
-              <div class="plan-duration">Valid for 30 days </div>
+              <div class="plan-duration">Valid for 30 days</div>
             </div>
           </div>
 
@@ -309,16 +220,16 @@
         </div>
 
         <div class="plan-footer" aria-hidden="false">
-          <button class="upgrade-btn elite" onclick="activatePlan(10000,'elite','Elite',700)" aria-label="Activate Elite plan">Activate Elite — ₦10,000</button>
+          <button class="upgrade-btn elite" data-cost="10000" data-plan="elite" data-label="Elite" data-daily="700" aria-label="Activate Elite plan">Activate Elite — ₦10,000</button>
         </div>
       </article>
 
       <!-- Gold -->
       <article class="plan-card" aria-labelledby="goldTitle">
-        <div style="display:flex;flex-direction:column;align-items:center">
-          <div class="plan-top" style="width:100%">
+        <div>
+          <div class="plan-top">
             <div class="badge gold" aria-hidden="true"><i class="fas fa-crown" style="font-size:18px;"></i></div>
-            <div style="flex:1;text-align:left">
+            <div style="flex:1">
               <div id="goldTitle" class="plan-header">Gold</div>
               <div class="plan-price"><span class="naira">₦</span>6,000</div>
               <div class="plan-duration">Valid for 30 days</div>
@@ -335,7 +246,7 @@
         </div>
 
         <div class="plan-footer" aria-hidden="false">
-          <button class="upgrade-btn gold" onclick="activatePlan(6000,'gold','Gold',400)" aria-label="Activate Gold plan">Activate Gold — ₦6,000</button>
+          <button class="upgrade-btn gold" data-cost="6000" data-plan="gold" data-label="Gold" data-daily="400" aria-label="Activate Gold plan">Activate Gold — ₦6,000</button>
         </div>
       </article>
 
@@ -352,7 +263,8 @@
       doc,
       runTransaction,
       serverTimestamp,
-      onSnapshot
+      onSnapshot,
+      getDoc
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
     // Beni-Wealth Firebase config
@@ -374,7 +286,6 @@
     const messageArea = document.getElementById('messageArea');
     const userBalanceChip = document.getElementById('userBalanceChip');
 
-    // show message
     function showMessage(text, type = 'info') {
       messageArea.innerHTML = `<div class="msg ${type === 'error' ? 'error' : 'info'}" role="status" aria-live="polite">${text}</div>`;
       setTimeout(() => {
@@ -382,81 +293,45 @@
       }, 6000);
     }
 
-    // format currency
     function formatN(n) {
       const num = Number(n || 0);
       return '₦' + num.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    // store current user uid
+    // state
     let currentUid = null;
     let balanceUnsub = null;
-
-    // --- auth initialization guard ---
-    // We track whether the first onAuthStateChanged callback has run.
-    // If the first callback receives null we wait a short grace window for persistence restore
-    // before redirecting. Subsequent nulls are treated as signed-out.
     let authFirstCallbackSeen = false;
+    let snapshotResponded = false; // has snapshot fired at least once?
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        authFirstCallbackSeen = true;
-        currentUid = user.uid;
-
-        // if there's an existing snapshot unsubscribe first
-        if (balanceUnsub) { balanceUnsub(); balanceUnsub = null; }
-
-        const userRef = doc(db, 'users', user.uid);
-        balanceUnsub = onSnapshot(userRef, (snap) => {
-          if (snap.exists()) {
-            const data = snap.data();
-            const bal = Number(data.balance ?? 0);
-            userBalanceChip.textContent = `Balance: ${formatN(bal)}`;
-          } else {
-            userBalanceChip.textContent = `Balance: ${formatN(0)}`;
-          }
-        }, (err) => {
-          console.warn('balance snapshot error', err);
-          userBalanceChip.textContent = `Balance: ${formatN(0)}`;
+    // attach plan button listeners (programmatic fallback)
+    function wirePlanButtons() {
+      const buttons = document.querySelectorAll('.upgrade-btn');
+      buttons.forEach(btn => {
+        // avoid double-wiring
+        if (btn._wired) return;
+        btn._wired = true;
+        btn.addEventListener('click', (e) => {
+          // read dataset safely
+          const cost = Number(btn.dataset.cost || 0);
+          const planId = String(btn.dataset.plan || '');
+          const label = String(btn.dataset.label || planId);
+          const daily = Number(btn.dataset.daily || 0);
+          activatePlan(cost, planId, label, daily).catch(err => {
+            console.error('activatePlan error (from event)', err);
+          });
         });
+      });
+    }
 
-        return;
-      }
-
-      // user is null
-      if (!authFirstCallbackSeen) {
-        // first callback and null -> give Firebase a short moment to restore persisted user
-        setTimeout(() => {
-          // if auth.currentUser still null, redirect
-          if (!auth.currentUser) {
-            showMessage('Please sign in to activate a plan.', 'error');
-            setTimeout(() => window.location.href = 'login.html', 1100);
-          } else {
-            // If the persistence restored the user in the meantime, do nothing; onAuthStateChanged will fire again with user
-          }
-        }, 800);
-        authFirstCallbackSeen = true;
-        return;
-      }
-
-      // subsequent nulls — user explicitly signed out or not authenticated
-      showMessage('Please sign in to activate a plan.', 'error');
-      setTimeout(() => window.location.href = 'login.html', 1100);
-    });
-
-    /**
-     * activatePlan
-     * - cost: number (naira)
-     * - planId: string ('premium','gold','elite','diamond')
-     * - planLabel: human label
-     * - dailyEarning: number
-     */
+    // transaction activation (same atomic flow)
     async function activatePlan(cost, planId, planLabel, dailyEarning) {
       if (!currentUid) {
         showMessage('Sign in required to activate a plan.', 'error');
         return;
       }
 
+      // simple UI confirm
       const ok = confirm(`Activate ${planLabel} for ${formatN(cost)}? This will deduct from your balance.`);
       if (!ok) return;
 
@@ -471,19 +346,13 @@
           const data = snap.data();
           const curBal = Number(data.balance ?? 0);
 
-          // Prevent re-activating same or higher plan if status already active (optional)
-          // If you want to prevent re-activating while active uncomment below:
-          // if (data.status === 'active' && data.plan === planId) {
-          //   throw { code: 'already-active', message: 'Your account is already on this plan.' };
-          // }
-
           if (curBal < cost) {
             throw { code: 'insufficient-funds', message: `Insufficient balance: ${formatN(curBal)} — activation costs ${formatN(cost)}.` };
           }
 
           const newBal = Number((curBal - cost).toFixed(2));
           const now = Date.now();
-          const expiresAt = now + (30 * 24 * 60 * 60 * 1000); // 30 days in ms
+          const expiresAt = now + (30 * 24 * 60 * 60 * 1000);
 
           tx.update(userRef, {
             balance: newBal,
@@ -497,4 +366,48 @@
         });
 
         showMessage(`${planLabel} activated successfully — ${formatN(cost)} deducted from your balance.`, 'info');
-      } catch (err)
+      } catch (err) {
+        if (err && err.code === 'insufficient-funds') {
+          showMessage(err.message, 'error');
+          if (confirm('Your balance is insufficient. Would you like to recharge now?')) {
+            window.location.href = 'recharge.html';
+          }
+        } else {
+          console.error('Activation error', err);
+          showMessage('Activation failed — see console for details.', 'error');
+        }
+      }
+    }
+
+    // ensure plan buttons wired early so clicks never get lost
+    document.addEventListener('DOMContentLoaded', () => {
+      wirePlanButtons();
+    });
+
+    // Auth + balance wiring with robust fallback
+    onAuthStateChanged(auth, async (user) => {
+      console.log('onAuthStateChanged ->', user ? user.uid : null);
+      if (user) {
+        authFirstCallbackSeen = true;
+        currentUid = user.uid;
+
+        // wire buttons again (in case DOM was updated)
+        wirePlanButtons();
+
+        // unsubscribe previous snapshot
+        if (balanceUnsub) { try { balanceUnsub(); } catch(e){}; balanceUnsub = null; }
+        snapshotResponded = false;
+
+        const userRef = doc(db, 'users', user.uid);
+
+        // set up realtime listener
+        try {
+          balanceUnsub = onSnapshot(userRef, (snap) => {
+            snapshotResponded = true;
+            if (snap.exists()) {
+              const data = snap.data();
+              const bal = Number(data.balance ?? 0);
+              userBalanceChip.textContent = `Balance: ${formatN(bal)}`;
+            } else {
+              userBalanceChip.textContent = `Balance: ${formatN(0)}`;
+          
