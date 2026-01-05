@@ -80,7 +80,6 @@
     .plan-features li i { color:var(--green); min-width:18px; text-align:center; font-size:12px; }
     .plan-footer { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:6px; }
 
-    /* anchor styled as button */
     .upgrade-link {
       display:inline-flex;
       align-items:center;
@@ -100,24 +99,6 @@
 
     .tag { display:inline-block; padding:6px 8px; border-radius:999px; font-weight:700; background:rgba(0,159,77,0.08); color:var(--green-dark); font-size:0.82rem; }
     footer { text-align:center; padding:12px 10px; color:var(--muted); font-size:0.92rem; margin-top:14px; }
-    .msg { padding:10px;border-radius:10px;margin-bottom:12px; font-weight:700 }
-    .msg.info { background:#eefbf2; color:#1b5b32; border:1px solid rgba(2,120,60,0.06) }
-    .msg.error { background:#fff6f3;color:#7a2a1a;border:1px solid rgba(204,80,48,0.06) }
-
-    @media (max-width:720px) {
-      header { align-items:flex-start; padding:14px; }
-      .header-right { width:100%; justify-content:flex-start; margin-top:8px; }
-      .balance-chip { width:100%; justify-content:flex-start; padding:10px; }
-      .top-notes { gap:10px; flex-direction:column; }
-      .note, .danger { flex: 1 1 auto; width:100%; }
-      .plans { grid-template-columns: 1fr; gap:12px; margin-top:12px; }
-      .plan-card { padding:14px; }
-      .plan-desc { text-align:left; }
-      .plan-footer { flex-direction:column; }
-      .upgrade-link { max-width:100%; width:100%; padding:12px; }
-    }
-    @media (min-width:721px) and (max-width:1024px) { .plans { grid-template-columns: repeat(2, 1fr); gap:16px; } .badge { width:52px; height:52px; } }
-    @media (min-width:1025px) { .page { padding: 0 28px 48px; } .plans { grid-template-columns: repeat(3, 1fr); gap:20px; } .plans { align-items:stretch; } .plan-card { display:flex; flex-direction:column; justify-content:space-between; } }
   </style>
 </head>
 <body>
@@ -126,19 +107,11 @@
       <h1>Choose Your Activation Plan</h1>
       <div class="tag" aria-hidden="true" style="margin-left:8px">30 days</div>
     </div>
-
-    <div class="header-right" aria-hidden="false">
-      <div>
-        <p class="sub" style="margin:0">Activate & start earning</p>
-      </div>
-    </div>
   </header>
 
   <main class="page" role="main">
-    <div id="messageArea"></div>
-
     <div class="top-notes" aria-live="polite">
-      <div class="note" role="status" aria-atomic="true">
+      <div class="note">
         <i class="fas fa-bolt" style="color:var(--green);font-size:18px;"></i>
         <div>
           <div style="font-weight:800;color:#184d36;font-size:0.98rem">Activation in ≤ 12 hours</div>
@@ -146,72 +119,99 @@
         </div>
       </div>
 
-      <div class="danger" role="alert" aria-atomic="true">
+      <div class="danger">
         <i class="fas fa-exclamation-triangle" style="color:#b32305;font-size:18px;"></i>
-        <div style="margin-left:6px">
+        <div>
           <div class="title">Duplicate activations not allowed</div>
-          <div style="font-weight:700;font-size:0.92rem">If an activated user submits another activation request their account will be downgraded & disabled with no room for appeal.</div>
         </div>
       </div>
     </div>
 
     <section class="plans" aria-label="Available plans">
 
-      <!-- Premium (1) -->
-      <article class="plan-card" aria-labelledby="premiumTitle">
+      <!-- Premium -->
+      <article class="plan-card">
         <div>
           <div class="plan-top">
-            <div class="badge premium" aria-hidden="true">P</div>
-            <div style="flex:1">
-              <div id="premiumTitle" class="plan-header">Premium</div>
-              <div class="plan-price"><span class="naira">₦</span>3,000</div>
-              <div class="plan-duration">Valid for 30 days</div>
+            <div class="badge premium">P</div>
+            <div>
+              <div class="plan-header">Premium</div>
+              <div class="plan-price">₦3,000</div>
             </div>
           </div>
-
-          <p class="plan-desc">Affordable starter plan — steady daily earnings to build momentum. Great for new users wanting fast returns.</p>
-
-          <ul class="plan-features" aria-hidden="false">
+          <p class="plan-desc">Affordable starter plan — steady daily earnings to build momentum.</p>
+          <ul class="plan-features">
             <li><i class="fas fa-check-circle"></i> Ideal for newcomers</li>
-            <li><i class="fas fa-check-circle"></i> Quick activation (≤12h)</li>
-            <li><i class="fas fa-check-circle"></i> Full support during activation</li>
           </ul>
         </div>
-
-        <div class="plan-footer" aria-hidden="false">
-          <a class="upgrade-link" href="upgrade-1.html" aria-label="Go to Premium upgrade page">Activate Premium — ₦3,000</a>
+        <div class="plan-footer">
+          <a class="upgrade-link" href="upgrade-1.html">Activate Premium — ₦3,000</a>
         </div>
       </article>
 
-      <!-- Gold (2) -->
-      <article class="plan-card" aria-labelledby="goldTitle">
+      <!-- Gold -->
+      <article class="plan-card">
         <div>
           <div class="plan-top">
-            <div class="badge gold" aria-hidden="true"><i class="fas fa-crown" style="font-size:18px;"></i></div>
-            <div style="flex:1">
-              <div id="goldTitle" class="plan-header">Gold</div>
-              <div class="plan-price"><span class="naira">₦</span>6,000</div>
-              <div class="plan-duration">Valid for 30 days</div>
+            <div class="badge gold"><i class="fas fa-crown"></i></div>
+            <div>
+              <div class="plan-header">Gold</div>
+              <div class="plan-price">₦6,000</div>
             </div>
           </div>
-
-          <p class="plan-desc"><strong>₦6,000 to earn ₦500 daily.</strong> High-yield plan for users who want a strong daily return over the 30-day activation period.</p>
-
-          <ul class="plan-features" aria-hidden="false">
+          <p class="plan-desc">₦6,000 to earn ₦500 daily.</p>
+          <ul class="plan-features">
             <li><i class="fas fa-check-circle"></i> Earn ₦400 daily</li>
-            <li><i class="fas fa-check-circle"></i> Priority activation (≤12h)</li>
-            <li><i class="fas fa-check-circle"></i> Recommended for experienced users</li>
           </ul>
         </div>
+        <div class="plan-footer">
+          <a class="upgrade-link gold" href="upgrade-2.html">Activate Gold — ₦6,000</a>
+        </div>
+      </article>
 
-        <div class="plan-footer" aria-hidden="false">
-          <a class="upgrade-link gold" href="upgrade-2.html" aria-label="Go to Gold upgrade page">Activate Gold — ₦6,000</a>
+      <!-- Elite -->
+      <article class="plan-card">
+        <div>
+          <div class="plan-top">
+            <div class="badge premium">E</div>
+            <div>
+              <div class="plan-header">Elite</div>
+              <div class="plan-price">₦50,000</div>
+            </div>
+          </div>
+          <p class="plan-desc">₦50,000 to earn ₦3,350 daily.</p>
+          <ul class="plan-features">
+            <li><i class="fas fa-check-circle"></i> Earn ₦3,350 daily</li>
+          </ul>
+        </div>
+        <div class="plan-footer">
+          <a class="upgrade-link gold" href="upgrade-3.html">Activate Elite — ₦50,000</a>
+        </div>
+      </article>
+
+      <!-- Diamond -->
+      <article class="plan-card">
+        <div>
+          <div class="plan-top">
+            <div class="badge gold"><i class="fas fa-gem"></i></div>
+            <div>
+              <div class="plan-header">Diamond</div>
+              <div class="plan-price">₦100,000</div>
+            </div>
+          </div>
+          <p class="plan-desc">₦100,000 to earn ₦6,700 daily.</p>
+          <ul class="plan-features">
+            <li><i class="fas fa-check-circle"></i> Earn ₦6,700 daily</li>
+          </ul>
+        </div>
+        <div class="plan-footer">
+          <a class="upgrade-link gold" href="upgrade-4.html">Activate Diamond — ₦100,000</a>
         </div>
       </article>
 
     </section>
   </main>
 
-  <footer role="contentinfo">© 2025 EasyPay • Activation processed within 12 hours</footer>
+  <footer>© 2025 EasyPay • Activation processed within 12 hours</footer>
 </body>
 </html>
