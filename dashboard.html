@@ -1,345 +1,419 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EasyPay Dashboard</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-  />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EasyPay — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" defer></script>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5fdf7;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+    :root{
+      --primary:#00b66d;
+      --primary-600:#059c56;
+      --bg:#f6fff7;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --shadow: 0 8px 24px rgba(16,24,40,0.06);
     }
-    header {
-      background-color: #009f4d;
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .profile {
-      position: relative;
-      cursor: pointer;
-    }
-    .profile-info {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 40px;
-      background: white;
-      color: black;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      width: 220px;
-      padding: 10px;
-      z-index: 1;
-    }
-    .profile-info.show {
-      display: block;
-    }
-    .profile-info p {
-      margin: 8px 0;
-      font-size: 0.95rem;
-    }
-    .profile-info button {
-      margin-top: 10px;
-      width: 100%;
-      padding: 8px;
-      background-color: #009f4d;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
-    .container {
-      padding: 20px;
-      flex-grow: 1;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .card h3 {
-      margin-top: 0;
-      color: #006400;
-    }
-    .copy-btn {
-      background: #009f4d;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-      font-size: 0.95rem;
-    }
-    .nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #009f4d;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-    }
-    .nav a {
-      color: white;
-      text-decoration: none;
-      text-align: center;
-      font-size: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .nav a i {
-      font-size: 1.5rem;
-      margin-bottom: 4px;
-    }
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-    .modal-content {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 90%;
-    }
-    .modal-content h2 {
-      margin-top: 0;
-      color: #009f4d;
-    }
-    .modal-content a {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #009f4d;
-      color: #fff;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:'Poppins',system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      background:var(--bg); color:#0f1720; min-height:100vh; display:flex;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }/* ---------- SIDEBAR ---------- */
+.sidebar {
+  position:fixed; left:-300px; top:0; height:100vh; width:300px;
+  background:var(--card); box-shadow:2px 0 18px rgba(0,0,0,0.08);
+  padding:18px; border-right:1px solid #f0f5f0;
+  transition:left .26s ease; overflow-y:auto; z-index:1200;
+  display:flex; flex-direction:column;
+}
+.sidebar.active { left:0; }
+.sidebar .close { text-align:right; margin-bottom:6px; cursor:pointer; font-size:18px; color:var(--muted) }
+.profile {
+  display:flex; gap:12px; align-items:center; padding:6px 0 14px; border-bottom:1px solid #f2f7f2;
+}
+.avatar {
+  width:52px; height:52px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#1b7a4b);
+  display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:18px;
+  flex-shrink:0; overflow:hidden;
+}
+.avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:12px }
+.profile-text { flex:1 }
+.greeting { font-weight:700; font-size:15px; color:var(--primary); line-height:1 }
+.sub { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.15 }
+
+nav.menu { margin-top:14px; flex:1 }
+nav.menu ul { list-style:none; padding:0; margin:0 }
+nav.menu li { margin:8px 0; }
+nav.menu a {
+  display:flex; gap:12px; align-items:center; text-decoration:none; color: #111827;
+  padding:10px 8px; border-radius:10px; transition:background .10s, transform .08s;
+}
+nav.menu a:hover { background:var(--primary); color:#fff; transform:translateX(4px); }
+nav.menu a i.emoji { font-style:normal; width:36px; text-align:center; font-size:18px; }
+nav.menu a span.label { font-weight:600; }
+
+.note { margin-top:18px; font-size:13px; color:var(--muted) }
+
+/* ---------- MAIN ---------- */
+.main {
+  flex:1; margin-left:0; transition:margin-left .26s; width:100%;
+  min-height:100vh; display:flex; flex-direction:column;
+}
+.main.shift { margin-left:300px; }
+
+header {
+  background:linear-gradient(90deg,var(--primary),var(--primary-600));
+  color:#fff; padding:12px 14px; display:flex; align-items:center; gap:12px;
+  justify-content:space-between;
+}
+.hamburger { font-size:20px; cursor:pointer; color:#fff; display:flex; align-items:center }
+.title { font-weight:700; font-size:16px }
+.profile-mini { display:flex; align-items:center; gap:10px }
+.profile-mini img { width:36px; height:36px; border-radius:8px; object-fit:cover }
+
+/* content area */
+.container { padding:14px; max-width:1150px; margin:0 auto; width:100% }
+
+/* top cards */
+.cards {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap:12px;
+  margin-bottom:14px;
+}
+.card {
+  background:var(--card); border-radius:10px; padding:12px;
+  box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px;
+  min-height:78px;
+}
+.card .label { color:var(--muted); font-size:13px; }
+.card .value { font-weight:800; font-size:20px; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* referral / code */
+.ref-card { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:12px; border-radius:10px; overflow:hidden; }
+.ref-input { background:#f2fff6; border:1px dashed #e6f7ec; padding:8px 10px; border-radius:8px; min-width:0; flex:1; width:100%; max-width:100%; box-sizing:border-box; overflow-x:auto; white-space:nowrap; text-overflow:ellipsis; font-weight:700; color:var(--primary); -webkit-overflow-scrolling:touch; cursor:text; }
+.copy-btn { background:var(--primary); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; min-width:86px; }
+
+/* floating WhatsApp */
+.wa {
+  position:fixed; right:16px; bottom:16px; background:#25D366; color:#fff;
+  width:52px; height:52px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1400; text-decoration:none;
+}
+
+/* responsive tweaks */
+@media (max-width:900px){
+  .sidebar{ width:86%; left:-100% }
+  .main.shift{ margin-left:0 }
+  .container{ padding:12px }
+  .card .value{ font-size:18px }
+}
+
   </style>
 </head>
 <body>
-  <header>
-    <h2>Welcome back, <span id="usernameDisplay"></span></h2>
-    <div class="profile" onclick="toggleProfile()">
-      <i class="fas fa-user-circle fa-2x"></i>
-      <div id="profileInfo" class="profile-info">
-        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-        <p><strong>Balance:</strong> ₦<span id="profileBalance"></span></p>
-        <button onclick="logout()">Logout</button>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar" aria-hidden="true">
+    <div class="close" onclick="toggleSidebar()" aria-label="Close menu"><i class="fas fa-times"></i></div>
+    <div class="profile" id="profileBlock">
+      <div class="avatar" id="avatar"><span id="avatarInitials">EP</span></div>
+      <div class="profile-text">
+        <div class="greeting" id="greeting">Good evening</div>
+        <div class="sub" id="usernameSub">Welcome, <strong id="sideUsername">User</strong></div>
+      </div>
+    </div><nav class="menu" aria-label="EasyPay menu">
+  <ul>
+    <li><a href="deposit.html"><i class="emoji">💳</i><span class="label">Deposit</span></a></li>
+    <li><a href="withdraw.html"><i class="emoji">🏧</i><span class="label">Withdraw</span></a></li>
+    <li><a href="advertise.html"><i class="emoji">📣</i><span class="label">Advertise</span></a></li>
+    <li><a href="earn.html"><i class="emoji">🧰</i><span class="label">Tasks</span></a></li>
+    <li><a href="user-submission.html"><i class="emoji">📒</i><span class="label">Task history</span></a></li>
+    <li><a href="referral.html"><i class="emoji">👥</i><span class="label">Referrals</span></a></li>
+    <li><a href="leaderboard.html"><i class="emoji">🏆</i><span class="label">Leaderboard</span></a></li>
+    <li><a href="posted-task.html"><i class="emoji">📝</i><span class="label">Manage Tasks</span></a></li>
+    <li><a href="profile.html"><i class="emoji">🙍‍♂️</i><span class="label">Profile</span></a></li>
+    <li><a href="tap.html"><i class="emoji">🤙</i><span class="label">Tap&Earn</span></a></li>
+
+    <li><a href="index.html"><i class="emoji">🚪</i><span class="label">Sign-Out</span></a></li>
+  </ul>
+</nav>
+
+<div class="note">Use the menu to navigate quickly — open Tasks or Shortlink to earn daily.</div>
+
+  </aside>  <!-- overlay -->  <div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1100;" onclick="toggleSidebar()"></div>  <!-- Main -->  <main class="main" id="main">
+    <header>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="hamburger" onclick="toggleSidebar()" aria-label="Open menu"><i class="fas fa-bars"></i></div>
+        <div class="title">EasyPay Dashboard</div>
+      </div>
+      <div class="profile-mini" id="profileMini">
+        <img id="miniAvatar" src="" alt="" style="display:none" />
+        <div id="miniName" style="color:#fff; font-weight:600">User</div>
+      </div>
+    </header><div class="container">
+  <!-- Top cards -->
+  <div class="cards" aria-hidden="false">
+    <div class="card">
+      <div class="label">Main Balance</div>
+      <div class="value">₦<span id="balance">0.00</span></div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="copy-btn" id="depositBtn" onclick="location.href='deposit.html'">Deposit</button>
+        <button class="copy-btn" style="background:#fff;color:var(--primary);border:1px solid #e6f7ec" onclick="location.href='withdraw.html'">Withdraw</button>
       </div>
     </div>
-  </header>
 
-  <div id="upgradeModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h2>Account Not Activated</h2>
-      <p>You need to upgrade your account to access earnings.</p>
-      <a href="upgrade.html">Upgrade</a>
+    <div class="card">
+      <div class="label">Available for Withdrawal</div>
+      <div class="value">₦<span id="available">0.00</span></div>
+      <small class="label">Ready balance</small>
+    </div>
+
+    <div class="card">
+      <div class="label">Total Referrals</div>
+      <div class="value"><span id="referrals">0</span></div>
+      <small class="label">People you referred</small>
     </div>
   </div>
 
-  <div class="container">
-    <div class="card">
-      <h3>Balance: ₦<span id="balance">0.00</span></h3>
-    </div>
-    <div class="card">
-      <h3>Total Referrals: <span id="referrals">0</span></h3>
-    </div>
-    <div class="card">
-      <h3>Referral Code:</h3>
-      <p id="referralCode" style="word-break: break-all;"></p>
-      <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
-    </div>
-    <div class="card">
-      <h3>Daily Bonus</h3>
-      <p id="countdown">Loading...</p>
-      <button class="copy-btn" id="claimBtn">Claim</button>
+  <!-- Referral Link -->
+  <div class="card ref-card" style="margin-bottom:12px;">
+    <div style="flex:1">
+      <div class="label">Referral Link</div>
+      <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+        <!-- Visible text only — link itself is hidden -->
+        <div class="ref-input" id="refCode" aria-hidden="true" title="Referral link is hidden">Get referral link!</div>
+        <button class="copy-btn" id="copyRefBtn">Copy</button>
+        <!-- hidden element holding the actual referral URL -->
+        <span id="hiddenRef" style="display:none" aria-hidden="true">loading...</span>
+      </div>
     </div>
   </div>
 
-  <div class="nav">
-    <a href="menu.html">
-      <i class="fas fa-home"></i>
-      Menu
-    </a>
-    <a href="advertise.html">
-      <i class="fas fa-bullhorn"></i>
-      Advertise
-    </a>
-    <a href="earn.html">
-      <i class="fas fa-money-bill-wave"></i>
-      Earn
-    </a>
-    <a href="leaderboard.html">
-      <i class="fas fa-trophy"></i>
-      Leaderboard
-    </a>
+  <!-- Daily Claim -->
+  <div class="card">
+    <div class="label">Daily Claim</div>
+    <div style="font-weight:700; font-size:16px; margin-top:6px">Claim ₦0.50 every 24 hours</div>
+    <button class="copy-btn" id="claimBtn" style="margin-top:10px; max-width:160px;">Claim Now</button>
+    <small id="claimStatus" class="label" style="margin-top:6px;"></small>
   </div>
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+  </main>  <!-- WhatsApp floating -->  <a class="wa" href="https://wa.me/2348132425678" target="_blank" title="Chat on WhatsApp">
+    <i class="fab fa-whatsapp" style="font-size:20px"></i>
+  </a>  <!-- FIREBASE & JS -->  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
-      getFirestore,
-      doc,
-      getDoc,
-      updateDoc,
-      collection,
-      query,
-      where,
-      getDocs
-    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+      getFirestore, collection, query, where, doc, onSnapshot, updateDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+    // ---------- FIREBASE CONFIG ----------
     const firebaseConfig = {
       apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
       authDomain: "easypay-6bce8.firebaseapp.com",
       projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
+      storageBucket: "easypay-6bce8.firebasestorage.app",
       messagingSenderId: "862671358267",
       appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
       measurementId: "G-2FZKDQ47FZ"
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
-    const auth = getAuth();
 
-    const LOGIN_TS_KEY = 'loginTimestamp';
+    // UI refs
+    const sideUsername = document.getElementById('sideUsername');
+    const greetingEl = document.getElementById('greeting');
+    const avatarEl = document.getElementById('avatar');
+    const avatarInitials = document.getElementById('avatarInitials');
+    const miniName = document.getElementById('miniName');
+    const miniAvatar = document.getElementById('miniAvatar');
 
-    function logoutAtMidnight() {
-      const now = new Date();
-      const millisUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
-      setTimeout(() => {
-        signOut(auth);
-      }, millisUntilMidnight);
+    const balanceEl = document.getElementById('balance');
+    const availableEl = document.getElementById('available');
+    const referralsEl = document.getElementById('referrals');
+    // visible placeholder element (non-clickable)
+    const refCodeEl = document.getElementById('refCode') || document.getElementById('refCodeVisible');
+    const hiddenRefEl = document.getElementById('hiddenRef');
+    const copyRefBtn = document.getElementById('copyRefBtn');
+    const claimBtn = document.getElementById('claimBtn');
+    const claimStatus = document.getElementById('claimStatus');
+
+    let userRefUnsub = null;
+    let currentUid = null;
+    let referralsUnsub = null;
+
+    function greetByHour(h){
+      // local hours (0-23) -> better split for more conventional greetings
+      if (h >= 5 && h < 12) return "Good morning";
+      if (h >= 12 && h < 17) return "Good afternoon";
+      return "Good evening";
     }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        localStorage.removeItem(LOGIN_TS_KEY);
-        window.location.href = 'login.html';
-        return;
-      }
-      if (!localStorage.getItem(LOGIN_TS_KEY)) {
-        localStorage.setItem(LOGIN_TS_KEY, Date.now());
-      }
+    function initialsFromName(name) {
+      if (!name) return 'EP';
+      const parts = String(name).trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
 
-      logoutAtMidnight();
+    // Set UI immediately from auth user (so it doesn't show 'User' while Firestore loads)
+    onAuthStateChanged(auth, async user => {
+      if (!user) return location.href = 'login.html';
+      currentUid = user.uid;
 
-      const uid = user.uid;
-      const userRef = doc(db, "users", uid);
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) return;
+      // immediate fallback name (before Firestore doc arrives)
+      const fallbackName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+      sideUsername.textContent = fallbackName;
+      miniName.textContent = fallbackName;
+      avatarInitials.textContent = initialsFromName(fallbackName);
 
-      const data = userSnap.data();
-      const username = data.username || "";
-      const email = data.email || "";
-      const balance = data.balance ?? 0;
-      const plan = data.plan || "basic";
+      // show greeting using local time + first name
+      const firstName = (fallbackName.split(' ')[0] || fallbackName);
+      greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${firstName}`;
 
-      document.getElementById("usernameDisplay").innerText = username;
-      document.getElementById("profileUsername").innerText = username;
-      document.getElementById("profileEmail").innerText = email;
-      document.getElementById("profileBalance").innerText = balance.toFixed(2);
-      document.getElementById("balance").innerText = balance.toFixed(2);
-      document.getElementById("referralCode").innerText = username;
+      // subscribe to user doc (realtime)
+      const uDocRef = doc(db, 'users', user.uid);
+      if (userRefUnsub) userRefUnsub();
+      userRefUnsub = onSnapshot(uDocRef, (snap) => {
+        if (!snap.exists()) return;
+        const data = snap.data();
 
-      if (plan === "basic") {
-        document.getElementById("upgradeModal").style.display = "flex";
-      }
+        // username precedence: Firestore username > auth displayName > email fallback
+        const username = (data.username && data.username.trim()) ? data.username.trim() : (user.displayName || (user.email ? user.email.split('@')[0] : 'User'));
+        sideUsername.textContent = username;
+        miniName.textContent = username;
 
-      try {
-        const referralsQuery = query(collection(db, "users"), where("referral", "==", username));
-        const snapshot = await getDocs(referralsQuery);
-        document.getElementById("referrals").innerText = snapshot.size;
-      } catch (e) {
-        document.getElementById("referrals").innerText = "0";
-      }
+        // update greeting to include the (possibly updated) first name
+        const displayFirst = (username.split(' ')[0] || username);
+        greetingEl.textContent = `${greetByHour(new Date().getHours())}, ${displayFirst}`;
 
-      const lastTs = data.lastClaim ?? 0;
-      const claimBtn = document.getElementById("claimBtn");
-      claimBtn.innerText = plan === "premium" ? "Claim ₦2" : "Claim ₦1";
-      claimBtn.onclick = () => claimNaira(uid);
-      updateCountdown(lastTs);
+        // avatar handling
+        if (data.photoURL) {
+          avatarEl.innerHTML = '<img src="'+escapeHtml(data.photoURL)+'" alt="avatar">';
+          miniAvatar.src = data.photoURL; miniAvatar.style.display = 'block';
+        } else {
+          avatarEl.innerHTML = '<span id="avatarInitials">'+ initialsFromName(username) +'</span>';
+          miniAvatar.style.display = 'none';
+        }
+
+        // balances & refs
+        const bal = Number(data.balance || 0);
+        balanceEl.textContent = (isFinite(bal) ? bal.toLocaleString() : "0.00");
+
+        // detach previous referrals listener (so we don't stack listeners)
+        if (typeof referralsUnsub === 'function') referralsUnsub();
+        try {
+          const usersCol = collection(db, 'users');
+          const refQuery = query(usersCol, where('ref', '==', username));
+          referralsUnsub = onSnapshot(refQuery, (qSnap) => {
+            referralsEl.textContent = (qSnap && typeof qSnap.size === 'number') ? qSnap.size : (data.referrals || 0);
+          }, (err) => {
+            console.error('Referrals query error:', err);
+            referralsEl.textContent = (data.referrals || 0);
+          });
+        } catch (err) {
+          console.error('Referrals listener setup failed:', err);
+          referralsEl.textContent = (data.referrals || 0);
+        }
+
+        // build referral URL and store it hidden (visible text remains "Get referral link!")
+        try {
+          const encoded = encodeURIComponent(username);
+          const refUrl = `https://easypay-ng.github.io/easypay/register.html?ref=${encoded}`;
+          if (hiddenRefEl) hiddenRefEl.textContent = refUrl;
+          if (refCodeEl) {
+            refCodeEl.textContent = 'Get referral link!';
+            refCodeEl.setAttribute('title', 'Click Copy to copy your referral link');
+            refCodeEl.style.cursor = 'default';
+          }
+        } catch (e) {
+          if (hiddenRefEl) hiddenRefEl.textContent = username;
+          if (refCodeEl) refCodeEl.textContent = 'Get referral link!';
+        }
+
+        // check last claim to toggle claim button
+        if (data.lastClaim) {
+          let lastDate;
+          if (typeof data.lastClaim.toDate === 'function') lastDate = data.lastClaim.toDate();
+          else if (typeof data.lastClaim === 'number') lastDate = new Date(data.lastClaim);
+          else lastDate = new Date(data.lastClaim);
+          const diff = Date.now() - lastDate.getTime();
+          if (diff < 24*60*60*1000) {
+            claimBtn.disabled = true;
+            claimBtn.style.background = "#ccc";
+            claimStatus.textContent = "You already claimed today. Come back later.";
+          } else {
+            claimBtn.disabled = false;
+            claimBtn.style.background = "var(--primary)";
+            claimStatus.textContent = "";
+          }
+        } else {
+          // no claim yet
+          claimBtn.disabled = false;
+          claimBtn.style.background = "var(--primary)";
+          claimStatus.textContent = "";
+        }
+
+        // ensure available shows latest
+        availableEl.textContent = balanceEl.textContent;
+      });
+
+      // claim handler — small note: using optimistic update via updateDoc; consider server transaction for production
+      claimBtn.addEventListener('click', async () => {
+        if (!currentUid) return;
+        try {
+          const uDocRef = doc(db, 'users', currentUid);
+
+          // take local display balance, parse it, add 0.5 and write back with timestamp
+          const localBal = Number(balanceEl.textContent.replace(/,/g,'')) || 0;
+          await updateDoc(uDocRef, {
+            balance: localBal + 0.5,
+            lastClaim: serverTimestamp()
+          });
+
+          claimBtn.disabled = true;
+          claimBtn.style.background = "#ccc";
+          claimStatus.textContent = "Claimed successfully! ₦0.50 added.";
+        } catch (err) {
+          console.error('Claim error:', err);
+          alert("Claim failed, try again.");
+        }
+      });
     });
 
-    window.claimNaira = async function(uid) {
-      const userRef = doc(db, "users", uid);
-      const userSnap = await getDoc(userRef);
-      const data = userSnap.data() || {};
-      const now = Date.now();
-      const lastTs = data.lastClaim ?? 0;
-      if (now - lastTs < 86400000) {
-        alert("You have to wait 24 hours before claiming again.");
-        return;
+    // simple escape
+    function escapeHtml(s){
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // copy referral code
+    copyRefBtn.addEventListener('click', async () => {
+      // copy from the hidden element (preferred) — fallback to visible text if hidden missing
+      const text = (hiddenRefEl && hiddenRefEl.textContent) ? hiddenRefEl.textContent : (refCodeEl ? refCodeEl.textContent : '');
+      try {
+        await navigator.clipboard.writeText(text);
+        copyRefBtn.textContent = 'Copied';
+        setTimeout(()=> copyRefBtn.textContent = 'Copy', 1500);
+      } catch (err) {
+        alert('Copy failed. Please copy the referral code from the link field.');
       }
-      const amount = data.plan === "premium" ? 2 : 1;
-      const newBalance = (data.balance || 0) + amount;
-      await updateDoc(userRef, { balance: newBalance, lastClaim: now });
-      document.getElementById("balance").innerText = newBalance.toFixed(2);
-      document.getElementById("profileBalance").innerText = newBalance.toFixed(2);
-      alert(`Claimed ₦${amount} Successfully!`);
-      updateCountdown(now);
-    };
+    });
 
-    window.updateCountdown = function(lastClaimTs) {
-      const countdownEl = document.getElementById("countdown");
-      const tick = () => {
-        const now = Date.now();
-        const next = lastClaimTs + 86400000;
-        const diff = next - now;
-        if (diff <= 0) {
-          countdownEl.innerText = "You can now claim!";
-        } else {
-          const hrs = Math.floor(diff / 3600000);
-          const mins = Math.floor((diff % 3600000) / 60000);
-          const secs = Math.floor((diff % 60000) / 1000);
-          countdownEl.innerText = `Next claim in: ${hrs}h ${mins}m ${secs}s`;
-        }
-      };
-      tick();
-      setInterval(tick, 1000);
+    // ---------- sidebar toggle ----------
+    window.toggleSidebar = function toggleSidebar(){
+      const sb = document.getElementById('sidebar');
+      const main = document.getElementById('main');
+      const overlay = document.getElementById('overlay');
+      const active = sb.classList.toggle('active');
+      if (active) { main.classList.add('shift'); overlay.style.display = 'block'; sb.setAttribute('aria-hidden','false'); }
+      else { main.classList.remove('shift'); overlay.style.display = 'none'; sb.setAttribute('aria-hidden','true'); }
     };
-
-    window.copyReferral = function() {
-      const code = document.getElementById("referralCode").innerText;
-      navigator.clipboard.writeText(code).then(() => alert("Referral code copied: " + code));
-    };
-
-    window.logout = function() {
-      signOut(auth);
-    };
-
-    window.toggleProfile = function() {
-      document.getElementById("profileInfo").classList.toggle("show");
-    };
-  </script>
-</body>
-</html>
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const sb=document.getElementById('sidebar'); if(sb.classList.contains('active')) toggleSidebar(); } });
+  </script></body>
+  </html>
