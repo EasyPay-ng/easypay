@@ -4,6 +4,10 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>EasyPay – Smart Crypto Investment Platform</title>
+
+<!-- FAVICON -->
+<link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
 <style>
@@ -18,16 +22,22 @@ a{text-decoration:none;}
 
 header{
   background:#0d1117;
-  color:#fff;
   padding:1rem 2rem;
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
 
-header h1{
-  color:#00ff99;
-  font-size:1.8rem;
+/* LOGO STYLE */
+.logo{
+  display:flex;
+  align-items:center;
+}
+
+.logo img{
+  height:45px;
+  width:auto;
+  object-fit:contain;
 }
 
 nav a{
@@ -82,55 +92,6 @@ nav a{
   color:#0d1117;
 }
 
-.plans{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:2rem;
-}
-
-.plan{
-  background:#fff;
-  padding:2rem;
-  border-radius:15px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.05);
-  text-align:center;
-  transition:0.3s;
-}
-
-.plan:hover{
-  transform:translateY(-10px);
-}
-
-.plan h3{
-  color:#00a86b;
-  margin-bottom:1rem;
-}
-
-.plan .price{
-  font-size:2rem;
-  margin:1rem 0;
-  color:#111;
-}
-
-.plan ul{
-  list-style:none;
-  margin-bottom:1.5rem;
-}
-
-.plan ul li{
-  margin-bottom:0.5rem;
-  font-size:0.9rem;
-}
-
-.plan button{
-  padding:0.7rem 1.5rem;
-  border:none;
-  border-radius:20px;
-  background:#00a86b;
-  color:#fff;
-  cursor:pointer;
-}
-
 .info-box{
   background:#fff;
   padding:2rem;
@@ -156,33 +117,6 @@ nav a{
   color:#00a86b;
 }
 
-.calculator{
-  background:#fff;
-  padding:2rem;
-  border-radius:15px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.05);
-  max-width:500px;
-  margin:auto;
-  text-align:center;
-}
-
-.calculator input{
-  width:100%;
-  padding:0.8rem;
-  margin:1rem 0;
-  border:1px solid #ddd;
-  border-radius:8px;
-}
-
-.calculator button{
-  padding:0.8rem 1.5rem;
-  background:#00a86b;
-  border:none;
-  color:#fff;
-  border-radius:8px;
-  cursor:pointer;
-}
-
 footer{
   background:#0d1117;
   color:#aaa;
@@ -196,7 +130,10 @@ footer{
 <body>
 
 <header>
-  <h1>EasyPay</h1>
+  <div class="logo">
+    <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg" alt="EasyPay Logo">
+  </div>
+
   <nav>
     <a href="login.html">Login</a>
     <a href="register.html">Register</a>
@@ -206,50 +143,10 @@ footer{
 <section class="hero">
   <h2>Secure Crypto & Digital Asset Investment</h2>
   <p>
-    EasyPay provides structured cryptocurrency-backed investment plans 
-    designed for consistent daily returns and capital growth.
+    EasyPay provides structured cryptocurrency-backed investment 
+    services designed for digital asset growth and financial flexibility.
   </p>
-  <button onclick="location.href='register.html'">Start Investing</button>
-</section>
-
-<section class="section">
-<h2>Investment Plans</h2>
-<div class="plans">
-
-<div class="plan">
-<h3>Starter Plan</h3>
-<div class="price">₦10,000</div>
-<ul>
-<li>Daily ROI: 5%</li>
-<li>Duration: 30 Days</li>
-<li>Total Return: ₦15,000</li>
-</ul>
-<button>Invest Now</button>
-</div>
-
-<div class="plan">
-<h3>Pro Plan</h3>
-<div class="price">₦50,000</div>
-<ul>
-<li>Daily ROI: 6%</li>
-<li>Duration: 30 Days</li>
-<li>Total Return: ₦90,000</li>
-</ul>
-<button>Invest Now</button>
-</div>
-
-<div class="plan">
-<h3>Elite Plan</h3>
-<div class="price">₦100,000</div>
-<ul>
-<li>Daily ROI: 7%</li>
-<li>Duration: 30 Days</li>
-<li>Total Return: ₦210,000</li>
-</ul>
-<button>Invest Now</button>
-</div>
-
-</div>
+  <button onclick="location.href='register.html'">Get Started</button>
 </section>
 
 <section class="section">
@@ -258,17 +155,16 @@ footer{
 <div class="info-box">
 <h3>🏦 Deposits</h3>
 <p>
-Investors can fund their accounts via bank transfer or supported crypto wallets.
-Once payment is confirmed, your investment activates instantly and begins generating daily ROI.
+Users can fund their accounts via supported payment methods.
+Funds reflect once confirmed and are securely recorded in your account.
 </p>
 </div>
 
 <div class="info-box">
 <h3>💳 Withdrawals</h3>
 <p>
-Withdrawals are processed within 24–48 hours. 
-Profits can be withdrawn anytime once minimum withdrawal threshold is reached.
-All transactions are securely verified before processing.
+Withdrawals are processed within 24–48 hours after verification.
+Minimum withdrawal rules apply.
 </p>
 </div>
 
@@ -279,46 +175,18 @@ All transactions are securely verified before processing.
 <div class="stats">
 <div class="stat">
 <h3>3,082</h3>
-<p>Total Investors</p>
+<p>Total Users</p>
 </div>
 <div class="stat">
 <h3>₦1,087,000</h3>
-<p>Total Paid Out</p>
+<p>Total Transactions</p>
 </div>
-</div>
-</section>
-
-<section class="section">
-<h2>ROI Calculator</h2>
-<div class="calculator">
-<input type="number" id="amount" placeholder="Enter Investment Amount (₦)">
-<input type="number" id="days" placeholder="Enter Duration (Days)">
-<button onclick="calculateROI()">Calculate Return</button>
-<h3 id="result"></h3>
 </div>
 </section>
 
 <footer>
 &copy; 2025 EasyPay. All rights reserved.
 </footer>
-
-<script>
-function calculateROI(){
-  let amount = parseFloat(document.getElementById("amount").value);
-  let days = parseFloat(document.getElementById("days").value);
-  
-  if(!amount || !days){
-    document.getElementById("result").innerText="Please enter valid values.";
-    return;
-  }
-  
-  let dailyRate = 0.05; 
-  let total = amount + (amount * dailyRate * days);
-  
-  document.getElementById("result").innerText =
-  "Estimated Return: ₦" + total.toLocaleString();
-}
-</script>
 
 </body>
 </html>
