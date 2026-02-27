@@ -1,1 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Choose Your Plan – EasyPay</title>
 
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300,400,600,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+  <style>
+    :root{
+      --bg: #f5fdf7;
+      --green: #009f4d;
+      --green-dark: #007a33;
+      --card: #ffffff;
+      --muted: #556064;
+      --accent-gold: #c79b1b;
+      --shadow-1: 0 6px 18px rgba(2, 48, 22, 0.06);
+      --radius: 12px;
+      --gap: 14px;
+      --max-width: 1200px;
+    }
+
+    * { box-sizing: border-box; }
+    body{
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg,#f7fff9 0%,var(--bg) 100%);
+      margin:0;
+      color:#173231;
+    }
+
+    header{
+      padding:18px 24px;
+      background: linear-gradient(90deg, rgba(0,159,77,0.96), rgba(5,125,66,0.95));
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .header-right{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .balance-chip{
+      background: rgba(255,255,255,0.15);
+      padding:8px 14px;
+      border-radius:999px;
+      font-weight:700;
+    }
+
+    .page{
+      max-width:1200px;
+      margin:20px auto;
+      padding:0 20px 40px;
+    }
+
+    .plans{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:20px;
+    }
+
+    .plan-card{
+      background:#fff;
+      padding:20px;
+      border-radius:12px;
+      box-shadow:var(--shadow-1);
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+
+    .plan-header{
+      font-size:1.2rem;
+      font-weight:700;
+    }
+
+    .plan-price{
+      font-size:1.6rem;
+      font-weight:800;
+      color:var(--green-dark);
+      margin:10px 0;
+    }
+
+    .upgrade-link{
+      display:inline-block;
+      margin-top:15px;
+      padding:10px 16px;
+      background:var(--green);
+      color:#fff;
+      text-decoration:none;
+      border-radius:8px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .upgrade-link.gold{
+      background: linear-gradient(90deg,var(--accent-gold), #b88617);
+      color:#2b1f05;
+    }
+
+    footer{
+      text-align:center;
+      padding:15px;
+      color:#556064;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h2>Choose Your Investment Plan</h2>
+
+  <div class="header-right">
+    <div class="balance-chip">
+      💰 Balance: ₦<span id="userBalance">0</span>
+    </div>
+
+    <div class="balance-chip">
+      📊 Plan: <span id="currentPlan">None</span>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="plans">
+
+    <div class="plan-card">
+      <div>
+        <div class="plan-header">Premium</div>
+        <div class="plan-price">₦3,000</div>
+      </div>
+      <a class="upgrade-link" onclick="invest(3000,'Premium')">
+        Invest — ₦3,000
+      </a>
+    </div>
+
+    <div class="plan-card">
+      <div>
+        <div class="plan-header">Gold</div>
+        <div class="plan-price">₦6,000</div>
+      </div>
+      <a class="upgrade-link gold" onclick="invest(6000,'Gold')">
+        Invest — ₦6,000
+      </a>
+    </div>
+
+    <div class="plan-card">
+      <div>
+        <div class="plan-header">Elite</div>
+        <div class="plan-price">₦50,000</div>
+      </div>
+      <a class="upgrade-link gold" onclick="invest(50000,'Elite')">
+        Invest — ₦50,000
+      </a>
+    </div>
+
+    <div class="plan-card">
+      <div>
+        <div class="plan-header">Diamond</div>
+        <div class="plan-price">₦100,000</div>
+      </div>
+      <a class="upgrade-link gold" onclick="invest(100000,'Diamond')">
+        Invest — ₦100,000
+      </a>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  © 2025 EasyPay • Only 1 Active Investment Allowed
+</footer>
+
+<script>
+/* ================================
+   EASY PAY INVESTMENT SYSTEM
+================================== */
+
+let balance = localStorage.getItem("userBalance");
+let activePlan = JSON.parse(localStorage.getItem("activePlan"));
+
+if (!balance) {
+  balance = 200000; // demo balance
+  localStorage.setItem("userBalance", balance);
+}
+
+balance = parseInt(balance);
+
+function updateUI() {
+  document.getElementById("userBalance").innerText = balance.toLocaleString();
+  document.getElementById("currentPlan").innerText = activePlan ? activePlan.name : "None";
+
+  if (activePlan) {
+    disableButtons();
+  }
+}
+
+function invest(amount, planName) {
+
+  if (activePlan) {
+    alert("❌ You already have an active plan: " + activePlan.name);
+    return;
+  }
+
+  if (balance < amount) {
+    alert("❌ Insufficient balance.");
+    return;
+  }
+
+  if (!confirm("Confirm investment of ₦" + amount.toLocaleString() + " in " + planName + " plan?")) {
+    return;
+  }
+
+  balance -= amount;
+
+  activePlan = {
+    name: planName,
+    amount: amount,
+    startDate: new Date().getTime(),
+    duration: 30
+  };
+
+  localStorage.setItem("userBalance", balance);
+  localStorage.setItem("activePlan", JSON.stringify(activePlan));
+
+  alert("✅ Investment successful!");
+
+  updateUI();
+}
+
+function disableButtons() {
+  document.querySelectorAll(".upgrade-link").forEach(btn => {
+    btn.style.pointerEvents = "none";
+    btn.style.opacity = "0.6";
+    btn.innerText = "Investment Active";
+  });
+}
+
+function checkExpiry() {
+  if (!activePlan) return;
+
+  let now = new Date().getTime();
+  let daysPassed = (now - activePlan.startDate) / (1000 * 60 * 60 * 24);
+
+  if (daysPassed >= activePlan.duration) {
+    alert("🎉 Your " + activePlan.name + " plan has expired.");
+    localStorage.removeItem("activePlan");
+    activePlan = null;
+    location.reload();
+  }
+}
+
+updateUI();
+checkExpiry();
+</script>
+
+</body>
+</html>
