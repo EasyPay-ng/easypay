@@ -24,26 +24,28 @@ header{
   background:#0d1117;
   padding:1rem 2rem;
   display:flex;
-  justify-content:space-between;
   align-items:center;
 }
 
-/* LOGO STYLE */
-.logo{
+/* BRAND AREA */
+.brand{
   display:flex;
   align-items:center;
+  gap:12px;
 }
 
-.logo img{
-  height:45px;
-  width:auto;
-  object-fit:contain;
+.brand img{
+  height:50px;
+  width:50px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #00ff99;
 }
 
-nav a{
-  margin-left:20px;
-  color:#fff;
-  font-weight:500;
+.brand h1{
+  color:#00ff99;
+  font-size:1.8rem;
+  font-weight:600;
 }
 
 .hero{
@@ -65,18 +67,32 @@ nav a{
   margin-bottom:2rem;
 }
 
-.hero button{
+/* HERO BUTTONS */
+.hero-buttons{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+.hero-buttons a{
   padding:0.9rem 2rem;
-  border:none;
   border-radius:30px;
   font-weight:600;
-  background:#00ff99;
-  color:#000;
-  cursor:pointer;
   transition:0.3s;
 }
 
-.hero button:hover{
+.register-btn{
+  background:#00ff99;
+  color:#000;
+}
+
+.login-btn{
+  border:2px solid #00ff99;
+  color:#00ff99;
+}
+
+.hero-buttons a:hover{
   transform:scale(1.05);
 }
 
@@ -130,14 +146,10 @@ footer{
 <body>
 
 <header>
-  <div class="logo">
+  <div class="brand">
     <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg" alt="EasyPay Logo">
+    <h1>EasyPay</h1>
   </div>
-
-  <nav>
-    <a href="login.html">Login</a>
-    <a href="register.html">Register</a>
-  </nav>
 </header>
 
 <section class="hero">
@@ -146,7 +158,11 @@ footer{
     EasyPay provides structured cryptocurrency-backed investment 
     services designed for digital asset growth and financial flexibility.
   </p>
-  <button onclick="location.href='register.html'">Get Started</button>
+
+  <div class="hero-buttons">
+    <a href="register.html" class="register-btn">Create Account</a>
+    <a href="login.html" class="login-btn">Login</a>
+  </div>
 </section>
 
 <section class="section">
