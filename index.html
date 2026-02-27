@@ -11,15 +11,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
 body{
   font-family:'Poppins',sans-serif;
   background:#f4f7f9;
   color:#222;
 }
 
+/* LINKS */
 a{text-decoration:none;}
 
+/* HEADER */
 header{
   background:#0d1117;
   padding:1rem 2rem;
@@ -48,6 +55,7 @@ header{
   font-weight:600;
 }
 
+/* HERO */
 .hero{
   background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   color:#fff;
@@ -56,8 +64,10 @@ header{
 }
 
 .hero h2{
-  font-size:2.5rem;
+  font-size:2.8rem;
   margin-bottom:1rem;
+  font-weight:700;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.4);
 }
 
 .hero p{
@@ -65,6 +75,8 @@ header{
   margin:auto;
   opacity:0.9;
   margin-bottom:2rem;
+  font-size:1.1rem;
+  line-height:1.6;
 }
 
 /* HERO BUTTONS */
@@ -76,10 +88,12 @@ header{
 }
 
 .hero-buttons a{
-  padding:0.9rem 2rem;
+  padding:1rem 2.2rem;
   border-radius:30px;
   font-weight:600;
   transition:0.3s;
+  font-size:1.05rem;
+  box-shadow:0 8px 20px rgba(0,255,153,0.2);
 }
 
 .register-btn{
@@ -90,12 +104,15 @@ header{
 .login-btn{
   border:2px solid #00ff99;
   color:#00ff99;
+  background:transparent;
 }
 
 .hero-buttons a:hover{
   transform:scale(1.05);
+  box-shadow:0 12px 25px rgba(0,255,153,0.35);
 }
 
+/* SECTION */
 .section{
   padding:4rem 1rem;
   max-width:1200px;
@@ -106,39 +123,62 @@ header{
   text-align:center;
   margin-bottom:3rem;
   color:#0d1117;
+  font-size:2rem;
+  font-weight:600;
 }
 
+/* INFO BOX */
 .info-box{
   background:#fff;
   padding:2rem;
   border-radius:15px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.05);
+  box-shadow:0 10px 35px rgba(0,0,0,0.08);
   margin-bottom:2rem;
+  transition:0.3s;
 }
 
+.info-box:hover{
+  transform:translateY(-5px);
+}
+
+/* STATS */
 .stats{
   display:flex;
-  justify-content:center;
-  gap:3rem;
-  flex-wrap:wrap;
+  flex-direction:column;
+  align-items:center;
+  gap:2rem;
   margin-top:2rem;
 }
 
 .stat{
   text-align:center;
+  background:#fff;
+  padding:2rem 2.5rem;
+  border-radius:20px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.08);
+  width:280px;
+  transition:0.3s;
+}
+
+.stat:hover{
+  transform:translateY(-5px);
 }
 
 .stat h3{
-  font-size:2rem;
+  font-size:2.4rem;
   color:#00a86b;
+  margin-bottom:0.5rem;
+  font-weight:700;
 }
 
+/* FOOTER */
 footer{
   background:#0d1117;
   color:#aaa;
   text-align:center;
   padding:2rem;
   margin-top:4rem;
+  font-size:0.95rem;
 }
 </style>
 </head>
@@ -148,7 +188,7 @@ footer{
 <header>
   <div class="brand">
     <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg" alt="EasyPay Logo">
-    <h1>EasyPay</h1>
+    <h1>EasyPay-NG</h1>
   </div>
 </header>
 
@@ -188,21 +228,49 @@ Minimum withdrawal rules apply.
 
 <section class="section">
 <h2>Platform Statistics</h2>
+
 <div class="stats">
+
 <div class="stat">
-<h3>3,082</h3>
+<h3 class="counter" data-target="3082">0</h3>
 <p>Total Users</p>
 </div>
+
 <div class="stat">
-<h3>₦1,087,000</h3>
+<h3 class="counter" data-target="1087000">₦0</h3>
 <p>Total Transactions</p>
 </div>
+
 </div>
+
 </section>
 
 <footer>
 &copy; 2025 EasyPay. All rights reserved.
 </footer>
+
+<script>
+// Animated Counter
+const counters = document.querySelectorAll('.counter');
+counters.forEach(counter => {
+  const updateCount = () => {
+    const target = +counter.getAttribute('data-target');
+    let count = +counter.innerText.replace(/[^0-9]/g,'');
+    const increment = target / 200; // adjust speed here
+    if(count < target){
+      counter.innerText = (count + increment < target ? Math.floor(count + increment) : target);
+      requestAnimationFrame(updateCount);
+    } else {
+      if(counter.innerText.includes('₦')===false && counter.dataset.target.includes('₦')){
+        counter.innerText = '₦'+target.toLocaleString();
+      } else {
+        counter.innerText = target.toLocaleString();
+      }
+    }
+  };
+  updateCount();
+});
+</script>
 
 </body>
 </html>
