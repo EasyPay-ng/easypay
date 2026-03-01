@@ -15,8 +15,6 @@ body{
   background:#f4fbf6;
   padding-bottom:90px;
 }
-
-/* HEADER */
 header{
   padding:20px;
   display:flex;
@@ -27,8 +25,6 @@ header{
   font-weight:600;
   color:#009f4d;
 }
-
-/* BALANCE CARD */
 .hero{
   margin:20px;
   background:linear-gradient(90deg,#009f4d,#00c261);
@@ -50,14 +46,12 @@ header{
   overflow:hidden;
   box-shadow:0 6px 20px rgba(0,0,0,0.05);
 }
-
 .carousel{
   position:relative;
   width:100%;
   height:180px;
   overflow:hidden;
 }
-
 .slide{
   position:absolute;
   width:100%;
@@ -65,17 +59,14 @@ header{
   opacity:0;
   transition:opacity 0.8s ease-in-out;
 }
-
 .slide img{
   width:100%;
   height:100%;
   object-fit:cover;
 }
-
 .slide.active{
   opacity:1;
 }
-
 .quote{
   padding:15px;
   text-align:center;
@@ -84,7 +75,7 @@ header{
   background:#f9fdfb;
 }
 
-/* INVESTMENT STATS */
+/* STATS */
 .stats{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
@@ -150,7 +141,7 @@ header{
   <div id="planInfo">No Active Plan</div>
 </div>
 
-<!-- ✅ CAROUSEL SECTION -->
+<!-- CAROUSEL -->
 <div class="carousel-container">
   <div class="carousel">
     <div class="slide active">
@@ -170,13 +161,12 @@ header{
     </div>
   </div>
   <div class="quote" id="quoteText">
-    “Invest wisely today for a better tomorrow.”
+    Invest wisely today for a better tomorrow.
   </div>
 </div>
 
 <div class="stats" id="investmentSection"></div>
 
-<!-- BOTTOM NAV -->
 <div class="bottom-nav">
   <div class="active">🏠<br>Home</div>
   <div onclick="location.href='plans.html'">📦<br>Plans</div>
@@ -186,43 +176,57 @@ header{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, deleteField, serverTimestamp } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  getAuth, 
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+  getFirestore, 
+  doc, 
+  getDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8"
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.firebasestorage.app",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-setPersistence(auth, browserLocalPersistence);
-
 let userData;
-let currentUser;
 
-onAuthStateChanged(auth, async (user) => {
-  if(!user){
-    window.location.href = "login.html";
-    return;
-  }
+/* ✅ Proper Auth Initialization */
+async function initAuth(){
+  await setPersistence(auth, browserLocalPersistence);
 
-  currentUser = user;
-  document.getElementById("username").innerText =
-    "Hi, " + (user.displayName || "User");
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){
+      window.location.href = "login.html";
+      return;
+    }
 
-  const ref = doc(db, "users", user.uid);
-  const snap = await getDoc(ref);
-  if(!snap.exists()) return;
+    document.getElementById("username").innerText =
+      "Hi, " + (user.displayName || "User");
 
-  userData = snap.data();
-  updateUI();
-});
+    const ref = doc(db,"users",user.uid);
+    const snap = await getDoc(ref);
+
+    if(!snap.exists()) return;
+
+    userData = snap.data();
+    updateUI();
+  });
+}
+
+initAuth();
 
 function updateUI(){
   document.getElementById("balance").innerText =
@@ -230,13 +234,14 @@ function updateUI(){
 
   if(!userData.investment){
     document.getElementById("planInfo").innerText = "No Active Plan";
-  } else {
-    document.getElementById("planInfo").innerText =
-      userData.investment.planName + " Plan";
+    return;
   }
+
+  document.getElementById("planInfo").innerText =
+    userData.investment.planName + " Plan";
 }
 
-/* ✅ CAROUSEL AUTO SLIDE */
+/* CAROUSEL AUTO SLIDE */
 const slides = document.querySelectorAll(".slide");
 const quotes = [
   "Invest wisely today for a better tomorrow.",
@@ -247,12 +252,14 @@ const quotes = [
 ];
 
 let index = 0;
+
 setInterval(()=>{
   slides[index].classList.remove("active");
   index = (index + 1) % slides.length;
   slides[index].classList.add("active");
   document.getElementById("quoteText").innerText = quotes[index];
 },3000);
+
 </script>
 
 </body>
