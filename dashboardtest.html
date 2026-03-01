@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 
-<!-- Favicon -->
-<link rel="icon" type="image/png" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1752962852/file_00000000401861f8bf6acb6/favicon.png">
+<link rel="icon" type="image/png"
+href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1752962852/file_00000000401861f8bf6acb6/favicon.png">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EasyPay Dashboard</title>
@@ -26,10 +26,6 @@ header{
   align-items:center;
 }
 
-header h2{
-  margin:0;
-}
-
 .username{
   font-weight:600;
   color:#009f4d;
@@ -47,10 +43,6 @@ header h2{
 .hero h1{
   margin:10px 0 5px 0;
   font-size:28px;
-}
-
-.hero small{
-  opacity:0.9;
 }
 
 .stats{
@@ -78,7 +70,6 @@ header h2{
 .progress{
   height:100%;
   background:#009f4d;
-  width:0%;
 }
 
 .actions{
@@ -115,7 +106,7 @@ header h2{
   color:#777;
 }
 
-.bottom-nav div.active{
+.bottom-nav .active{
   color:#009f4d;
   font-weight:600;
 }
@@ -151,37 +142,67 @@ header h2{
 </div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, deleteField, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  getAuth, 
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  deleteField, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
   authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8"
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.firebasestorage.app",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+  measurementId: "G-2FZKDQ47FZ"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+setPersistence(auth, browserLocalPersistence);
+
 let userData;
 let currentUser;
 
-onAuthStateChanged(auth, async (user)=>{
+onAuthStateChanged(auth, async (user) => {
+
   if(!user){
-    window.location.href="login.html";
+    window.location.href = "login.html";
     return;
   }
 
-  currentUser=user;
-  document.getElementById("username").innerText="Hi, "+(user.displayName || "User");
+  currentUser = user;
+  document.getElementById("username").innerText =
+    "Hi, " + (user.displayName || "User");
 
-  const ref=doc(db,"users",user.uid);
-  const snap=await getDoc(ref);
-  userData=snap.data();
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+
+  if(!snap.exists()){
+    console.log("User data not found");
+    return;
+  }
+
+  userData = snap.data();
 
   await handleDailyCredit(ref);
+
   updateUI();
 });
 
@@ -189,76 +210,77 @@ async function handleDailyCredit(ref){
 
   if(!userData.investment) return;
 
-  const inv=userData.investment;
+  const inv = userData.investment;
+  const now = new Date();
+  const start = new Date(inv.startDate.seconds * 1000);
 
-  const now=new Date();
-  const start=new Date(inv.startDate.seconds*1000);
-  const lastCredit=inv.lastCreditDate
-      ? new Date(inv.lastCreditDate.seconds*1000)
-      : start;
+  const lastCredit = inv.lastCreditDate
+    ? new Date(inv.lastCreditDate.seconds * 1000)
+    : start;
 
-  const totalDays=Math.floor((now-start)/(1000*60*60*24));
-  const creditedDays=Math.floor((lastCredit-start)/(1000*60*60*24));
+  const totalDays = Math.floor((now - start) / (1000*60*60*24));
+  const creditedDays = Math.floor((lastCredit - start) / (1000*60*60*24));
 
-  let daysToCredit=totalDays-creditedDays;
+  let daysToCredit = totalDays - creditedDays;
 
-  if(daysToCredit<=0) return;
+  if(daysToCredit <= 0) return;
 
-  if(totalDays>=inv.duration){
-    daysToCredit=inv.duration-creditedDays;
+  if(totalDays >= inv.duration){
+    daysToCredit = inv.duration - creditedDays;
   }
 
-  const creditAmount=daysToCredit*inv.dailyEarning;
+  const creditAmount = daysToCredit * inv.dailyEarning;
 
-  if(creditAmount>0){
-    await updateDoc(ref,{
-      balance:(userData.balance||0)+creditAmount,
-      "investment.lastCreditDate":serverTimestamp()
+  if(creditAmount > 0){
+    await updateDoc(ref, {
+      balance: (userData.balance || 0) + creditAmount,
+      "investment.lastCreditDate": serverTimestamp()
     });
 
-    userData.balance+=creditAmount;
+    userData.balance += creditAmount;
   }
 
-  if(totalDays>=inv.duration){
-    await updateDoc(ref,{
-      activePlan:null,
-      investment:deleteField()
+  if(totalDays >= inv.duration){
+    await updateDoc(ref, {
+      activePlan: null,
+      investment: deleteField()
     });
-    userData.activePlan=null;
-    userData.investment=null;
+
+    userData.activePlan = null;
+    userData.investment = null;
   }
 }
 
 function updateUI(){
 
-  document.getElementById("balance").innerText=
-    (userData.balance||0).toLocaleString();
+  document.getElementById("balance").innerText =
+    (userData.balance || 0).toLocaleString();
 
-  const section=document.getElementById("investmentSection");
-  section.innerHTML="";
+  const section = document.getElementById("investmentSection");
+  section.innerHTML = "";
 
   if(!userData.investment){
-    document.getElementById("planInfo").innerText="No Active Plan";
+    document.getElementById("planInfo").innerText = "No Active Plan";
     return;
   }
 
-  const inv=userData.investment;
-  const now=new Date();
-  const start=new Date(inv.startDate.seconds*1000);
-  const daysPassed=Math.floor((now-start)/(1000*60*60*24));
-  const progress=Math.min((daysPassed/inv.duration)*100,100);
+  const inv = userData.investment;
+  const now = new Date();
+  const start = new Date(inv.startDate.seconds * 1000);
+  const daysPassed = Math.floor((now - start) / (1000*60*60*24));
+  const progress = Math.min((daysPassed / inv.duration) * 100, 100);
 
-  document.getElementById("planInfo").innerText=
-    inv.planName+" Plan";
+  document.getElementById("planInfo").innerText =
+    inv.planName + " Plan";
 
-  section.innerHTML=`
+  section.innerHTML = `
     <div class="card">
       <strong>Daily Earnings</strong><br>
       ₦${inv.dailyEarning.toLocaleString()}
     </div>
     <div class="card">
       <strong>Days Passed</strong><br>
-      ${Math.min(daysPassed,inv.duration)} / ${inv.duration}
+      ${Math.min(daysPassed, inv.duration)} / ${inv.duration}
       <div class="progress-bar">
         <div class="progress" style="width:${progress}%"></div>
       </div>
@@ -269,6 +291,7 @@ function updateUI(){
     </div>
   `;
 }
+
 </script>
 
 </body>
