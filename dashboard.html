@@ -19,7 +19,6 @@ body{
   padding-bottom:90px;
 }
 
-/* HEADER */
 header{
   padding:20px;
   display:flex;
@@ -32,51 +31,47 @@ header{
   color:#009f4d;
 }
 
-/* BALANCE CARD */
 .hero{
   margin:20px;
-  background:linear-gradient(135deg,#008f45,#00c261,#00e676);
+  background:linear-gradient(90deg,#009f4d,#00c261);
   color:white;
-  padding:28px;
-  border-radius:20px;
-  box-shadow:0 15px 35px rgba(0,0,0,0.12);
+  padding:25px;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
 }
 
 .hero h1{
   margin:10px 0 5px 0;
-  font-size:30px;
-  letter-spacing:1px;
+  font-size:28px;
 }
 
-/* CAROUSEL */
-.carousel{
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:15px;
   margin:20px;
-  position:relative;
-  border-radius:18px;
-  overflow:hidden;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 
-.carousel img{
-  width:100%;
-  height:200px;
-  object-fit:cover;
-  display:none;
-}
-
-.carousel img.active{
-  display:block;
-}
-
-.quote{
-  text-align:center;
-  padding:15px;
-  font-weight:500;
-  color:#333;
+.card{
   background:white;
+  padding:18px;
+  border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.05);
 }
 
-/* ACTION BUTTONS */
+.progress-bar{
+  height:10px;
+  background:#eee;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.progress{
+  height:100%;
+  background:#009f4d;
+}
+
 .actions{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -94,7 +89,6 @@ header{
   cursor:pointer;
 }
 
-/* BOTTOM NAV */
 .bottom-nav{
   position:fixed;
   bottom:0;
@@ -110,7 +104,6 @@ header{
   text-align:center;
   font-size:12px;
   color:#777;
-  cursor:pointer;
 }
 
 .bottom-nav .active{
@@ -133,39 +126,40 @@ header{
   <div id="planInfo">No Active Plan</div>
 </div>
 
-<!-- CAROUSEL -->
-<div class="carousel">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/what-is-investment_bznczq.webp" class="active">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/ROI-return-on-investment-1024x626_apfrbs.jpg">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/Return-on-Investment-Formula-ROI_zxmjno.jpg">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/investing_101_naic.jpg_ajqckt.jpg">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/income-investing_gjkkbk.jpg">
-</div>
-
-<div class="quote" id="quoteText">
-  "Invest today for a stronger tomorrow."
-</div>
+<div class="stats" id="investmentSection"></div>
 
 <div class="actions">
-  <button onclick="location.href='invest.html'">Invest</button>
-  <button onclick="location.href='deposit.html'">Deposit</button>
-  <button onclick="location.href='withdraw.html'">Withdraw</button>
+  <button onclick="location.href='plans.html'">View Plans</button>
+  <button>Deposit</button>
+  <button>Withdraw</button>
 </div>
 
 <div class="bottom-nav">
   <div class="active">🏠<br>Home</div>
-  <div onclick="location.href='invest.html'">📦<br>Plans</div>
-  <div onclick="location.href='deposit.html'">💳<br>Deposit</div>
-  <div onclick="location.href='profile.html'">👤<br>Profile</div>
+  <div onclick="location.href='plans.html'">📦<br>Plans</div>
+  <div>💳<br>Wallet</div>
+  <div>👤<br>Profile</div>
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  getAuth, 
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  deleteField, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
@@ -173,7 +167,8 @@ const firebaseConfig = {
   projectId: "easypay-6bce8",
   storageBucket: "easypay-6bce8.firebasestorage.app",
   messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+  measurementId: "G-2FZKDQ47FZ"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -182,45 +177,120 @@ const db = getFirestore(app);
 
 setPersistence(auth, browserLocalPersistence);
 
-onAuthStateChanged(auth, async (user)=>{
+let userData;
+let currentUser;
+
+onAuthStateChanged(auth, async (user) => {
+
   if(!user){
-    window.location.href="login.html";
+    window.location.href = "login.html";
     return;
   }
 
+  currentUser = user;
   document.getElementById("username").innerText =
     "Hi, " + (user.displayName || "User");
 
-  const snap = await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists()) return;
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
 
-  const data = snap.data();
+  if(!snap.exists()){
+    console.log("User data not found");
+    return;
+  }
 
-  document.getElementById("balance").innerText =
-    (data.balance || 0).toLocaleString();
+  userData = snap.data();
 
-  document.getElementById("planInfo").innerText =
-    data.activePlan ? data.activePlan + " Plan" : "No Active Plan";
+  await handleDailyCredit(ref);
+
+  updateUI();
 });
 
-/* CAROUSEL SCRIPT */
-const images = document.querySelectorAll(".carousel img");
-const quotes = [
-  "Invest today for a stronger tomorrow.",
-  "Your money should work harder than you.",
-  "Consistency builds wealth.",
-  "Smart investing creates freedom.",
-  "Grow your future with discipline."
-];
+async function handleDailyCredit(ref){
 
-let index = 0;
+  if(!userData.investment) return;
 
-setInterval(()=>{
-  images[index].classList.remove("active");
-  index = (index + 1) % images.length;
-  images[index].classList.add("active");
-  document.getElementById("quoteText").innerText = `"${quotes[index]}"`;
-},3000);
+  const inv = userData.investment;
+  const now = new Date();
+  const start = new Date(inv.startDate.seconds * 1000);
+
+  const lastCredit = inv.lastCreditDate
+    ? new Date(inv.lastCreditDate.seconds * 1000)
+    : start;
+
+  const totalDays = Math.floor((now - start) / (1000*60*60*24));
+  const creditedDays = Math.floor((lastCredit - start) / (1000*60*60*24));
+
+  let daysToCredit = totalDays - creditedDays;
+
+  if(daysToCredit <= 0) return;
+
+  if(totalDays >= inv.duration){
+    daysToCredit = inv.duration - creditedDays;
+  }
+
+  const creditAmount = daysToCredit * inv.dailyEarning;
+
+  if(creditAmount > 0){
+    await updateDoc(ref, {
+      balance: (userData.balance || 0) + creditAmount,
+      "investment.lastCreditDate": serverTimestamp()
+    });
+
+    userData.balance += creditAmount;
+  }
+
+  if(totalDays >= inv.duration){
+    await updateDoc(ref, {
+      activePlan: null,
+      investment: deleteField()
+    });
+
+    userData.activePlan = null;
+    userData.investment = null;
+  }
+}
+
+function updateUI(){
+
+  document.getElementById("balance").innerText =
+    (userData.balance || 0).toLocaleString();
+
+  const section = document.getElementById("investmentSection");
+  section.innerHTML = "";
+
+  if(!userData.investment){
+    document.getElementById("planInfo").innerText = "No Active Plan";
+    return;
+  }
+
+  const inv = userData.investment;
+  const now = new Date();
+  const start = new Date(inv.startDate.seconds * 1000);
+  const daysPassed = Math.floor((now - start) / (1000*60*60*24));
+  const progress = Math.min((daysPassed / inv.duration) * 100, 100);
+
+  document.getElementById("planInfo").innerText =
+    inv.planName + " Plan";
+
+  section.innerHTML = `
+    <div class="card">
+      <strong>Daily Earnings</strong><br>
+      ₦${inv.dailyEarning.toLocaleString()}
+    </div>
+    <div class="card">
+      <strong>Days Passed</strong><br>
+      ${Math.min(daysPassed, inv.duration)} / ${inv.duration}
+      <div class="progress-bar">
+        <div class="progress" style="width:${progress}%"></div>
+      </div>
+    </div>
+    <div class="card">
+      <strong>Total Expected</strong><br>
+      ₦${inv.totalExpected.toLocaleString()}
+    </div>
+  `;
+}
 
 </script>
 
