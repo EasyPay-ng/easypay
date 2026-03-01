@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+
 <link rel="icon" type="image/png"
 href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1752962852/file_00000000401861f8bf6acb6/favicon.png">
+
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EasyPay Dashboard</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -15,89 +18,80 @@ body{
   background:#f4fbf6;
   padding-bottom:90px;
 }
+
+/* HEADER */
 header{
   padding:20px;
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
+
 .username{
   font-weight:600;
   color:#009f4d;
 }
+
+/* BALANCE CARD */
 .hero{
   margin:20px;
-  background:linear-gradient(90deg,#009f4d,#00c261);
+  background:linear-gradient(135deg,#008f45,#00c261,#00e676);
   color:white;
-  padding:25px;
-  border-radius:18px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+  padding:28px;
+  border-radius:20px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.12);
 }
+
 .hero h1{
   margin:10px 0 5px 0;
-  font-size:28px;
+  font-size:30px;
+  letter-spacing:1px;
 }
 
 /* CAROUSEL */
-.carousel-container{
-  margin:0 20px 20px 20px;
-  background:white;
-  border-radius:16px;
-  overflow:hidden;
-  box-shadow:0 6px 20px rgba(0,0,0,0.05);
-}
 .carousel{
+  margin:20px;
   position:relative;
-  width:100%;
-  height:180px;
+  border-radius:18px;
   overflow:hidden;
-}
-.slide{
-  position:absolute;
-  width:100%;
-  height:100%;
-  opacity:0;
-  transition:opacity 0.8s ease-in-out;
-}
-.slide img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-.slide.active{
-  opacity:1;
-}
-.quote{
-  padding:15px;
-  text-align:center;
-  font-size:14px;
-  color:#444;
-  background:#f9fdfb;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 
-/* STATS */
-.stats{
+.carousel img{
+  width:100%;
+  height:200px;
+  object-fit:cover;
+  display:none;
+}
+
+.carousel img.active{
+  display:block;
+}
+
+.quote{
+  text-align:center;
+  padding:15px;
+  font-weight:500;
+  color:#333;
+  background:white;
+}
+
+/* ACTION BUTTONS */
+.actions{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  grid-template-columns:repeat(3,1fr);
   gap:15px;
   margin:20px;
 }
-.card{
-  background:white;
-  padding:18px;
-  border-radius:14px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.05);
-}
-.progress-bar{
-  height:10px;
-  background:#eee;
-  border-radius:20px;
-  overflow:hidden;
-  margin-top:10px;
-}
-.progress{
-  height:100%;
+
+.actions button{
+  padding:12px;
+  border:none;
+  border-radius:10px;
   background:#009f4d;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
 }
 
 /* BOTTOM NAV */
@@ -111,23 +105,21 @@ header{
   padding:15px 0;
   box-shadow:0 -4px 20px rgba(0,0,0,0.05);
 }
+
 .bottom-nav div{
   text-align:center;
   font-size:12px;
   color:#777;
   cursor:pointer;
 }
+
 .bottom-nav .active{
   color:#009f4d;
   font-weight:600;
 }
-
-@media(max-width:500px){
-  .hero h1{font-size:24px;}
-  .carousel{height:160px;}
-}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -142,54 +134,41 @@ header{
 </div>
 
 <!-- CAROUSEL -->
-<div class="carousel-container">
-  <div class="carousel">
-    <div class="slide active">
-      <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/what-is-investment_bznczq.webp">
-    </div>
-    <div class="slide">
-      <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/ROI-return-on-investment-1024x626_apfrbs.jpg">
-    </div>
-    <div class="slide">
-      <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/Return-on-Investment-Formula-ROI_zxmjno.jpg">
-    </div>
-    <div class="slide">
-      <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/investing_101_naic.jpg_ajqckt.jpg">
-    </div>
-    <div class="slide">
-      <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/income-investing_gjkkbk.jpg">
-    </div>
-  </div>
-  <div class="quote" id="quoteText">
-    Invest wisely today for a better tomorrow.
-  </div>
+<div class="carousel">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/what-is-investment_bznczq.webp" class="active">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/ROI-return-on-investment-1024x626_apfrbs.jpg">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/Return-on-Investment-Formula-ROI_zxmjno.jpg">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/investing_101_naic.jpg_ajqckt.jpg">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/income-investing_gjkkbk.jpg">
 </div>
 
-<div class="stats" id="investmentSection"></div>
+<div class="quote" id="quoteText">
+  "Invest today for a stronger tomorrow."
+</div>
+
+<div class="actions">
+  <button onclick="location.href='invest.html'">Invest</button>
+  <button onclick="location.href='deposit.html'">Deposit</button>
+  <button onclick="location.href='withdraw.html'">Withdraw</button>
+</div>
 
 <div class="bottom-nav">
   <div class="active">🏠<br>Home</div>
-  <div onclick="location.href='plans.html'">📦<br>Plans</div>
+  <div onclick="location.href='invest.html'">📦<br>Plans</div>
   <div onclick="location.href='deposit.html'">💳<br>Deposit</div>
   <div onclick="location.href='profile.html'">👤<br>Profile</div>
 </div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getAuth, 
-  onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-  getFirestore, 
-  doc, 
-  getDoc 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
   authDomain: "easypay-6bce8.firebaseapp.com",
   projectId: "easypay-6bce8",
   storageBucket: "easypay-6bce8.firebasestorage.app",
@@ -201,63 +180,46 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let userData;
+setPersistence(auth, browserLocalPersistence);
 
-/* ✅ Proper Auth Initialization */
-async function initAuth(){
-  await setPersistence(auth, browserLocalPersistence);
-
-  onAuthStateChanged(auth, async (user)=>{
-    if(!user){
-      window.location.href = "login.html";
-      return;
-    }
-
-    document.getElementById("username").innerText =
-      "Hi, " + (user.displayName || "User");
-
-    const ref = doc(db,"users",user.uid);
-    const snap = await getDoc(ref);
-
-    if(!snap.exists()) return;
-
-    userData = snap.data();
-    updateUI();
-  });
-}
-
-initAuth();
-
-function updateUI(){
-  document.getElementById("balance").innerText =
-    (userData.balance || 0).toLocaleString();
-
-  if(!userData.investment){
-    document.getElementById("planInfo").innerText = "No Active Plan";
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    window.location.href="login.html";
     return;
   }
 
-  document.getElementById("planInfo").innerText =
-    userData.investment.planName + " Plan";
-}
+  document.getElementById("username").innerText =
+    "Hi, " + (user.displayName || "User");
 
-/* CAROUSEL AUTO SLIDE */
-const slides = document.querySelectorAll(".slide");
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists()) return;
+
+  const data = snap.data();
+
+  document.getElementById("balance").innerText =
+    (data.balance || 0).toLocaleString();
+
+  document.getElementById("planInfo").innerText =
+    data.activePlan ? data.activePlan + " Plan" : "No Active Plan";
+});
+
+/* CAROUSEL SCRIPT */
+const images = document.querySelectorAll(".carousel img");
 const quotes = [
-  "Invest wisely today for a better tomorrow.",
-  "Small investments today can create big wealth tomorrow.",
-  "Discipline is the bridge between goals and wealth.",
-  "Your money should work as hard as you do.",
-  "Consistency builds financial freedom."
+  "Invest today for a stronger tomorrow.",
+  "Your money should work harder than you.",
+  "Consistency builds wealth.",
+  "Smart investing creates freedom.",
+  "Grow your future with discipline."
 ];
 
 let index = 0;
 
 setInterval(()=>{
-  slides[index].classList.remove("active");
-  index = (index + 1) % slides.length;
-  slides[index].classList.add("active");
-  document.getElementById("quoteText").innerText = quotes[index];
+  images[index].classList.remove("active");
+  index = (index + 1) % images.length;
+  images[index].classList.add("active");
+  document.getElementById("quoteText").innerText = `"${quotes[index]}"`;
 },3000);
 
 </script>
