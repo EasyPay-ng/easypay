@@ -5,8 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EasyPay Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- FAVICON -->
 <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
 <style>
 body{
   margin:0;
@@ -94,7 +98,7 @@ header{
   font-weight:600;
 }
 </style>
-</head>
+<script src="https://pl28829146.effectivegatecpm.com/d4/9d/29/d49d290fd69d9f58796da5cd8256f242.js"></script></head>
 <body>
 
 <header>
@@ -106,20 +110,6 @@ header{
   <small>Available Balance</small>
   <h1>₦<span id="balance">0</span></h1>
   <div id="planInfo">No Active Plan</div>
-</div>
-
-<!-- AD SECTION -->
-<div style="display:flex; justify-content:center; margin:20px 0;">
-  <script>
-    atOptions = {
-      'key' : 'fafe647ddf1b3a3e745fe07c4ae142c1',
-      'format' : 'iframe',
-      'height' : 300,
-      'width' : 160,
-      'params' : {}
-    };
-  </script>
-  <script src="https://www.highperformanceformat.com/fafe647ddf1b3a3e745fe07c4ae142c1/invoke.js"></script>
 </div>
 
 <div class="carousel">
@@ -164,6 +154,7 @@ const db = getFirestore(app);
 
 async function initAuth(){
   await setPersistence(auth, browserLocalPersistence);
+
   onAuthStateChanged(auth, async (user)=>{
     if(!user){
       window.location.href="login.html";
@@ -188,18 +179,24 @@ async function initAuth(){
     updateUI(data);
   });
 }
+
 initAuth();
 
+/* AUTO DAILY CREDIT */
 async function handleDailyCredit(userRef, data){
+
   const inv = data.investment;
+
   const now = new Date();
   const start = new Date(inv.startDate.seconds * 1000);
+
   const lastCredit = inv.lastCreditDate
     ? new Date(inv.lastCreditDate.seconds * 1000)
     : start;
 
   const totalDays = Math.floor((now - start)/(1000*60*60*24));
   const creditedDays = Math.floor((lastCredit - start)/(1000*60*60*24));
+
   let daysToCredit = totalDays - creditedDays;
 
   if(daysToCredit <= 0) return;
@@ -225,7 +222,9 @@ async function handleDailyCredit(userRef, data){
   }
 }
 
+/* UPDATE UI */
 function updateUI(data){
+
   document.getElementById("balance").innerText =
     (data.balance || 0).toLocaleString();
 
@@ -263,6 +262,7 @@ function updateUI(data){
   `;
 }
 
+/* CAROUSEL */
 const images = document.querySelectorAll(".carousel img");
 let i = 0;
 setInterval(()=>{
@@ -270,6 +270,7 @@ setInterval(()=>{
   i = (i+1)%images.length;
   images[i].classList.add("active");
 },3000);
+
 </script>
 
 </body>
