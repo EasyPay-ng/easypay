@@ -2,16 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<link rel="icon" type="image/png"
-href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1752962852/file_00000000401861f8bf6acb6/favicon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EasyPay Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-    <!-- FAVICON -->
-<link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
 <style>
 body{
@@ -20,8 +13,6 @@ body{
   background:#f4fbf6;
   padding-bottom:90px;
 }
-
-/* HEADER */
 header{
   padding:20px;
   display:flex;
@@ -32,28 +23,21 @@ header{
   font-weight:600;
   color:#009f4d;
 }
-
-/* BALANCE CARD */
 .hero{
   margin:20px;
   background:linear-gradient(135deg,#008f45,#00c261,#00e676);
   color:white;
   padding:28px;
   border-radius:20px;
-  box-shadow:0 15px 35px rgba(0,0,0,0.12);
 }
 .hero h1{
   margin:10px 0 5px 0;
   font-size:30px;
 }
-
-/* CAROUSEL */
 .carousel{
   margin:20px;
-  position:relative;
   border-radius:18px;
   overflow:hidden;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 .carousel img{
   width:100%;
@@ -61,18 +45,12 @@ header{
   object-fit:cover;
   display:none;
 }
-.carousel img.active{
-  display:block;
-}
+.carousel img.active{ display:block; }
 .quote{
   text-align:center;
   padding:15px;
-  font-weight:500;
-  color:#333;
   background:white;
 }
-
-/* INVESTMENT STATS */
 .stats{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
@@ -83,7 +61,6 @@ header{
   background:white;
   padding:18px;
   border-radius:14px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.05);
 }
 .progress-bar{
   height:10px;
@@ -96,8 +73,6 @@ header{
   height:100%;
   background:#009f4d;
 }
-
-/* BOTTOM NAV */
 .bottom-nav{
   position:fixed;
   bottom:0;
@@ -106,7 +81,6 @@ header{
   display:flex;
   justify-content:space-around;
   padding:15px 0;
-  box-shadow:0 -4px 20px rgba(0,0,0,0.05);
 }
 .bottom-nav div{
   text-align:center;
@@ -133,20 +107,16 @@ header{
   <div id="planInfo">No Active Plan</div>
 </div>
 
-<!-- CAROUSEL -->
 <div class="carousel">
   <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/what-is-investment_bznczq.webp" class="active">
   <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/ROI-return-on-investment-1024x626_apfrbs.jpg">
   <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/Return-on-Investment-Formula-ROI_zxmjno.jpg">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/investing_101_naic.jpg_ajqckt.jpg">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/income-investing_gjkkbk.jpg">
 </div>
 
 <div class="quote" id="quoteText">
   "Invest today for a stronger tomorrow."
 </div>
 
-<!-- INVESTMENT STATS SECTION -->
 <div class="stats" id="investmentSection"></div>
 
 <div class="bottom-nav">
@@ -160,7 +130,7 @@ header{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc }
+import { getFirestore, doc, getDoc, updateDoc, deleteField, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -169,7 +139,8 @@ const firebaseConfig = {
   projectId: "easypay-6bce8",
   storageBucket: "easypay-6bce8.firebasestorage.app",
   messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
+  measurementId: "G-2FZKDQ47FZ"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -188,69 +159,113 @@ async function initAuth(){
     document.getElementById("username").innerText =
       "Hi, " + (user.displayName || "User");
 
-    const snap = await getDoc(doc(db,"users",user.uid));
+    const userRef = doc(db,"users",user.uid);
+    const snap = await getDoc(userRef);
     if(!snap.exists()) return;
 
-    const data = snap.data();
+    let data = snap.data();
 
-    document.getElementById("balance").innerText =
-      (data.balance || 0).toLocaleString();
-
-    if(!data.investment){
-      document.getElementById("planInfo").innerText = "No Active Plan";
-      document.getElementById("investmentSection").innerHTML = "";
-      return;
+    if(data.investment){
+      await handleDailyCredit(userRef, data);
+      const updatedSnap = await getDoc(userRef);
+      data = updatedSnap.data();
     }
 
-    const inv = data.investment;
-    const now = new Date();
-    const start = new Date(inv.startDate.seconds * 1000);
-    const daysPassed = Math.floor((now - start)/(1000*60*60*24));
-    const progress = Math.min((daysPassed / inv.duration)*100,100);
-
-    document.getElementById("planInfo").innerText =
-      inv.planName + " Plan";
-
-    document.getElementById("investmentSection").innerHTML = `
-      <div class="card">
-        <strong>Daily Earnings</strong><br>
-        ₦${inv.dailyEarning.toLocaleString()}
-      </div>
-      <div class="card">
-        <strong>Days Passed</strong><br>
-        ${Math.min(daysPassed, inv.duration)} / ${inv.duration}
-        <div class="progress-bar">
-          <div class="progress" style="width:${progress}%"></div>
-        </div>
-      </div>
-      <div class="card">
-        <strong>Total Expected</strong><br>
-        ₦${inv.totalExpected.toLocaleString()}
-      </div>
-    `;
+    updateUI(data);
   });
 }
 
 initAuth();
 
+/* AUTO DAILY CREDIT */
+async function handleDailyCredit(userRef, data){
+
+  const inv = data.investment;
+
+  const now = new Date();
+  const start = new Date(inv.startDate.seconds * 1000);
+
+  const lastCredit = inv.lastCreditDate
+    ? new Date(inv.lastCreditDate.seconds * 1000)
+    : start;
+
+  const totalDays = Math.floor((now - start)/(1000*60*60*24));
+  const creditedDays = Math.floor((lastCredit - start)/(1000*60*60*24));
+
+  let daysToCredit = totalDays - creditedDays;
+
+  if(daysToCredit <= 0) return;
+
+  if(totalDays >= inv.duration){
+    daysToCredit = inv.duration - creditedDays;
+  }
+
+  const amount = daysToCredit * inv.dailyEarning;
+
+  if(amount > 0){
+    await updateDoc(userRef,{
+      balance: (data.balance || 0) + amount,
+      "investment.lastCreditDate": serverTimestamp()
+    });
+  }
+
+  if(totalDays >= inv.duration){
+    await updateDoc(userRef,{
+      investment: deleteField(),
+      activePlan: null
+    });
+  }
+}
+
+/* UPDATE UI */
+function updateUI(data){
+
+  document.getElementById("balance").innerText =
+    (data.balance || 0).toLocaleString();
+
+  if(!data.investment){
+    document.getElementById("planInfo").innerText="No Active Plan";
+    document.getElementById("investmentSection").innerHTML="";
+    return;
+  }
+
+  const inv = data.investment;
+  const now = new Date();
+  const start = new Date(inv.startDate.seconds * 1000);
+  const daysPassed = Math.floor((now - start)/(1000*60*60*24));
+  const progress = Math.min((daysPassed / inv.duration)*100,100);
+
+  document.getElementById("planInfo").innerText =
+    inv.planName + " Plan";
+
+  document.getElementById("investmentSection").innerHTML = `
+    <div class="card">
+      <strong>Daily Earnings</strong><br>
+      ₦${inv.dailyEarning.toLocaleString()}
+    </div>
+    <div class="card">
+      <strong>Days Passed</strong><br>
+      ${Math.min(daysPassed, inv.duration)} / ${inv.duration}
+      <div class="progress-bar">
+        <div class="progress" style="width:${progress}%"></div>
+      </div>
+    </div>
+    <div class="card">
+      <strong>Total Expected</strong><br>
+      ₦${inv.totalExpected.toLocaleString()}
+    </div>
+  `;
+}
+
 /* CAROUSEL */
 const images = document.querySelectorAll(".carousel img");
-const quotes = [
-  "Invest today for a stronger tomorrow.",
-  "Your money should work harder than you.",
-  "Consistency builds wealth.",
-  "Smart investing creates freedom.",
-  "Grow your future with discipline."
-];
-
-let index = 0;
-
+let i = 0;
 setInterval(()=>{
-  images[index].classList.remove("active");
-  index = (index + 1) % images.length;
-  images[index].classList.add("active");
-  document.getElementById("quoteText").innerText = `"${quotes[index]}"`;
+  images[i].classList.remove("active");
+  i = (i+1)%images.length;
+  images[i].classList.add("active");
 },3000);
+
 </script>
 
 </body>
