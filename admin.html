@@ -55,11 +55,17 @@
     }
     .card h2 { font-size: 2rem; color: var(--dark); }
     .card p { margin-top: 0.5rem; color: #555; }
+    
+    /* Grid for links with withdrawal spanning full width */
     .links-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
     }
+    .links-grid a.withdrawal {
+      grid-column: span 2;
+    }
+
     .admin-link {
       background: var(--white);
       padding: 1rem;
@@ -79,6 +85,11 @@
       color: var(--green);
     }
     .admin-link span { font-size: 0.9rem; text-align: center; }
+    
+    @media (max-width: 600px){
+      .links-grid { grid-template-columns: 1fr; }
+      .links-grid a.withdrawal { grid-column: span 1; }
+    }
   </style>
 </head>
 <body>
@@ -107,7 +118,7 @@
         <i class="fas fa-users"></i>
         <span>Manage Users</span>
       </a>
-      <a href="admin-withdraw.html" class="admin-link">
+      <a href="admin-withdraw.html" class="admin-link withdrawal">
         <i class="fas fa-hand-holding-usd"></i>
         <span>Withdrawals</span>
       </a>
