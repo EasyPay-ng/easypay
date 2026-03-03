@@ -21,6 +21,7 @@
     .ref-code{background:rgba(255,255,255,0.1);padding:8px 12px;border-radius:8px;font-weight:600}
     .btn{background:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600}
     .btn.small{padding:6px 8px;font-size:.9rem}
+    .btn.green{background:var(--green-med);color:#fff}
     .top-row{display:flex;gap:16px;padding:18px;max-width:1100px;margin:18px auto;width:95%}
     .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(6,100,58,0.08);flex:1;display:flex;flex-direction:column;gap:8px}
     .card h3{margin:0;color:var(--green-dark);font-size:0.95rem}
@@ -55,7 +56,7 @@
         <div style="font-size:.8rem;color:rgba(255,255,255,0.9)">Your referral code</div>
         <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
           <div id="refCode" class="ref-code">Loading...</div>
-          <button id="copyBtn" class="btn small">Copy</button>
+          <button id="copyBtn" class="btn small">Copy Link</button>
         </div>
       </div>
     </div>
@@ -70,12 +71,13 @@
     <div class="card">
       <h3>Activated</h3>
       <div class="big" id="activatedCount">—</div>
-      <div class="muted">Users on premium, gold, elite, diamond or platinum plan</div>
+      <div class="muted">Users on premium, gold, elite, diamond, or platinum plan</div>
     </div>
     <div class="card">
       <h3>Referral Balance</h3>
       <div class="big" id="referralBalance">₦0</div>
       <div class="muted">Total earned from referrals</div>
+      <button id="withdrawBtn" class="btn green">Withdraw to Main Balance</button>
     </div>
     <div class="card">
       <h3>Search & Filter</h3>
@@ -85,6 +87,10 @@
       </div>
       <div class="muted" style="margin-top:6px">Type to filter the visible table</div>
     </div>
+  </div>
+
+  <div style="max-width:1100px;margin:12px auto;padding:0 20px;">
+    <button id="backBtn" class="btn small">← Back to Dashboard</button>
   </div>
 
   <div class="tabs">
@@ -146,6 +152,8 @@
     const searchInput = document.getElementById('searchInput');
     const copyBtn = document.getElementById('copyBtn');
     const refreshBtn = document.getElementById('refreshBtn');
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const backBtn = document.getElementById('backBtn');
 
     let allRefs = [];
     let activatedRefs = [];
@@ -198,9 +206,26 @@
     searchInput.addEventListener('input', applyFilter);
     copyBtn.addEventListener('click', ()=>{
       const code = refCodeEl.textContent || '';
-      navigator.clipboard.writeText(code).then(()=>{ copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent='Copy',1400) }).catch(()=>{ alert('Copy failed') });
+      const url = `https://yourdomain.com/signup?ref=${code}`;
+      navigator.clipboard.writeText(url).then(()=>{ copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent='Copy Link',1400) }).catch(()=>{ alert('Copy failed') });
     });
     refreshBtn.addEventListener('click', ()=> loadData(refCodeEl.textContent));
+    backBtn.addEventListener('click', ()=> location.href='dashboard.html');
+
+    withdrawBtn.addEventListener('click', async ()=>{
+      if(!currentUser) return;
+      if(referralBalance <= 0) return alert('No referral balance to withdraw');
+      try{
+        const userRef = doc(db,'users',currentUser.uid);
+        await updateDoc(userRef,{
+          balance: (Number(referralBalance) || 0) + (Number(referralBalance) || 0),
+          referralBalance: 0
+        });
+        referralBalance = 0;
+        referralBalanceEl.textContent = `₦0`;
+        alert('Referral balance withdrawn to main balance');
+      }catch(e){ console.error(e); alert('Withdrawal failed'); }
+    });
 
     document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', e=>{
       document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -227,19 +252,16 @@
         snap.docChanges().forEach(async change => {
           const d = change.doc.data();
           if(!d.username) return;
-          // Check for eligible plan & not yet credited
           const plan = (d.plan || '').toLowerCase();
           const credited = !!d.referralCredited;
           if(!credited && ['premium','gold','elite','diamond','platinum'].includes(plan)){
             let commission = (['premium','gold','elite'].includes(plan)) ? 2000 : 10000;
-            // Update upline referral balance
             const uplineRef = doc(db,'users',currentUser.uid);
             await updateDoc(uplineRef,{
               referralBalance: (referralBalance || 0) + commission
             });
             referralBalance += commission;
             referralBalanceEl.textContent = `₦${referralBalance.toLocaleString('en-NG')}`;
-            // Mark downline as credited
             await updateDoc(change.doc.ref,{ referralCredited: true });
           }
         });
