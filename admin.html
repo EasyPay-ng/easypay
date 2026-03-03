@@ -57,7 +57,7 @@
     .card p { margin-top: 0.5rem; color: #555; }
     .links-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 1rem;
     }
     .admin-link {
@@ -96,40 +96,16 @@
         <h2 id="totalDeposits">—</h2>
         <p>Deposit Requests</p>
       </div>
-      <div class="card">
-        <h2 id="totalUpgrades">—</h2>
-        <p>Upgrade Requests</p>
-      </div>
     </section>
 
     <section class="links-grid">
-      <a href="admin-advertise.html" class="admin-link">
-        <i class="fas fa-ad"></i>
-        <span>Advertisements</span>
-      </a>
       <a href="admin-deposit.html" class="admin-link">
         <i class="fas fa-wallet"></i>
         <span>Deposits</span>
       </a>
-      <a href="admin-plans.html" class="admin-link">
-        <i class="fas fa-clipboard-list"></i>
-        <span>Upgrades / Activate</span>
-      </a>
-      <a href="admin-record.html" class="admin-link">
-        <i class="fas fa-database"></i>
-        <span>Users</span>
-      </a>
       <a href="admin-users.html" class="admin-link">
         <i class="fas fa-users"></i>
         <span>Manage Users</span>
-      </a>
-      <a href="admin-task.html" class="admin-link">
-        <i class="fas fa-tasks"></i>
-        <span>Task Submissions</span>
-      </a>
-      <a href="admin-upgrade.html" class="admin-link">
-        <i class="fas fa-arrow-up"></i>
-        <span>Upgrade Requests</span>
       </a>
       <a href="admin-withdraw.html" class="admin-link">
         <i class="fas fa-hand-holding-usd"></i>
@@ -168,16 +144,12 @@
 
     async function loadStats() {
       const colSize = async c => (await getDocs(collection(db, c))).size;
-      const [u, d, uReq, w] = await Promise.all([
+      const [u, d] = await Promise.all([
         colSize("users"),
-        colSize("deposits"),
-        colSize("upgrades"),
-        colSize("withdrawals")
+        colSize("deposits")
       ]);
-      document.getElementById("totalUsers"     ).innerText = u;
-      document.getElementById("totalDeposits"  ).innerText = d;
-      document.getElementById("totalUpgrades"  ).innerText = uReq;
-      document.getElementById("totalWithdrawn").innerText = w;
+      document.getElementById("totalUsers"    ).innerText = u;
+      document.getElementById("totalDeposits" ).innerText = d;
     }
   </script>
 </body>
