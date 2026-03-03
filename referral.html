@@ -15,13 +15,14 @@
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Poppins',sans-serif;background:linear-gradient(180deg, #f8fff9 0%, var(--bg) 100%);color:var(--green-dark);min-height:100vh;display:flex;flex-direction:column}
+    .top-btn-container{padding:12px 20px}
+    .btn{background:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600}
+    .btn.small{padding:6px 8px;font-size:.9rem}
+    .btn.green{background:var(--green-med);color:#fff}
     header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:linear-gradient(90deg,var(--green-med),var(--green-dark));color:#fff}
     .brand{font-weight:700;font-size:1.15rem}
     .ref-box{display:flex;gap:10px;align-items:center}
     .ref-code{background:rgba(255,255,255,0.1);padding:8px 12px;border-radius:8px;font-weight:600}
-    .btn{background:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600}
-    .btn.small{padding:6px 8px;font-size:.9rem}
-    .btn.green{background:var(--green-med);color:#fff}
     .top-row{display:flex;gap:16px;padding:18px;max-width:1100px;margin:18px auto;width:95%}
     .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(6,100,58,0.08);flex:1;display:flex;flex-direction:column;gap:8px}
     .card h3{margin:0;color:var(--green-dark);font-size:0.95rem}
@@ -49,6 +50,12 @@
   </style>
 </head>
 <body>
+
+  <!-- Back Button at the top -->
+  <div class="top-btn-container">
+    <button id="backBtn" class="btn small">← Back to Dashboard</button>
+  </div>
+
   <header>
     <div class="brand">EasyPay — My Referrals</div>
     <div class="ref-box" aria-live="polite">
@@ -87,10 +94,6 @@
       </div>
       <div class="muted" style="margin-top:6px">Type to filter the visible table</div>
     </div>
-  </div>
-
-  <div style="max-width:1100px;margin:12px auto;padding:0 20px;">
-    <button id="backBtn" class="btn small">← Back to Dashboard</button>
   </div>
 
   <div class="tabs">
@@ -217,8 +220,11 @@
       if(referralBalance <= 0) return alert('No referral balance to withdraw');
       try{
         const userRef = doc(db,'users',currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        const data = userSnap.data() || {};
+        const currentBalance = Number(data.balance || 0);
         await updateDoc(userRef,{
-          balance: (Number(referralBalance) || 0) + (Number(referralBalance) || 0),
+          balance: currentBalance + referralBalance,
           referralBalance: 0
         });
         referralBalance = 0;
@@ -247,7 +253,7 @@
       referralBalance = Number(myData.referralBalance || 0);
       referralBalanceEl.textContent = `₦${referralBalance.toLocaleString('en-NG')}`;
 
-      // Setup listener for downline activation
+      // Real-time auto-credit on downline activation
       onSnapshot(query(collection(db,'users'), where('referral','==', myCode)), snap => {
         snap.docChanges().forEach(async change => {
           const d = change.doc.data();
@@ -313,5 +319,3 @@
       }
     }
   </script>
-</body>
-</html>
