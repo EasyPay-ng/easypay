@@ -2,35 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin — Manage Deposits</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Deposit Requests</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-    .container { max-width: 980px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .container { max-width: 980px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; 
+                 box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
+    .container:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
     h2 { color: #2f7a2f; margin: 0 0 12px 0; }
+    .summary { margin-bottom: 12px; font-size: 0.9rem; color: #333; }
     .controls { display:flex; gap:8px; align-items:center; margin-bottom: 12px; flex-wrap:wrap; }
     .controls input[type="text"] { padding: 8px; width: 240px; border: 1px solid #ccc; border-radius: 4px; }
     .controls select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
     .controls button { padding: 8px 12px; border: none; background: #2f7a2f; color: white; border-radius: 4px; cursor: pointer; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: middle; }
-    th { background: #2f7a2f; color: #fff; }
-    .action { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
-    .approve { background: #28a745; }
-    .reject { background: #dc3545; }
-    .delete-proof { background: #b91c1c; }
+    th { background: #2f7a2f; color: #fff; position: sticky; top: 0; z-index: 1; }
+    tbody tr:hover { background: #f0fff0; }
+    .action { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right:4px; }
+    .approve { background: #28a745; color: #fff; }
+    .reject { background: #dc3545; color: #fff; }
+    .delete-proof { background: #b91c1c; color: #fff; }
     .no-data { text-align: center; font-style: italic; color: #666; }
-    .thumb { max-width: 84px; max-height: 56px; object-fit:cover; border-radius:6px; border:1px solid #eee; }
+    .thumb { max-width: 84px; max-height: 56px; object-fit:cover; border-radius:6px; border:1px solid #eee; cursor:pointer; }
     .small { font-size: 0.85rem; color: #666; }
     .badge { display:inline-block; padding:4px 8px; border-radius:999px; color:#fff; font-weight:700; font-size:0.75rem; }
     .b-pending { background:#f59e0b; }
     .b-approved { background:#10b981; }
     .b-rejected { background:#ef4444; }
+
+    /* Modal styles */
+    .modal { display:none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; 
+             background: rgba(0,0,0,0.6); align-items:center; justify-content:center; }
+    .modal-content { background:#fff; padding:20px; border-radius:8px; max-width:400px; width:90%; text-align:center; }
+    .modal-buttons { margin-top:12px; display:flex; justify-content:center; gap:12px; }
+    .modal-buttons button { flex:1; }
+    .lightbox { display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; 
+                background: rgba(0,0,0,0.85); align-items:center; justify-content:center; cursor:pointer; }
+    .lightbox img { max-width:90%; max-height:90%; border-radius:6px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Admin — Deposit Requests</h2>
+    <div class="summary" id="summaryText">Loading summary…</div>
 
     <div class="controls">
       <input type="text" id="searchInput" placeholder="Search by Ref ID, username, sender, amount…" />
@@ -46,8 +61,6 @@
       </select>
 
       <button id="refreshBtn" style="background:#0b5">Refresh</button>
-
-      <div id="adminNote" class="small" style="margin-left:auto"></div>
     </div>
 
     <table>
@@ -69,250 +82,193 @@
     </table>
   </div>
 
-  <!-- Firebase v8 SDK -->
+  <!-- Confirmation Modal -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-content">
+      <div id="confirmText"></div>
+      <div class="modal-buttons">
+        <button id="confirmYes" style="background:#28a745;color:#fff;">Yes</button>
+        <button id="confirmNo" style="background:#dc3545;color:#fff;">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <img id="lightboxImg" src="" alt="Proof Image"/>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
   <script>
-    (function(){
-      // ---------- CONFIG ----------
-      const IMGUR_CLIENT_ID = 'fb533db21a59486';
+  (function(){
+    const ALLOWED_ADMIN_EMAIL = 'easypay27.ng@gmail.com';
+    const cfg = {
+      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+      authDomain: "easypay-6bce8.firebaseapp.com",
+      projectId: "easypay-6bce8",
+      storageBucket: "easypay-6bce8.appspot.com",
+      messagingSenderId: "862671358267",
+      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+    };
+    firebase.initializeApp(cfg);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-      // Only allow this exact email to access the admin panel:
-      const ALLOWED_ADMIN_EMAIL = 'easypay27.ng@gmail.com';
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const adminTable = document.getElementById('adminTable');
+    const statusFilter = document.getElementById('statusFilter');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const summaryText = document.getElementById('summaryText');
 
-      // Firebase config (unchanged)
-      const cfg = {
-        apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-        authDomain: "easypay-6bce8.firebaseapp.com",
-        projectId: "easypay-6bce8",
-        storageBucket: "easypay-6bce8.appspot.com",
-        messagingSenderId: "862671358267",
-        appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-      };
-      firebase.initializeApp(cfg);
-      const auth = firebase.auth();
-      const db = firebase.firestore();
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmText = document.getElementById('confirmText');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmNo = document.getElementById('confirmNo');
 
-      // ---------- UI elements ----------
-      const searchInput = document.getElementById('searchInput');
-      const searchBtn = document.getElementById('searchBtn');
-      const resetBtn = document.getElementById('resetBtn');
-      const adminTable = document.getElementById('adminTable');
-      const statusFilter = document.getElementById('statusFilter');
-      const refreshBtn = document.getElementById('refreshBtn');
-      const adminNote = document.getElementById('adminNote');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
 
-      // ---------- state ----------
-      let currentUser = null;
-      let depositsCache = []; // array of { id, ...data }
+    let currentUser = null;
+    let depositsCache = [];
+    let confirmCallback = null;
 
-      // ---------- helpers ----------
-      function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
-      function fmtDate(ts){
-        if(!ts) return '';
-        try {
-          if(ts.toDate) return ts.toDate().toLocaleString();
-          if(typeof ts === 'number') return new Date(ts).toLocaleString();
-          if(ts.seconds) return new Date(ts.seconds * 1000).toLocaleString();
-          return new Date(ts).toLocaleString();
-        } catch(e){ return ''; }
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+    function fmtDate(ts){ try { return ts && ts.toDate ? ts.toDate().toLocaleString() : ts && ts.seconds ? new Date(ts.seconds*1000).toLocaleString() : new Date(ts).toLocaleString(); } catch(e){return ''; } }
+    function showConfirm(msg, cb){ confirmText.textContent = msg; confirmModal.style.display='flex'; confirmCallback=cb; }
+    confirmYes.onclick = () => { confirmModal.style.display='none'; if(confirmCallback) confirmCallback(true); };
+    confirmNo.onclick = () => { confirmModal.style.display='none'; if(confirmCallback) confirmCallback(false); };
+
+    lightbox.onclick = () => { lightbox.style.display='none'; lightboxImg.src=''; };
+
+    auth.onAuthStateChanged(async user => {
+      if(!user) return;
+      currentUser = user;
+      if(user.email.toLowerCase() !== ALLOWED_ADMIN_EMAIL.toLowerCase()){
+        document.body.innerHTML = '<div style="padding:24px;font-family:Arial,Helvetica,sans-serif">Not authorized</div>';
+        return;
       }
-      function showErr(e){ console.error(e); alert((e && e.message) ? e.message : 'Error occurred'); }
+      await loadAdmin();
+    });
 
-      // ---------- Imgur delete helper ----------
-      async function deleteFromImgur(deletehash){
-        if(!deletehash) throw new Error('No deletehash provided for Imgur deletion.');
-        const url = 'https://api.imgur.com/3/image/' + encodeURIComponent(deletehash);
-        const res = await fetch(url, {
-          method: 'DELETE',
-          headers: { Authorization: 'Client-ID ' + IMGUR_CLIENT_ID }
+    async function loadAdmin(filter='', status='pending'){
+      adminTable.innerHTML='';
+      depositsCache=[];
+      summaryText.textContent = 'Loading summary…';
+      try{
+        let snap;
+        if(filter) snap = await db.collection('deposits').where('refId','==',filter).get();
+        else if(status && status!=='all') snap = await db.collection('deposits').where('status','==',status).orderBy('date','desc').get();
+        else snap = await db.collection('deposits').orderBy('date','desc').get();
+
+        snap.forEach(docSnap=> depositsCache.push({id: docSnap.id, ...docSnap.data()}));
+        depositsCache.sort((a,b)=> {
+          const at = a.date && a.date.seconds ? a.date.seconds*1000 : a.date || 0;
+          const bt = b.date && b.date.seconds ? b.date.seconds*1000 : b.date || 0;
+          return bt - at;
         });
-        const json = await res.json();
-        if(!json || !json.success) throw new Error(json && json.data && json.data.error ? json.data.error : 'Imgur deletion failed');
-        return json;
-      }
 
-      // ---------- load deposits ----------
-      async function loadAdmin(refIdFilter = '', status = 'all') {
-        adminTable.innerHTML = '';
-        depositsCache = [];
-        try {
-          let snap;
-          if(refIdFilter) {
-            snap = await db.collection('deposits').where('refId', '==', refIdFilter).get();
-          } else if(status && status !== 'all') {
-            snap = await db.collection('deposits').where('status', '==', status).orderBy('date', 'desc').get();
-          } else {
-            snap = await db.collection('deposits').orderBy('date', 'desc').get();
-          }
-
-          snap.forEach(docSnap => depositsCache.push({ id: docSnap.id, ...docSnap.data() }));
-
-          // sort locally by date desc for consistency
-          depositsCache.sort((a,b) => {
-            const at = a.date && a.date.seconds ? a.date.seconds*1000 : a.date || 0;
-            const bt = b.date && b.date.seconds ? b.date.seconds*1000 : b.date || 0;
-            return bt - at;
-          });
-
-          if(depositsCache.length === 0) {
-            adminTable.innerHTML = '<tr><td colspan="8" class="no-data">No records found.</td></tr>';
-            return;
-          }
-
-          // render rows
-          depositsCache.forEach(d => {
-            const proofCell = d.proofUrl ? `<a href="${escapeHtml(d.proofUrl)}" target="_blank" rel="noopener"><img src="${escapeHtml(d.proofUrl)}" class="thumb" alt="proof" /></a>` : '—';
-            const when = fmtDate(d.date);
-            const statusText = (d.status || 'pending').toLowerCase();
-            const badge = statusText === 'approved' ? `<span class="badge b-approved">APPROVED</span>` :
-                          statusText === 'rejected' ? `<span class="badge b-rejected">REJECTED</span>` :
-                          `<span class="badge b-pending">PENDING</span>`;
-            const processedInfo = d.processed ? `<div class="small">by ${escapeHtml(d.processedBy||'-')} at ${fmtDate(d.processedAt)}</div>` : '';
-            const tr = document.createElement('tr');
-            tr.dataset.id = d.id;
-            tr.innerHTML = `
-              <td>₦${escapeHtml(String(d.amount || 0))}</td>
-              <td>${escapeHtml(d.senderName || '')}</td>
-              <td>${escapeHtml(d.username || '')} ${processedInfo}</td>
-              <td>${escapeHtml(d.refId || '')}</td>
-              <td>${proofCell}</td>
-              <td>${escapeHtml(when)}</td>
-              <td>${badge}</td>
-              <td>
-                <button class="action approve">Approve</button>
-                <button class="action reject">Reject</button>
-                <button class="action delete-proof" style="background:#b91c1c">Delete Proof</button>
-              </td>
-            `;
-            // attach handlers
-            const approveBtn = tr.querySelector('.approve');
-            const rejectBtn = tr.querySelector('.reject');
-            const delProofBtn = tr.querySelector('.delete-proof');
-
-            approveBtn.onclick = () => handleApprove(d);
-            rejectBtn.onclick = () => handleReject(d);
-            delProofBtn.onclick = () => handleDeleteProof(d);
-
-            adminTable.appendChild(tr);
-          });
-
-        } catch (err) {
-          console.error('loadAdmin error', err);
-          adminTable.innerHTML = '<tr><td colspan="8" class="no-data">Error loading data. See console.</td></tr>';
-        }
-      }
-
-      // ---------- Approve handler (transaction) ----------
-      async function handleApprove(depositDoc) {
-        if(!confirm(`Approve deposit ₦${depositDoc.amount} for ${depositDoc.username || depositDoc.userId || 'user'}?`)) return;
-        try {
-          const depositRef = db.collection('deposits').doc(depositDoc.id);
-
-          await db.runTransaction(async tx => {
-            const dSnap = await tx.get(depositRef);
-            if(!dSnap.exists) throw new Error('Deposit not found');
-            const d = dSnap.data();
-            if(d.processed) throw new Error('Deposit already processed');
-
-            const userId = d.userId || d.username; // fallback
-            if(!userId) throw new Error('Deposit missing userId and username; cannot credit');
-
-            const userRef = db.collection('users').doc(userId);
-            const userSnap = await tx.get(userRef);
-            if(!userSnap.exists) throw new Error('User record not found for id: ' + userId);
-
-            const oldBalance = Number(userSnap.data().balance || 0);
-            const credit = Number(d.amount || 0);
-            const newBalance = oldBalance + credit;
-
-            tx.update(userRef, { balance: newBalance });
-            tx.update(depositRef, {
-              status: 'approved',
-              processed: true,
-              processedBy: currentUser.uid,
-              processedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          });
-
-          alert('Deposit approved and user credited.');
-          await loadAdmin(searchInput.value.trim(), statusFilter.value);
-        } catch (err) {
-          showErr(err);
-        }
-      }
-
-      // ---------- Reject handler ----------
-      async function handleReject(depositDoc) {
-        const reason = prompt('Optional reason for rejection (visible in record):', '');
-        if(reason === null) return; // cancelled
-        try {
-          const depositRef = db.collection('deposits').doc(depositDoc.id);
-          await depositRef.update({
-            status: 'rejected',
-            processed: true,
-            processedBy: currentUser.uid,
-            processedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            rejectReason: reason || null
-          });
-          alert('Deposit rejected.');
-          await loadAdmin(searchInput.value.trim(), statusFilter.value);
-        } catch (err) { showErr(err); }
-      }
-
-      // ---------- Delete proof handler ----------
-      async function handleDeleteProof(depositDoc) {
-        if(!depositDoc.proofDeleteHash) { alert('No deletehash stored for this proof. Cannot delete from Imgur.'); return; }
-        if(!confirm('Delete image from Imgur and remove proof from record? This cannot be undone on Imgur.')) return;
-        try {
-          // Delete on Imgur
-          await deleteFromImgur(depositDoc.proofDeleteHash);
-          // update Firestore doc to remove proof fields
-          const depositRef = db.collection('deposits').doc(depositDoc.id);
-          await depositRef.update({
-            proofUrl: firebase.firestore.FieldValue.delete(),
-            proofDeleteHash: firebase.firestore.FieldValue.delete(),
-            proofDeleted: true,
-            proofDeletedBy: currentUser.uid,
-            proofDeletedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          alert('Image deleted on Imgur and record updated.');
-          await loadAdmin(searchInput.value.trim(), statusFilter.value);
-        } catch (err) { showErr(err); }
-      }
-
-      // ---------- Auth & strict email admin check ----------
-      auth.onAuthStateChanged(async user => {
-        if(!user) {
-          adminNote.textContent = 'Not signed in. Please sign in to access admin.';
-          return;
-        }
-        currentUser = user;
-
-        // Strict email check (case-insensitive)
-        const userEmail = (user.email || '').toLowerCase();
-        if(userEmail !== ALLOWED_ADMIN_EMAIL.toLowerCase()){
-          // Not authorized — replace body with message and stop
-          document.body.innerHTML = '<div style="padding:24px;font-family:Arial,Helvetica,sans-serif">Not authorized</div>';
+        if(depositsCache.length===0){
+          adminTable.innerHTML='<tr><td colspan="8" class="no-data">No records found.</td></tr>';
+          summaryText.textContent='No deposits available.';
           return;
         }
 
-        adminNote.textContent = 'Admin: ' + user.email;
-        // initial load
-        await loadAdmin();
-      });
+        // summary counts
+        const counts = depositsCache.reduce((acc,d)=>{
+          const s=(d.status||'pending').toLowerCase();
+          acc[s]=(acc[s]||0)+1; return acc;
+        },{});
+        summaryText.textContent=`Total Pending: ${counts.pending||0}, Approved: ${counts.approved||0}, Rejected: ${counts.rejected||0}`;
 
-      // ---------- UI wiring ----------
-      searchBtn.onclick = () => loadAdmin(searchInput.value.trim(), statusFilter.value);
-      resetBtn.onclick = () => { searchInput.value=''; statusFilter.value='pending'; loadAdmin('', 'pending'); };
-      refreshBtn.onclick = () => loadAdmin(searchInput.value.trim(), statusFilter.value);
-      statusFilter.onchange = () => loadAdmin(searchInput.value.trim(), statusFilter.value);
+        depositsCache.forEach(d=>{
+          const proofCell = d.proofUrl ? `<img src="${escapeHtml(d.proofUrl)}" class="thumb" alt="proof"/>` : '—';
+          const when = fmtDate(d.date);
+          const statusText = (d.status||'pending').toLowerCase();
+          const badge = statusText==='approved'? `<span class="badge b-approved">APPROVED</span>` :
+                        statusText==='rejected'? `<span class="badge b-rejected">REJECTED</span>` :
+                        `<span class="badge b-pending">PENDING</span>`;
+          const tr = document.createElement('tr');
+          tr.innerHTML=`
+            <td>₦${escapeHtml(d.amount||0)}</td>
+            <td>${escapeHtml(d.senderName||'')}</td>
+            <td>${escapeHtml(d.username||'')}</td>
+            <td>${escapeHtml(d.refId||'')}</td>
+            <td>${proofCell}</td>
+            <td>${escapeHtml(when)}</td>
+            <td>${badge}</td>
+            <td>
+              <button class="action approve">Approve</button>
+              <button class="action reject">Reject</button>
+              <button class="action delete-proof">Delete Proof</button>
+            </td>
+          `;
+          const approveBtn = tr.querySelector('.approve');
+          const rejectBtn = tr.querySelector('.reject');
+          const delProofBtn = tr.querySelector('.delete-proof');
+          const imgThumb = tr.querySelector('.thumb');
 
-      // initial DOM-ready load (in case auth already has a user)
-      document.addEventListener('DOMContentLoaded', () => {});
-    })();
+          approveBtn.onclick = ()=> showConfirm(`Approve deposit ₦${d.amount} from ${d.username}?`, ok=> ok && handleApprove(d));
+          rejectBtn.onclick = ()=> showConfirm(`Reject deposit ₦${d.amount} from ${d.username}?`, ok=> ok && handleReject(d));
+          delProofBtn.onclick = ()=> showConfirm('Delete proof image?', ok=> ok && handleDeleteProof(d));
+          if(imgThumb) imgThumb.onclick=()=> { lightboxImg.src=d.proofUrl; lightbox.style.display='flex'; };
+
+          adminTable.appendChild(tr);
+        });
+
+      }catch(e){ console.error(e); adminTable.innerHTML='<tr><td colspan="8" class="no-data">Error loading data</td></tr>'; summaryText.textContent='Error loading summary'; }
+    }
+
+    async function handleApprove(d){
+      try{
+        const depositRef = db.collection('deposits').doc(d.id);
+        await db.runTransaction(async tx=>{
+          const depSnap = await tx.get(depositRef);
+          if(!depSnap.exists) throw new Error('Deposit missing');
+          if(depSnap.data().processed) throw new Error('Already processed');
+
+          const userRef = db.collection('users').doc(d.userId);
+          const userSnap = await tx.get(userRef);
+          if(!userSnap.exists) throw new Error('User not found');
+          const oldBalance = Number(userSnap.data().balance||0);
+          const newBalance = oldBalance + Number(d.amount||0);
+
+          tx.update(userRef, {balance:newBalance});
+          tx.update(depositRef, {status:'approved', processed:true, processedBy:currentUser.uid, processedAt: firebase.firestore.FieldValue.serverTimestamp()});
+        });
+        alert('Deposit approved & user credited.');
+        loadAdmin(searchInput.value.trim(), statusFilter.value);
+      }catch(e){ alert(e.message||'Error approving'); }
+    }
+
+    async function handleReject(d){
+      try{
+        const reason = prompt('Optional reason for rejection:','')||null;
+        const depositRef = db.collection('deposits').doc(d.id);
+        await depositRef.update({status:'rejected', processed:true, processedBy:currentUser.uid, processedAt: firebase.firestore.FieldValue.serverTimestamp(), rejectReason:reason});
+        alert('Deposit rejected.');
+        loadAdmin(searchInput.value.trim(), statusFilter.value);
+      }catch(e){ alert(e.message||'Error rejecting'); }
+    }
+
+    async function handleDeleteProof(d){
+      try{
+        const depositRef = db.collection('deposits').doc(d.id);
+        await depositRef.update({proofUrl: firebase.firestore.FieldValue.delete(), proofDeleted:true});
+        alert('Proof deleted.');
+        loadAdmin(searchInput.value.trim(), statusFilter.value);
+      }catch(e){ alert(e.message||'Error deleting proof'); }
+    }
+
+    searchBtn.onclick = ()=> loadAdmin(searchInput.value.trim(), statusFilter.value);
+    resetBtn.onclick = ()=> { searchInput.value=''; statusFilter.value='pending'; loadAdmin('','pending'); };
+    refreshBtn.onclick = ()=> loadAdmin(searchInput.value.trim(), statusFilter.value);
+    statusFilter.onchange = ()=> loadAdmin(searchInput.value.trim(), statusFilter.value);
+  })();
   </script>
 </body>
 </html>
