@@ -32,6 +32,26 @@ body {
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  position: relative;
+}
+
+/* Back Button */
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: #e9f7ef;
+  color: #009f4d;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  opacity: 0.85;
 }
 
 h2 {
@@ -137,6 +157,11 @@ button {
 <div class="container">
   <div class="card">
 
+    <!-- Back Button -->
+    <button class="back-btn" onclick="location.href='dashboard.html'">
+      ← Back
+    </button>
+
     <h2>EasyPay Profile</h2>
 
     <div class="profile-info">
@@ -178,7 +203,6 @@ button {
 
 <script type="module">
 
-// Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import {
   getAuth,
@@ -193,7 +217,6 @@ import {
   getDoc
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// Firebase config (your original)
 const firebaseConfig = {
   apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
   authDomain: "easypay-6bce8.firebaseapp.com",
@@ -220,7 +243,6 @@ const avatarImg = document.getElementById("avatarImg");
 
 let currentUser;
 
-// Load user
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -228,7 +250,6 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   currentUser = user;
-
   emailInput.value = user.email;
 
   const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -237,7 +258,6 @@ onAuthStateChanged(auth, async (user) => {
   usernameInput.value = data.username || "User";
   usernameDisplay.textContent = data.username || "";
 
-  // Avatar
   if (user.photoURL) {
     avatarImg.src = user.photoURL;
     avatarImg.style.display = "block";
@@ -247,9 +267,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// Save Changes
 saveBtn.addEventListener("click", async () => {
-
   message.textContent = "";
   message.className = "message";
 
@@ -276,7 +294,6 @@ saveBtn.addEventListener("click", async () => {
   }
 });
 
-// Logout
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
   window.location.href = "login.html";
