@@ -1,95 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Submit Deposit</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deposit</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-:root {
-  --primary:#00b66d;
-  --bg:#f7fdf8;
-  --text:#333;
-  --card-bg:#fff;
-  --shadow:rgba(0,102,51,0.1);
+body{
+  font-family:Poppins, sans-serif;
+  background:#f4f6f9;
+  margin:0;
+  padding:20px;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);padding-bottom:60px;}
-.container{max-width:520px;margin:20px auto;background:var(--card-bg);border-radius:16px;box-shadow:0 6px 18px var(--shadow);overflow:hidden;}
-.header{background:var(--primary);color:#fff;padding:1rem;text-align:center;font-size:1.2rem;font-weight:600;position:relative;}
-.back-btn{position:absolute;left:1rem;top:50%;transform:translateY(-50%);background:#fff;color:var(--primary);border:none;border-radius:6px;padding:0.35rem 0.8rem;cursor:pointer;font-weight:600;font-size:0.85rem;}
-.info{padding:1rem;background:#f2fff6;}
-.info p{font-size:0.95rem;margin:0.35rem 0;}
-form{display:flex;flex-direction:column;padding:1rem;gap:1rem;}
-label{font-size:0.9rem;font-weight:500;}
-input{width:100%;padding:0.8rem;border:1px solid #e6eef0;border-radius:8px;}
-button{padding:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;}
-button:disabled{background:#cbd5d9;cursor:not-allowed;}
-#msg{font-size:0.9rem;min-height:20px;}
-.history{margin:1rem;}
-table{width:100%;border-collapse:collapse;}
-th,td{padding:0.6rem;border-bottom:1px solid #eee;font-size:0.85rem;}
-th{background:var(--primary);color:#fff;}
 
-.status-badge{
-  padding:4px 10px;
+.container{
+  max-width:600px;
+  margin:auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+}
+
+h2{
+  margin-bottom:15px;
+}
+
+label{
+  display:block;
+  margin-top:12px;
+  font-weight:500;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border:1px solid #ddd;
+  border-radius:6px;
+}
+
+button{
+  margin-top:15px;
+  width:100%;
+  padding:12px;
+  background:#16a34a;
+  border:none;
+  color:#fff;
+  font-weight:600;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+button:disabled{
+  background:#ccc;
+  cursor:not-allowed;
+}
+
+table{
+  width:100%;
+  margin-top:25px;
+  border-collapse:collapse;
+}
+
+th, td{
+  padding:8px;
+  border-bottom:1px solid #eee;
+  font-size:14px;
+  text-align:left;
+}
+
+th{
+  background:#16a34a;
+  color:white;
+}
+
+.badge{
+  padding:4px 8px;
   border-radius:20px;
+  color:white;
   font-size:12px;
   font-weight:600;
-  color:#fff;
 }
-.status-approved{background:#16a34a;}
-.status-rejected{background:#dc2626;}
-.status-pending{background:#f59e0b;}
+
+.approved{background:#16a34a;}
+.rejected{background:#dc2626;}
+.pending{background:#f59e0b;}
 </style>
 </head>
-
 <body>
+
 <div class="container">
 
-<div class="header">
-Submit Deposit
-<button class="back-btn" onclick="window.location.href='dashboard.html'">&larr; Back</button>
-</div>
-
-<div class="info">
-<p><strong>Account No:</strong> 8125600222</p>
-<p><strong>Name:</strong> Onyeka Anointed Chidi</p>
-<p><strong>Bank:</strong> Opay / Paycom</p>
-</div>
-
-<form autocomplete="off">
-<input type="hidden" id="userId"/>
-<input type="hidden" id="username"/>
+<h2>Submit Deposit</h2>
 
 <label>Amount</label>
-<input type="number" id="amount" min="1"/>
+<input type="number" id="amount">
 
 <label>Sender Name</label>
-<input type="text" id="senderName"/>
+<input type="text" id="sender">
 
-<label>Proof of Payment (Image)</label>
-<input type="file" id="proofFile" accept="image/png,image/jpeg"/>
+<label>Proof of Payment</label>
+<input type="file" id="proof">
 
 <label>Reference ID</label>
-<input type="text" id="refId" readonly/>
+<input type="text" id="refId" readonly>
 
-<button type="button" id="submitBtn" disabled>Submit Deposit</button>
-<div id="msg"></div>
-</form>
+<button id="submitBtn" disabled>Submit Deposit</button>
 
-<div class="history">
 <h3>Deposit Records</h3>
 <table>
 <thead>
 <tr>
-<th>Amt</th><th>Sender</th><th>Ref</th><th>Status</th><th>Date</th>
+<th>Amount</th>
+<th>Sender</th>
+<th>Ref</th>
+<th>Status</th>
+<th>Date</th>
 </tr>
 </thead>
 <tbody id="history"></tbody>
 </table>
-</div>
 
 </div>
 
@@ -99,101 +132,110 @@ Submit Deposit
 
 <script>
 firebase.initializeApp({
-apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-authDomain:"easypay-6bce8.firebaseapp.com",
-projectId:"easypay-6bce8"
+  apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain:"easypay-6bce8.firebaseapp.com",
+  projectId:"easypay-6bce8"
 });
 
-const auth=firebase.auth();
-const db=firebase.firestore();
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-const submitBtn=document.getElementById("submitBtn");
-const historyBody=document.getElementById("history");
+const submitBtn = document.getElementById("submitBtn");
+const historyBody = document.getElementById("history");
 
-let currentUser=null;
+let currentUser = null;
 
-document.getElementById("refId").value=Math.random().toString(36).substr(2,9).toUpperCase();
+// generate ref
+function generateRef(){
+  return Math.random().toString(36).substring(2,10).toUpperCase();
+}
+document.getElementById("refId").value = generateRef();
 
-function getStatusBadge(status){
-status=(status||"pending").toLowerCase();
-if(status==="approved") return '<span class="status-badge status-approved">approved</span>';
-if(status==="rejected") return '<span class="status-badge status-rejected">rejected</span>';
-return '<span class="status-badge status-pending">pending</span>';
+function getBadge(status){
+  if(status === "approved") return `<span class="badge approved">approved</span>`;
+  if(status === "rejected") return `<span class="badge rejected">rejected</span>`;
+  return `<span class="badge pending">pending</span>`;
 }
 
-auth.onAuthStateChanged(async user=>{
-if(!user){
-  currentUser=null;
-  submitBtn.disabled=true;
-  return location.href="login.html";
-}
-currentUser=user;
-submitBtn.disabled=false;
-loadHistory();
+// AUTH CHECK
+auth.onAuthStateChanged(user=>{
+  if(!user){
+    window.location.href="login.html";
+    return;
+  }
+  currentUser = user;
+  submitBtn.disabled = false;
+  loadHistory();
 });
 
+// LOAD HISTORY (NO orderBy to avoid index error)
 async function loadHistory(){
-if(!currentUser) return;
-historyBody.innerHTML="";
-const snap=await db.collection("deposits")
-.where("userId","==",currentUser.uid)
-.orderBy("date","desc")
-.get();
+  historyBody.innerHTML = "";
 
-if(snap.empty){
-historyBody.innerHTML='<tr><td colspan="5">No deposit records yet</td></tr>';
-return;
+  const snap = await db.collection("deposits")
+    .where("userId","==",currentUser.uid)
+    .get();
+
+  if(snap.empty){
+    historyBody.innerHTML =
+      "<tr><td colspan='5'>No deposit records yet</td></tr>";
+    return;
+  }
+
+  let docs = [];
+  snap.forEach(doc => docs.push(doc.data()));
+
+  docs.sort((a,b)=> b.date - a.date);
+
+  docs.forEach(d=>{
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>₦${d.amount}</td>
+      <td>${d.senderName}</td>
+      <td>${d.refId}</td>
+      <td>${getBadge(d.status)}</td>
+      <td>${new Date(d.date).toLocaleString()}</td>
+    `;
+    historyBody.appendChild(row);
+  });
 }
 
-snap.forEach(doc=>{
-const d=doc.data();
-const tr=document.createElement("tr");
-tr.innerHTML=`
-<td>₦${d.amount}</td>
-<td>${d.senderName}</td>
-<td>${d.refId}</td>
-<td>${getStatusBadge(d.status)}</td>
-<td>${new Date(d.date).toLocaleString()}</td>
-`;
-historyBody.appendChild(tr);
-});
-}
+// SUBMIT
+submitBtn.onclick = async ()=>{
+  if(!currentUser) return alert("Login required.");
 
-submitBtn.onclick=async()=>{
-if(!currentUser) return alert("Login required.");
+  const amount = document.getElementById("amount").value;
+  const sender = document.getElementById("sender").value.trim();
+  const proof = document.getElementById("proof").files[0];
+  const refId = document.getElementById("refId").value;
 
-const amount=parseFloat(document.getElementById("amount").value);
-const sender=document.getElementById("senderName").value.trim();
-const proof=document.getElementById("proofFile").files[0];
-const refId=document.getElementById("refId").value;
+  if(!amount || amount <= 0) return alert("Enter valid amount.");
+  if(!sender) return alert("Enter sender name.");
+  if(!proof) return alert("Upload proof of payment.");
 
-if(!amount||amount<=0) return alert("Enter valid amount.");
-if(!sender) return alert("Enter sender name.");
-if(!proof) return alert("Attach proof image.");
+  submitBtn.disabled = true;
 
-submitBtn.disabled=true;
+  await db.collection("deposits").add({
+    userId: currentUser.uid,
+    username: currentUser.email,
+    amount: parseFloat(amount),
+    senderName: sender,
+    refId: refId,
+    status: "pending",
+    processed: false,
+    date: Date.now()
+  });
 
-await db.collection("deposits").add({
-userId:currentUser.uid,
-username:currentUser.email,
-amount,
-senderName:sender,
-refId,
-status:"pending",
-processed:false,
-date:Date.now()
-});
+  alert("Deposit submitted successfully!");
 
-document.getElementById("msg").style.color="green";
-document.getElementById("msg").innerHTML="Deposit submitted.";
+  document.getElementById("amount").value="";
+  document.getElementById("sender").value="";
+  document.getElementById("proof").value="";
+  document.getElementById("refId").value = generateRef();
 
-document.getElementById("amount").value="";
-document.getElementById("senderName").value="";
-document.getElementById("proofFile").value="";
-document.getElementById("refId").value=Math.random().toString(36).substr(2,9).toUpperCase();
+  submitBtn.disabled = false;
 
-submitBtn.disabled=false;
-loadHistory();
+  loadHistory();
 };
 </script>
 
