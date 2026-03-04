@@ -9,10 +9,10 @@
 
 <style>
 body{
-  font-family:Poppins, sans-serif;
+  font-family: 'Poppins', sans-serif;
   background:#f4f6f9;
   margin:0;
-  padding:20px;
+  padding:10px;
 }
 
 .container{
@@ -40,6 +40,7 @@ input{
   margin-top:5px;
   border:1px solid #ddd;
   border-radius:6px;
+  font-size:14px;
 }
 
 button{
@@ -59,10 +60,18 @@ button:disabled{
   cursor:not-allowed;
 }
 
+.table-wrapper{
+  width:100%;
+  overflow-x:auto;
+  margin-top:20px;
+  border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
 table{
   width:100%;
-  margin-top:25px;
   border-collapse:collapse;
+  min-width:500px; /* ensure horizontal scroll if needed */
 }
 
 th, td{
@@ -75,6 +84,8 @@ th, td{
 th{
   background:#16a34a;
   color:white;
+  position:sticky;
+  top:0;
 }
 
 .badge{
@@ -88,6 +99,13 @@ th{
 .approved{background:#16a34a;}
 .rejected{background:#dc2626;}
 .pending{background:#f59e0b;}
+
+@media(max-width:480px){
+  .container{padding:15px;}
+  input{font-size:13px;}
+  button{font-size:14px;padding:10px;}
+  th, td{font-size:12px;}
+}
 </style>
 </head>
 <body>
@@ -97,10 +115,10 @@ th{
 <h2>Submit Deposit</h2>
 
 <label>Amount</label>
-<input type="number" id="amount">
+<input type="number" id="amount" placeholder="₦">
 
 <label>Sender Name</label>
-<input type="text" id="sender">
+<input type="text" id="sender" placeholder="Name on transfer">
 
 <label>Proof of Payment</label>
 <input type="file" id="proof">
@@ -111,6 +129,7 @@ th{
 <button id="submitBtn" disabled>Submit Deposit</button>
 
 <h3>Deposit Records</h3>
+<div class="table-wrapper">
 <table>
 <thead>
 <tr>
@@ -123,6 +142,7 @@ th{
 </thead>
 <tbody id="history"></tbody>
 </table>
+</div>
 
 </div>
 
@@ -168,7 +188,7 @@ auth.onAuthStateChanged(user=>{
   loadHistory();
 });
 
-// LOAD HISTORY (NO orderBy to avoid index error)
+// LOAD HISTORY
 async function loadHistory(){
   historyBody.innerHTML = "";
 
