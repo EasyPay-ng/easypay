@@ -41,281 +41,81 @@
     tbody td{padding:12px;border-bottom:1px solid #f0f6f1}
     tbody tr:hover td{background:#fbfff9}
     .no-data{padding:26px;text-align:center;color:var(--muted)}
-    footer{margin-top:auto;padding:14px;text-align:center;background:transparent;color:var(--muted)}
-    @media (max-width:860px){
-      .top-row{flex-direction:column}
-      table{min-width:600px}
-      .ref-box{flex-direction:column;align-items:flex-end}
-    }
+    footer{margin-top:auto;padding:14px;text-align:center;color:var(--muted)}
   </style>
 </head>
 <body>
 
-  <!-- Back Button at the top -->
-  <div class="top-btn-container">
-    <button id="backBtn" class="btn small">← Back to Dashboard</button>
-  </div>
+<div class="top-btn-container">
+  <button id="backBtn" class="btn small">← Back to Dashboard</button>
+</div>
 
-  <header>
-    <div class="brand">EasyPay — My Referrals</div>
-    <div class="ref-box" aria-live="polite">
-      <div style="text-align:right">
-        <div style="font-size:.8rem;color:rgba(255,255,255,0.9)">Your referral code</div>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
-          <div id="refCode" class="ref-code">Loading...</div>
-          <button id="copyBtn" class="btn small">Copy Link</button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <div class="top-row">
-    <div class="card">
-      <h3>Total Referred</h3>
-      <div class="big" id="totalRef">—</div>
-      <div class="muted">Users who signed up with your code</div>
-    </div>
-    <div class="card">
-      <h3>Activated</h3>
-      <div class="big" id="activatedCount">—</div>
-      <div class="muted">Users on premium, gold, elite, diamond, or platinum plan</div>
-    </div>
-    <div class="card">
-      <h3>Referral Balance</h3>
-      <div class="big" id="referralBalance">₦0</div>
-      <div class="muted">Total earned from referrals</div>
-      <button id="withdrawBtn" class="btn green">Withdraw to Main Balance</button>
-    </div>
-    <div class="card">
-      <h3>Search & Filter</h3>
-      <div class="controls">
-        <div class="search"><input id="searchInput" placeholder="Search username or email"/></div>
-        <div style="min-width:110px"><button id="refreshBtn" class="btn">Refresh</button></div>
-      </div>
-      <div class="muted" style="margin-top:6px">Type to filter the visible table</div>
-    </div>
-  </div>
-
-  <div class="tabs">
-    <div class="tab active" data-tab="activated">Activated</div>
-    <div class="tab" data-tab="all">All Referrals</div>
-  </div>
-
-  <div class="container">
-    <div id="activated" class="tab-pane">
-      <div class="table-card">
-        <table aria-describedby="activated">
-          <thead>
-            <tr><th>Username</th><th>Email</th><th>Balance (₦)</th><th>Registered At</th></tr>
-          </thead>
-          <tbody id="activatedBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="all" class="tab-pane" style="display:none">
-      <div class="table-card">
-        <table aria-describedby="all">
-          <thead>
-            <tr><th>Username</th><th>Email</th><th>Balance (₦)</th><th>Registered At</th></tr>
-          </thead>
-          <tbody id="allBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
-        </table>
+<header>
+  <div class="brand">EasyPay — My Referrals</div>
+  <div class="ref-box">
+    <div style="text-align:right">
+      <div style="font-size:.8rem;color:rgba(255,255,255,0.9)">Your referral code</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+        <div id="refCode" class="ref-code">Loading...</div>
+        <button id="copyBtn" class="btn small">Copy Link</button>
       </div>
     </div>
   </div>
+</header>
 
-  <footer>EasyPay © 2025</footer>
+<footer>EasyPay © 2025</footer>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c1e",
-      measurementId: "G-2FZKDQ47FZ"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain: "easypay-6bce8.firebaseapp.com",
+  projectId: "easypay-6bce8",
+  storageBucket: "easypay-6bce8.appspot.com",
+  messagingSenderId: "862671358267",
+  appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-    const activatedBody = document.getElementById('activatedBody');
-    const allBody = document.getElementById('allBody');
-    const refCodeEl = document.getElementById('refCode');
-    const totalRefEl = document.getElementById('totalRef');
-    const activatedCountEl = document.getElementById('activatedCount');
-    const referralBalanceEl = document.getElementById('referralBalance');
-    const searchInput = document.getElementById('searchInput');
-    const copyBtn = document.getElementById('copyBtn');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const withdrawBtn = document.getElementById('withdrawBtn');
-    const backBtn = document.getElementById('backBtn');
+const refCodeEl = document.getElementById('refCode');
+const copyBtn = document.getElementById('copyBtn');
+const backBtn = document.getElementById('backBtn');
 
-    let allRefs = [];
-    let activatedRefs = [];
-    let referralBalance = 0;
-    let currentUser = null;
+let currentUsername = "";
 
-    function fmtDate(ts){
-      try{
-        if(!ts) return '-';
-        if (ts instanceof Date) return ts.toLocaleString();
-        if (ts && typeof ts.toDate === 'function') return ts.toDate().toLocaleString();
-        return new Date(ts).toLocaleString();
-      } catch(e){ return '-'; }
-    }
+backBtn.onclick = ()=> location.href='dashboard.html';
 
-    function renderRows(list, container){
-      if(!list.length){
-        container.innerHTML = '<tr><td colspan="4" class="no-data">No records found</td></tr>';
-        return;
-      }
-      container.innerHTML = list.map(u=>{
-        const reg = fmtDate(u.registeredAt || u.createdAt || u.registered_at || u.created_at || null);
-        const bal = (typeof u.balance === 'number') ? u.balance.toLocaleString('en-NG') : (u.balance || '0');
-        return `<tr>
-          <td style="font-weight:600">${escapeHtml(u.username || '-')}${u.username && u.isActivated?'<span style="margin-left:8px;background:#e8fdf1;color:var(--green-dark);padding:4px 8px;border-radius:999px;font-size:.7rem;font-weight:700">Activated</span>':''}</td>
-          <td>${escapeHtml(u.email || '-')}</td>
-          <td>₦${bal}</td>
-          <td>${escapeHtml(reg)}</td>
-        </tr>`;
-      }).join('');
-    }
+onAuthStateChanged(auth, async user=>{
+  if(!user) return location.href='login.html';
 
-    function escapeHtml(str){
-      return String(str).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
-    }
+  const userRef = doc(db,'users',user.uid);
+  const snap = await getDoc(userRef);
+  const data = snap.exists() ? snap.data() : {};
 
-    function applyFilter(){
-      const q = (searchInput.value||'').toLowerCase().trim();
-      if(!q){
-        renderRows(activatedRefs, activatedBody);
-        renderRows(allRefs, allBody);
-        return;
-      }
-      const f1 = activatedRefs.filter(u=> (u.username||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
-      const f2 = allRefs.filter(u=> (u.username||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
-      renderRows(f1, activatedBody);
-      renderRows(f2, allBody);
-    }
+  currentUsername = (data.username || user.email || user.uid || '').toString();
+  refCodeEl.textContent = currentUsername;
+});
 
-    searchInput.addEventListener('input', applyFilter);
-    copyBtn.addEventListener('click', ()=>{
-      const code = refCodeEl.textContent || '';
-      const url = `https://yourdomain.com/signup?ref=${code}`;
-      navigator.clipboard.writeText(url).then(()=>{ copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent='Copy Link',1400) }).catch(()=>{ alert('Copy failed') });
-    });
-    refreshBtn.addEventListener('click', ()=> loadData(refCodeEl.textContent));
-    backBtn.addEventListener('click', ()=> location.href='dashboard.html');
+copyBtn.addEventListener('click', ()=>{
+  if(!currentUsername) return;
 
-    withdrawBtn.addEventListener('click', async ()=>{
-      if(!currentUser) return;
-      if(referralBalance <= 0) return alert('No referral balance to withdraw');
-      try{
-        const userRef = doc(db,'users',currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        const data = userSnap.data() || {};
-        const currentBalance = Number(data.balance || 0);
-        await updateDoc(userRef,{
-          balance: currentBalance + referralBalance,
-          referralBalance: 0
-        });
-        referralBalance = 0;
-        referralBalanceEl.textContent = `₦0`;
-        alert('Referral balance withdrawn to main balance');
-      }catch(e){ console.error(e); alert('Withdrawal failed'); }
-    });
+  const encoded = encodeURIComponent(currentUsername);
+  const referralLink = `https://easypayz-ng.netlify.app/register?ref=${encoded}`;
 
-    document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', e=>{
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      const tab = e.currentTarget.dataset.tab;
-      document.querySelectorAll('.tab-pane').forEach(p=>p.style.display='none');
-      const el = document.getElementById(tab);
-      if(el) el.style.display = 'block';
-    }));
+  navigator.clipboard.writeText(referralLink)
+    .then(()=>{
+      copyBtn.textContent = "Copied!";
+      setTimeout(()=> copyBtn.textContent="Copy Link",1500);
+    })
+    .catch(()=> alert("Copy failed"));
+});
+</script>
 
-    onAuthStateChanged(auth, async user=>{
-      if(!user) return location.href='login.html';
-      currentUser = user;
-      const userRef = doc(db,'users',user.uid);
-      const userSnap = await getDoc(userRef);
-      const myData = userSnap.exists() ? userSnap.data() : {};
-      const myCode = (myData.username || user.email || user.uid || '').toString();
-      refCodeEl.textContent = myCode;
-      referralBalance = Number(myData.referralBalance || 0);
-      referralBalanceEl.textContent = `₦${referralBalance.toLocaleString('en-NG')}`;
-
-      // Real-time auto-credit on downline activation
-      onSnapshot(query(collection(db,'users'), where('referral','==', myCode)), snap => {
-        snap.docChanges().forEach(async change => {
-          const d = change.doc.data();
-          if(!d.username) return;
-          const plan = (d.plan || '').toLowerCase();
-          const credited = !!d.referralCredited;
-          if(!credited && ['premium','gold','elite','diamond','platinum'].includes(plan)){
-            let commission = (['premium','gold','elite'].includes(plan)) ? 2000 : 10000;
-            const uplineRef = doc(db,'users',currentUser.uid);
-            await updateDoc(uplineRef,{
-              referralBalance: (referralBalance || 0) + commission
-            });
-            referralBalance += commission;
-            referralBalanceEl.textContent = `₦${referralBalance.toLocaleString('en-NG')}`;
-            await updateDoc(change.doc.ref,{ referralCredited: true });
-          }
-        });
-      });
-
-      await loadData(myCode);
-    });
-
-    async function loadData(myCode){
-      try{
-        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Loading…</td></tr>';
-        allBody.innerHTML = '<tr><td colspan="4" class="no-data">Loading…</td></tr>';
-
-        const qRef = query(collection(db,'users'), where('referral','==', myCode));
-        const snap = await getDocs(qRef);
-        allRefs = [];
-        activatedRefs = [];
-
-        snap.forEach(docSnap=>{
-          const d = docSnap.data() || {};
-          const user = {
-            username: (d.username || d.name || '').toString(),
-            email: (d.email || '').toString(),
-            balance: Number(d.balance ?? d.wallet ?? 0) || 0,
-            registeredAt: d.createdAt || d.registeredAt || d.created_at || d.registered_at || null,
-            plan: (d.plan || '').toString().toLowerCase(),
-            isActivated: ['premium','gold','elite','diamond','platinum'].includes((d.plan||'').toLowerCase())
-          };
-          allRefs.push(user);
-          if(user.isActivated) activatedRefs.push(user);
-        });
-
-        const sortFn = (a,b)=> {
-          const ta = a.registeredAt ? (a.registeredAt.toDate ? a.registeredAt.toDate().getTime() : new Date(a.registeredAt).getTime()) : 0;
-          const tb = b.registeredAt ? (b.registeredAt.toDate ? b.registeredAt.toDate().getTime() : new Date(b.registeredAt).getTime()) : 0;
-          return tb - ta;
-        };
-        allRefs.sort(sortFn);
-        activatedRefs.sort(sortFn);
-
-        totalRefEl.textContent = allRefs.length;
-        activatedCountEl.textContent = activatedRefs.length;
-
-        applyFilter();
-      }catch(err){
-        console.error(err);
-        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Failed to load referrals</td></tr>';
-        allBody.innerHTML = '<tr><td colspan="4" class="no-data">Failed to load referrals</td></tr>';
-      }
-    }
-  </script>
+</body>
+</html>
