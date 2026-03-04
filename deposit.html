@@ -41,7 +41,6 @@
     #loading { text-align: center; padding: 0.5rem; display: none; color: #064; }
     .small { font-size: 0.82rem; color: #6b6b6b; }
 
-    /* STATUS BADGES */
     .status-badge {
       padding: 4px 10px;
       border-radius: 20px;
@@ -64,74 +63,121 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      Submit a Deposit
-      <button class="back-btn" onclick="window.location.href='dashboard.html'">&larr; Back</button>
-    </div>
-    <div class="info" aria-live="polite">
-      <p>📒 <strong>Account No:</strong> <span class="small">8125600222</span></p>
-      <p>👤 <strong>Name:</strong> <span class="small">Onyeka Anointed Chidi</span></p>
-      <p>🏦 <strong>Bank:</strong> <span class="small">Opay / Paycom</span></p>
-    </div>
+<div class="container">
+<div class="header">
+Submit a Deposit
+<button class="back-btn" onclick="window.location.href='dashboard.html'">&larr; Back</button>
+</div>
 
-    <form id="depositForm" autocomplete="off">
-      <input type="hidden" id="userId" />
-      <input type="hidden" id="username" />
+<div class="info">
+<p>📒 <strong>Account No:</strong> <span class="small">8125600222</span></p>
+<p>👤 <strong>Name:</strong> <span class="small">Onyeka Anointed Chidi</span></p>
+<p>🏦 <strong>Bank:</strong> <span class="small">Opay / Paycom</span></p>
+</div>
 
-      <div>
-        <label for="amount">Amount</label>
-        <input type="number" id="amount" min="1" placeholder="Enter amount (₦)" required />
-      </div>
+<form id="depositForm" autocomplete="off">
+<input type="hidden" id="userId" />
+<input type="hidden" id="username" />
 
-      <div>
-        <label for="senderName">Sender Name</label>
-        <input type="text" id="senderName" placeholder="Your name on transfer" required />
-      </div>
+<label>Amount</label>
+<input type="number" id="amount" min="1" required />
 
-      <div>
-        <label for="proofFile">Proof of payment (image)</label>
-        <div tabindex="0" class="file-drop" id="dropArea">
-          <span class="hint">Drag & drop or click to choose an image (JPG/PNG, max 5MB)</span>
-          <button type="button" class="secondary" id="chooseBtn">Choose</button>
-        </div>
-        <input type="file" id="proofFile" accept="image/png,image/jpeg" style="display:none" />
-        <div class="preview" id="previewArea"></div>
-        <div class="small" style="margin-top:6px">Accepted: JPG / PNG — Max 5 MB.</div>
-      </div>
+<label>Sender Name</label>
+<input type="text" id="senderName" required />
 
-      <div>
-        <label for="refId">Reference ID</label>
-        <input type="text" id="refId" readonly />
-      </div>
+<label>Proof of payment</label>
+<input type="file" id="proofFile" accept="image/png,image/jpeg" required />
 
-      <div class="btn-row">
-        <button id="submitBtn" type="button">Submit Deposit</button>
-        <button id="clearBtn" type="button" class="secondary">Clear</button>
-      </div>
+<label>Reference ID</label>
+<input type="text" id="refId" readonly />
 
-      <div id="loading">Submitting…</div>
-      <div id="msg"></div>
-    </form>
+<button id="submitBtn" type="button">Submit Deposit</button>
+<div id="loading">Submitting…</div>
+<div id="msg"></div>
+</form>
 
-    <div class="history">
-      <h3>Deposit Records</h3>
-      <table>
-        <thead>
-          <tr><th>Amt</th><th>Sender</th><th>Ref</th><th>Proof</th><th>Status</th><th>Date</th></tr>
-        </thead>
-        <tbody id="history"></tbody>
-      </table>
-    </div>
-  </div>
+<div class="history">
+<h3>Deposit Records</h3>
+<table>
+<thead>
+<tr>
+<th>Amt</th><th>Sender</th><th>Ref</th><th>Status</th><th>Date</th>
+</tr>
+</thead>
+<tbody id="history"></tbody>
+</table>
+</div>
+</div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script>
-    function getStatusBadge(status){
-      const s = (status || 'pending').toLowerCase();
-      if(s === 'approved') return '<span class="status-badge status-approved">approved</span>';
-      if(s === 'rejected') return '<span class="status-badge status-rejected">rejected</span>';
-      return '<span class="status-badge status-pending">pending</span>';
-    }
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script>
+firebase.initializeApp({
+apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+authDomain: "easypay-6bce8.firebaseapp.com",
+projectId: "easypay-6bce8"
+});
+
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+const refIn=document.getElementById("refId");
+refIn.value=Math.random().toString(36).substr(2,9).toUpperCase();
+
+function getStatusBadge(status){
+status=(status||"pending").toLowerCase();
+if(status==="approved") return '<span class="status-badge status-approved">approved</span>';
+if(status==="rejected") return '<span class="status-badge status-rejected">rejected</span>';
+return '<span class="status-badge status-pending">pending</span>';
+}
+
+auth.onAuthStateChanged(async user=>{
+if(!user) return location.href="login.html";
+document.getElementById("userId").value=user.uid;
+document.getElementById("username").value=user.email;
+loadHistory(user.email);
+});
+
+async function loadHistory(username){
+const hist=document.getElementById("history");
+hist.innerHTML="";
+const snap=await db.collection("deposits").where("username","==",username).get();
+snap.forEach(doc=>{
+const d=doc.data();
+const tr=document.createElement("tr");
+tr.innerHTML=`
+<td>₦${d.amount}</td>
+<td>${d.senderName}</td>
+<td>${d.refId}</td>
+<td>${getStatusBadge(d.status)}</td>
+<td>${new Date(d.date).toLocaleString()}</td>
+`;
+hist.appendChild(tr);
+});
+}
+
+document.getElementById("submitBtn").onclick=async()=>{
+const uid=document.getElementById("userId").value;
+const username=document.getElementById("username").value;
+const amount=parseFloat(document.getElementById("amount").value);
+const sender=document.getElementById("senderName").value;
+const refId=document.getElementById("refId").value;
+
+await db.collection("deposits").add({
+userId:uid,
+username,
+amount,
+senderName:sender,
+refId,
+status:"pending",
+date:Date.now()
+});
+
+document.getElementById("msg").innerHTML="Deposit submitted.";
+loadHistory(username);
+};
+</script>
+</body>
+</html>
