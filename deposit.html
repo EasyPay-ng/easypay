@@ -40,6 +40,21 @@
     th { background: var(--primary); color: #fff; position: sticky; top: 0; z-index: 1; }
     #loading { text-align: center; padding: 0.5rem; display: none; color: #064; }
     .small { font-size: 0.82rem; color: #6b6b6b; }
+
+    /* STATUS BADGES */
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      display: inline-block;
+      text-transform: capitalize;
+    }
+    .status-approved { background-color: #16a34a; }
+    .status-rejected { background-color: #dc2626; }
+    .status-pending { background-color: #f59e0b; }
+
     @media (max-width: 420px) {
       .container { margin: 10px; }
       input, button { font-size: 0.95rem; padding: 0.7rem; }
@@ -114,166 +129,9 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script>
-    const IMGUR_CLIENT_ID = 'fb533db21a59486';
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.firestore();
-
-    const userIdIn = document.getElementById('userId'),
-          usernameIn = document.getElementById('username'),
-          amtIn = document.getElementById('amount'),
-          senderIn = document.getElementById('senderName'),
-          refIn = document.getElementById('refId'),
-          btn = document.getElementById('submitBtn'),
-          msg = document.getElementById('msg'),
-          load = document.getElementById('loading'),
-          hist = document.getElementById('history'),
-          proofFile = document.getElementById('proofFile'),
-          dropArea = document.getElementById('dropArea'),
-          previewArea = document.getElementById('previewArea'),
-          chooseBtn = document.getElementById('chooseBtn'),
-          clearBtn = document.getElementById('clearBtn');
-
-    const genRef = () => Math.random().toString(36).substr(2,9).toUpperCase();
-    refIn.value = genRef();
-
-    auth.onAuthStateChanged(async user => {
-      if(!user) return window.location.href = 'login.html';
-      const snap = await db.collection('users').doc(user.uid).get();
-      const data = snap.data() || {};
-      userIdIn.value = user.uid;
-      usernameIn.value = data.username || user.email || user.uid;
-      await loadHistory();
-      watchForApproval();
-    });
-
-    async function loadHistory(){
-      hist.innerHTML = '';
-      const uname = usernameIn.value; if(!uname) return;
-      try{
-        const snap = await db.collection('deposits').where('username','==',uname).get();
-        const docs = [];
-        snap.forEach(d=>docs.push(d.data()));
-        docs.sort((a,b)=> (b.date || 0) - (a.date || 0));
-        if(docs.length === 0){
-          hist.innerHTML = '<tr><td colspan="6" class="small">No deposit records yet</td></tr>';
-          return;
-        }
-        docs.forEach(d=>{
-          const tr = document.createElement('tr');
-          const proofCell = d.proofUrl ? `<a href="${escapeHtml(d.proofUrl)}" target="_blank" rel="noopener">View</a>` : '—';
-          const dateStr = d.date ? new Date(d.date).toLocaleString() : '-';
-          tr.innerHTML = `<td>₦${escapeHtml(String(d.amount || 0))}</td><td>${escapeHtml(d.senderName||'')}</td><td>${escapeHtml(d.refId||'')}</td><td>${proofCell}</td><td>${escapeHtml(d.status||'pending')}</td><td>${escapeHtml(dateStr)}</td>`;
-          hist.appendChild(tr);
-        });
-      }catch(e){
-        console.error(e);
-        hist.innerHTML = '<tr><td colspan="6" class="small">Failed to load history</td></tr>';
-      }
+    function getStatusBadge(status){
+      const s = (status || 'pending').toLowerCase();
+      if(s === 'approved') return '<span class="status-badge status-approved">approved</span>';
+      if(s === 'rejected') return '<span class="status-badge status-rejected">rejected</span>';
+      return '<span class="status-badge status-pending">pending</span>';
     }
-
-    function watchForApproval(){
-      db.collection('deposits')
-        .where('userId','==',userIdIn.value)
-        .where('status','==','approved')
-        .where('processed','==',false)
-        .onSnapshot(snap=>{
-          snap.forEach(async ds=>{
-            const d = ds.data(), id = ds.id;
-            try{
-              await db.collection('users').doc(userIdIn.value).update({ balance: firebase.firestore.FieldValue.increment(d.amount) });
-              await db.collection('deposits').doc(id).update({ processed:true });
-            }catch(e){
-              console.error('approval processing error', e);
-            }
-          });
-          loadHistory();
-        });
-    }
-
-    function uploadToImgur(file){
-      return new Promise((resolve,reject)=>{
-        if(!IMGUR_CLIENT_ID) return reject(new Error('Imgur Client ID not set'));
-        const form = new FormData();
-        form.append('image', file);
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://api.imgur.com/3/image');
-        xhr.setRequestHeader('Authorization', 'Client-ID ' + IMGUR_CLIENT_ID);
-        xhr.upload.onprogress = e => {
-          if(e.lengthComputable){
-            const pct = Math.round(e.loaded / e.total * 100);
-            load.style.display = 'block';
-            load.textContent = 'Uploading image: ' + pct + '%';
-          }
-        };
-        xhr.onload = () => {
-          try{
-            const res = JSON.parse(xhr.responseText);
-            if(res.success && res.data && res.data.link){
-              resolve({ link: res.data.link, deletehash: res.data.deletehash });
-            } else { reject(new Error('Imgur upload failed')); }
-          }catch(err){ reject(err); }
-        };
-        xhr.onerror = () => reject(new Error('Network error during image upload'));
-        xhr.send(form);
-      });
-    }
-
-    chooseBtn.addEventListener('click', ()=> proofFile.click());
-    proofFile.addEventListener('change', handleFileSelect);
-    ['dragenter','dragover','dragleave','drop'].forEach(evt => {
-      dropArea.addEventListener(evt, e => {
-        e.preventDefault(); e.stopPropagation();
-        if(evt==='dragenter'||evt==='dragover') dropArea.style.boxShadow='inset 0 0 0 2px rgba(0,182,109,0.12)';
-        if(evt==='dragleave'||evt==='drop') dropArea.style.boxShadow='none';
-      });
-    });
-    dropArea.addEventListener('drop', e => {
-      if(e.dataTransfer && e.dataTransfer.files.length){ proofFile.files=e.dataTransfer.files; handleFileSelect(); }
-    });
-    function handleFileSelect(){
-      const file = proofFile.files[0];
-      if(!file){ clearPreview(); return; }
-      if(!['image/jpeg','image/png'].includes(file.type)){ alert('Only JPG/PNG allowed'); proofFile.value=''; return; }
-      if(file.size>5*1024*1024){ alert('File too large (max 5MB)'); proofFile.value=''; return; }
-      const reader = new FileReader();
-      reader.onload=e=>{ previewArea.style.display='flex'; previewArea.innerHTML=`<img src="${e.target.result}" alt="proof" />`; };
-      reader.readAsDataURL(file);
-    }
-    function clearPreview(){ previewArea.style.display='none'; previewArea.innerHTML=''; proofFile.value=''; }
-    clearBtn.addEventListener('click', ()=>{ amtIn.value=''; senderIn.value=''; clearPreview(); refIn.value=genRef(); msg.textContent=''; });
-
-    btn.addEventListener('click', async ()=>{
-      const uid=userIdIn.value, uname=usernameIn.value;
-      const amount=parseFloat(amtIn.value), sender=senderIn.value.trim(), refId=refIn.value;
-      const file=proofFile.files[0];
-      if(!amount||amount<=0) return alert('Enter a valid amount');
-      if(!sender) return alert('Enter sender name');
-      if(!file) return alert('Please attach proof of payment (image)');
-      btn.disabled=true; load.style.display='block'; msg.textContent='';
-      try{
-        const img=await uploadToImgur(file);
-        load.textContent='Recording deposit...';
-        await db.collection('deposits').add({
-          userId:uid, username:uname, amount, senderName:sender, refId, proofUrl:img.link, proofDeleteHash:img.deletehash||null,
-          status:'pending', processed:false, date:Date.now()
-        });
-        msg.style.color='green'; msg.textContent='Deposit submitted — awaiting approval.';
-        amtIn.value=''; senderIn.value=''; clearPreview(); refIn.value=genRef(); await loadHistory();
-      }catch(e){ console.error(e); msg.style.color='red'; msg.textContent=e.message||'Submission failed.'; }
-      finally{ btn.disabled=false; load.style.display='none'; }
-    });
-
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
-  </script>
-</body>
-</html>
