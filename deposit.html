@@ -1,98 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Submit Deposit</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --primary: #00b66d;
-      --bg: #f7fdf8;
-      --text: #333;
-      --card-bg: #fff;
-      --shadow: rgba(0, 102, 51, 0.1);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
-    .container { max-width: 520px; margin: 20px auto; background: var(--card-bg); border-radius: 16px; box-shadow: 0 6px 18px var(--shadow); overflow: hidden; }
-    .header { background: var(--primary); color: #fff; padding: 1rem; text-align: center; font-size: 1.2rem; font-weight: 600; position: relative; }
-    .back-btn { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); background: #fff; color: var(--primary); border: none; border-radius: 6px; padding: 0.35rem 0.8rem; cursor: pointer; font-weight: 600; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(0,102,51,0.1); }
-    .info { padding: 1rem; background: #f2fff6; }
-    .info p { font-size: 0.95rem; margin: 0.35rem 0; color: #2f4f3b; }
-    form { display: flex; flex-direction: column; padding: 1rem; gap: 1rem; }
-    label { font-size: 0.9rem; font-weight: 500; color: #555; }
-    input[type="text"], input[type="number"], input[type="file"], .file-drop { width: 100%; padding: 0.8rem; border: 1px solid #e6eef0; border-radius: 8px; font-size: 1rem; background: #fff; }
-    input:focus, .file-drop:focus { outline: none; border-color: var(--primary); box-shadow: 0 6px 18px rgba(0,182,109,0.06); }
-    .file-drop { display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; background:#fbfffb; }
-    .hint { font-size: 0.85rem; color: #6b6b6b; }
-    .preview { margin-top:8px; border-radius:8px; overflow:hidden; max-height:160px; display:none; align-items:center; justify-content:center; background:#fafdf9; padding:8px; }
-    .preview img { max-width:100%; max-height:160px; object-fit:contain; display:block; }
-    .btn-row { display:flex; gap:10px; align-items:center; }
-    button { padding: 0.8rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 6px 18px var(--shadow); }
-    button.secondary { background: transparent; border: 1px solid #e6eef0; color: var(--text); font-weight:600; }
-    button:disabled { background: #cbd5d9; cursor: not-allowed; box-shadow: none; }
-    #msg { padding: 0 1rem; font-size: 0.95rem; min-height: 20px; }
-    .history { margin: 1rem; padding-bottom: 12px; }
-    .history h3 { font-size: 1rem; margin-bottom: 0.5rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; vertical-align: middle; }
-    th { background: var(--primary); color: #fff; position: sticky; top: 0; z-index: 1; }
-    #loading { text-align: center; padding: 0.5rem; display: none; color: #064; }
-    .small { font-size: 0.82rem; color: #6b6b6b; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Submit Deposit</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
 
-    .status-badge {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #fff;
-      display: inline-block;
-      text-transform: capitalize;
-    }
-    .status-approved { background-color: #16a34a; }
-    .status-rejected { background-color: #dc2626; }
-    .status-pending { background-color: #f59e0b; }
+<style>
+:root {
+  --primary:#00b66d;
+  --bg:#f7fdf8;
+  --text:#333;
+  --card-bg:#fff;
+  --shadow:rgba(0,102,51,0.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);padding-bottom:60px;}
+.container{max-width:520px;margin:20px auto;background:var(--card-bg);border-radius:16px;box-shadow:0 6px 18px var(--shadow);overflow:hidden;}
+.header{background:var(--primary);color:#fff;padding:1rem;text-align:center;font-size:1.2rem;font-weight:600;position:relative;}
+.back-btn{position:absolute;left:1rem;top:50%;transform:translateY(-50%);background:#fff;color:var(--primary);border:none;border-radius:6px;padding:0.35rem 0.8rem;cursor:pointer;font-weight:600;font-size:0.85rem;}
+.info{padding:1rem;background:#f2fff6;}
+.info p{font-size:0.95rem;margin:0.35rem 0;}
+form{display:flex;flex-direction:column;padding:1rem;gap:1rem;}
+label{font-size:0.9rem;font-weight:500;}
+input{width:100%;padding:0.8rem;border:1px solid #e6eef0;border-radius:8px;}
+button{padding:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;}
+button:disabled{background:#cbd5d9;cursor:not-allowed;}
+#msg{font-size:0.9rem;min-height:20px;}
+.history{margin:1rem;}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:0.6rem;border-bottom:1px solid #eee;font-size:0.85rem;}
+th{background:var(--primary);color:#fff;}
 
-    @media (max-width: 420px) {
-      .container { margin: 10px; }
-      input, button { font-size: 0.95rem; padding: 0.7rem; }
-      th, td { font-size: 0.82rem; }
-      .back-btn { padding: 0.25rem 0.6rem; font-size: 0.75rem; left: 0.5rem; }
-    }
-  </style>
+.status-badge{
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  color:#fff;
+}
+.status-approved{background:#16a34a;}
+.status-rejected{background:#dc2626;}
+.status-pending{background:#f59e0b;}
+</style>
 </head>
+
 <body>
 <div class="container">
+
 <div class="header">
-Submit a Deposit
+Submit Deposit
 <button class="back-btn" onclick="window.location.href='dashboard.html'">&larr; Back</button>
 </div>
 
 <div class="info">
-<p>📒 <strong>Account No:</strong> <span class="small">8125600222</span></p>
-<p>👤 <strong>Name:</strong> <span class="small">Onyeka Anointed Chidi</span></p>
-<p>🏦 <strong>Bank:</strong> <span class="small">Opay / Paycom</span></p>
+<p><strong>Account No:</strong> 8125600222</p>
+<p><strong>Name:</strong> Onyeka Anointed Chidi</p>
+<p><strong>Bank:</strong> Opay / Paycom</p>
 </div>
 
-<form id="depositForm" autocomplete="off">
-<input type="hidden" id="userId" />
-<input type="hidden" id="username" />
+<form autocomplete="off">
+<input type="hidden" id="userId"/>
+<input type="hidden" id="username"/>
 
 <label>Amount</label>
-<input type="number" id="amount" min="1" required />
+<input type="number" id="amount" min="1"/>
 
 <label>Sender Name</label>
-<input type="text" id="senderName" required />
+<input type="text" id="senderName"/>
 
-<label>Proof of payment</label>
-<input type="file" id="proofFile" accept="image/png,image/jpeg" required />
+<label>Proof of Payment (Image)</label>
+<input type="file" id="proofFile" accept="image/png,image/jpeg"/>
 
 <label>Reference ID</label>
-<input type="text" id="refId" readonly />
+<input type="text" id="refId" readonly/>
 
-<button id="submitBtn" type="button">Submit Deposit</button>
-<div id="loading">Submitting…</div>
+<button type="button" id="submitBtn" disabled>Submit Deposit</button>
 <div id="msg"></div>
 </form>
 
@@ -107,6 +90,7 @@ Submit a Deposit
 <tbody id="history"></tbody>
 </table>
 </div>
+
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -115,16 +99,20 @@ Submit a Deposit
 
 <script>
 firebase.initializeApp({
-apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-authDomain: "easypay-6bce8.firebaseapp.com",
-projectId: "easypay-6bce8"
+apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+authDomain:"easypay-6bce8.firebaseapp.com",
+projectId:"easypay-6bce8"
 });
 
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-const refIn=document.getElementById("refId");
-refIn.value=Math.random().toString(36).substr(2,9).toUpperCase();
+const submitBtn=document.getElementById("submitBtn");
+const historyBody=document.getElementById("history");
+
+let currentUser=null;
+
+document.getElementById("refId").value=Math.random().toString(36).substr(2,9).toUpperCase();
 
 function getStatusBadge(status){
 status=(status||"pending").toLowerCase();
@@ -134,16 +122,29 @@ return '<span class="status-badge status-pending">pending</span>';
 }
 
 auth.onAuthStateChanged(async user=>{
-if(!user) return location.href="login.html";
-document.getElementById("userId").value=user.uid;
-document.getElementById("username").value=user.email;
-loadHistory(user.email);
+if(!user){
+  currentUser=null;
+  submitBtn.disabled=true;
+  return location.href="login.html";
+}
+currentUser=user;
+submitBtn.disabled=false;
+loadHistory();
 });
 
-async function loadHistory(username){
-const hist=document.getElementById("history");
-hist.innerHTML="";
-const snap=await db.collection("deposits").where("username","==",username).get();
+async function loadHistory(){
+if(!currentUser) return;
+historyBody.innerHTML="";
+const snap=await db.collection("deposits")
+.where("userId","==",currentUser.uid)
+.orderBy("date","desc")
+.get();
+
+if(snap.empty){
+historyBody.innerHTML='<tr><td colspan="5">No deposit records yet</td></tr>';
+return;
+}
+
 snap.forEach(doc=>{
 const d=doc.data();
 const tr=document.createElement("tr");
@@ -154,30 +155,47 @@ tr.innerHTML=`
 <td>${getStatusBadge(d.status)}</td>
 <td>${new Date(d.date).toLocaleString()}</td>
 `;
-hist.appendChild(tr);
+historyBody.appendChild(tr);
 });
 }
 
-document.getElementById("submitBtn").onclick=async()=>{
-const uid=document.getElementById("userId").value;
-const username=document.getElementById("username").value;
+submitBtn.onclick=async()=>{
+if(!currentUser) return alert("Login required.");
+
 const amount=parseFloat(document.getElementById("amount").value);
-const sender=document.getElementById("senderName").value;
+const sender=document.getElementById("senderName").value.trim();
+const proof=document.getElementById("proofFile").files[0];
 const refId=document.getElementById("refId").value;
 
+if(!amount||amount<=0) return alert("Enter valid amount.");
+if(!sender) return alert("Enter sender name.");
+if(!proof) return alert("Attach proof image.");
+
+submitBtn.disabled=true;
+
 await db.collection("deposits").add({
-userId:uid,
-username,
+userId:currentUser.uid,
+username:currentUser.email,
 amount,
 senderName:sender,
 refId,
 status:"pending",
+processed:false,
 date:Date.now()
 });
 
+document.getElementById("msg").style.color="green";
 document.getElementById("msg").innerHTML="Deposit submitted.";
-loadHistory(username);
+
+document.getElementById("amount").value="";
+document.getElementById("senderName").value="";
+document.getElementById("proofFile").value="";
+document.getElementById("refId").value=Math.random().toString(36).substr(2,9).toUpperCase();
+
+submitBtn.disabled=false;
+loadHistory();
 };
 </script>
+
 </body>
 </html>
