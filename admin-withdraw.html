@@ -17,7 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Sort withdrawals (Pending first, then by date)
+// Sort withdrawals
 function sortWithdrawals(arr) {
   return arr.sort((a, b) => {
     const statusA = a.data.status;
