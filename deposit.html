@@ -28,6 +28,87 @@ h2{
   margin-bottom:15px;
 }
 
+/* ✅ ADDED: Account Details Box Styles */
+.account-box{
+  background:linear-gradient(135deg, #16a34a, #22c55e);
+  color:white;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:25px;
+  box-shadow:0 4px 12px rgba(22,163,74,0.3);
+}
+
+.account-box h3{
+  margin:0 0 15px 0;
+  font-size:16px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.account-detail{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.2);
+}
+
+.account-detail:last-child{
+  border-bottom:none;
+}
+
+.account-detail label{
+  font-size:13px;
+  opacity:0.9;
+  font-weight:400;
+  margin:0;
+}
+
+.account-detail .value{
+  font-size:15px;
+  font-weight:700;
+  text-align:right;
+  font-family:'Courier New', monospace;
+  letter-spacing:0.5px;
+}
+
+.copy-btn{
+  background:rgba(255,255,255,0.2);
+  border:none;
+  color:white;
+  padding:4px 10px;
+  border-radius:6px;
+  font-size:11px;
+  cursor:pointer;
+  margin-left:8px;
+  transition:0.2s;
+}
+
+.copy-btn:hover{
+  background:rgba(255,255,255,0.3);
+}
+
+.copy-btn:active{
+  transform:scale(0.95);
+}
+
+.warning-box{
+  background:#fef3c7;
+  border-left:4px solid #f59e0b;
+  padding:12px 15px;
+  border-radius:6px;
+  margin-bottom:20px;
+  font-size:13px;
+  color:#92400e;
+}
+
+.warning-box strong{
+  display:block;
+  margin-bottom:4px;
+}
+
 label{
   display:block;
   margin-top:12px;
@@ -71,7 +152,7 @@ button:disabled{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:500px; /* ensure horizontal scroll if needed */
+  min-width:500px;
 }
 
 th, td{
@@ -102,17 +183,49 @@ th{
 
 @media(max-width:480px){
   .container{padding:15px;}
+  .account-box{padding:15px;}
+  .account-detail{flex-direction:column;align-items:flex-start;gap:4px;}
+  .account-detail .value{font-size:14px;}
   input{font-size:13px;}
   button{font-size:14px;padding:10px;}
   th, td{font-size:12px;}
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
 
 <h2>Submit Deposit</h2>
+
+<!-- ✅ ADDED: Account Details Section -->
+<div class="account-box">
+  <h3><i>🏦</i> Send Money To This Account</h3>
+  
+  <div class="account-detail">
+    <label>Account Number</label>
+    <div>
+      <span class="value" id="acctNum">8125600222</span>
+      <button class="copy-btn" onclick="copyText('8125600222')">Copy</button>
+    </div>
+  </div>
+  
+  <div class="account-detail">
+    <label>Account Name</label>
+    <span class="value">Onyeka Annointed Chidi</span>
+  </div>
+  
+  <div class="account-detail">
+    <label>Bank Name</label>
+    <span class="value">Opay/Paycom</span>
+  </div>
+</div>
+
+<div class="warning-box">
+  <strong>⚠️ Important:</strong>
+  Send money to the account above, then upload your proof of payment below. Use your Reference ID as the transfer narration/description.
+</div>
 
 <label>Amount</label>
 <input type="number" id="amount" placeholder="₦">
@@ -145,7 +258,6 @@ th{
 </div>
 
 </div>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -170,6 +282,22 @@ function generateRef(){
   return Math.random().toString(36).substring(2,10).toUpperCase();
 }
 document.getElementById("refId").value = generateRef();
+
+// ✅ ADDED: Copy to clipboard function
+window.copyText = function(text){
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Account number copied: " + text);
+  }).catch(() => {
+    // Fallback for older browsers
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textArea);
+    alert("Account number copied: " + text);
+  });
+};
 
 function getBadge(status){
   if(status === "approved") return `<span class="badge approved">approved</span>`;
