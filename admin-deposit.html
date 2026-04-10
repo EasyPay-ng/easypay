@@ -159,10 +159,11 @@
         return matchesStatus && matchesSearch;
       });
 
+      // Sort by date - newest first
       deposits.sort((a,b)=>{
         const at = a.date?.seconds ? a.date.seconds*1000 : 0;
         const bt = b.date?.seconds ? b.date.seconds*1000 : 0;
-        return bt - at;
+        return bt - at; // Descending order (newest first)
       });
 
       const counts = deposits.reduce((acc,d)=>{
@@ -191,10 +192,13 @@
           ? `<span class="badge b-rejected">REJECTED</span>`
           : `<span class="badge b-pending">PENDING</span>`;
 
+        // Display username (not email) - fallback to email if username not available
+        const displayUsername = d.username || d.userEmail || "Unknown";
+
         tr.innerHTML = `
           <td>₦${escapeHtml(d.amount)}</td>
           <td>${escapeHtml(d.senderName)}</td>
-          <td>${escapeHtml(d.username)}</td>
+          <td>${escapeHtml(displayUsername)}</td>
           <td>${escapeHtml(d.refId)}</td>
           <td>${d.proofUrl ? `<img src="${d.proofUrl}" class="thumb">` : "—"}</td>
           <td>${formatDate(d.date)}</td>
@@ -206,17 +210,51 @@
         `;
 
         tr.querySelector(".approve").onclick = async ()=>{
-          await db.collection("deposits").doc(d.id).update({
-            status:"approved"
-          });
-          loadDeposits();
+          try {
+            // Get user document reference
+            const userRef = db.collection("users").doc(d.userId);
+            const userDoc = await userRef.get();
+            
+            let currentBalance = 0;
+            if (userDoc.exists) {
+              currentBalance = userDoc.data().balance || 0;
+            }
+            
+            const newBalance = currentBalance + parseFloat(d.amount || 0);
+            
+            // Update deposit status and credit user balance in a batch
+            const batch = db.batch();
+            
+            batch.update(db.collection("deposits").doc(d.id), {
+              status: "approved",
+              approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            batch.update(userRef, {
+              balance: newBalance,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            await batch.commit();
+            
+            loadDeposits();
+          } catch (err) {
+            console.error("Approval error:", err);
+            alert("Failed to approve: " + err.message);
+          }
         };
 
         tr.querySelector(".reject").onclick = async ()=>{
-          await db.collection("deposits").doc(d.id).update({
-            status:"rejected"
-          });
-          loadDeposits();
+          try {
+            await db.collection("deposits").doc(d.id).update({
+              status: "rejected",
+              rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            loadDeposits();
+          } catch (err) {
+            console.error("Rejection error:", err);
+            alert("Failed to reject: " + err.message);
+          }
         };
 
         adminTable.appendChild(tr);
