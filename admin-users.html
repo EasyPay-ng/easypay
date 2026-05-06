@@ -94,7 +94,7 @@
   </header>
   <main class="container">
     <div class="search-bar">
-      <input id="searchInput" placeholder="Username or UID…"/>
+      <input id="searchInput" placeholder="Username, Email or UID…"/>
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
     </div>
     <div id="tableWrap">
@@ -188,10 +188,11 @@
         wrap.innerHTML = `<p class="no-data">No users found.</p>`;
         return;
       }
-      let html = `<table><thead><tr><th>Username</th><th>UID</th><th>Balance</th><th>Actions</th></tr></thead><tbody>`;
+      let html = `<table><thead><tr><th>Username</th><th>Email</th><th>UID</th><th>Balance</th><th>Actions</th></tr></thead><tbody>`;
       for(const u of list){
         html += `<tr>
           <td>${u.username|| '—'}</td>
+          <td>${u.email|| '—'}</td>
           <td>${u.id}</td>
           <td>₦${(u.balance||0).toFixed(2)}</td>
           <td>
@@ -212,7 +213,11 @@
     function filterTable() {
       const q = searchInput.value.trim().toLowerCase();
       render(
-        q ? users.filter(u => (u.username||"").toLowerCase().includes(q) || u.id.toLowerCase().includes(q))
+        q ? users.filter(u => 
+            (u.username||"").toLowerCase().includes(q) || 
+            (u.email||"").toLowerCase().includes(q) || 
+            u.id.toLowerCase().includes(q)
+          )
           : users
       );
     }
@@ -342,5 +347,4 @@
     };
   </script>
 </body>
-  </html>
-  
+</html>
