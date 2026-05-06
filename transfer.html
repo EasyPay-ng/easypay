@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TaskVault – P2P Transfer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+  <style>
+    :root {
+      --orange: #f97316;
+      --orange-light: #fff7ed;
+      --orange-dark: #ea580c;
+      --white: #fff;
+      --gray: #6b7280;
+      --red: #dc2626;
+      --green: #16a34a;
+      --shadow: rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--orange-light); color:#1f2937; min-height:100vh; }
+    
+    header {
+      background:var(--orange); color:var(--white);
+      padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center;
+      box-shadow:0 2px 8px var(--shadow); position:sticky; top:0; z-index:100;
+    }
+    header h1 { font-size:1.1rem; font-weight:700; }
+    .back-btn {
+      background:rgba(255,255,255,0.2); color:var(--white); border:none;
+      padding:.4rem .8rem; border-radius:6px; cursor:pointer; font-size:.9rem;
+    }
+    .back-btn:hover { background:rgba(255,255,255,0.3); }
+    
+    .container { max-width:480px; margin:0 auto; padding:1.5rem; }
+    
+    /* Balance Card */
+    .balance-card {
+      background:linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+      color:var(--white); border-radius:16px; padding:1.5rem;
+      margin-bottom:1.5rem; box-shadow:0 4px 12px rgba(249,115,22,0.3);
+    }
+    .balance-card h3 { font-size:.85rem; opacity:.9; margin-bottom:.5rem; text-transform:uppercase; letter-spacing:1px; }
+    .balance-card .amount { font-size:2rem; font-weight:700; }
+    
+    /* KYC Status Badge */
+    .kyc-badge {
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.4rem .8rem; border-radius:20px; font-size:.8rem; font-weight:600;
+      margin-bottom:1.5rem;
+    }
+    .kyc-verified { background:#dcfce7; color:var(--green); }
+    .kyc-pending { background:#fef3c7; color:#d97706; }
+    .kyc-rejected { background:#fee2e2; color:var(--red); }
+    
+    /* Transfer Form */
+    .card {
+      background:var(--white); border-radius:12px; padding:1.5rem;
+      box-shadow:0 2px 8px var(--shadow);
+    }
+    .card h2 { font-size:1.1rem; margin-bottom:1.2rem; color:#1f2937; }
+    
+    .form-group { margin-bottom:1.2rem; }
+    .form-group label {
+      display:block; font-size:.85rem; font-weight:600; color:#4b5563;
+      margin-bottom:.4rem;
+    }
+    .form-group input, .form-group select {
+      width:100%; padding:.75rem; border:2px solid #e5e7eb; border-radius:8px;
+      font-size:1rem; transition:border-color .2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline:none; border-color:var(--orange);
+    }
+    .input-hint { font-size:.75rem; color:var(--gray); margin-top:.3rem; }
+    
+    .recipient-preview {
+      display:flex; align-items:center; gap:.75rem;
+      padding:.75rem; background:#f9fafb; border-radius:8px;
+      margin-bottom:1rem; border:1px solid #e5e7eb;
+    }
+    .recipient-preview img {
+      width:40px; height:40px; border-radius:50%; object-fit:cover;
+    }
+    .recipient-preview .info { flex:1; }
+    .recipient-preview .name { font-weight:600; font-size:.9rem; }
+    .recipient-preview .email { font-size:.8rem; color:var(--gray); }
+    
+    .btn {
+      width:100%; padding:.9rem; border:none; border-radius:8px;
+      font-size:1rem; font-weight:600; cursor:pointer; transition:all .2s;
+    }
+    .btn-primary {
+      background:var(--orange); color:var(--white);
+    }
+    .btn-primary:hover:not(:disabled) { background:var(--orange-dark); transform:translateY(-1px); }
+    .btn-primary:disabled {
+      background:#d1d5db; color:#9ca3af; cursor:not-allowed;
+    }
+    
+    /* Transaction History */
+    .history-section { margin-top:1.5rem; }
+    .history-section h2 { font-size:1rem; margin-bottom:1rem; color:#4b5563; }
+    .tx-item {
+      background:var(--white); border-radius:10px; padding:1rem;
+      margin-bottom:.75rem; box-shadow:0 1px 4px var(--shadow);
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .tx-item .left { display:flex; align-items:center; gap:.75rem; }
+    .tx-icon {
+      width:36px; height:36px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.85rem;
+    }
+    .tx-sent { background:#fee2e2; color:var(--red); }
+    .tx-received { background:#dcfce7; color:var(--green); }
+    .tx-details .type { font-weight:600; font-size:.9rem; }
+    .tx-details .meta { font-size:.75rem; color:var(--gray); margin-top:.15rem; }
+    .tx-amount { font-weight:700; font-size:1rem; }
+    .tx-amount.sent { color:var(--red); }
+    .tx-amount.received { color:var(--green); }
+    
+    /* Modal */
+    .modal-backdrop {
+      position:fixed; inset:0; background:rgba(0,0,0,0.5);
+      display:none; justify-content:center; align-items:center; z-index:1000;
+      padding:1rem;
+    }
+    .modal {
+      background:var(--white); border-radius:16px; padding:1.5rem;
+      max-width:360px; width:100%; text-align:center;
+      animation:modalIn .3s ease;
+    }
+    @keyframes modalIn {
+      from { opacity:0; transform:scale(.9); }
+      to { opacity:1; transform:scale(1); }
+    }
+    .modal-icon {
+      width:60px; height:60px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 1rem; font-size:1.5rem;
+    }
+    .modal-icon.success { background:#dcfce7; color:var(--green); }
+    .modal-icon.error { background:#fee2e2; color:var(--red); }
+    .modal-icon.lock { background:#fef3c7; color:#d97706; }
+    .modal h3 { font-size:1.1rem; margin-bottom:.5rem; }
+    .modal p { color:var(--gray); font-size:.9rem; margin-bottom:1.5rem; }
+    .modal .btn { margin-top:.5rem; }
+    
+    /* KYC Blocker */
+    .kyc-blocker {
+      background:var(--white); border-radius:12px; padding:2rem;
+      text-align:center; box-shadow:0 2px 8px var(--shadow);
+    }
+    .kyc-blocker .lock-icon {
+      width:64px; height:64px; background:#fef3c7; color:#d97706;
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      margin:0 auto 1rem; font-size:1.75rem;
+    }
+    .kyc-blocker h2 { font-size:1.2rem; margin-bottom:.5rem; }
+    .kyc-blocker p { color:var(--gray); margin-bottom:1.5rem; font-size:.9rem; }
+    .kyc-blocker .btn-primary { display:inline-block; width:auto; padding:.75rem 1.5rem; text-decoration:none; }
+    
+    .hidden { display:none !important; }
+    
+    /* Loading */
+    .skeleton {
+      background:linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size:200% 100%; animation:shimmer 1.5s infinite;
+      border-radius:8px; height:20px; margin-bottom:.5rem;
+    }
+    @keyframes shimmer {
+      0% { background-position:200% 0; }
+      100% { background-position:-200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="location.href='dashboard.html'">
+    <i class="fas fa-arrow-left"></i> Back
+  </button>
+  <h1><i class="fas fa-exchange-alt"></i> P2P Transfer</h1>
+  <div style="width:60px;"></div>
+</header>
+
+<div class="container" id="mainContainer">
+  <!-- Loading State -->
+  <div id="loadingState">
+    <div class="balance-card">
+      <div class="skeleton" style="width:120px;height:14px;"></div>
+      <div class="skeleton" style="width:180px;height:32px;margin-top:8px;"></div>
+    </div>
+    <div class="card">
+      <div class="skeleton" style="width:100%;height:50px;margin-bottom:12px;"></div>
+      <div class="skeleton" style="width:100%;height:50px;margin-bottom:12px;"></div>
+      <div class="skeleton" style="width:100%;height:50px;"></div>
+    </div>
+  </div>
+  
+  <!-- KYC Blocker (shown if not verified) -->
+  <div id="kycBlocker" class="kyc-blocker hidden">
+    <div class="lock-icon"><i class="fas fa-lock"></i></div>
+    <h2>Verification Required</h2>
+    <p>You need to complete KYC verification before you can send money to other users. This helps keep TaskVault safe for everyone.</p>
+    <a href="kyc.html" class="btn btn-primary">Complete KYC Verification</a>
+  </div>
+  
+  <!-- Main Transfer UI (shown if verified) -->
+  <div id="transferUI" class="hidden">
+    <div class="balance-card">
+      <h3>Available Balance</h3>
+      <div class="amount" id="balanceDisplay">₦0.00</div>
+    </div>
+    
+    <div style="text-align:center;">
+      <span id="kycStatusBadge" class="kyc-badge"></span>
+    </div>
+    
+    <div class="card">
+      <h2><i class="fas fa-paper-plane" style="color:var(--orange);"></i> Send Money</h2>
+      
+      <div class="form-group">
+        <label for="recipientInput">Recipient</label>
+        <input type="text" id="recipientInput" placeholder="Enter username or email..." autocomplete="off"/>
+        <div class="input-hint">Type a username or email to search for the recipient</div>
+      </div>
+      
+      <div id="recipientPreview" class="recipient-preview hidden">
+        <img id="recipientAvatar" src="" alt=""/>
+        <div class="info">
+          <div class="name" id="recipientName">—</div>
+          <div class="email" id="recipientEmail">—</div>
+        </div>
+        <i class="fas fa-check-circle" style="color:var(--green);"></i>
+      </div>
+      
+      <div class="form-group">
+        <label for="amountInput">Amount (₦)</label>
+        <input type="number" id="amountInput" placeholder="0.00" min="100" step="0.01"/>
+        <div class="input-hint">Minimum transfer: ₦100</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="noteInput">Note (Optional)</label>
+        <input type="text" id="noteInput" placeholder="What's this for?"/>
+      </div>
+      
+      <button class="btn btn-primary" id="sendBtn" disabled>
+        <i class="fas fa-paper-plane"></i> Send Money
+      </button>
+    </div>
+    
+    <div class="history-section">
+      <h2><i class="fas fa-history" style="color:var(--orange);"></i> Recent Transfers</h2>
+      <div id="txHistory">
+        <p style="text-align:center;color:var(--gray);padding:1rem;">No transfers yet</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-backdrop" id="confirmModal">
+  <div class="modal">
+    <div class="modal-icon lock"><i class="fas fa-shield-alt"></i></div>
+    <h3>Confirm Transfer</h3>
+    <p id="confirmText">Send ₦0.00 to user?</p>
+    <div style="display:flex;gap:.5rem;">
+      <button class="btn" style="background:#e5e7eb;color:#4b5563;" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-primary" id="confirmSendBtn">Confirm Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-backdrop" id="successModal">
+  <div class="modal">
+    <div class="modal-icon success"><i class="fas fa-check"></i></div>
+    <h3>Transfer Successful!</h3>
+    <p id="successText">Your money has been sent successfully.</p>
+    <button class="btn btn-primary" onclick="closeModal('successModal'); resetForm();">Done</button>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal-backdrop" id="errorModal">
+  <div class="modal">
+    <div class="modal-icon error"><i class="fas fa-times"></i></div>
+    <h3>Transfer Failed</h3>
+    <p id="errorText">Something went wrong. Please try again.</p>
+    <button class="btn btn-primary" onclick="closeModal('errorModal')">Try Again</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, collection, query, where, getDocs,
+    orderBy, limit, addDoc, serverTimestamp, runTransaction, writeBatch
+  } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAv6QCpopa0Q77AVTyjU5cqJEIKIE9OVTs",
+    authDomain: "taskvault-412a0.firebaseapp.com",
+    projectId: "taskvault-412a0",
+    storageBucket: "taskvault-412a0.firebasestorage.app",
+    messagingSenderId: "420716701831",
+    appId: "1:420716701831:web:c987d91f7f4c8684eb7022"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // DOM refs
+  const loadingState = document.getElementById('loadingState');
+  const kycBlocker = document.getElementById('kycBlocker');
+  const transferUI = document.getElementById('transferUI');
+  const balanceDisplay = document.getElementById('balanceDisplay');
+  const kycStatusBadge = document.getElementById('kycStatusBadge');
+  const recipientInput = document.getElementById('recipientInput');
+  const recipientPreview = document.getElementById('recipientPreview');
+  const recipientAvatar = document.getElementById('recipientAvatar');
+  const recipientName = document.getElementById('recipientName');
+  const recipientEmail = document.getElementById('recipientEmail');
+  const amountInput = document.getElementById('amountInput');
+  const noteInput = document.getElementById('noteInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const txHistory = document.getElementById('txHistory');
+  const confirmText = document.getElementById('confirmText');
+  const confirmSendBtn = document.getElementById('confirmSendBtn');
+  const successText = document.getElementById('successText');
+  const errorText = document.getElementById('errorText');
+
+  let currentUser = null;
+  let currentUserData = null;
+  let selectedRecipient = null;
+  let searchTimeout = null;
+
+  // Auth state
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      location.href = 'login.html';
+      return;
+    }
+    currentUser = user;
+    await initialize();
+  });
+
+  async function initialize() {
+    const userRef = doc(db, 'users', currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      alert('User profile not found');
+      return;
+    }
+    
+    currentUserData = userSnap.data();
+    
+    // Hide loading, show appropriate UI based on KYC
+    loadingState.classList.add('hidden');
+    
+    const kycStatus = currentUserData.kycStatus || 'pending';
+    
+    if (kycStatus !== 'verified') {
+      kycBlocker.classList.remove('hidden');
+      return;
+    }
+    
+    transferUI.classList.remove('hidden');
+    
+    // Show KYC badge
+    kycStatusBadge.className = 'kyc-badge kyc-verified';
+    kycStatusBadge.innerHTML = '<i class="fas fa-check-circle"></i> KYC Verified';
+    
+    // Display balance
+    const balance = currentUserData.balance || 0;
+    balanceDisplay.textContent = `₦${balance.toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    
+    // Load transaction history
+    loadTransactionHistory();
+  }
+
+  // Recipient search
+  recipientInput.addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+      recipientPreview.classList.add('hidden');
+      selectedRecipient = null;
+      updateSendButton();
+      return;
+    }
+    
+    searchTimeout = setTimeout(() => searchRecipient(query), 400);
+  });
+
+  async function searchRecipient(query) {
+    const lowerQuery = query.toLowerCase();
+    
+    // Search by username
+    const usernameQuery = query(
+      collection(db, 'users'),
+      where('username', '>=', lowerQuery),
+      where('username', '<=', lowerQuery + '\uf8ff'),
+      limit(5)
+    );
+    
+    // Search by email
+    const emailQuery = query(
+      collection(db, 'users'),
+      where('email', '>=', lowerQuery),
+      where('email', '<=', lowerQuery + '\uf8ff'),
+      limit(5)
+    );
+    
+    const [usernameSnap, emailSnap] = await Promise.all([
+      getDocs(usernameQuery).catch(() => ({ docs: [] })),
+      getDocs(emailQuery).catch(() => ({ docs: [] }))
+    ]);
+    
+    // Combine results, exclude self, prefer exact match
+    let results = [];
+    usernameSnap.docs.forEach(d => {
+      if (d.id !== currentUser.uid) results.push({ id: d.id, ...d.data() });
+    });
+    emailSnap.docs.forEach(d => {
+      if (d.id !== currentUser.uid && !results.find(r => r.id === d.id)) {
+        results.push({ id: d.id, ...d.data() });
+      }
+    });
+    
+    if (results.length === 0) {
+      recipientPreview.classList.add('hidden');
+      selectedRecipient = null;
+      updateSendButton();
+      return;
+    }
+    
+    // Auto-select first match for simplicity (or show dropdown for multiple)
+    selectedRecipient = results[0];
+    
+    recipientName.textContent = selectedRecipient.username || 'Unknown';
+    recipientEmail.textContent = selectedRecipient.email || '';
+    recipientAvatar.src = selectedRecipient.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedRecipient.username || 'U')}&background=f97316&color=fff`;
+    
+    recipientPreview.classList.remove('hidden');
+    updateSendButton();
+  }
+
+  // Amount input
+  amountInput.addEventListener('input', updateSendButton);
+
+  function updateSendButton() {
+    const amount = parseFloat(amountInput.value) || 0;
+    const minAmount = 100;
+    const hasRecipient = selectedRecipient !== null;
+    const hasEnough = amount >= minAmount && amount <= (currentUserData?.balance || 0);
+    
+    sendBtn.disabled = !(hasRecipient && hasEnough && amount > 0);
+  }
+
+  // Send button click
+  sendBtn.addEventListener('click', () => {
+    if (!selectedRecipient) return;
+    
+    const amount = parseFloat(amountInput.value) || 0;
+    const note = noteInput.value.trim();
+    
+    confirmText.innerHTML = `Send <strong>₦${amount.toLocaleString('en-NG', {minimumFractionDigits: 2})}</strong> to <strong>${selectedRecipient.username}</strong>?<br><small style="color:var(--gray);">${note ? 'Note: ' + note : ''}</small>`;
+    
+    openModal('confirmModal');
+  });
+
+  // Confirm send
+  confirmSendBtn.addEventListener('click', async () => {
+    closeModal('confirmModal');
+    
+    const amount = parseFloat(amountInput.value) || 0;
+    const note = noteInput.value.trim();
+    
+    if (!selectedRecipient || amount <= 0) return;
+    
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    try {
+      await executeTransfer(currentUser.uid, selectedRecipient.id, amount, note);
+      
+      successText.innerHTML = `You sent <strong>₦${amount.toLocaleString('en-NG', {minimumFractionDigits: 2})}</strong> to <strong>${selectedRecipient.username}</strong> successfully!`;
+      openModal('successModal');
+      
+      // Refresh balance
+      const userRef = doc(db, 'users', currentUser.uid);
+      const freshSnap = await getDoc(userRef);
+      currentUserData = freshSnap.data();
+      const newBalance = currentUserData.balance || 0;
+      balanceDisplay.textContent = `₦${newBalance.toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      
+      loadTransactionHistory();
+      
+    } catch (err) {
+      console.error('Transfer error:', err);
+      errorText.textContent = err.message || 'Transfer failed. Please check your balance and try again.';
+      openModal('errorModal');
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Money';
+    }
+  });
+
+  async function executeTransfer(senderId, recipientId, amount, note) {
+    const senderRef = doc(db, 'users', senderId);
+    const recipientRef = doc(db, 'users', recipientId);
+    
+    await runTransaction(db, async (transaction) => {
+      const senderSnap = await transaction.get(senderRef);
+      const recipientSnap = await transaction.get(recipientRef);
+      
+      if (!senderSnap.exists() || !recipientSnap.exists()) {
+        throw new Error('User not found');
+      }
+      
+      const senderData = senderSnap.data();
+      const recipientData = recipientSnap.data();
+      
+      // Double-check KYC
+      if (senderData.kycStatus !== 'verified') {
+        throw new Error('KYC verification required');
+      }
+      
+      const currentBalance = senderData.balance || 0;
+      if (currentBalance < amount) {
+        throw new Error('Insufficient balance');
+      }
+      
+      // Update balances
+      transaction.update(senderRef, {
+        balance: currentBalance - amount
+      });
+      
+      transaction.update(recipientRef, {
+        balance: (recipientData.balance || 0) + amount
+      });
+      
+      // Create transaction records
+      const senderTxRef = doc(collection(db, 'users', senderId, 'transactionHistory'));
+      const recipientTxRef = doc(collection(db, 'users', recipientId, 'transactionHistory'));
+      
+      const timestamp = serverTimestamp();
+      const txId = senderTxRef.id; // Use same ID for both sides
+      
+      transaction.set(senderTxRef, {
+        type: 'P2P Sent',
+        amount: -amount,
+        counterpartyId: recipientId,
+        counterpartyName: recipientData.username || 'Unknown',
+        counterpartyEmail: recipientData.email || '',
+        note: note || '',
+        txId: txId,
+        timestamp: timestamp,
+        status: 'completed'
+      });
+      
+      transaction.set(recipientTxRef, {
+        type: 'P2P Received',
+        amount: amount,
+        counterpartyId: senderId,
+        counterpartyName: senderData.username || 'Unknown',
+        counterpartyEmail: senderData.email || '',
+        note: note || '',
+        txId: txId,
+        timestamp: timestamp,
+        status: 'completed'
+      });
+    });
+  }
+
+  async function loadTransactionHistory() {
+    const q = query(
+      collection(db, 'users', currentUser.uid, 'transactionHistory'),
+      where('type', 'in', ['P2P Sent', 'P2P Received']),
+      orderBy('timestamp', 'desc'),
+      limit(10)
+    );
+    
+    try {
+      const snap = await getDocs(q);
+      
+      if (snap.empty) {
+        txHistory.innerHTML = '<p style="text-align:center;color:var(--gray);padding:1rem;">No transfers yet</p>';
+        return;
+      }
+      
+      let html = '';
+      snap.forEach(doc => {
+        const t = doc.data();
+        const isSent = t.type === 'P2P Sent';
+        const time = t.timestamp?.toDate?.() ? t.timestamp.toDate().toLocaleString('en-NG') : 'Just now';
+        
+        html += `
+          <div class="tx-item">
+            <div class="left">
+              <div class="tx-icon ${isSent ? 'tx-sent' : 'tx-received'}">
+                <i class="fas ${isSent ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+              </div>
+              <div class="tx-details">
+                <div class="type">${isSent ? 'Sent to' : 'Received from'} ${t.counterpartyName || 'Unknown'}</div>
+                <div class="meta">${time}${t.note ? ' • ' + t.note : ''}</div>
+              </div>
+            </div>
+            <div class="tx-amount ${isSent ? 'sent' : 'received'}">
+              ${isSent ? '-' : '+'}₦${Math.abs(t.amount || 0).toLocaleString('en-NG', {minimumFractionDigits: 2})}
+            </div>
+          </div>
+        `;
+      });
+      
+      txHistory.innerHTML = html;
+    } catch (err) {
+      console.error('History load error:', err);
+      txHistory.innerHTML = '<p style="text-align:center;color:var(--gray);padding:1rem;">Unable to load history</p>';
+    }
+  }
+
+  function resetForm() {
+    recipientInput.value = '';
+    amountInput.value = '';
+    noteInput.value = '';
+    recipientPreview.classList.add('hidden');
+    selectedRecipient = null;
+    updateSendButton();
+  }
+
+  function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  // Close modals on backdrop click
+  document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) backdrop.style.display = 'none';
+    });
+  });
+</script>
+
+</body>
+  </html>
