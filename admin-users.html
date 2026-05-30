@@ -14,6 +14,8 @@
       --light: #f5fdf7;
       --white: #fff;
       --shadow: rgba(0,0,0,0.1);
+      --orange: #FF8C42;
+      --orange-light: #FFF0E6;
     }
     * { box-sizing: border-box; margin:0; padding:0; font-family:'Segoe UI',sans-serif; }
     body { background:var(--light); color:#333; }
@@ -34,12 +36,15 @@
     }
     header button:hover { background:#e0f6e8; }
     #statusMsg { color:var(--white); margin-left: .75rem; font-size:.95rem; opacity:0.95; }
-    .container { padding:2rem; max-width:1000px; margin:auto; }
+    .container { padding:2rem; max-width:1200px; margin:auto; }
     .search-bar {
-      display:flex; gap:.5rem; margin-bottom:1rem;
+      display:flex; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap;
     }
     .search-bar input {
-      flex:1; padding:.5rem; border:1px solid #ccc; border-radius:4px;
+      flex:1; padding:.5rem; border:1px solid #ccc; border-radius:4px; min-width:200px;
+    }
+    .search-bar select {
+      padding:.5rem; border:1px solid #ccc; border-radius:4px; background:var(--white);
     }
     .search-bar button {
       background:var(--green); color:var(--white);
@@ -64,7 +69,13 @@
     .edit { background:#4caf50; }
     .suspend { background:#dc3545; }
     .history { background:#007bff; }
+    .plan { background:var(--orange); }
     .btn + .btn { margin-left:.3rem; }
+    .badge {
+      display:inline-block; padding:2px 8px; border-radius:12px; font-size:.75rem; font-weight:600;
+    }
+    .badge-plan { background:var(--orange-light); color:var(--orange); }
+    .badge-none { background:#eee; color:#888; }
     /* Modal */
     .modal-backdrop {
       position:fixed; top:0; left:0; width:100vw; height:100vh;
@@ -77,7 +88,9 @@
     }
     .modal h2 { margin-bottom:1rem; }
     .modal label { display:block; margin:.5rem 0 .2rem; font-weight:bold; }
-    .modal input { width:100%; padding:.5rem; border:1px solid #ccc; border-radius:4px; }
+    .modal input, .modal select {
+      width:100%; padding:.5rem; border:1px solid #ccc; border-radius:4px;
+    }
     .modal .actions { margin-top:1rem; text-align:right; }
     .modal .actions button { margin-left:.5rem; }
     .no-data { text-align:center; padding:2rem; color:#666; }
@@ -95,6 +108,15 @@
   <main class="container">
     <div class="search-bar">
       <input id="searchInput" placeholder="Username, Email or UID…"/>
+      <select id="planFilter">
+        <option value="">All Plans</option>
+        <option value="none">No Plan</option>
+        <option value="basic">Basic</option>
+        <option value="standard">Standard</option>
+        <option value="premium">Premium</option>
+        <option value="pro">Pro</option>
+        <option value="vip">VIP</option>
+      </select>
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
     </div>
     <div id="tableWrap">
@@ -110,6 +132,15 @@
       <input id="editUsername" />
       <label>Balance</label>
       <input id="editBalance" type="number" />
+      <label>Plan</label>
+      <select id="editPlan">
+        <option value="none">None</option>
+        <option value="basic">Basic</option>
+        <option value="standard">Standard</option>
+        <option value="premium">Premium</option>
+        <option value="pro">Pro</option>
+        <option value="vip">VIP</option>
+      </select>
       <label>Remark</label>
       <input id="editRemark" placeholder="Adjustment note…" />
       <div class="actions">
@@ -147,6 +178,7 @@
     const wrap          = document.getElementById("tableWrap");
     const logoutBtn     = document.getElementById("logoutBtn");
     const searchInput   = document.getElementById("searchInput");
+    const planFilter    = document.getElementById("planFilter");
     const searchBtn     = document.getElementById("searchBtn");
     const resetBtn      = document.getElementById("resetBtn");
     const statusMsg     = document.getElementById("statusMsg");
@@ -158,6 +190,7 @@
     const historyModal  = document.getElementById("historyModal");
     const editUsername  = document.getElementById("editUsername");
     const editBalance   = document.getElementById("editBalance");
+    const editPlan      = document.getElementById("editPlan");
     const editRemark    = document.getElementById("editRemark");
     const saveEdit      = document.getElementById("saveEdit");
     const cancelEdit    = document.getElementById("cancelEdit");
@@ -175,6 +208,7 @@
 
     searchBtn.onclick = filterTable;
     searchInput.onkeypress = e => { if(e.key==="Enter") filterTable(); };
+    planFilter.onchange = filterTable;
 
     async function loadUsers() {
       wrap.innerHTML = `<p class="no-data">Loading users…</p>`;
@@ -188,15 +222,21 @@
         wrap.innerHTML = `<p class="no-data">No users found.</p>`;
         return;
       }
-      let html = `<table><thead><tr><th>Username</th><th>Email</th><th>UID</th><th>Balance</th><th>Actions</th></tr></thead><tbody>`;
+      let html = `<table><thead><tr><th>Username</th><th>Email</th><th>UID</th><th>Plan</th><th>Balance</th><th>Actions</th></tr></thead><tbody>`;
       for(const u of list){
+        const plan = u.plan || 'none';
+        const planBadge = plan === 'none' 
+          ? `<span class="badge badge-none">No Plan</span>` 
+          : `<span class="badge badge-plan">${plan.toUpperCase()}</span>`;
         html += `<tr>
           <td>${u.username|| '—'}</td>
           <td>${u.email|| '—'}</td>
           <td>${u.id}</td>
+          <td>${planBadge}</td>
           <td>₦${(u.balance||0).toFixed(2)}</td>
           <td>
             <button class="btn edit" data-id="${u.id}">Edit</button>
+            <button class="btn plan" data-id="${u.id}">Plan</button>
             <button class="btn suspend" data-id="${u.id}">${u.suspended? 'Unsuspend':'Suspend'}</button>
             <button class="btn history" data-id="${u.id}">History</button>
           </td>
@@ -206,48 +246,85 @@
       wrap.innerHTML = html;
 
       wrap.querySelectorAll(".edit").forEach(b => b.onclick = ()=> openEdit(b.dataset.id));
+      wrap.querySelectorAll(".plan").forEach(b => b.onclick = ()=> openPlanEdit(b.dataset.id));
       wrap.querySelectorAll(".suspend").forEach(b => b.onclick = ()=> toggleSuspend(b.dataset.id));
       wrap.querySelectorAll(".history").forEach(b => b.onclick = ()=> viewHistory(b.dataset.id));
     }
 
     function filterTable() {
       const q = searchInput.value.trim().toLowerCase();
+      const p = planFilter.value;
       render(
-        q ? users.filter(u => 
+        users.filter(u => {
+          const matchSearch = !q || 
             (u.username||"").toLowerCase().includes(q) || 
             (u.email||"").toLowerCase().includes(q) || 
-            u.id.toLowerCase().includes(q)
-          )
-          : users
+            u.id.toLowerCase().includes(q);
+          const matchPlan = !p || (u.plan || 'none') === p;
+          return matchSearch && matchPlan;
+        })
       );
     }
 
-    // Edit
+    // Edit (username + balance)
     function openEdit(uid) {
       editingUid = uid;
       const u = users.find(x=>x.id===uid);
-      editUsername.value = u.username;
+      editUsername.value = u.username || '';
       editBalance.value  = u.balance||0;
+      editPlan.value     = u.plan || 'none';
       editRemark.value   = '';
+      editModal.querySelector('h2').textContent = 'Edit User';
       editModal.style.display = 'flex';
     }
+
+    // Quick Plan Edit
+    function openPlanEdit(uid) {
+      editingUid = uid;
+      const u = users.find(x=>x.id===uid);
+      editUsername.value = u.username || '';
+      editBalance.value  = u.balance||0;
+      editPlan.value     = u.plan || 'none';
+      editRemark.value   = '';
+      editModal.querySelector('h2').textContent = 'Change Plan';
+      editModal.style.display = 'flex';
+    }
+
     cancelEdit.onclick = ()=> editModal.style.display = 'none';
     saveEdit.onclick = async ()=>{
       const newName = editUsername.value.trim();
       const newBal  = parseFloat(editBalance.value)||0;
+      const newPlan = editPlan.value;
       const remark  = editRemark.value.trim() || 'Admin Adjustment';
-      // get old balance
       const uBefore = users.find(x=>x.id===editingUid);
       const delta   = newBal - (uBefore.balance||0);
-      // update user doc
-      await updateDoc(doc(db,'users',editingUid),{ username:newName, balance:newBal });
-      // record transaction
-      await addDoc(collection(db,'users',editingUid,'transactionHistory'),{
-        type: 'Admin Adjustment',
-        amount: delta,
-        remark,
-        timestamp: serverTimestamp()
-      });
+      const planChanged = newPlan !== (uBefore.plan || 'none');
+
+      const updates = { username:newName, balance:newBal };
+      if (planChanged) updates.plan = newPlan;
+
+      await updateDoc(doc(db,'users',editingUid), updates);
+
+      // record balance transaction if changed
+      if (delta !== 0) {
+        await addDoc(collection(db,'users',editingUid,'transactionHistory'),{
+          type: 'Admin Adjustment',
+          amount: delta,
+          remark,
+          timestamp: serverTimestamp()
+        });
+      }
+
+      // record plan change if changed
+      if (planChanged) {
+        await addDoc(collection(db,'users',editingUid,'transactionHistory'),{
+          type: 'Plan Change',
+          amount: 0,
+          remark: `Plan changed from ${uBefore.plan || 'none'} to ${newPlan}`,
+          timestamp: serverTimestamp()
+        });
+      }
+
       editModal.style.display = 'none';
       loadUsers();
     };
@@ -301,7 +378,7 @@
           return;
         }
 
-        const BATCH_LIMIT = 450; // conservative (Firestore limit is 500)
+        const BATCH_LIMIT = 450;
         let processed = 0;
 
         for(let i = 0; i < allUsers.length; i += BATCH_LIMIT) {
@@ -311,11 +388,9 @@
           chunk.forEach(u => {
             const uid = u.id;
             const oldBal = Number(u.balance || 0);
-            // Only update if different from 0
             if (oldBal !== 0) {
               const userRef = doc(db, 'users', uid);
               batch.update(userRef, { balance: 0 });
-              // create a transaction doc (generated id)
               const txRef = doc(collection(db, 'users', uid, 'transactionHistory'));
               batch.set(txRef, {
                 type: 'Admin Balance Reset',
@@ -328,8 +403,7 @@
 
           await batch.commit();
           processed += chunk.length;
-          statusMsg.textContent = `Committed ${Math.min(processed, allUsers.length)} / ${allUsers.length} (chunks processed)`;
-          // small delay (optional) to give UI time to update
+          statusMsg.textContent = `Committed ${Math.min(processed, allUsers.length)} / ${allUsers.length}`;
           await new Promise(r => setTimeout(r, 300));
         }
 
