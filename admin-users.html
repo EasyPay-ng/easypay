@@ -4,10 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>EasyPay Admin – Manage Users</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
   <style>
     :root {
       --green: #009f4d;
@@ -16,6 +13,13 @@
       --shadow: rgba(0,0,0,0.1);
       --orange: #FF8C42;
       --orange-light: #FFF0E6;
+      --starter: #ff9800;
+      --basic: #4caf50;
+      --premium: #009f4d;
+      --gold: #d4af37;
+      --elite: #3f51b5;
+      --diamond: #00bcd4;
+      --platinum: #7e57c2;
     }
     * { box-sizing: border-box; margin:0; padding:0; font-family:'Segoe UI',sans-serif; }
     body { background:var(--light); color:#333; }
@@ -72,11 +76,16 @@
     .plan { background:var(--orange); }
     .btn + .btn { margin-left:.3rem; }
     .badge {
-      display:inline-block; padding:2px 8px; border-radius:12px; font-size:.75rem; font-weight:600;
+      display:inline-block; padding:3px 10px; border-radius:999px; font-size:.75rem; font-weight:600; color:white;
     }
-    .badge-plan { background:var(--orange-light); color:var(--orange); }
-    .badge-none { background:#eee; color:#888; }
-    /* Modal */
+    .badge-none { background:#bbb; }
+    .badge-starter { background:var(--starter); }
+    .badge-basic { background:var(--basic); }
+    .badge-premium { background:var(--premium); }
+    .badge-gold { background:var(--gold); }
+    .badge-elite { background:var(--elite); }
+    .badge-diamond { background:var(--diamond); }
+    .badge-platinum { background:var(--platinum); }
     .modal-backdrop {
       position:fixed; top:0; left:0; width:100vw; height:100vh;
       background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center;
@@ -111,11 +120,13 @@
       <select id="planFilter">
         <option value="">All Plans</option>
         <option value="none">No Plan</option>
-        <option value="basic">Basic</option>
-        <option value="standard">Standard</option>
-        <option value="premium">Premium</option>
-        <option value="pro">Pro</option>
-        <option value="vip">VIP</option>
+        <option value="Starter">Starter</option>
+        <option value="Basic">Basic</option>
+        <option value="Premium">Premium</option>
+        <option value="Gold">Gold</option>
+        <option value="Elite">Elite</option>
+        <option value="Diamond">Diamond</option>
+        <option value="Platinum">Platinum</option>
       </select>
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
     </div>
@@ -135,12 +146,13 @@
       <label>Plan</label>
       <select id="editPlan">
         <option value="none">None</option>
-        <option value="starter">starter</option>
-        <option value="badic">basic</option>
-        <option value="premium">Premium</option>
-        <option value="gold">gold</option>
-        <option value="elite">elite</option>
-         <option value="diamond">diamond</option>
+        <option value="Starter">Starter</option>
+        <option value="Basic">Basic</option>
+        <option value="Premium">Premium</option>
+        <option value="Gold">Gold</option>
+        <option value="Elite">Elite</option>
+        <option value="Diamond">Diamond</option>
+        <option value="Platinum">Platinum</option>
       </select>
       <label>Remark</label>
       <input id="editRemark" placeholder="Adjustment note…" />
@@ -186,7 +198,6 @@
 
     let users = [], editingUid = null;
 
-    // Modals
     const editModal     = document.getElementById("editModal");
     const historyModal  = document.getElementById("historyModal");
     const editUsername  = document.getElementById("editUsername");
@@ -211,6 +222,15 @@
     searchInput.onkeypress = e => { if(e.key==="Enter") filterTable(); };
     planFilter.onchange = filterTable;
 
+    function getPlanBadge(plan) {
+      const p = (plan || 'none').toLowerCase();
+      if (p === 'none') return `<span class="badge badge-none">No Plan</span>`;
+      if (['starter','basic','premium','gold','elite','diamond','platinum'].includes(p)) {
+        return `<span class="badge badge-${p}">${plan}</span>`;
+      }
+      return `<span class="badge badge-none">${plan}</span>`;
+    }
+
     async function loadUsers() {
       wrap.innerHTML = `<p class="no-data">Loading users…</p>`;
       const snap = await getDocs(collection(db,"users"));
@@ -225,15 +245,11 @@
       }
       let html = `<table><thead><tr><th>Username</th><th>Email</th><th>UID</th><th>Plan</th><th>Balance</th><th>Actions</th></tr></thead><tbody>`;
       for(const u of list){
-        const plan = u.plan || 'none';
-        const planBadge = plan === 'none' 
-          ? `<span class="badge badge-none">No Plan</span>` 
-          : `<span class="badge badge-plan">${plan.toUpperCase()}</span>`;
         html += `<tr>
           <td>${u.username|| '—'}</td>
           <td>${u.email|| '—'}</td>
           <td>${u.id}</td>
-          <td>${planBadge}</td>
+          <td>${getPlanBadge(u.activePlan)}</td>
           <td>₦${(u.balance||0).toFixed(2)}</td>
           <td>
             <button class="btn edit" data-id="${u.id}">Edit</button>
@@ -257,35 +273,33 @@
       const p = planFilter.value;
       render(
         users.filter(u => {
-          const matchSearch = !q || 
-            (u.username||"").toLowerCase().includes(q) || 
-            (u.email||"").toLowerCase().includes(q) || 
+          const matchSearch = !q ||
+            (u.username||"").toLowerCase().includes(q) ||
+            (u.email||"").toLowerCase().includes(q) ||
             u.id.toLowerCase().includes(q);
-          const matchPlan = !p || (u.plan || 'none') === p;
+          const matchPlan = !p || (u.activePlan || 'none') === p;
           return matchSearch && matchPlan;
         })
       );
     }
 
-    // Edit (username + balance)
     function openEdit(uid) {
       editingUid = uid;
       const u = users.find(x=>x.id===uid);
       editUsername.value = u.username || '';
       editBalance.value  = u.balance||0;
-      editPlan.value     = u.plan || 'none';
+      editPlan.value     = u.activePlan || 'none';
       editRemark.value   = '';
       editModal.querySelector('h2').textContent = 'Edit User';
       editModal.style.display = 'flex';
     }
 
-    // Quick Plan Edit
     function openPlanEdit(uid) {
       editingUid = uid;
       const u = users.find(x=>x.id===uid);
       editUsername.value = u.username || '';
       editBalance.value  = u.balance||0;
-      editPlan.value     = u.plan || 'none';
+      editPlan.value     = u.activePlan || 'none';
       editRemark.value   = '';
       editModal.querySelector('h2').textContent = 'Change Plan';
       editModal.style.display = 'flex';
@@ -299,14 +313,13 @@
       const remark  = editRemark.value.trim() || 'Admin Adjustment';
       const uBefore = users.find(x=>x.id===editingUid);
       const delta   = newBal - (uBefore.balance||0);
-      const planChanged = newPlan !== (uBefore.plan || 'none');
+      const planChanged = newPlan !== (uBefore.activePlan || 'none');
 
       const updates = { username:newName, balance:newBal };
-      if (planChanged) updates.plan = newPlan;
+      if (planChanged) updates.activePlan = newPlan;
 
       await updateDoc(doc(db,'users',editingUid), updates);
 
-      // record balance transaction if changed
       if (delta !== 0) {
         await addDoc(collection(db,'users',editingUid,'transactionHistory'),{
           type: 'Admin Adjustment',
@@ -316,12 +329,11 @@
         });
       }
 
-      // record plan change if changed
       if (planChanged) {
         await addDoc(collection(db,'users',editingUid,'transactionHistory'),{
           type: 'Plan Change',
           amount: 0,
-          remark: `Plan changed from ${uBefore.plan || 'none'} to ${newPlan}`,
+          remark: `Plan changed from ${uBefore.activePlan || 'none'} to ${newPlan}`,
           timestamp: serverTimestamp()
         });
       }
@@ -330,14 +342,12 @@
       loadUsers();
     };
 
-    // Suspend
     async function toggleSuspend(uid) {
       const u = users.find(x=>x.id===uid);
       await updateDoc(doc(db,'users',uid),{ suspended: !u.suspended });
       loadUsers();
     }
 
-    // History
     async function viewHistory(uid) {
       historyList.innerHTML = `<li class="no-data">Loading…</li>`;
       historyModal.style.display = 'flex';
@@ -362,7 +372,6 @@
     }
     closeHistory.onclick = ()=> historyModal.style.display='none';
 
-    // ===== Reset balances logic =====
     resetBtn.onclick = async () => {
       const ok = confirm('This will set *every* user balance to 0 and record an admin transaction for each changed balance. This action cannot be undone. Proceed?');
       if(!ok) return;
