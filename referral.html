@@ -78,7 +78,7 @@
     <div class="card">
       <h3>Activated</h3>
       <div class="big" id="activatedCount">—</div>
-      <div class="muted">Users on premium, gold, elite, diamond, or platinum plan</div>
+      <div class="muted">Users who have invested in any plan</div>
     </div>
     <div class="card">
       <h3>Referral Balance</h3>
@@ -163,6 +163,22 @@
     let referralBalance = 0;
     let currentUser = null;
 
+    // Commission map: plan name (lowercase) → commission amount
+    const COMMISSION_MAP = {
+      'mini': 500,
+      'starter': 1000,
+      'basic': 4000,
+      'premium': 5000,
+      'gold': 10000,
+      'elite': 10000,
+      'diamond': 10000,
+      'platinum': 10000
+    };
+
+    function getCommission(planName) {
+      return COMMISSION_MAP[(planName || '').toLowerCase()] || 0;
+    }
+
     function fmtDate(ts){
       try{
         if(!ts) return '-';
@@ -208,7 +224,6 @@
 
     searchInput.addEventListener('input', applyFilter);
 
-    // 🔹 UPDATED REFERRAL LINK ONLY
     copyBtn.addEventListener('click', ()=>{
       const code = refCodeEl.textContent || '';
       const encoded = encodeURIComponent(code);
@@ -267,10 +282,14 @@
         snap.docChanges().forEach(async change => {
           const d = change.doc.data();
           if(!d.username) return;
-          const plan = (d.plan || '').toLowerCase();
+          
+          // Check both 'plan' and 'activePlan' fields
+          const plan = (d.plan || d.activePlan || '').toLowerCase();
           const credited = !!d.referralCredited;
-          if(!credited && ['premium','gold','elite','diamond','platinum'].includes(plan)){
-            let commission = (['premium','gold','elite'].includes(plan)) ? 2000 : 10000;
+          const commission = getCommission(plan);
+          
+          // Credit if: has a qualifying plan, commission > 0, and not yet credited
+          if(!credited && commission > 0){
             const uplineRef = doc(db,'users',currentUser.uid);
             await updateDoc(uplineRef,{
               referralBalance: (referralBalance || 0) + commission
@@ -297,13 +316,15 @@
 
         snap.forEach(docSnap=>{
           const d = docSnap.data() || {};
+          const plan = (d.plan || d.activePlan || '').toLowerCase();
+          const commission = getCommission(plan);
           const user = {
             username: (d.username || d.name || '').toString(),
             email: (d.email || '').toString(),
             balance: Number(d.balance ?? d.wallet ?? 0) || 0,
             registeredAt: d.createdAt || d.registeredAt || d.created_at || d.registered_at || null,
-            plan: (d.plan || '').toString().toLowerCase(),
-            isActivated: ['premium','gold','elite','diamond','platinum'].includes((d.plan||'').toLowerCase())
+            plan: plan,
+            isActivated: commission > 0
           };
           allRefs.push(user);
           if(user.isActivated) activatedRefs.push(user);
