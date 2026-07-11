@@ -95,6 +95,7 @@ header{
 }
 
 /* Plan Colors */
+.mini { background:#e91e63; }
 .starter { background:#ff9800; }
 .basic { background:#4caf50; }
 .premium { background:#009f4d; }
@@ -203,8 +204,8 @@ const db = getFirestore(app);
 let currentUser;
 let userData;
 
-// ✅ ADDED: 2 New Plans (Starter ₦10,000 and Basic ₦20,000)
 const plans = [
+  { name:"Mini", class:"mini", amount:5000, daily:234 },
   { name:"Starter", class:"starter", amount:10000, daily:466 },
   { name:"Basic", class:"basic", amount:20000, daily:933 },
   { name:"Premium", class:"premium", amount:50000, daily:2166 },
