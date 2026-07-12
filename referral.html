@@ -51,7 +51,6 @@
 </head>
 <body>
 
-  <!-- Back Button at the top -->
   <div class="top-btn-container">
     <button id="backBtn" class="btn small">← Back to Dashboard</button>
   </div>
@@ -106,9 +105,9 @@
       <div class="table-card">
         <table aria-describedby="activated">
           <thead>
-            <tr><th>Username</th><th>Email</th><th>Balance (₦)</th><th>Registered At</th></tr>
+            <tr><th>Username</th><th>Email</th><th>Plan</th><th>Commission</th><th>Registered At</th></tr>
           </thead>
-          <tbody id="activatedBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
+          <tbody id="activatedBody"><tr><td colspan="5" class="no-data">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -117,9 +116,9 @@
       <div class="table-card">
         <table aria-describedby="all">
           <thead>
-            <tr><th>Username</th><th>Email</th><th>Balance (₦)</th><th>Registered At</th></tr>
+            <tr><th>Username</th><th>Email</th><th>Plan</th><th>Commission</th><th>Registered At</th></tr>
           </thead>
-          <tbody id="allBody"><tr><td colspan="4" class="no-data">Loading…</td></tr></tbody>
+          <tbody id="allBody"><tr><td colspan="5" class="no-data">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -129,7 +128,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
     const firebaseConfig = {
@@ -163,7 +162,6 @@
     let referralBalance = 0;
     let currentUser = null;
 
-    // Commission map: plan name (lowercase) → commission amount
     const COMMISSION_MAP = {
       'mini': 500,
       'starter': 1000,
@@ -190,16 +188,17 @@
 
     function renderRows(list, container){
       if(!list.length){
-        container.innerHTML = '<tr><td colspan="4" class="no-data">No records found</td></tr>';
+        container.innerHTML = '<tr><td colspan="5" class="no-data">No records found</td></tr>';
         return;
       }
       container.innerHTML = list.map(u=>{
         const reg = fmtDate(u.registeredAt || u.createdAt || u.registered_at || u.created_at || null);
-        const bal = (typeof u.balance === 'number') ? u.balance.toLocaleString('en-NG') : (u.balance || '0');
+        const comm = u.commission > 0 ? `₦${u.commission.toLocaleString('en-NG')}` : '-';
         return `<tr>
           <td style="font-weight:600">${escapeHtml(u.username || '-')}${u.username && u.isActivated?'<span style="margin-left:8px;background:#e8fdf1;color:var(--green-dark);padding:4px 8px;border-radius:999px;font-size:.7rem;font-weight:700">Activated</span>':''}</td>
           <td>${escapeHtml(u.email || '-')}</td>
-          <td>₦${bal}</td>
+          <td>${escapeHtml(u.plan || '-')}</td>
+          <td>${comm}</td>
           <td>${escapeHtml(reg)}</td>
         </tr>`;
       }).join('');
@@ -277,27 +276,35 @@
       referralBalance = Number(myData.referralBalance || 0);
       referralBalanceEl.textContent = `₦${referralBalance.toLocaleString('en-NG')}`;
 
-      // Real-time auto-credit on downline activation
+      // Real-time auto-credit: ONLY on "modified" changes (plan was just set/changed)
       onSnapshot(query(collection(db,'users'), where('referral','==', myCode)), snap => {
         snap.docChanges().forEach(async change => {
+          // CRITICAL FIX: Only process "modified" changes, NOT "added"
+          // "added" fires on initial page load for ALL existing referrals
+          // "modified" fires only when an existing doc is updated (e.g., plan set)
+          if (change.type !== 'modified') return;
+          
           const d = change.doc.data();
           if(!d.username) return;
           
-          // Check both 'plan' and 'activePlan' fields
           const plan = (d.plan || d.activePlan || '').toLowerCase();
           const credited = !!d.referralCredited;
           const commission = getCommission(plan);
           
-          // Credit if: has a qualifying plan, commission > 0, and not yet credited
-          if(!credited && commission > 0){
-            const uplineRef = doc(db,'users',currentUser.uid);
-            await updateDoc(uplineRef,{
-              referralBalance: (referralBalance || 0) + commission
-            });
-            referralBalance += commission;
-            referralBalanceEl.textContent = `₦${referralBalance.toLocaleString('en-NG')}`;
-            await updateDoc(change.doc.ref,{ referralCredited: true });
-          }
+          // Don't credit if already credited, no plan, or no commission
+          if(credited || commission <= 0) return;
+          
+          // Atomic update using increment() to prevent race conditions
+          const uplineRef = doc(db,'users',currentUser.uid);
+          await updateDoc(uplineRef, {
+            referralBalance: increment(commission)
+          });
+          
+          referralBalance += commission;
+          referralBalanceEl.textContent = `₦${referralBalance.toLocaleString('en-NG')}`;
+          
+          // Mark downline as credited so they can't be credited again
+          await updateDoc(change.doc.ref, { referralCredited: true });
         });
       });
 
@@ -306,8 +313,8 @@
 
     async function loadData(myCode){
       try{
-        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Loading…</td></tr>';
-        allBody.innerHTML = '<tr><td colspan="4" class="no-data">Loading…</td></tr>';
+        activatedBody.innerHTML = '<tr><td colspan="5" class="no-data">Loading…</td></tr>';
+        allBody.innerHTML = '<tr><td colspan="5" class="no-data">Loading…</td></tr>';
 
         const qRef = query(collection(db,'users'), where('referral','==', myCode));
         const snap = await getDocs(qRef);
@@ -323,7 +330,8 @@
             email: (d.email || '').toString(),
             balance: Number(d.balance ?? d.wallet ?? 0) || 0,
             registeredAt: d.createdAt || d.registeredAt || d.created_at || d.registered_at || null,
-            plan: plan,
+            plan: plan || '-',
+            commission: commission,
             isActivated: commission > 0
           };
           allRefs.push(user);
@@ -344,8 +352,8 @@
         applyFilter();
       }catch(err){
         console.error(err);
-        activatedBody.innerHTML = '<tr><td colspan="4" class="no-data">Failed to load referrals</td></tr>';
-        allBody.innerHTML = '<tr><td colspan="4" class="no-data">Failed to load referrals</td></tr>';
+        activatedBody.innerHTML = '<tr><td colspan="5" class="no-data">Failed to load referrals</td></tr>';
+        allBody.innerHTML = '<tr><td colspan="5" class="no-data">Failed to load referrals</td></tr>';
       }
     }
   </script>
