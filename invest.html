@@ -16,7 +16,6 @@ body{
   background:#f4fbf6;
 }
 
-/* HEADER */
 header{
   background:linear-gradient(90deg,#009f4d,#00c261);
   color:white;
@@ -56,7 +55,6 @@ header{
   backdrop-filter:blur(6px);
 }
 
-/* PAGE */
 .page{
   max-width:1200px;
   margin:20px auto;
@@ -69,7 +67,6 @@ header{
   gap:20px;
 }
 
-/* CARD */
 .card{
   background:white;
   padding:22px;
@@ -94,7 +91,6 @@ header{
   color:white;
 }
 
-/* Plan Colors */
 .mini { background:#e91e63; }
 .starter { background:#ff9800; }
 .basic { background:#4caf50; }
@@ -184,6 +180,7 @@ button:disabled{
 <main class="page">
   <div class="plans" id="plansContainer"></div>
 </main>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged }
@@ -304,8 +301,10 @@ window.invest = async function(planName, amount){
 
   const userRef = doc(db,"users",currentUser.uid);
 
+  // FIX: Also update 'plan' field so referral page reads correct commission
   await updateDoc(userRef,{
     balance: userData.balance - amount,
+    plan: planName,           // ← ADDED: updates plan for referral commission
     activePlan: planName,
     investment:{
       planName: planName,
