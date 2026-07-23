@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Terms of Use — EasyPay</title>
+  <title>Terms of Use & Privacy Policy — EasyPay</title>
 
   <!-- Google font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -34,7 +34,6 @@
       justify-content:center;
     }
 
-    /* page wrapper */
     .shell {
       width:100%;
       max-width: var(--maxWidth);
@@ -44,7 +43,6 @@
       align-items:start;
     }
 
-    /* header area */
     .hero {
       grid-column: 1 / -1;
       display:flex;
@@ -81,7 +79,6 @@
     }
     .meta strong { color:var(--text); font-weight:600; display:block; }
 
-    /* left table of contents */
     .toc {
       background:var(--card);
       border-radius:var(--radius);
@@ -105,7 +102,6 @@
     }
     .toc a:hover { background:#f2fff6; transform:translateX(6px); color:var(--accent-700); }
 
-    /* main content card */
     .card {
       background:var(--card);
       border-radius:var(--radius);
@@ -130,9 +126,27 @@
     }
     .section p { margin:0 0 12px 0; color:#25303a; font-size:15px; }
     .section ul { margin:0 0 12px 18px; color:#25303a; }
+    .section ol { margin:0 0 12px 18px; color:#25303a; }
     .section li { margin:8px 0; }
 
-    /* footer small */
+    .warning {
+      background:#fff3e0;
+      border-left:4px solid #ff9800;
+      padding:15px 20px;
+      margin:20px 0;
+      border-radius:0 8px 8px 0;
+    }
+    .warning strong { color:#e65100; font-size:15px; }
+
+    .highlight {
+      background:#e8fdf1;
+      padding:15px 20px;
+      border-radius:8px;
+      margin:15px 0;
+      border-left:4px solid var(--accent);
+    }
+    .highlight strong { color:#06643a; }
+
     .contact {
       display:flex;
       gap:12px;
@@ -145,7 +159,6 @@
     }
     a.contact-link { color:var(--accent); text-decoration:none; font-weight:600; }
 
-    /* back-to-top */
     .top-btn {
       position:fixed;
       right:20px;
@@ -165,14 +178,12 @@
     }
     .top-btn:hover { transform:translateY(-4px); }
 
-    /* responsive */
     @media (max-width:980px){
       .shell { grid-template-columns: 1fr; padding-bottom:28px; }
       .toc { position:relative; top:0; order:2; margin-top:10px; }
       .hero { flex-direction:column; align-items:flex-start; gap:6px; }
     }
 
-    /* print */
     @media print {
       body { background:#fff; padding:0; }
       .toc, .top-btn { display:none; }
@@ -186,13 +197,13 @@
       <div class="brand">
         <div class="logo" aria-hidden="true">EP</div>
         <div>
-          <h1>EasyPay — Terms of Use</h1>
-          <div class="meta"><strong>Read carefully — your use constitutes agreement</strong></div>
+          <h1>EasyPay — Privacy Policy & Terms</h1>
+          <div class="meta"><strong>Please read carefully before using EasyPay</strong></div>
         </div>
       </div>
       <div class="meta" aria-hidden="true">
-        <div>Last updated: <strong id="lastUpdated">July 17, 2025</strong></div>
-        <div style="font-size:13px; color:var(--muted)">Version 1.0</div>
+        <div>Last updated: <strong id="lastUpdated">July 23, 2026</strong></div>
+        <div style="font-size:13px; color:var(--muted)">Version 2.0</div>
       </div>
     </div>
 
@@ -200,94 +211,111 @@
     <aside class="toc" aria-label="Table of contents">
       <h3>On this page</h3>
       <ul>
-        <li><a href="#eligibility">1. Eligibility</a></li>
-        <li><a href="#registration">2. Account Registration</a></li>
-        <li><a href="#tasks">3. Tasks & Earnings</a></li>
-        <li><a href="#referral">4. Referral System</a></li>
-        <li><a href="#payments">5. Payments & Withdrawals</a></li>
-        <li><a href="#prohibited">6. Prohibited Use</a></li>
-        <li><a href="#ip">7. Intellectual Property</a></li>
-        <li><a href="#termination">8. Termination</a></li>
-        <li><a href="#liability">9. Limitation of Liability</a></li>
-        <li><a href="#changes">10. Changes to Terms</a></li>
-        <li><a href="#contact">11. Contact</a></li>
+        <li><a href="#privacy">1. Privacy Policy</a></li>
+        <li><a href="#collect">1.1 Information We Collect</a></li>
+        <li><a href="#use">1.2 How We Use Your Information</a></li>
+        <li><a href="#protection">1.3 Data Protection</a></li>
+        <li><a href="#deletion">1.4 Data Deletion</a></li>
+        <li><a href="#contact-privacy">1.5 Contact Us</a></li>
+        <li><a href="#risk">2. Risk Disclaimer & Terms</a></li>
+        <li><a href="#not-bank">2.1 Not a Bank</a></li>
+        <li><a href="#investment-risk">2.2 Investment Risk</a></li>
+        <li><a href="#lifetime">2.3 Lifetime Model</a></li>
+        <li><a href="#withdrawals">2.4 Withdrawals</a></li>
+        <li><a href="#ponzi">2.5 Not a Ponzi Scheme</a></li>
+        <li><a href="#agreement">2.6 Agreement</a></li>
       </ul>
     </aside>
 
-    <!-- Right: Terms content -->
+    <!-- Right: Content -->
     <article class="card" id="termsContent">
-      <p class="lead">Welcome to <strong>EasyPay</strong>. These Terms of Use ("Terms") govern your access to and use of our website, services and platform — including any rewards, referral system, or task features we make available. By using EasyPay you agree to be legally bound by these Terms.</p>
+      <p class="lead">Welcome to <strong>EasyPay Nigeria</strong>. This document contains our Privacy Policy and Risk Disclaimer / Terms of Service. By using EasyPay you agree to be legally bound by these terms.</p>
 
-      <section id="eligibility" class="section" aria-labelledby="eligibilityHeading">
-        <h2 id="eligibilityHeading">1. Eligibility</h2>
-        <p>You must be at least <strong>16 years old</strong> to register and use EasyPay. By creating an account and using the platform you represent and warrant that you meet this age requirement.</p>
+      <!-- PRIVACY POLICY -->
+      <section id="privacy" class="section" aria-labelledby="privacyHeading">
+        <h2 id="privacyHeading">1. Privacy Policy</h2>
+        <p><strong>EasyPay Nigeria</strong> ("we", "our", "us") operates the EasyPay mobile application.</p>
       </section>
 
-      <section id="registration" class="section" aria-labelledby="registrationHeading">
-        <h2 id="registrationHeading">2. Account Registration</h2>
-        <p>To access certain EasyPay features you must create an account. You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account.</p>
-        <p>Keep your email and password secure. Notify us immediately of any unauthorized use or security breach.</p>
-      </section>
-
-      <section id="tasks" class="section" aria-labelledby="tasksHeading">
-        <h2 id="tasksHeading">3. Tasks and Earnings</h2>
-        <p>Users may earn rewards by completing tasks such as tapping activities, viewing PTC ads, installing apps, or referring others. All task completions must be honest and manual — automated or deceptive behaviour is prohibited.</p>
-        <p>We reserve the right to verify, validate, or reverse any reward if fraud, manipulation, or technical error is detected.</p>
-      </section>
-
-      <section id="referral" class="section" aria-labelledby="referralHeading">
-        <h2 id="referralHeading">4. Referral System</h2>
-        <p>Referral bonuses may be provided to users who invite new users to EasyPay. Referral terms (amounts, eligibility, and availability) are subject to change and may be adjusted to prevent abuse.</p>
-        <p>Referrals that result from misrepresentation, self-referral schemes, or other fraudulent techniques may be cancelled and the associated rewards reversed.</p>
-      </section>
-
-      <section id="payments" class="section" aria-labelledby="paymentsHeading">
-        <h2 id="paymentsHeading">5. Payments and Withdrawals</h2>
-        <p>Once you reach the minimum payout threshold, you may request a withdrawal. All withdrawal requests are subject to review. Processing times vary and may be delayed if additional verification is necessary.</p>
-        <p>We may decline or reverse withdrawals where we suspect fraudulent activity or where the account violates these Terms.</p>
-      </section>
-
-      <section id="prohibited" class="section" aria-labelledby="prohibitedHeading">
-        <h2 id="prohibitedHeading">6. Prohibited Use</h2>
-        <p>By using EasyPay you agree NOT to:</p>
+      <section id="collect" class="section" aria-labelledby="collectHeading">
+        <h2 id="collectHeading">1.1 Information We Collect</h2>
+        <p>We collect information you provide when you register:</p>
         <ul>
-          <li>Use bots, scripts, or automation to perform tasks</li>
-          <li>Misrepresent your actions, referrals, or identity</li>
-          <li>Exploit bugs, loopholes, or system weaknesses for an unfair advantage</li>
-          <li>Share or sell accounts, or enable account misuse</li>
-          <li>Violate any applicable laws or the rights of others</li>
+          <li><strong>Personal Information:</strong> Full Name, Phone Number, Email Address, Bank Details</li>
+          <li><strong>Transaction Information:</strong> Investment amount, profit history, withdrawals</li>
+          <li><strong>Device Information:</strong> Device model, IP address for security</li>
         </ul>
       </section>
 
-      <section id="ip" class="section" aria-labelledby="ipHeading">
-        <h2 id="ipHeading">7. Intellectual Property</h2>
-        <p>All content on EasyPay — including logos, branding, user-interface elements and original scripts — is the intellectual property of EasyPay. You may not copy, reproduce, or redistribute our content without prior written permission.</p>
+      <section id="use" class="section" aria-labelledby="useHeading">
+        <h2 id="useHeading">1.2 How We Use Your Information</h2>
+        <p>We use your data to:</p>
+        <ol>
+          <li>Create and manage your EasyPay account</li>
+          <li>Process investments and profit payouts</li>
+          <li>Send updates, notifications, and support</li>
+          <li>Improve app security and prevent fraud</li>
+        </ol>
       </section>
 
-      <section id="termination" class="section" aria-labelledby="terminationHeading">
-        <h2 id="terminationHeading">8. Termination</h2>
-        <p>We reserve the right to suspend or terminate accounts for violations of these Terms or other policies. Accounts terminated for fraud or abuse may forfeit earned balances at our discretion.</p>
+      <section id="protection" class="section" aria-labelledby="protectionHeading">
+        <h2 id="protectionHeading">1.3 Data Protection</h2>
+        <p>Your data is encrypted and stored securely. We do not sell your personal information to third parties.</p>
       </section>
 
-      <section id="liability" class="section" aria-labelledby="liabilityHeading">
-        <h2 id="liabilityHeading">9. Limitation of Liability</h2>
-        <p>EasyPay is provided "as is" without warranties of any kind. To the fullest extent permitted by law, we are not liable for indirect, incidental or consequential losses arising from your use of the platform.</p>
+      <section id="deletion" class="section" aria-labelledby="deletionHeading">
+        <h2 id="deletionHeading">1.4 Data Deletion</h2>
+        <p>You can request account deletion by contacting us via DM or support email. Some transaction records may be retained for legal purposes.</p>
       </section>
 
-      <section id="changes" class="section" aria-labelledby="changesHeading">
-        <h2 id="changesHeading">10. Changes to Terms</h2>
-        <p>We may update these Terms at any time. Continued use of EasyPay after changes are posted constitutes acceptance of the updated Terms. We encourage you to check this page periodically.</p>
-      </section>
-
-      <section id="contact" class="section" aria-labelledby="contactHeading">
-        <h2 id="contactHeading">11. Contact</h2>
-        <p>If you have questions about these Terms, please contact us:</p>
+      <section id="contact-privacy" class="section" aria-labelledby="contactPrivacyHeading">
+        <h2 id="contactPrivacyHeading">1.5 Contact Us</h2>
+        <p>For privacy questions, DM us or email:</p>
         <div class="contact">
           <div>Support email</div>
-          <div><a class="contact-link" href="mailto:easypay27.ng@gmail.com">easypay27.ng@gmail.com</a></div>
+          <div><a class="contact-link" href="mailto:anointedchidi7@gmail.com">anointedchidi7@gmail.com</a></div>
         </div>
+      </section>
 
-        <p style="margin-top:14px">Thank you for using <strong>EasyPay</strong> — we appreciate your trust and will continue working to keep the platform fair and secure for all users.</p>
+      <!-- RISK DISCLAIMER -->
+      <section id="risk" class="section" aria-labelledby="riskHeading">
+        <h2 id="riskHeading">2. Risk Disclaimer & Terms</h2>
+        <div class="warning">
+          <strong>IMPORTANT RISK DISCLOSURE</strong>
+        </div>
+      </section>
+
+      <section id="not-bank" class="section" aria-labelledby="notBankHeading">
+        <h2 id="notBankHeading">2.1 Not a Bank</h2>
+        <p>EasyPay Nigeria is <strong>NOT a bank</strong> and is <strong>NOT regulated by the Central Bank of Nigeria (CBN)</strong>.</p>
+      </section>
+
+      <section id="investment-risk" class="section" aria-labelledby="investmentRiskHeading">
+        <h2 id="investmentRiskHeading">2.2 Investment Risk</h2>
+        <p>All investments involve risk. <strong>Profits are not guaranteed.</strong> Past performance does not guarantee future results.</p>
+      </section>
+
+      <section id="lifetime" class="section" aria-labelledby="lifetimeHeading">
+        <h2 id="lifetimeHeading">2.3 Lifetime Model</h2>
+        <p>EasyPay is designed as a <strong>lifetime investment</strong>. It is <strong>NOT</strong> a quick get-rich scheme or short-term investment.</p>
+      </section>
+
+      <section id="withdrawals" class="section" aria-labelledby="withdrawalsHeading">
+        <h2 id="withdrawalsHeading">2.4 Withdrawals</h2>
+        <p>Only your <strong>profit is withdrawable anytime</strong>. Your capital remains active in your investment plan.</p>
+      </section>
+
+      <section id="ponzi" class="section" aria-labelledby="ponziHeading">
+        <h2 id="ponziHeading">2.5 Not a Ponzi Scheme</h2>
+        <p>EasyPay operates on a <strong>sustainable reinvestment model</strong>. No new user funds are used to pay old users.</p>
+      </section>
+
+      <section id="agreement" class="section" aria-labelledby="agreementHeading">
+        <h2 id="agreementHeading">2.6 Agreement</h2>
+        <div class="highlight">
+          <strong>By using EasyPay, you agree that you understand these risks and are investing at your own discretion.</strong>
+        </div>
+        <p style="margin-top:14px">Thank you for using <strong>EasyPay Nigeria</strong> — we appreciate your trust and will continue working to keep the platform fair and secure for all users.</p>
       </section>
     </article>
 
@@ -298,15 +326,13 @@
   </button>
 
   <script>
-    // small JS: highlight active TOC item on scroll
     (function(){
       const links = Array.from(document.querySelectorAll('.toc a'));
       const sections = links.map(l => document.querySelector(l.getAttribute('href')));
       function onScroll(){
-        const y = window.scrollY + 120; // offset for header
+        const y = window.scrollY + 120;
         let current = sections.find(s => s && s.offsetTop <= y && (s.offsetTop + s.offsetHeight) > y);
         if (!current) {
-          // near bottom fallback
           if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
             current = sections[sections.length - 1];
           }
