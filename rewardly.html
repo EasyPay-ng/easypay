@@ -1,463 +1,761 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Funds - Rewardly</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment, setDoc, serverTimestamp, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rewardly | Add Funds</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a8f08">
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  background: linear-gradient(135deg,#f3fff4,#e8fff0);
+  overflow-x: hidden;
+}
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCWONJAPNi3sKi7Xy2aa9lSpe-fmwQ2mes",
-            authDomain: "rewardly-ca848.firebaseapp.com",
-            projectId: "rewardly-ca848",
-            storageBucket: "rewardly-ca848.appspot.com",
-            messagingSenderId: "177197401859",
-            appId: "1:177197401859:web:7d2a53753a1fb2da524b36"
-        };
+#loader {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f8fff8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+}
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #ddd;
+  border-top: 5px solid #2e7d32;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
 
-        // DOM Elements
-        const loginPrompt = document.getElementById('loginPrompt');
-        const mainContent = document.getElementById('mainContent');
-        const currentBalanceEl = document.getElementById('currentBalance');
-        const amountInput = document.getElementById('amountInput');
-        const addFundsBtn = document.getElementById('addFundsBtn');
-        const btnText = document.getElementById('btnText');
-        const btnLoader = document.getElementById('btnLoader');
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-        const transactionsList = document.getElementById('transactionsList');
-        const quickAmounts = document.querySelectorAll('.quick-amount');
-        const userEmailEl = document.getElementById('userEmail');
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
 
-        let currentUser = null;
-        let userDocRef = null;
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(135deg,#0a8f08,#34c759);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
 
-        // Auth state
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                userDocRef = doc(db, 'users', user.uid);
-                userEmailEl.textContent = user.email;
-                loginPrompt.classList.add('hidden');
-                mainContent.classList.remove('hidden');
-                await loadUserData();
-                await loadTransactions();
-            } else {
-                currentUser = null;
-                loginPrompt.classList.remove('hidden');
-                mainContent.classList.add('hidden');
-            }
-        });
+header h2 { margin: 0; font-size: 1.3rem; }
 
-        // Load user balance
-        async function loadUserData() {
-            try {
-                const snap = await getDoc(userDocRef);
-                if (snap.exists()) {
-                    const data = snap.data();
-                    const balance = data.balance || 0;
-                    animateBalance(balance);
-                } else {
-                    // Create user doc if doesn't exist
-                    await setDoc(userDocRef, {
-                        balance: 0,
-                        email: currentUser.email,
-                        createdAt: serverTimestamp()
-                    });
-                    animateBalance(0);
-                }
-            } catch (error) {
-                showToast('Error loading balance: ' + error.message, 'error');
-            }
-        }
+#menuBtn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding:6px 10px;
+  border-radius:8px;
+}
 
-        // Animate balance counter
-        function animateBalance(target) {
-            const el = currentBalanceEl;
-            const start = parseFloat(el.dataset.value || 0);
-            const duration = 600;
-            const startTime = performance.now();
+.container {
+  padding: 1rem;
+  display:none;
+  max-width: 600px;
+  margin: auto;
+}
 
-            function update(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const ease = 1 - Math.pow(1 - progress, 3);
-                const current = start + (target - start) * ease;
-                el.textContent = '₦' + current.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                el.dataset.value = current;
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transition: 0.3s;
+}
 
-                if (progress < 1) requestAnimationFrame(update);
-            }
-            requestAnimationFrame(update);
-        }
+.card:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+}
 
-        // Load recent transactions
-        async function loadTransactions() {
-            try {
-                const transRef = collection(db, 'users', currentUser.uid, 'transactions');
-                const q = query(transRef, orderBy('timestamp', 'desc'), limit(10));
-                // Note: Need to import query, orderBy, limit
-                const { query, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-                const qRef = query(transRef, orderBy('timestamp', 'desc'), limit(10));
-                // Since we can't easily do real-time without more imports, let's just fetch last few
-                // Actually let's simplify and fetch all, sort client-side for now
-                const snap = await getDocs(transRef);
-                const { getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-            } catch (e) {
-                // Simplified: just show placeholder
-                transactionsList.innerHTML = `
-                    <div class="text-center text-gray-400 py-8">
-                        <i class="fas fa-receipt text-3xl mb-2 opacity-50"></i>
-                        <p class="text-sm">Recent transactions will appear here</p>
-                    </div>
-                `;
-            }
-        }
+.balance-card {
+  background: linear-gradient(135deg,#0a8f08,#2ecc71);
+  color: #fff;
+  text-align: center;
+  padding: 2rem 1.2rem;
+}
 
-        // Quick amount buttons
-        quickAmounts.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const amount = btn.dataset.amount;
-                amountInput.value = amount;
-                amountInput.focus();
-                // Visual feedback
-                quickAmounts.forEach(b => b.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50'));
-                btn.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50');
-            });
-        });
+.balance-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-        // Clear quick select when typing
-        amountInput.addEventListener('input', () => {
-            quickAmounts.forEach(b => b.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50'));
-        });
+.balance-card .amount {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0;
+}
 
-        // Add funds
-        addFundsBtn.addEventListener('click', async () => {
-            const amount = parseFloat(amountInput.value);
-            
-            if (!amount || amount <= 0) {
-                showToast('Please enter a valid amount', 'error');
-                return;
-            }
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
 
-            if (amount > 1000000) {
-                showToast('Maximum deposit is ₦1,000,000', 'error');
-                return;
-            }
+.card-title i {
+  font-size: 1.4rem;
+  color: #2e7d32;
+}
 
-            setLoading(true);
+.card-title h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+}
 
-            try {
-                // Update balance using increment (atomic operation)
-                await updateDoc(userDocRef, {
-                    balance: increment(amount),
-                    lastUpdated: serverTimestamp()
-                });
+.quick-amounts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 1rem;
+}
 
-                // Record transaction
-                const transRef = collection(db, 'users', currentUser.uid, 'transactions');
-                await addDoc(transRef, {
-                    type: 'deposit',
-                    amount: amount,
-                    status: 'completed',
-                    description: 'Balance top-up',
-                    timestamp: serverTimestamp()
-                });
+.quick-btn {
+  background: #f0fff4;
+  border: 2px solid #c8e6c9;
+  color: #2e7d32;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
 
-                // Refresh balance display
-                const snap = await getDoc(userDocRef);
-                const newBalance = snap.data().balance || 0;
-                animateBalance(newBalance);
+.quick-btn:hover, .quick-btn.active {
+  background: #0a8f08;
+  color: #fff;
+  border-color: #0a8f08;
+  transform: scale(1.03);
+}
 
-                showToast(`Successfully added ₦${amount.toLocaleString()} to your balance!`, 'success');
-                amountInput.value = '';
-                quickAmounts.forEach(b => b.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50'));
+.amount-input-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
 
-            } catch (error) {
-                showToast('Transaction failed: ' + error.message, 'error');
-            } finally {
-                setLoading(false);
-            }
-        });
+.amount-input-wrap .naira {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2e7d32;
+}
 
-        // Allow Enter key
-        amountInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addFundsBtn.click();
-        });
+.amount-input-wrap input {
+  width: 100%;
+  padding: 14px 14px 14px 40px;
+  border: 2px solid #c8e6c9;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+  background: #f8fff8;
+  box-sizing: border-box;
+  outline: none;
+  transition: 0.2s;
+}
 
-        function setLoading(loading) {
-            addFundsBtn.disabled = loading;
-            if (loading) {
-                btnText.classList.add('hidden');
-                btnLoader.classList.remove('hidden');
-                addFundsBtn.classList.add('opacity-75', 'cursor-not-allowed');
-            } else {
-                btnText.classList.remove('hidden');
-                btnLoader.classList.add('hidden');
-                addFundsBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-            }
-        }
+.amount-input-wrap input:focus {
+  border-color: #0a8f08;
+  background: #fff;
+}
 
-        function showToast(message, type = 'success') {
-            toastMessage.textContent = message;
-            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-xl shadow-2xl transform transition-all duration-300 translate-x-full z-50 flex items-center gap-3 ${
-                type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-500 text-white'
-            }`;
-            
-            toast.classList.remove('translate-x-full');
-            
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-            }, 4000);
-        }
+.hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            auth.signOut();
-        });
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        .balance-glow {
-            text-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-slide-up {
-            animation: slideUp 0.5s ease-out forwards;
-        }
-        .delay-100 { animation-delay: 0.1s; }
-        .delay-200 { animation-delay: 0.2s; }
-        .delay-300 { animation-delay: 0.3s; }
-    </style>
+.add-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg,#0a8f08,#34c759);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(10,143,8,0.3);
+}
+
+.add-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.add-btn .loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+}
+
+.add-btn.loading .loader { display: inline-block; }
+.add-btn.loading .btn-text { display: none; }
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 260px;
+  height: 100%;
+  background: linear-gradient(135deg,#0a8f08,#2ecc71);
+  color: #fff;
+  padding: 1rem;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 300;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.4);
+  border-radius: 10px;
+}
+
+.sidebar.active { transform: translateX(0); }
+
+.sidebar h3 { margin-top: 0; margin-bottom: 1rem; }
+
+.sidebar a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  margin: 10px 0;
+  padding:10px;
+  border-radius:8px;
+  transition:0.3s;
+}
+
+.sidebar a:hover { background: rgba(255,255,255,0.2); }
+.sidebar a i { margin-right: 10px; }
+
+.sidebar .closeBtn {
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 250;
+  display: none;
+}
+
+.overlay.active { display: block; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.08);
+  z-index: 100;
+}
+
+.bottom-nav a {
+  text-decoration: none;
+  color: #555;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.bottom-nav i {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 2px;
+  color: #2e7d32;
+}
+
+.profile-btn {
+  position: relative;
+  top: -20px;
+}
+
+.profile-btn a {
+  background: linear-gradient(135deg,#0a8f08,#34c759);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.4rem;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+.profile-btn span {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 2px;
+  color: #555;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  padding: 14px 24px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  z-index: 4000;
+  opacity: 0;
+  transition: all 0.4s ease;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  justify-content: center;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast.success { background: linear-gradient(135deg,#0a8f08,#34c759); }
+.toast.error { background: linear-gradient(135deg,#d32f2f,#f44336); }
+
+/* HISTORY */
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f8fff8;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border-left: 4px solid #0a8f08;
+}
+
+.history-item .info h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.history-item .info span {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.history-item .amount {
+  font-weight: bold;
+  color: #0a8f08;
+  font-size: 1rem;
+}
+
+.empty-history {
+  text-align: center;
+  color: #aaa;
+  padding: 2rem;
+}
+
+.empty-history i { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+
+</style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50 min-h-screen text-slate-800">
 
-    <!-- Toast -->
-    <div id="toast" class="fixed top-4 right-4 px-6 py-3 rounded-xl shadow-2xl transform transition-all duration-300 translate-x-full z-50 flex items-center gap-3">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage"></span>
-    </div>
+<body>
 
-    <!-- Navbar -->
-    <nav class="glass sticky top-0 z-40 border-b border-white/50">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                    <i class="fas fa-wallet text-white text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg text-slate-800">Rewardly</h1>
-                    <p class="text-xs text-slate-500">Add Funds</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/60 rounded-full border border-slate-200/60">
-                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <span id="userEmail" class="text-sm text-slate-600 font-medium">Not logged in</span>
-                </div>
-                <button id="logoutBtn" class="p-2.5 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </div>
-        </div>
-    </nav>
+<div id="loader"><div class="spinner"></div></div>
 
-    <!-- Login Prompt -->
-    <div id="loginPrompt" class="hidden min-h-[80vh] flex items-center justify-center px-4">
-        <div class="text-center animate-slide-up">
-            <div class="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-lock text-slate-400 text-3xl"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">Please Log In</h2>
-            <p class="text-slate-500 mb-6">You need to be signed in to add funds to your balance.</p>
-            <a href="login.html" class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-emerald-200">
-                <i class="fas fa-sign-in-alt"></i>
-                Go to Login
-            </a>
-        </div>
-    </div>
+<header>
+<h2>Rewardly</h2>
+<button id="menuBtn"><i class="fa-solid fa-bars"></i></button>
+</header>
 
-    <!-- Main Content -->
-    <div id="mainContent" class="hidden">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-            
-            <!-- Balance Card -->
-            <div class="animate-slide-up mb-8">
-                <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-8 sm:p-10 shadow-2xl shadow-emerald-200/50">
-                    <!-- Decorative circles -->
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
-                    <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4"></div>
-                    
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-2 mb-2">
-                            <i class="fas fa-coins text-emerald-200 text-sm"></i>
-                            <span class="text-emerald-100 text-sm font-medium uppercase tracking-wider">Current Balance</span>
-                        </div>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-emerald-200 text-3xl sm:text-4xl font-light">₦</span>
-                            <span id="currentBalance" data-value="0" class="text-white text-5xl sm:text-6xl font-bold balance-glow tracking-tight">₦0.00</span>
-                        </div>
-                        <p class="text-emerald-100/80 text-sm mt-3 flex items-center gap-2">
-                            <i class="fas fa-shield-alt"></i>
-                            Your funds are secure and instantly available
-                        </p>
-                    </div>
-                </div>
-            </div>
+<div class="sidebar" id="sidebar">
+<span class="closeBtn" id="closeSidebar">&times;</span>
+<h3>Menu</h3>
 
-            <div class="grid lg:grid-cols-5 gap-8">
-                
-                <!-- Add Funds Form -->
-                <div class="lg:col-span-3 animate-slide-up delay-100">
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-plus-circle text-emerald-600"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold text-slate-800">Add Funds</h2>
-                                <p class="text-sm text-slate-500">Top up your Naira balance instantly</p>
-                            </div>
-                        </div>
+<a href='/dashboard'><i class="fa-solid fa-house"></i> Dashboard</a>
+<a href='/leaderboard'><i class="fa-solid fa-trophy"></i> Leaderboard</a>
+<a href='/spin'><i class="fa-solid fa-gamepad"></i> Spin & Earn</a>
+<a href='/micro-jobs'><i class="fa-solid fa-bag-shopping"></i> Micro Jobs</a>
+<a href='/advertisers'><i class="fa-solid fa-bullhorn"></i> Advertise</a>
+<a href='/games'><i class="fa-solid fa-gamepad"></i> Games</a>
+<a href='/deposit'><i class="fa-solid fa-money-bill"></i> Deposit</a>
+<a href='/airtime'><i class="fa-solid fa-money-bill"></i> Airtime</a>
+<a href='/task-history'><i class="fa-solid fa-list-check"></i> Task History</a>
+<a href='/referrals'><i class="fa-solid fa-users"></i> Total Referral</a>
+<a href='/shortlinks'><i class="fa-solid fa-link"></i> Short Links</a>
+<a href='/stake'><i class="fa-solid fa-coins"></i> Stake</a>
+<a href='/read-news'><i class="fa-solid fa-newspaper"></i> News</a>
+<a href='/claim-code'><i class="fa-solid fa-newspaper"></i> Claim Code</a>
+<a href='/compounding'><i class="fa-solid fa-money-bill"></i> Compound Investment</a>
 
-                        <!-- Quick Amounts -->
-                        <div class="mb-6">
-                            <label class="text-sm font-medium text-slate-600 mb-3 block">Quick Select</label>
-                            <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                <button data-amount="500" class="quick-amount py-3 px-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-all">
-                                    ₦500
-                                </button>
-                                <button data-amount="1000" class="quick-amount py-3 px-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-all">
-                                    ₦1K
-                                </button>
-                                <button data-amount="5000" class="quick-amount py-3 px-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-all">
-                                    ₦5K
-                                </button>
-                                <button data-amount="10000" class="quick-amount py-3 px-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-all">
-                                    ₦10K
-                                </button>
-                                <button data-amount="50000" class="quick-amount py-3 px-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-all">
-                                    ₦50K
-                                </button>
-                            </div>
-                        </div>
+<a href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
 
-                        <!-- Amount Input -->
-                        <div class="mb-6">
-                            <label class="text-sm font-medium text-slate-600 mb-2 block">Or enter custom amount</label>
-                            <div class="relative">
-                                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-lg">₦</div>
-                                <input 
-                                    type="number" 
-                                    id="amountInput" 
-                                    placeholder="0.00" 
-                                    min="100"
-                                    max="1000000"
-                                    class="w-full pl-10 pr-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-lg font-bold text-slate-800 placeholder-slate-300 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
-                                >
-                            </div>
-                            <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
-                                <i class="fas fa-info-circle"></i>
-                                Minimum: ₦100 | Maximum: ₦1,000,000
-                            </p>
-                        </div>
+<a href='/contact' style='margin-top: 20px; background:#1fa65a; padding:10px; border-radius:10px; display:flex; align-items:center; justify-content:center;'>
+<i class="fa-brands fa-whatsapp" style="margin-right:8px;"></i> Connect With Us
+</a>
+</div>
 
-                        <!-- Add Button -->
-                        <button 
-                            id="addFundsBtn"
-                            class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
-                        >
-                            <span id="btnText" class="flex items-center gap-2">
-                                <i class="fas fa-plus"></i>
-                                Add to Balance
-                            </span>
-                            <span id="btnLoader" class="hidden">
-                                <i class="fas fa-circle-notch fa-spin"></i>
-                                Processing...
-                            </span>
-                        </button>
-                    </div>
-                </div>
+<div class="overlay" id="overlay"></div>
 
-                <!-- Recent Activity -->
-                <div class="lg:col-span-2 animate-slide-up delay-200">
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8 h-full">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-history text-blue-600"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold text-slate-800">Recent Activity</h2>
-                                <p class="text-sm text-slate-500">Your latest transactions</p>
-                            </div>
-                        </div>
+<div class="container" id="pageContent">
 
-                        <div id="transactionsList" class="space-y-3">
-                            <!-- Transactions populated dynamically -->
-                            <div class="text-center text-gray-400 py-8">
-                                <i class="fas fa-receipt text-3xl mb-2 opacity-50"></i>
-                                <p class="text-sm">No transactions yet</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- Current Balance -->
+<div class="card balance-card">
+<h3><i class="fa-solid fa-wallet"></i> Current Balance</h3>
+<p class="amount">₦<span id="currentBalance">0</span></p>
+</div>
 
-            <!-- Info Cards -->
-            <div class="grid sm:grid-cols-3 gap-4 mt-8 animate-slide-up delay-300">
-                <div class="bg-white/60 backdrop-blur rounded-xl p-5 border border-slate-100 flex items-start gap-3">
-                    <div class="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="fas fa-bolt text-emerald-600 text-sm"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-slate-700 text-sm">Instant Credit</h3>
-                        <p class="text-xs text-slate-500 mt-1">Funds are added to your balance immediately after confirmation.</p>
-                    </div>
-                </div>
-                <div class="bg-white/60 backdrop-blur rounded-xl p-5 border border-slate-100 flex items-start gap-3">
-                    <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="fas fa-shield-alt text-blue-600 text-sm"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-slate-700 text-sm">Secure & Safe</h3>
-                        <p class="text-xs text-slate-500 mt-1">All transactions are encrypted and protected by Firebase Security.</p>
-                    </div>
-                </div>
-                <div class="bg-white/60 backdrop-blur rounded-xl p-5 border border-slate-100 flex items-start gap-3">
-                    <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="fas fa-history text-purple-600 text-sm"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-slate-700 text-sm">Full History</h3>
-                        <p class="text-xs text-slate-500 mt-1">Track every deposit with detailed transaction records.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- Add Funds Form -->
+<div class="card">
+<div class="card-title">
+<i class="fa-solid fa-plus-circle"></i>
+<h3>Add Funds to Balance</h3>
+</div>
 
-    <!-- Footer -->
-    <footer class="mt-16 py-8 text-center text-slate-400 text-sm">
-        <p> Rewardly. All rights reserved.</p>
-    </footer>
+<div class="quick-amounts">
+<button class="quick-btn" data-amount="500">₦500</button>
+<button class="quick-btn" data-amount="1000">₦1,000</button>
+<button class="quick-btn" data-amount="5000">₦5,000</button>
+<button class="quick-btn" data-amount="10000">₦10,000</button>
+<button class="quick-btn" data-amount="50000">₦50,000</button>
+<button class="quick-btn" data-amount="100000">₦100,000</button>
+</div>
+
+<div class="amount-input-wrap">
+<span class="naira">₦</span>
+<input type="number" id="amountInput" placeholder="Enter amount" min="100" max="1000000">
+</div>
+<p class="hint"><i class="fa-solid fa-info-circle"></i> Min: ₦100 | Max: ₦1,000,000</p>
+
+<button class="add-btn" id="addFundsBtn">
+<span class="btn-text"><i class="fa-solid fa-plus"></i> Add to Balance</span>
+<div class="loader"></div>
+</button>
+</div>
+
+<!-- Recent Deposits -->
+<div class="card">
+<div class="card-title">
+<i class="fa-solid fa-clock-rotate-left"></i>
+<h3>Recent Deposits</h3>
+</div>
+<div id="historyList">
+<div class="empty-history">
+<i class="fa-solid fa-receipt"></i>
+<p>No deposits yet</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+<a href='/dashboard'>
+<i class="fa-solid fa-house"></i>
+Dashboard
+</a>
+<a href='/withdraw'>
+<i class="fa-solid fa-money-bill"></i>
+Withdraw
+</a>
+<div class="profile-btn">
+<a href='/profile'>
+<i class="fa-solid fa-user"></i>
+</a>
+</div>
+<a href='/tasks'>
+<i class="fa-solid fa-list-check"></i>
+Tasks
+</a>
+<a href='/contest'>
+<i class="fa-solid fa-trophy"></i>
+Referral Contest
+</a>
+</div>
+
+<!-- TELEGRAM FLOAT -->
+<a href="https://t.me/Rewardly002" target="_blank" style="
+position: fixed;
+right: 15px;
+bottom: 100px;
+width: 60px;
+height: 60px;
+background: linear-gradient(135deg,#0088cc,#00c6ff);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 9999;
+text-decoration: none;
+box-shadow: 0 0 15px rgba(0,136,204,0.7);
+">
+<i class="fa-brands fa-telegram" style="font-size: 28px; color: #fff;"></i>
+</a>
+
+<!-- TOAST -->
+<div id="toast" class="toast"><i class="fa-solid fa-check-circle"></i><span id="toastMsg">Success!</span></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, increment, setDoc, serverTimestamp, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey:"AIzaSyCWONJAPNi3sKi7Xy2aa9lSpe-fmwQ2mes",
+authDomain:"rewardly-ca848.firebaseapp.com",
+projectId:"rewardly-ca848"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Sidebar
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+
+document.getElementById("menuBtn").onclick = () => {
+sidebar.classList.add("active");
+overlay.classList.add("active");
+};
+
+document.getElementById("closeSidebar").onclick = () => {
+sidebar.classList.remove("active");
+overlay.classList.remove("active");
+};
+
+overlay.onclick = () => {
+sidebar.classList.remove("active");
+overlay.classList.remove("active");
+};
+
+document.getElementById("logoutBtn").onclick = () => {
+signOut(auth).then(()=>location.href="login.html");
+};
+
+// Elements
+const amountInput = document.getElementById("amountInput");
+const addFundsBtn = document.getElementById("addFundsBtn");
+const currentBalanceEl = document.getElementById("currentBalance");
+const quickBtns = document.querySelectorAll(".quick-btn");
+const historyList = document.getElementById("historyList");
+const toast = document.getElementById("toast");
+const toastMsg = document.getElementById("toastMsg");
+
+let currentUser = null;
+let userDocRef = null;
+
+// Quick amount buttons
+quickBtns.forEach(btn => {
+btn.addEventListener("click", () => {
+quickBtns.forEach(b => b.classList.remove("active"));
+btn.classList.add("active");
+amountInput.value = btn.dataset.amount;
+});
+});
+
+amountInput.addEventListener("input", () => {
+quickBtns.forEach(b => b.classList.remove("active"));
+});
+
+// Toast
+function showToast(msg, type = "success") {
+toastMsg.textContent = msg;
+toast.className = `toast ${type}`;
+toast.querySelector("i").className = type === "success" ? "fa-solid fa-check-circle" : "fa-solid fa-circle-exclamation";
+setTimeout(() => toast.classList.add("show"), 10);
+setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+// Format currency
+function formatNaira(num) {
+return num.toLocaleString("en-NG");
+}
+
+// Load history
+async function loadHistory() {
+if (!currentUser) return;
+try {
+const q = query(
+collection(db, "users", currentUser.uid, "transactions"),
+orderBy("timestamp", "desc"),
+limit(10)
+);
+const snap = await getDocs(q);
+if (snap.empty) return;
+
+let html = "";
+snap.forEach(doc => {
+const t = doc.data();
+const date = t.timestamp ? new Date(t.timestamp.toDate()).toLocaleDateString("en-NG") : "Just now";
+html += `
+<div class="history-item">
+<div class="info">
+<h4>${t.description || "Balance Top-up"}</h4>
+<span>${date}</span>
+</div>
+<div class="amount">+₦${formatNaira(t.amount)}</div>
+</div>
+`;
+});
+historyList.innerHTML = html;
+} catch (e) {
+console.log("History load error:", e);
+}
+}
+
+// Auth state
+onAuthStateChanged(auth, async (user) => {
+if (!user) return location.href = "login.html";
+
+currentUser = user;
+userDocRef = doc(db, "users", user.uid);
+
+const ref = doc(db, "users", user.uid);
+const snap = await getDoc(ref);
+
+if (!snap.exists()) {
+await signOut(auth);
+location.href = "login.html";
+return;
+}
+
+const data = snap.data();
+
+// Ban check
+if (data.status === "banned") {
+alert("Your account has been banned due to suspected malicious activity.\n\nPlease contact the administrator to request an unban.");
+await signOut(auth);
+location.href = "login.html";
+return;
+}
+
+// Show balance
+currentBalanceEl.textContent = formatNaira(data.balance || 0);
+
+// Load history
+await loadHistory();
+
+// Show content
+document.getElementById("loader").style.display = "none";
+document.getElementById("pageContent").style.display = "block";
+});
+
+// Add funds
+addFundsBtn.addEventListener("click", async () => {
+const amount = parseFloat(amountInput.value);
+
+if (!amount || amount < 100) {
+showToast("Minimum amount is ₦100", "error");
+return;
+}
+if (amount > 1000000) {
+showToast("Maximum amount is ₦1,000,000", "error");
+return;
+}
+
+addFundsBtn.classList.add("loading");
+addFundsBtn.disabled = true;
+
+try {
+// Atomic balance increment
+await updateDoc(userDocRef, {
+balance: increment(amount),
+lastUpdated: serverTimestamp()
+});
+
+// Record transaction
+const transRef = collection(db, "users", currentUser.uid, "transactions");
+await addDoc(transRef, {
+type: "deposit",
+amount: amount,
+status: "completed",
+description: "Balance top-up",
+timestamp: serverTimestamp()
+});
+
+// Refresh balance
+const snap = await getDoc(userDocRef);
+const newBal = snap.data().balance || 0;
+currentBalanceEl.textContent = formatNaira(newBal);
+
+// Refresh history
+await loadHistory();
+
+showToast(`₦${formatNaira(amount)} added successfully!`);
+amountInput.value = "";
+quickBtns.forEach(b => b.classList.remove("active"));
+
+} catch (error) {
+console.error(error);
+showToast("Failed to add funds. Try again.", "error");
+} finally {
+addFundsBtn.classList.remove("loading");
+addFundsBtn.disabled = false;
+}
+});
+
+// Enter key
+amountInput.addEventListener("keypress", (e) => {
+if (e.key === "Enter") addFundsBtn.click();
+});
+</script>
 
 </body>
 </html>
