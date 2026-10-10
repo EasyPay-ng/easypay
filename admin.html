@@ -1,167 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay Admin Dashboard</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-  />
-  <style>
-    :root {
-      --green: #009f4d;
-      --dark: #006400;
-      --light: #f5fdf7;
-      --white: #fff;
-      --shadow: rgba(0, 0, 0, 0.1);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-    body { background: var(--light); color: #333; }
-    header {
-      background: var(--green);
-      color: var(--white);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 6px var(--shadow);
-    }
-    header h1 { font-size: 1.5rem; }
-    header button {
-      background: var(--white);
-      color: var(--green);
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 2px 6px var(--shadow);
-    }
-    header button:hover { background: var(--light); }
-    .container { padding: 2rem; max-width: 1000px; margin: auto; }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    .card {
-      background: var(--white);
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px var(--shadow);
-      text-align: center;
-    }
-    .card h2 { font-size: 2rem; color: var(--dark); }
-    .card p { margin-top: 0.5rem; color: #555; }
-    
-    /* Grid for links with withdrawal spanning full width */
-    .links-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
-    .links-grid a.withdrawal {
-      grid-column: span 2;
-    }
-
-    .admin-link {
-      background: var(--white);
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px var(--shadow);
-      text-decoration: none;
-      color: var(--dark);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: transform 0.2s ease;
-    }
-    .admin-link:hover { transform: translateY(-4px); }
-    .admin-link i {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
-      color: var(--green);
-    }
-    .admin-link span { font-size: 0.9rem; text-align: center; }
-    
-    @media (max-width: 600px){
-      .links-grid { grid-template-columns: 1fr; }
-      .links-grid a.withdrawal { grid-column: span 1; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — EasyPay</title>
+<link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--g1:#009f4d;--g2:#00c261;--dark:#0d1117;--bg:#f0f7f4}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',sans-serif}
+body{background:var(--bg);color:#1a2e1a}
+header{
+  background:linear-gradient(135deg,#006b35,var(--g1));color:#fff;
+  padding:16px 24px;display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.1);
+}
+header h1{font-size:18px;font-weight:800}
+header button{
+  background:rgba(255,255,255,.15);color:#fff;border:none;padding:8px 16px;
+  border-radius:8px;font-weight:600;cursor:pointer;font-family:'Poppins';font-size:13px;
+}
+.container{padding:24px;max-width:1000px;margin:auto}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{
+  background:#fff;padding:24px;border-radius:16px;
+  box-shadow:0 4px 16px rgba(0,0,0,.05);text-align:center;
+}
+.stat-card h2{font-size:32px;font-weight:800;color:var(--g1)}
+.stat-card p{font-size:13px;color:#6b7c6b;margin-top:4px;font-weight:500}
+.links-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.admin-link{
+  background:#fff;padding:20px;border-radius:14px;
+  box-shadow:0 4px 16px rgba(0,0,0,.05);text-decoration:none;color:#1a2e1a;
+  display:flex;flex-direction:column;align-items:center;gap:10px;transition:.2s;
+}
+.admin-link:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.admin-link .icon{font-size:32px}
+.admin-link span{font-size:14px;font-weight:700}
+</style>
 </head>
 <body>
-  <header>
-    <h1>EasyPay Admin Dashboard</h1>
-    <button id="logoutBtn">Logout</button>
-  </header>
-  <main class="container">
-    <section class="stats-grid">
-      <div class="card">
-        <h2 id="totalUsers">—</h2>
-        <p>Total Users</p>
-      </div>
-      <div class="card">
-        <h2 id="totalDeposits">—</h2>
-        <p>Deposit Requests</p>
-      </div>
-    </section>
+<header>
+  <h1>Admin Dashboard</h1>
+  <button id="logoutBtn">Logout</button>
+</header>
+<main class="container">
+  <section class="stats-grid">
+    <div class="stat-card"><h2 id="totalUsers">—</h2><p>Total Users</p></div>
+    <div class="stat-card"><h2 id="totalDeposits">—</h2><p>Deposit Requests</p></div>
+  </section>
+  <section class="links-grid">
+    <a href="admin-deposit.html" class="admin-link"><span class="icon">💳</span><span>Deposits</span></a>
+    <a href="admin-users.html" class="admin-link"><span class="icon">👥</span><span>Manage Users</span></a>
+    <a href="admin-withdraw.html" class="admin-link"><span class="icon">💰</span><span>Withdrawals</span></a>
+  </section>
+</main>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getAuth,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getFirestore,collection,getDocs,doc,getDoc}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <section class="links-grid">
-      <a href="admin-deposit.html" class="admin-link">
-        <i class="fas fa-wallet"></i>
-        <span>Deposits</span>
-      </a>
-      <a href="admin-users.html" class="admin-link">
-        <i class="fas fa-users"></i>
-        <span>Manage Users</span>
-      </a>
-      <a href="admin-withdraw.html" class="admin-link withdrawal">
-        <i class="fas fa-hand-holding-usd"></i>
-        <span>Withdrawals</span>
-      </a>
-    </section>
-  </main>
+const app=initializeApp({apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",authDomain:"easypay-6bce8.firebaseapp.com",projectId:"easypay-6bce8"});
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+document.getElementById('logoutBtn').onclick=()=>signOut(auth).then(()=>location.href='login.html');
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-      authDomain: "easypay-6bce8.firebaseapp.com",
-      projectId: "easypay-6bce8",
-      storageBucket: "easypay-6bce8.appspot.com",
-      messagingSenderId: "862671358267",
-      appId: "1:862671358267:web:b243c7b69840ef918c8f1e"
-    };
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db   = getFirestore(app);
-    const ADMIN_EMAIL = "easypay27.ng@gmail.com";
+onAuthStateChanged(auth,async user=>{
+  if(!user)return signOut(auth).then(()=>location.href='login.html');
+  // Check admin role from Firestore
+  const userSnap=await getDoc(doc(db,'users',user.uid));
+  if(!userSnap.exists()||userSnap.data().role!=='admin'){
+    return signOut(auth).then(()=>location.href='login.html');
+  }
+  loadStats();
+});
 
-    document.getElementById("logoutBtn").onclick = () =>
-      signOut(auth).then(() => window.location.href = "login.html");
-
-    onAuthStateChanged(auth, user => {
-      if (!user || user.email.toLowerCase() !== ADMIN_EMAIL) {
-        return signOut(auth).then(() => window.location.href = "login.html");
-      }
-      loadStats();
-    });
-
-    async function loadStats() {
-      const colSize = async c => (await getDocs(collection(db, c))).size;
-      const [u, d] = await Promise.all([
-        colSize("users"),
-        colSize("deposits")
-      ]);
-      document.getElementById("totalUsers"    ).innerText = u;
-      document.getElementById("totalDeposits" ).innerText = d;
-    }
-  </script>
+async function loadStats(){
+  const colSize=async c=>(await getDocs(collection(db,c))).size;
+  const[u,d]=await Promise.all([colSize('users'),colSize('deposits')]);
+  document.getElementById('totalUsers').innerText=u;
+  document.getElementById('totalDeposits').innerText=d;
+}
+</script>
 </body>
 </html>

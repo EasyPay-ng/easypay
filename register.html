@@ -1,354 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Register – EasyPay</title>
-
-<!-- FAVICON -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — EasyPay</title>
+<meta name="description" content="Create your EasyPay investment account and start earning daily">
 <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
-
-<!-- Google Font (Same as homepage) -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-
-body{
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
+:root{--g1:#009f4d;--g2:#00c261}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#0a1a12,#0f2f1e,#1a4a2e);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.card{
+  background:#fff;padding:32px 28px;border-radius:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);width:100%;max-width:420px;text-align:center;
+  animation:fadeUp .5s ease;
 }
-
-.register-container{
-  background:#fff;
-  padding:2.5rem;
-  border-radius:15px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.15);
-  width:100%;
-  max-width:420px;
-  text-align:center;
-}
-
-.register-logo{
-  width:80px;
-  height:80px;
-  border-radius:50%;
-  object-fit:cover;
-  margin-bottom:1rem;
-  border:3px solid #00ff99;
-}
-
-h2{
-  color:#0d1117;
-  margin-bottom:1.5rem;
-}
-
-.input-group{
-  margin-bottom:1rem;
-  text-align:left;
-}
-
-.input-group label{
-  display:block;
-  margin-bottom:0.3rem;
-  font-weight:500;
-  font-size:0.9rem;
-}
-
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.logo{width:70px;height:70px;border-radius:50%;object-fit:cover;margin:0 auto 16px;display:block;border:3px solid var(--g1)}
+h2{color:#1a2e1a;font-size:22px;font-weight:700;margin-bottom:6px}
+.sub{color:#6b7c6b;font-size:13px;margin-bottom:20px}
+.input-group{margin-bottom:12px;text-align:left}
+.input-group label{display:block;margin-bottom:4px;font-weight:600;font-size:12px;color:#444}
 .input-group input{
-  width:100%;
-  padding:0.7rem;
-  border:1px solid #ddd;
-  border-radius:8px;
-  font-size:0.9rem;
+  width:100%;padding:11px 14px;border:2px solid #e0e8e3;border-radius:10px;
+  font-size:14px;font-family:'Poppins';transition:.2s;
 }
-
-.input-group input:focus{
-  border-color:#00ff99;
-  outline:none;
-}
-
-.terms{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:0.85rem;
-  margin-bottom:1rem;
-  text-align:left;
-}
-
-.terms a{
-  color:#00a86b;
-  text-decoration:none;
-  font-weight:500;
-}
-
-.terms a:hover{
-  text-decoration:underline;
-}
-
+.input-group input:focus{border-color:var(--g1);outline:none;box-shadow:0 0 0 3px rgba(0,159,77,.1)}
+.input-group .err{color:#c62828;font-size:11px;margin-top:3px;display:none}
+.input-group.invalid .err{display:block}
+.input-group.invalid input{border-color:#c62828}
+.terms{display:flex;align-items:flex-start;gap:8px;font-size:12px;margin:14px 0;text-align:left;color:#555}
+.terms a{color:var(--g1);font-weight:600}
+.terms input{margin-top:2px}
 .btn{
-  background:#00a86b;
-  color:white;
-  border:none;
-  width:100%;
-  padding:0.8rem;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:600;
-  transition:0.3s;
+  background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;border:none;
+  width:100%;padding:13px;border-radius:10px;cursor:pointer;font-weight:700;
+  font-size:15px;font-family:'Poppins';transition:.3s;
+  box-shadow:0 4px 14px rgba(0,159,77,.25);
 }
-
-.btn:hover{
-  background:#008f5a;
+.btn:hover{transform:translateY(-2px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.spinner{border:3px solid rgba(255,255,255,.3);border-top:3px solid #fff;border-radius:50%;width:16px;height:16px;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.footer{margin-top:16px;font-size:13px}
+.footer a{color:var(--g1);text-decoration:none;font-weight:600}
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#c62828;color:#fff;padding:14px 24px;border-radius:12px;
+  font-size:14px;z-index:10000;transition:transform .4s;max-width:90%;
 }
-
-.btn:disabled{
-  background:#999;
-  cursor:default;
-}
-
-.spinner{
-  border:3px solid #f3f3f3;
-  border-top:3px solid white;
-  border-radius:50%;
-  width:16px;
-  height:16px;
-  animation:spin 1s linear infinite;
-  display:inline-block;
-  vertical-align:middle;
-  margin-right:8px;
-}
-
-@keyframes spin{
-  0%{transform:rotate(0deg);}
-  100%{transform:rotate(360deg);}
-}
-
-.footer{
-  margin-top:1rem;
-  font-size:0.9rem;
-}
-
-.footer a{
-  color:#00a86b;
-  text-decoration:none;
-  font-weight:500;
-}
-
-.footer a:hover{
-  text-decoration:underline;
-}
-
-/* Floating WhatsApp Button */
-.whatsapp-float{
-  position:fixed;
-  bottom:25px;
-  right:25px;
-  width:60px;
-  height:60px;
-  background:#25D366;
-  color:#fff;
-  border-radius:50%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  box-shadow:0 4px 15px rgba(37,211,102,0.4);
-  cursor:pointer;
-  z-index:1000;
-  transition:all 0.3s ease;
-  text-decoration:none;
-}
-
-.whatsapp-float:hover{
-  transform:scale(1.1);
-  box-shadow:0 6px 20px rgba(37,211,102,0.6);
-}
-
-.whatsapp-float svg{
-  width:32px;
-  height:32px;
-  fill:#fff;
-}
-
-.whatsapp-tooltip{
-  position:fixed;
-  bottom:95px;
-  right:25px;
-  background:#333;
-  color:#fff;
-  padding:8px 14px;
-  border-radius:8px;
-  font-size:0.8rem;
-  opacity:0;
-  visibility:hidden;
-  transition:all 0.3s ease;
-  white-space:nowrap;
-  z-index:1000;
-}
-
-.whatsapp-float:hover + .whatsapp-tooltip,
-.whatsapp-tooltip:hover{
-  opacity:1;
-  visibility:visible;
-}
-
-.whatsapp-tooltip::after{
-  content:'';
-  position:absolute;
-  bottom:-6px;
-  right:20px;
-  border-width:6px 6px 0;
-  border-style:solid;
-  border-color:#333 transparent transparent transparent;
-}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.pw-strength{height:4px;border-radius:2px;margin-top:4px;transition:.3s;background:#e8e8e8}
+.pw-strength.weak{background:#ef5350;width:33%}
+.pw-strength.medium{background:#ffa726;width:66%}
+.pw-strength.strong{background:#66bb6a;width:100%}
 </style>
-
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
-
 <body>
+<div class="card">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg" class="logo" alt="EasyPay">
+  <h2>Create Account</h2>
+  <p class="sub">Start your investment journey today</p>
 
-<div class="register-container">
+  <div class="input-group" id="ig-username">
+    <label>Username</label>
+    <input type="text" id="username" placeholder="Choose a username" autocomplete="username">
+    <div class="err">Username is required</div>
+  </div>
+  <div class="input-group" id="ig-fullname">
+    <label>Full Name</label>
+    <input type="text" id="fullname" placeholder="Your full name" autocomplete="name">
+    <div class="err">Full name is required</div>
+  </div>
+  <div class="input-group" id="ig-email">
+    <label>Email</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+    <div class="err">Please enter a valid email</div>
+  </div>
+  <div class="input-group" id="ig-password">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Min 6 characters" autocomplete="new-password">
+    <div class="pw-strength" id="pwStrength"></div>
+    <div class="err">Password must be at least 6 characters</div>
+  </div>
+  <div class="input-group" id="ig-confirm">
+    <label>Confirm Password</label>
+    <input type="password" id="confirm-password" placeholder="Re-enter password" autocomplete="new-password">
+    <div class="err">Passwords do not match</div>
+  </div>
+  <div class="input-group">
+    <label>Referral Code (Optional)</label>
+    <input type="text" id="referral" placeholder="Enter referral code">
+  </div>
 
-<img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg" class="register-logo" alt="EasyPay Logo"/>
+  <div class="terms">
+    <input type="checkbox" id="agreeTerms">
+    <label for="agreeTerms">I agree to the <a href="terms.html" target="_blank">Terms & Conditions</a></label>
+  </div>
 
-<h2>Create Account</h2>
-
-<div class="input-group">
-<label>Username</label>
-<input type="text" id="username" />
+  <button class="btn" id="registerBtn">Create Account</button>
+  <div class="footer">
+    <p>Already registered? <a href="login.html">Login now</a></p>
+  </div>
 </div>
+<div class="toast" id="toast"></div>
 
-<div class="input-group">
-<label>Full Name</label>
-<input type="text" id="fullname" />
-</div>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getAuth,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getFirestore,doc,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<div class="input-group">
-<label>Email</label>
-<input type="email" id="email" />
-</div>
-
-<div class="input-group">
-<label>Password</label>
-<input type="password" id="password" />
-</div>
-
-<div class="input-group">
-<label>Confirm Password</label>
-<input type="password" id="confirm-password" />
-</div>
-
-<div class="input-group">
-<label>Referral (Optional)</label>
-<input type="text" id="referral" />
-</div>
-
-<div class="terms">
-<input type="checkbox" id="agreeTerms">
-<label for="agreeTerms">
-I agree to the <a href="terms.html" target="_blank">Terms & Conditions</a>
-</label>
-</div>
-
-<button class="btn" id="registerBtn" onclick="registerUser()">Register</button>
-
-<div class="footer">
-<p>Already registered? <a href="login.html">Login now!</a></p>
-</div>
-
-</div>
-
-<!-- Floating WhatsApp Contact -->
-<a href="https://wa.me/2348125600222" target="_blank" class="whatsapp-float" aria-label="Contact us on WhatsApp">
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-  </svg>
-</a>
-<div class="whatsapp-tooltip">Chat with us on WhatsApp</div>
-
-<script>
-// Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-  authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8",
-  storageBucket: "easypay-6bce8.appspot.com",
-  messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-  measurementId: "G-2FZKDQ47FZ"
+const firebaseConfig={
+  apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain:"easypay-6bce8.firebaseapp.com",
+  projectId:"easypay-6bce8",
+  storageBucket:"easypay-6bce8.appspot.com",
+  messagingSenderId:"862671358267",
+  appId:"1:862671358267:web:b243c7b69840ef918c8f1e"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// Password strength indicator
+const pwInput=document.getElementById('password');
+const pwBar=document.getElementById('pwStrength');
+pwInput.addEventListener('input',()=>{
+  const v=pwInput.value;
+  pwBar.className='pw-strength';
+  if(v.length===0)return;
+  if(v.length<6)pwBar.classList.add('weak');
+  else if(v.length<10||!/[A-Z]/.test(v)||!/[0-9]/.test(v))pwBar.classList.add('medium');
+  else pwBar.classList.add('strong');
+});
 
 // Autofill referral from URL
-const urlRef = new URLSearchParams(window.location.search).get('ref');
-if (urlRef) document.getElementById('referral').value = urlRef;
+const urlRef=new URLSearchParams(window.location.search).get('ref');
+if(urlRef)document.getElementById('referral').value=urlRef;
 
-async function registerUser(){
-  const btn = document.getElementById('registerBtn');
-  const username = document.getElementById('username').value.trim();
-  const fullname = document.getElementById('fullname').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const confirmPassword = document.getElementById('confirm-password').value;
-  const referral = document.getElementById('referral').value.trim();
-  const agreeTerms = document.getElementById('agreeTerms').checked;
+function validate(){
+  let ok=true;
+  const fields=[
+    {id:'username',ig:'ig-username',test:v=>v.length>0},
+    {id:'fullname',ig:'ig-fullname',test:v=>v.length>0},
+    {id:'email',ig:'ig-email',test:v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)},
+    {id:'password',ig:'ig-password',test:v=>v.length>=6},
+    {id:'confirm',ig:'ig-confirm',test:v=>v===pwInput.value&&v.length>0}
+  ];
+  fields.forEach(f=>{
+    const el=document.getElementById(f.id==='confirm'?'confirm-password':f.id);
+    const ig=document.getElementById(f.ig);
+    if(!f.test(el.value.trim())){ig.classList.add('invalid');ok=false}
+    else ig.classList.remove('invalid');
+  });
+  return ok;
+}
 
-  if(!username || !fullname || !email || !password || !confirmPassword){
-    alert("Please fill in all fields.");
-    return;
-  }
+document.getElementById('registerBtn').addEventListener('click',async()=>{
+  if(!validate()){toast('Please fix the errors above');return}
+  if(!document.getElementById('agreeTerms').checked){toast('Please agree to Terms & Conditions');return}
 
-  if(password !== confirmPassword){
-    alert("Passwords do not match.");
-    return;
-  }
+  const btn=document.getElementById('registerBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>Creating account...';
 
-  if(!agreeTerms){
-    alert("You must agree to the Terms & Conditions.");
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Registering...';
+  const username=document.getElementById('username').value.trim();
+  const fullname=document.getElementById('fullname').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const password=pwInput.value;
+  const referral=document.getElementById('referral').value.trim();
 
   try{
-    const userCred = await auth.createUserWithEmailAndPassword(email,password);
-    await userCred.user.sendEmailVerification();
+    const cred=await createUserWithEmailAndPassword(auth,email,password);
+    await cred.user.sendEmailVerification();
 
-    await db.collection('users').doc(userCred.user.uid).set({
-      username,
-      fullname,
-      email,
-      referral,
+    await setDoc(doc(db,'users',cred.user.uid),{
+      username:username,
+      fullname:fullname,
+      email:email,
+      referral:referral,
       balance:10,
-      plan:'basic',
-      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-      transactions:[
-        {amount:10,type:'Welcome Bonus',date:new Date().toLocaleString()}
-      ]
+      plan:'none',
+      activePlan:null,
+      suspended:false,
+      referralBalance:0,
+      createdAt:serverTimestamp(),
+      transactions:[{amount:10,type:'Welcome Bonus',date:new Date().toLocaleString()}]
     });
 
-    alert("Registration successful! Verification email sent.");
-    window.location.href="login.html";
-
-  }catch(error){
-    alert(error.message);
-    btn.disabled=false;
-    btn.textContent="Register";
+    toast('Registration successful! Check your email to verify.');
+    setTimeout(()=>{window.location.href='login.html'},2000);
+  }catch(err){
+    console.error(err);
+    const msgs={
+      'auth/email-already-in-use':'This email is already registered',
+      'auth/weak-password':'Password is too weak',
+      'auth/invalid-email':'Invalid email address'
+    };
+    toast(msgs[err.code]||'Registration failed. Try again.');
+    btn.disabled=false;btn.textContent='Create Account';
   }
-}
+});
 </script>
-
 </body>
 </html>

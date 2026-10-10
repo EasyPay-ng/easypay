@@ -1,86 +1,101 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EasyPay Menu</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
-  <style>
-    :root {
-      --primary: #00b66d;
-      --bg: #f7fdf8;
-      --text: #333;
-      --card-bg: #fff;
-      --shadow: rgba(0, 102, 51, 0.1);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
-    header { background: var(--primary); color: #fff; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px var(--shadow); }
-    header h2 { font-size: 1.4rem; font-weight: 600; }
-    .profile { position: relative; }
-    .profile-icon { font-size: 1.8rem; cursor: pointer; }
-    .profile-info { display: none; position: absolute; top: 48px; right: 0; background: var(--card-bg); border-radius: 12px; padding: 1rem; box-shadow: 0 8px 24px var(--shadow); width: 220px; }
-    .profile-info.show { display: block; }
-    .profile-info p { font-size: 0.9rem; margin-bottom: 0.6rem; }
-    .profile-info .logout-btn { width: 100%; padding: 0.5rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
-    .container { flex: 1; padding: 1rem; }
-    .menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; max-width: 480px; margin: 0 auto; }
-    .menu button { background: var(--card-bg); border: none; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 12px var(--shadow); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-    .menu button:hover { transform: translateY(-4px); box-shadow: 0 8px 20px var(--shadow); }
-    .menu button i { font-size: 1.5rem; color: var(--primary); }
-    .menu button span { font-size: 0.9rem; font-weight: 500; color: var(--text); text-align: center; }
-    footer { background: var(--primary); color: #fff; text-align: center; padding: 0.8rem; font-size: 0.9rem; }
-    @media (max-width: 360px) { header h2 { font-size: 1.2rem; } .menu button span { font-size: 0.8rem; } .menu button i { font-size: 1.3rem; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu — EasyPay</title>
+<link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g1:#009f4d;--g2:#00c261;--bg:#f0f7f4}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+header{
+  background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;
+  padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 4px 16px rgba(0,80,40,.15);
+}
+header h2{font-size:18px;font-weight:700}
+.profile{position:relative}
+.profile-icon{font-size:28px;cursor:pointer;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:10px}
+.profile-info{
+  display:none;position:absolute;top:48px;right:0;background:#fff;
+  border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.12);width:220px;z-index:10;
+}
+.profile-info.show{display:block}
+.profile-info p{font-size:13px;margin-bottom:8px;color:#444}
+.profile-info p strong{color:var(--g1)}
+.logout-btn{
+  width:100%;padding:8px;background:linear-gradient(135deg,var(--g1),var(--g2));
+  color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:'Poppins';margin-top:4px;
+}
+.container{flex:1;padding:20px}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;max-width:500px;margin:0 auto}
+.menu button{
+  background:#fff;border:none;border-radius:14px;padding:18px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,.05);cursor:pointer;transition:.2s;font-family:'Poppins';
+}
+.menu button:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.menu button .icon{font-size:28px}
+.menu button span{font-size:12px;font-weight:600;color:#444}
+footer{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;text-align:center;padding:12px;font-size:12px;font-weight:500}
+</style>
 </head>
 <body>
-  <header>
-    <h2>Welcome, <span id="usernameDisplay"></span></h2>
-    <div class="profile" onclick="toggleProfile()">
-      <i class="fas fa-user-circle profile-icon"></i>
-      <div id="profileInfo" class="profile-info">
-        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-        <p><strong>Balance:</strong> ₦<span id="balance"></span></p>
-        <button class="logout-btn" onclick="logout()">Logout</button>
-      </div>
-    </div>
-  </header>
-  <div class="container">
-    <div class="menu">
-      <button onclick="location.href='deposit.html'"><i class="fas fa-credit-card"></i><span>Deposit</span></button>
-      <button onclick="location.href='withdraw.html'"><i class="fas fa-university"></i><span>Withdraw</span></button>
-      <button onclick="location.href='shortlink.html'"><i class="fas fa-link"></i><span>Shortlink</span></button>
-      <button onclick="location.href='posted-task.html'"><i class="fas fa-thumbtack"></i><span>Posted Task</span></button>
-      <button onclick="location.href='user-submission.html'"><i class="fas fa-history"></i><span>Task History</span></button>
-      <button onclick="location.href='claim-code.html'"><i class="fas fa-id-card"></i><span>Profile</span></button>
-      <button onclick="location.href='mini-games.html'"><i class="fas fa-gamepad"></i><span>Games</span></button>
-      <button onclick="location.href='contact.html'"><i class="fas fa-phone-alt"></i><span>Contact Us</span></button>
-      <button onclick="location.href='tap.html'"><i class="fas fa-hand-pointer"></i><span>Tap to Earn</span></button>
-      <button onclick="location.href='referral.html'"><i class="fas fa-user-friends"></i><span>My Refs</span></button>
+<header>
+  <h2>Welcome, <span id="usernameDisplay"></span></h2>
+  <div class="profile" onclick="toggleProfile()">
+    <div class="profile-icon">👤</div>
+    <div id="profileInfo" class="profile-info">
+      <p><strong>User:</strong> <span id="profileUsername"></span></p>
+      <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+      <p><strong>Balance:</strong> ₦<span id="balance"></span></p>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
   </div>
-  <footer>EasyPay © 2025</footer>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    const firebaseConfig = { apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY", authDomain: "easypay-6bce8.firebaseapp.com", projectId: "easypay-6bce8", storageBucket: "easypay-6bce8.appspot.com", messagingSenderId: "862671358267", appId: "1:862671358267:web:b243c7b69840ef918c8f1e" };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
-    onAuthStateChanged(auth, async user => {
-      if (!user) return window.location.href = 'login.html';
-      const userSnap = await getDoc(doc(db,'users',user.uid));
-      if (!userSnap.exists()) return alert('User not found');
-      const d = userSnap.data();
-      document.getElementById('usernameDisplay').innerText = d.username;
-      document.getElementById('profileUsername').innerText = d.username;
-      document.getElementById('profileEmail').innerText = d.email;
-      document.getElementById('balance').innerText = (d.balance||0).toFixed(2);
-    });
-    window.logout = () => signOut(auth);
-    window.toggleProfile = () => document.getElementById('profileInfo').classList.toggle('show');
-  </script>
+</header>
+<div class="container">
+  <div class="menu">
+    <button onclick="location.href='deposit.html'"><span class="icon">💳</span><span>Deposit</span></button>
+    <button onclick="location.href='withdraw.html'"><span class="icon">💰</span><span>Withdraw</span></button>
+    <button onclick="location.href='invest.html'"><span class="icon">📦</span><span>Invest</span></button>
+    <button onclick="location.href='tap.html'"><span class="icon">👆</span><span>Tap to Earn</span></button>
+    <button onclick="location.href='referral.html'"><span class="icon">👥</span><span>My Refs</span></button>
+    <button onclick="location.href='profile.html'"><span class="icon">👤</span><span>Profile</span></button>
+    <button onclick="location.href='contact.html'"><span class="icon">📞</span><span>Contact Us</span></button>
+  </div>
+</div>
+<footer>EasyPay © <span id="yr"></span></footer>
+<script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getFirestore,doc,getDoc}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import{getAuth,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const app=initializeApp({
+  apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain:"easypay-6bce8.firebaseapp.com",
+  projectId:"easypay-6bce8"
+});
+const db=getFirestore(app);
+const auth=getAuth(app);
+
+onAuthStateChanged(auth,async user=>{
+  if(!user)return location.href='login.html';
+  const snap=await getDoc(doc(db,'users',user.uid));
+  if(!snap.exists())return alert('User not found');
+  const d=snap.data();
+  document.getElementById('usernameDisplay').innerText=d.username||'User';
+  document.getElementById('profileUsername').innerText=d.username||'';
+  document.getElementById('profileEmail').innerText=d.email||'';
+  document.getElementById('balance').innerText=(d.balance||0).toFixed(2);
+});
+
+window.logout=()=>signOut(auth);
+window.toggleProfile=()=>document.getElementById('profileInfo').classList.toggle('show');
+</script>
 </body>
 </html>

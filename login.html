@@ -1,212 +1,158 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login</title>
-
-  <!-- FAVICON -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — EasyPay</title>
+<meta name="description" content="Login to your EasyPay investment account">
 <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0fff0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .login-container {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-    /* Logo */
-    .login-logo {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 auto 1.5rem;
-      display: block;
-    }
-    .login-container h2 {
-      margin-top: 0;
-      color: green;
-      margin-bottom: 1.5rem;
-    }
-    .form-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-    .btn {
-      width: 100%;
-      padding: 12px;
-      background-color: green;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background 0.2s;
-      position: relative;
-    }
-    .btn:disabled {
-      background-color: #999;
-      cursor: default;
-    }
-    .btn:hover:not(:disabled) {
-      background-color: #0d8f0d;
-    }
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid white;
-      border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .footer-text {
-      margin-top: 12px;
-      text-align: center;
-    }
-    .footer-text a {
-      color: green;
-      text-decoration: none;
-    }
-    .footer-text a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g1:#009f4d;--g2:#00c261;--bg:#f0f7f4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#0a1a12,#0f2f1e,#1a4a2e);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.login-card{
+  background:#fff;padding:36px 30px;border-radius:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);width:100%;max-width:400px;text-align:center;
+  animation:fadeUp .5s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.logo{width:70px;height:70px;border-radius:50%;object-fit:cover;margin:0 auto 20px;display:block;border:3px solid var(--g1)}
+h2{color:var(--g1);font-size:22px;font-weight:700;margin-bottom:24px}
+.form-group{margin-bottom:16px;text-align:left}
+.form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:13px;color:#444}
+.form-group input{
+  width:100%;padding:12px 14px;border:2px solid #e0e8e3;border-radius:10px;
+  font-size:14px;font-family:'Poppins';transition:.2s;
+}
+.form-group input:focus{border-color:var(--g1);outline:none;box-shadow:0 0 0 3px rgba(0,159,77,.1)}
+.btn{
+  width:100%;padding:13px;background:linear-gradient(135deg,var(--g1),var(--g2));
+  color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:15px;
+  font-weight:700;font-family:'Poppins';transition:.3s;
+  box-shadow:0 4px 14px rgba(0,159,77,.25);margin-top:8px;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,159,77,.35)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.spinner{border:3px solid rgba(255,255,255,.3);border-top:3px solid #fff;border-radius:50%;width:16px;height:16px;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.footer-text{margin-top:16px;font-size:13px}
+.footer-text a{color:var(--g1);text-decoration:none;font-weight:600}
+.footer-text a:hover{text-decoration:underline}
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#c62828;color:#fff;padding:14px 24px;border-radius:12px;
+  font-size:14px;z-index:10000;transition:transform .4s;max-width:90%;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
 </head>
 <body>
-  <div class="login-container">
-    <!-- Logo -->
-    <img src="1000250298.jpg" alt="EasyPay Logo" class="login-logo">
-    <h2>User Login</h2>
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="you@example.com" required>
-    </div>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="••••••••" required>
-    </div>
-    <button id="loginBtn" class="btn">Login</button><div class="footer-text">
-  <p><a href="reset-password.html">Forgot your password?</a></p>
+<div class="login-card">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg" alt="EasyPay" class="logo">
+  <h2>Welcome Back</h2>
+  <div class="form-group">
+    <label for="email">Email Address</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+  </div>
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
+  </div>
+  <button id="loginBtn" class="btn">Login</button>
+  <div class="footer-text">
+    <p><a href="reset-password.html">Forgot password?</a></p>
+  </div>
+  <div class="footer-text">
+    <p>Don't have an account? <a href="register.html">Register now</a></p>
+  </div>
 </div>
-<div class="footer-text">
-  <p>Don't have an account? <a href="register.html">Register now!</a></p>
-</div>
+<div class="toast" id="toast"></div>
 
-  </div>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getFirestore,doc,getDoc}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const firebaseConfig = {
-        apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-        authDomain: "easypay-6bce8.firebaseapp.com",
-        projectId: "easypay-6bce8",
-        storageBucket: "easypay-6bce8.firebasestorage.app",
-        messagingSenderId: "862671358267",
-        appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-        measurementId: "G-2FZKDQ47FZ"
-      };
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db   = getFirestore(app);
+const firebaseConfig={
+  apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain:"easypay-6bce8.firebaseapp.com",
+  projectId:"easypay-6bce8",
+  storageBucket:"easypay-6bce8.firebasestorage.app",
+  messagingSenderId:"862671358267",
+  appId:"1:862671358267:web:b243c7b69840ef918c8f1e"
+};
 
-      const loginBtn   = document.getElementById('loginBtn');
-      const emailInput = document.getElementById('email');
-      const passInput  = document.getElementById('password');
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-      loginBtn.addEventListener('click', async () => {
-        const email    = emailInput.value.trim();
-        const password = passInput.value;
-        if (!email || !password) {
-          return alert("Please enter both email and password.");
-        }
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
 
-        // Show loading effect
-        loginBtn.disabled = true;
-        loginBtn.innerHTML = '<span class="spinner"></span>Logging in...';
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
-        try {
-          const { user } = await signInWithEmailAndPassword(auth, email, password);
+const loginBtn=document.getElementById('loginBtn');
+const emailInput=document.getElementById('email');
+const passInput=document.getElementById('password');
 
-          // Emails allowed to log in without verification
-          const bypassEmails = [
-            "samuelsanusi1111@gmail.com",
-            "mazi77mazi77@gmail.com",
-            "tatianaibulu07@gmail.com"  // Added bypass for Tatiana
-          ].map(e => e.toLowerCase());
+loginBtn.addEventListener('click',async()=>{
+  const email=emailInput.value.trim();
+  const password=passInput.value;
+  if(!email||!password){toast('Please enter email and password');return}
+  // Basic email validation
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Please enter a valid email');return}
 
-          // Only block if not admin, not in bypass list, and email not verified
-          if (
-            user.email.toLowerCase() !== "easypay27.ng@gmail.com" &&
-            !bypassEmails.includes(user.email.toLowerCase()) &&
-            !user.emailVerified
-          ) {
-            alert("Please verify your email before logging in.");
-            await signOut(auth);
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Login';
-            return;
-          }
+  loginBtn.disabled=true;
+  loginBtn.innerHTML='<span class="spinner"></span>Logging in...';
 
-          // Check suspension
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          if (userSnap.exists() && userSnap.data().suspended) {
-            await signOut(auth);
-            alert("Your account has been suspended. Please contact support.");
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Login';
-            return;
-          }
+  try{
+    await setPersistence(auth,browserLocalPersistence);
+    const{user}=await signInWithEmailAndPassword(auth,email,password);
 
-          // Redirect
-          if (user.email.toLowerCase() === "easypay27.ng@gmail.com") {
-            alert("Welcome Admin!");
-            window.location.href = 'admin.html';
-          } else {
-            alert("Successfully logged in!");
-            window.location.href = 'dashboard.html';
-          }
+    // Check if admin (from Firestore, not hardcoded)
+    const userSnap=await getDoc(doc(db,"users",user.uid));
+    const userData=userSnap.exists()?userSnap.data():{};
 
-        } catch (err) {
-          console.error("Login failed:", err);
-          alert("Login failed: " + err.message);
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Login';
-        }
-      });
-    });
-  </script></body>
+    // Check suspension
+    if(userData.suspended){
+      await signOut(auth);
+      toast('Your account has been suspended. Contact support.');
+      loginBtn.disabled=false;loginBtn.textContent='Login';return;
+    }
+
+    // Email verification (check Firestore config, not hardcoded bypass)
+    if(!user.emailVerified && !userData.emailVerifiedBypass){
+      await signOut(auth);
+      toast('Please verify your email before logging in.');
+      loginBtn.disabled=false;loginBtn.textContent='Login';return;
+    }
+
+    // Admin redirect (from Firestore role, not hardcoded email)
+    if(userData.role==='admin'){
+      window.location.href='admin.html';
+    }else{
+      window.location.href='dashboard.html';
+    }
+  }catch(err){
+    console.error("Login failed:",err);
+    const msgs={
+      'auth/invalid-email':'Invalid email address',
+      'auth/user-not-found':'No account found with this email',
+      'auth/wrong-password':'Incorrect password',
+      'auth/invalid-credential':'Invalid email or password',
+      'auth/too-many-requests':'Too many attempts. Try again later.'
+    };
+    toast(msgs[err.code]||'Login failed. Please try again.');
+    loginBtn.disabled=false;loginBtn.textContent='Login';
+  }
+});
+
+// Enter key support
+passInput.addEventListener('keydown',e=>{if(e.key==='Enter')loginBtn.click()});
+</script>
+</body>
 </html>

@@ -1,187 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EasyPay – Smart Naira Investment Platform</title>
-
-<!-- FAVICON -->
+<meta name="description" content="EasyPay Nigeria — structured investment plans for daily returns. Start from ₦1,000.">
 <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
-body{
-  font-family:'Poppins',sans-serif;
-  background:#f4f7f9;
-  color:#222;
-}
-
-/* LINKS */
-a{text-decoration:none;}
+:root{--g1:#009f4d;--g2:#00c261;--g3:#00e676;--dark:#0d1117;--bg:#f0f7f4;--card:#fff;--text:#1a2e1a;--muted:#6b7c6b;--shadow:0 4px 20px rgba(0,80,40,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text)}
+a{text-decoration:none}
 
 /* HEADER */
-header{
-  background:#0d1117;
-  padding:1rem 2rem;
-  display:flex;
-  align-items:center;
-}
-
-/* BRAND AREA */
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.brand img{
-  height:50px;
-  width:50px;
-  border-radius:50%;
-  object-fit:cover;
-  border:2px solid #00ff99;
-}
-
-.brand h1{
-  color:#00ff99;
-  font-size:1.8rem;
-  font-weight:600;
-}
+header{background:var(--dark);padding:14px 24px;display:flex;align-items:center}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:44px;width:44px;border-radius:50%;object-fit:cover;border:2px solid var(--g1)}
+.brand h1{color:var(--g1);font-size:20px;font-weight:800;letter-spacing:-.5px}
 
 /* HERO */
 .hero{
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color:#fff;
-  text-align:center;
-  padding:6rem 1rem;
+  background:linear-gradient(135deg,#0a1a12,#0f2f1e,#1a4a2e);
+  color:#fff;text-align:center;padding:80px 20px 70px;
+  position:relative;overflow:hidden;
 }
-
-.hero h2{
-  font-size:2.8rem;
-  margin-bottom:1rem;
-  font-weight:700;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+.hero::before{
+  content:'';position:absolute;top:-100px;right:-60px;width:300px;height:300px;
+  background:radial-gradient(circle,rgba(0,255,153,.08),transparent);border-radius:50%;
 }
-
-.hero p{
-  max-width:700px;
-  margin:auto;
-  opacity:0.9;
-  margin-bottom:2rem;
-  font-size:1.1rem;
-  line-height:1.6;
+.hero h2{font-size:clamp(28px,5vw,42px);font-weight:800;margin-bottom:16px;line-height:1.2;letter-spacing:-.5px}
+.hero h2 span{
+  background:linear-gradient(135deg,var(--g1),var(--g3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-
-/* HERO BUTTONS */
-.hero-buttons{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  flex-wrap:wrap;
-}
-
+.hero p{max-width:640px;margin:0 auto 32px;opacity:.85;font-size:clamp(14px,2vw,17px);line-height:1.7}
+.hero-buttons{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
 .hero-buttons a{
-  padding:1rem 2.2rem;
-  border-radius:30px;
-  font-weight:600;
-  transition:0.3s;
-  font-size:1.05rem;
-  box-shadow:0 8px 20px rgba(0,255,153,0.2);
+  padding:14px 32px;border-radius:14px;font-weight:700;font-size:15px;
+  transition:all .3s;font-family:'Poppins';
 }
+.register-btn{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;box-shadow:0 8px 24px rgba(0,159,77,.3)}
+.login-btn{border:2px solid rgba(0,255,153,.4);color:var(--g3);background:rgba(255,255,255,.05);backdrop-filter:blur(4px)}
+.hero-buttons a:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,159,77,.4)}
 
-.register-btn{
-  background:#00ff99;
-  color:#000;
+/* PLANS PREVIEW */
+.plans-section{padding:60px 20px;max-width:1100px;margin:auto}
+.plans-section h2{text-align:center;font-size:24px;font-weight:700;margin-bottom:8px}
+.plans-section .sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:36px}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.plan-card{
+  background:var(--card);border-radius:16px;padding:20px;
+  box-shadow:var(--shadow);transition:.3s;border:1px solid rgba(0,100,50,.06);
+  position:relative;overflow:hidden;
 }
+.plan-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,80,40,.12)}
+.plan-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.plan-card:nth-child(1)::before{background:#00bcd4}
+.plan-card:nth-child(2)::before{background:#7c4dff}
+.plan-card:nth-child(3)::before{background:#ff6d00}
+.plan-card:nth-child(4)::before{background:#e91e63}
+.plan-card:nth-child(5)::before{background:#ff9800}
+.plan-card:nth-child(6)::before{background:#4caf50}
+.plan-name{font-weight:700;font-size:16px;margin-bottom:4px}
+.plan-price{font-size:24px;font-weight:800;color:var(--g1);margin-bottom:4px}
+.plan-daily{font-size:13px;color:var(--muted);margin-bottom:12px}
+.plan-tag{
+  display:inline-block;padding:3px 10px;border-radius:999px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+}
+.tag-flex{background:#e0f7fa;color:#00838f}
+.tag-growth{background:#fff3e0;color:#e65100}
 
-.login-btn{
-  border:2px solid #00ff99;
-  color:#00ff99;
-  background:transparent;
-}
-
-.hero-buttons a:hover{
-  transform:scale(1.05);
-  box-shadow:0 12px 25px rgba(0,255,153,0.35);
-}
-
-/* SECTION */
-.section{
-  padding:4rem 1rem;
-  max-width:1200px;
-  margin:auto;
-}
-
-.section h2{
-  text-align:center;
-  margin-bottom:3rem;
-  color:#0d1117;
-  font-size:2rem;
-  font-weight:600;
-}
-
-.info-box{
-  background:#fff;
-  padding:2rem;
-  border-radius:15px;
-  box-shadow:0 10px 35px rgba(0,0,0,0.08);
-  margin-bottom:2rem;
-  transition:0.3s;
-}
-
-.info-box:hover{
-  transform:translateY(-5px);
-}
+/* FEATURES */
+.features-section{padding:50px 20px;background:#fff}
+.features-inner{max-width:1100px;margin:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.feature{padding:24px;border-radius:16px;background:var(--bg);transition:.3s}
+.feature:hover{transform:translateY(-3px)}
+.feature .icon{font-size:32px;margin-bottom:12px}
+.feature h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.feature p{font-size:14px;color:var(--muted);line-height:1.6}
 
 /* STATS */
-.stats{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:2rem;
-  margin-top:2rem;
+.stats-section{padding:60px 20px;max-width:800px;margin:auto}
+.stats-section h2{text-align:center;font-size:24px;font-weight:700;margin-bottom:32px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.stat-box{
+  background:var(--card);padding:28px;border-radius:18px;
+  box-shadow:var(--shadow);text-align:center;transition:.3s;
 }
+.stat-box:hover{transform:translateY(-4px)}
+.stat-num{font-size:36px;font-weight:800;color:var(--g1)}
+.stat-label{font-size:13px;color:var(--muted);margin-top:4px;font-weight:500}
 
-.stat{
-  text-align:center;
-  background:#fff;
-  padding:2rem 2.5rem;
-  border-radius:20px;
-  box-shadow:0 15px 35px rgba(0,0,0,0.08);
-  width:280px;
-  transition:0.3s;
+/* CTA */
+.cta-section{
+  padding:60px 20px;text-align:center;
+  background:linear-gradient(135deg,#0a1a12,#0f2f1e);color:#fff;
 }
-
-.stat:hover{
-  transform:translateY(-5px);
+.cta-section h2{font-size:26px;font-weight:700;margin-bottom:12px}
+.cta-section p{opacity:.8;margin-bottom:24px;font-size:15px}
+.cta-btn{
+  display:inline-block;padding:14px 40px;border-radius:14px;
+  background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;
+  font-weight:700;font-size:15px;transition:.3s;
+  box-shadow:0 8px 24px rgba(0,159,77,.3);
 }
-
-.stat h3{
-  font-size:2.4rem;
-  color:#00a86b;
-  margin-bottom:0.5rem;
-  font-weight:700;
-}
+.cta-btn:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,159,77,.4)}
 
 /* FOOTER */
-footer{
-  background:#0d1117;
-  color:#aaa;
-  text-align:center;
-  padding:2rem;
-  margin-top:4rem;
-  font-size:0.95rem;
-}
+footer{background:var(--dark);color:#8a9a8a;text-align:center;padding:24px;font-size:13px}
+footer a{color:var(--g1);text-decoration:none}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -192,84 +123,119 @@ footer{
 </header>
 
 <section class="hero">
-  <h2>Secure Naira & Digital Asset Investment</h2>
-  <p>
-    EasyPay provides structured Nigerian-backed investment 
-    services designed for digital asset growth and financial flexibility.
-  </p>
-
+  <h2>Smart <span>Naira Investment</span><br>for Everyone</h2>
+  <p>EasyPay provides structured Nigerian-backed investment services designed for digital asset growth and financial flexibility. Start from as low as ₦1,000.</p>
   <div class="hero-buttons">
     <a href="register.html" class="register-btn">Create Account</a>
     <a href="login.html" class="login-btn">Login</a>
   </div>
 </section>
 
-<section class="section">
-<h2>Deposit & Withdrawal</h2>
-
-<div class="info-box">
-<h3>🏦 Deposits</h3>
-<p>
-Users can fund their accounts via supported payment methods.
-Funds reflect once confirmed and are securely recorded in your account.
-</p>
-</div>
-
-<div class="info-box">
-<h3>💳 Withdrawals</h3>
-<p>
-Withdrawals are processed within 24–48 hours after verification.
-Minimum withdrawal rules apply.
-</p>
-</div>
-
+<!-- PLANS PREVIEW -->
+<section class="plans-section">
+  <h2>Investment Plans</h2>
+  <p class="sub">Choose a plan that fits your budget and start earning daily.</p>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <span class="plan-tag tag-flex">⚡ Flexible</span>
+      <div class="plan-name">First Plan</div>
+      <div class="plan-price">₦1,000</div>
+      <div class="plan-daily">Earn ₦100/day for 30 days</div>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-flex">⚡ Flexible</span>
+      <div class="plan-name">Second Plan</div>
+      <div class="plan-price">₦2,000</div>
+      <div class="plan-daily">Earn ₦200/day for 30 days</div>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-flex">⚡ Flexible</span>
+      <div class="plan-name">Third Plan</div>
+      <div class="plan-price">₦3,000</div>
+      <div class="plan-daily">Earn ₦300/day for 30 days</div>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-growth">🔒 Growth</span>
+      <div class="plan-name">Mini Plan</div>
+      <div class="plan-price">₦5,000</div>
+      <div class="plan-daily">Earn ₦234/day for 30 days</div>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-growth">🔒 Growth</span>
+      <div class="plan-name">Starter Plan</div>
+      <div class="plan-price">₦10,000</div>
+      <div class="plan-daily">Earn ₦466/day for 30 days</div>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-growth">🔒 Growth</span>
+      <div class="plan-name">Basic Plan</div>
+      <div class="plan-price">₦20,000</div>
+      <div class="plan-daily">Earn ₦933/day for 30 days</div>
+    </div>
+  </div>
 </section>
 
-<section class="section">
-<h2>Platform Statistics</h2>
+<!-- FEATURES -->
+<section class="features-section">
+  <div class="features-inner">
+    <div class="feature">
+      <div class="icon">🏦</div>
+      <h3>Easy Deposits</h3>
+      <p>Fund your account via bank transfer. Funds reflect once confirmed and are securely recorded.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">💳</div>
+      <h3>Quick Withdrawals</h3>
+      <p>Withdraw your earnings anytime. Processed within 24 hours after verification.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">👥</div>
+      <h3>Refer & Earn</h3>
+      <p>Invite friends and earn commissions when they invest. Passive income made simple.</p>
+    </div>
+  </div>
+</section>
 
-<div class="stats">
+<!-- STATS -->
+<section class="stats-section">
+  <h2>Platform Statistics</h2>
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-num" id="statUsers">0</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statTx">0</div>
+      <div class="stat-label">Total Transactions (₦)</div>
+    </div>
+  </div>
+</section>
 
-<div class="stat">
-<h3 class="counter" data-target="3082">0</h3>
-<p>Total Users</p>
-</div>
-
-<div class="stat">
-<h3 class="counter" data-target="1087000">₦</h3>
-<p>Total Transactions</p>
-</div>
-
-</div>
-
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Ready to Start Earning?</h2>
+  <p>Join thousands of Nigerians growing their wealth with EasyPay.</p>
+  <a href="register.html" class="cta-btn">Get Started Now</a>
 </section>
 
 <footer>
-&copy; 2025 EasyPay. All rights reserved.
+  <p>&copy; <span id="year"></span> EasyPay. All rights reserved.</p>
 </footer>
 
 <script>
-// Animated Counter
-const counters = document.querySelectorAll('.counter');
-counters.forEach(counter => {
-  const updateCount = () => {
-    const target = +counter.getAttribute('data-target');
-    let count = +counter.innerText.replace(/[^0-9]/g,'');
-    const increment = target / 200; // adjust speed here
-    if(count < target){
-      counter.innerText = (count + increment < target ? Math.floor(count + increment) : target);
-      requestAnimationFrame(updateCount);
-    } else {
-      if(counter.innerText.includes('₦')===false && counter.dataset.target.includes('₦')){
-        counter.innerText = '₦'+target.toLocaleString();
-      } else {
-        counter.innerText = target.toLocaleString();
-      }
-    }
-  };
-  updateCount();
-});
-</script>
+document.getElementById('year').textContent=new Date().getFullYear();
 
+// Animated counters
+function animateCounter(el,target,prefix,suffix){
+  let current=0;const step=target/120;
+  const timer=setInterval(()=>{
+    current+=step;
+    if(current>=target){current=target;clearInterval(timer)}
+    el.textContent=(prefix||'')+Math.floor(current).toLocaleString()+(suffix||'');
+  },16);
+}
+animateCounter(document.getElementById('statUsers'),3082,'','');
+animateCounter(document.getElementById('statTx'),1087000,'₦','');
+</script>
 </body>
 </html>

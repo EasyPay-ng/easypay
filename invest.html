@@ -1,330 +1,376 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<link rel="icon" type="image/png" sizes="32x32"
-href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1752962852/file_00000000401861f8bf6acb6/favicon.png">
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>EasyPay Investment Plans</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Investment Plans — EasyPay</title>
+<link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{ box-sizing:border-box; }
-
-body{
-  font-family:Poppins;
-  margin:0;
-  background:#f4fbf6;
+:root{
+  --g1:#009f4d;--g2:#00c261;--g3:#00e676;
+  --bg:#f0f7f4;--card:#fff;--text:#1a2e1a;--muted:#6b7c6b;
+  --shadow:0 4px 20px rgba(0,80,40,.08);
+  --shadow-hover:0 12px 36px rgba(0,80,40,.14);
+  --radius:18px;
 }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:40px}
 
+/* HEADER */
 header{
-  background:linear-gradient(90deg,#009f4d,#00c261);
-  color:white;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  position:sticky;
-  top:0;
-  z-index:100;
+  background:linear-gradient(135deg,#006b35,var(--g1),var(--g2));
+  color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 20px rgba(0,80,40,.2);
 }
-
-.header-left{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
+.h-left{display:flex;align-items:center;gap:12px}
 .back-btn{
-  background:#ffffff33;
-  border:none;
-  color:white;
-  padding:6px 12px;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:600;
+  background:rgba(255,255,255,.15);border:none;color:#fff;padding:8px 16px;border-radius:10px;
+  cursor:pointer;font-weight:600;font-family:'Poppins';font-size:14px;
+  backdrop-filter:blur(4px);transition:.2s;
+}
+.back-btn:hover{background:rgba(255,255,255,.25)}
+.h-title{font-weight:700;font-size:17px;letter-spacing:-.3px}
+.h-right{display:flex;gap:8px;flex-wrap:wrap}
+.pill{
+  background:rgba(255,255,255,.15);padding:7px 14px;border-radius:999px;
+  font-weight:600;font-size:13px;backdrop-filter:blur(4px);
 }
 
-.balance-box{
-  background:#ffffff22;
-  padding:6px 12px;
-  border-radius:999px;
-  font-weight:600;
-  font-size:13px;
-  margin-top:5px;
-  backdrop-filter:blur(6px);
+/* SECTIONS */
+.section-wrap{max-width:1200px;margin:0 auto;padding:24px 16px}
+.section-head{margin-bottom:20px}
+.section-head h2{font-size:22px;font-weight:700;display:flex;align-items:center;gap:10px}
+.section-head h2 .icon{font-size:26px}
+.section-head p{color:var(--muted);font-size:14px;margin-top:4px}
+.section-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;
 }
+.tag-flexible{background:#e0f7fa;color:#00838f}
+.tag-locked{background:#fff3e0;color:#e65100}
+.divider{height:1px;background:linear-gradient(90deg,transparent,#c8e6c9,transparent);margin:32px 0}
 
-.page{
-  max-width:1200px;
-  margin:20px auto;
-  padding:15px;
-}
-
-.plans{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:20px;
-}
-
+/* PLAN GRID */
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
 .card{
-  background:white;
-  padding:22px;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.06);
-  transition:0.3s ease;
-  position:relative;
+  background:var(--card);border-radius:var(--radius);padding:24px;
+  box-shadow:var(--shadow);transition:all .35s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;border:1px solid rgba(0,100,50,.06);
 }
-
-.card:hover{
-  transform:translateY(-5px);
+.card:hover{transform:translateY(-6px);box-shadow:var(--shadow-hover)}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  border-radius:var(--radius) var(--radius) 0 0;
 }
+.card.c1::before{background:linear-gradient(90deg,#00bcd4,#26c6da)}
+.card.c2::before{background:linear-gradient(90deg,#7c4dff,#b388ff)}
+.card.c3::before{background:linear-gradient(90deg,#ff6d00,#ffab40)}
+.card.c4::before{background:linear-gradient(90deg,#e91e63,#f48fb1)}
+.card.c5::before{background:linear-gradient(90deg,#ff9800,#ffcc02)}
+.card.c6::before{background:linear-gradient(90deg,#4caf50,#81c784)}
 
 .badge{
-  position:absolute;
-  top:15px;
-  right:15px;
-  padding:6px 12px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:700;
-  color:white;
+  position:absolute;top:16px;right:16px;padding:5px 12px;border-radius:999px;
+  font-size:11px;font-weight:700;color:#fff;letter-spacing:.3px;
 }
+.b1{background:#00bcd4}.b2{background:#7c4dff}.b3{background:#ff6d00}
+.b4{background:#e91e63}.b5{background:#ff9800}.b6{background:#4caf50}
 
-.mini { background:#e91e63; }
-.starter { background:#ff9800; }
-.basic { background:#4caf50; }
-.premium { background:#009f4d; }
-.gold { background:#d4af37; }
-.elite { background:#3f51b5; }
-.diamond { background:#00bcd4; }
-.platinum { background:#7e57c2; }
+.card h3{font-size:18px;font-weight:700;margin-bottom:4px}
+.price{font-size:28px;font-weight:800;color:var(--g1);margin:10px 0 4px}
+.price-sub{font-size:12px;color:var(--muted);margin-bottom:16px;font-weight:500}
 
-.card h3{
-  margin:0;
-  font-size:18px;
+.features{list-style:none;margin-bottom:20px}
+.features li{
+  font-size:13.5px;color:#3a4a3a;padding:6px 0;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid #f0f5f1;
 }
+.features li:last-child{border:none}
+.features li .check{color:var(--g1);font-weight:700;font-size:15px}
+.features li .check.flex{color:#00838f}
 
-.price{
-  font-size:22px;
-  font-weight:700;
-  margin:12px 0;
-  color:#009f4d;
+.invest-btn{
+  width:100%;padding:13px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  color:#fff;font-weight:700;font-size:14px;cursor:pointer;
+  font-family:'Poppins';transition:all .25s;
+  box-shadow:0 4px 14px rgba(0,159,77,.25);
 }
+.invest-btn:hover{transform:scale(1.02);box-shadow:0 6px 20px rgba(0,159,77,.35)}
+.invest-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 
-.desc{
-  font-size:14px;
-  line-height:1.6;
-  margin-bottom:18px;
-  color:#444;
+/* ACTIVE PLAN BANNER */
+.active-banner{
+  max-width:1200px;margin:20px auto 0;padding:0 16px;
 }
+.active-banner-inner{
+  background:linear-gradient(135deg,#e8f5e9,#c8e6c9);
+  border:2px solid var(--g1);border-radius:14px;padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+.active-banner-inner .label{font-size:13px;color:var(--muted)}
+.active-banner-inner .plan-name{font-size:18px;font-weight:700;color:var(--g1)}
 
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  background:linear-gradient(90deg,#009f4d,#00c261);
-  color:white;
-  font-weight:600;
-  cursor:pointer;
+/* CONFIRM MODAL */
+.modal-bg{
+  position:fixed;top:0;left:0;width:100vw;height:100vh;
+  background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;
+  z-index:9999;backdrop-filter:blur(4px);
 }
+.modal-bg.show{display:flex}
+.modal{
+  background:#fff;border-radius:20px;padding:28px;max-width:400px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;
+  animation:modalIn .3s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.modal h3{font-size:20px;margin-bottom:12px;color:var(--text)}
+.modal p{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:6px}
+.modal .highlight{
+  background:#e8f5e9;padding:12px;border-radius:10px;margin:16px 0;
+  font-weight:600;color:var(--g1);font-size:15px;
+}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions button{
+  flex:1;padding:12px;border:none;border-radius:10px;font-weight:700;
+  font-family:'Poppins';font-size:14px;cursor:pointer;transition:.2s;
+}
+.btn-cancel{background:#f1f3f2;color:var(--text)}
+.btn-cancel:hover{background:#e0e4e2}
+.btn-confirm{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;box-shadow:0 4px 14px rgba(0,159,77,.25)}
+.btn-confirm:hover{transform:scale(1.02)}
 
-button:disabled{
-  opacity:0.6;
-  cursor:not-allowed;
+/* TOAST */
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#1a2e1a;color:#fff;padding:14px 24px;border-radius:12px;
+  font-size:14px;font-weight:500;z-index:10000;transition:transform .4s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 8px 30px rgba(0,0,0,.2);max-width:90%;
 }
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{background:#c62828}
 
 @media(max-width:600px){
-  header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:8px;
-  }
-  .balance-box{
-    font-size:12px;
-  }
-  .card{
-    padding:18px;
-  }
-  .price{
-    font-size:20px;
-  }
+  header{flex-direction:column;align-items:flex-start}
+  .price{font-size:24px}
+  .plans{grid-template-columns:1fr}
 }
 </style>
 </head>
-
 <body>
 
 <header>
-  <div class="header-left">
-    <button class="back-btn" onclick="location.href='dashboard.html'">
-      ← Back
-    </button>
-
-    <div style="font-weight:700;font-size:16px;">
-      EasyPay Investment Plans
-    </div>
+  <div class="h-left">
+    <button class="back-btn" onclick="location.href='dashboard.html'">← Back</button>
+    <div class="h-title">Investment Plans</div>
   </div>
-
-  <div>
-    <span class="balance-box">
-      Balance: ₦<span id="balance">0</span>
-    </span>
-    <span class="balance-box">
-      Active Plan: <span id="planStatus">None</span>
-    </span>
+  <div class="h-right">
+    <span class="pill">Balance: ₦<span id="balance">0</span></span>
+    <span class="pill">Plan: <span id="planStatus">None</span></span>
   </div>
 </header>
 
-<main class="page">
-  <div class="plans" id="plansContainer"></div>
-</main>
+<div id="activeBanner" class="active-banner" style="display:none">
+  <div class="active-banner-inner">
+    <div>
+      <div class="label">Current Active Plan</div>
+      <div class="plan-name" id="activePlanName">—</div>
+    </div>
+    <button class="back-btn" style="background:var(--g1)" onclick="location.href='dashboard.html'">View Dashboard →</button>
+  </div>
+</div>
+
+<div class="section-wrap">
+
+  <!-- FLEXIBLE PLANS -->
+  <div class="section-head">
+    <div class="section-tag tag-flexible">⚡ Flexible</div>
+    <h2><span class="icon">🔄</span> Flexible Plans</h2>
+    <p>Withdraw capital + profit anytime. Re-subscribe monthly.</p>
+  </div>
+  <div class="plans" id="flexiblePlans"></div>
+
+  <div class="divider"></div>
+
+  <!-- GROWTH PLANS -->
+  <div class="section-head">
+    <div class="section-tag tag-locked">🔒 Growth</div>
+    <h2><span class="icon">📈</span> Growth Plans</h2>
+    <p>Higher returns. Capital locked for 30 days.</p>
+  </div>
+  <div class="plans" id="growthPlans"></div>
+
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-bg" id="confirmModal">
+  <div class="modal">
+    <h3>Confirm Investment</h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" id="confirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, serverTimestamp }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getFirestore,doc,getDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-  authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8"
+const firebaseConfig={
+  apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain:"easypay-6bce8.firebaseapp.com",
+  projectId:"easypay-6bce8"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-let currentUser;
-let userData;
+let currentUser,userData;
 
-const plans = [
-  { name:"Mini", class:"mini", amount:5000, daily:234 },
-  { name:"Starter", class:"starter", amount:10000, daily:466 },
-  { name:"Basic", class:"basic", amount:20000, daily:933 },
-  { name:"Premium", class:"premium", amount:50000, daily:2166 },
-  { name:"Gold", class:"gold", amount:100000, daily:4333 },
-  { name:"Elite", class:"elite", amount:300000, daily:13000 },
-  { name:"Diamond", class:"diamond", amount:500000, daily:21666 },
-  { name:"Platinum", class:"platinum", amount:1000000, daily:43333 }
+const flexiblePlans=[
+  {name:"First",cls:"c1",bcls:"b1",amount:1000,daily:100,flexible:true},
+  {name:"Second",cls:"c2",bcls:"b2",amount:2000,daily:200,flexible:true},
+  {name:"Third",cls:"c3",bcls:"b3",amount:3000,daily:300,flexible:true}
 ];
 
-function createPlans(){
-  const container = document.getElementById("plansContainer");
-  container.innerHTML = "";
+const growthPlans=[
+  {name:"Mini",cls:"c4",bcls:"b4",amount:5000,daily:234,flexible:false},
+  {name:"Starter",cls:"c5",bcls:"b5",amount:10000,daily:466,flexible:false},
+  {name:"Basic",cls:"c6",bcls:"b6",amount:20000,daily:933,flexible:false}
+];
 
-  plans.forEach(plan => {
+function toast(msg,isError){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(isError?' error':'');
+  setTimeout(()=>t.className='toast',3000);
+}
 
-    const dailyROI = ((plan.daily / plan.amount) * 100).toFixed(2);
-    const total30 = plan.daily * 30;
+function closeModal(){document.getElementById('confirmModal').classList.remove('show')}
 
-    const card = document.createElement("div");
-    card.className = "card";
+function renderPlans(plans,containerId){
+  const c=document.getElementById(containerId);
+  c.innerHTML="";
+  plans.forEach(p=>{
+    const dailyROI=((p.daily/p.amount)*100).toFixed(1);
+    const total30=p.daily*30;
+    const card=document.createElement('div');
+    card.className='card '+p.cls;
 
-    card.innerHTML = `
-      <div class="badge ${plan.class}">${plan.name}</div>
-      <h3>${plan.name} Plan</h3>
-      <div class="price">₦${plan.amount.toLocaleString()}</div>
-      <div class="desc">
-        ✔ Earn ₦${plan.daily.toLocaleString()} Daily<br>
-        ✔ ${dailyROI}% Daily ROI<br>
-        ✔ ₦${total30.toLocaleString()} in 30 Days<br>
-        ✔ Capital Locked for 30 Days<br>
-        ✔ One Active Investment Allowed
-      </div>
-      <button onclick="invest('${plan.name}', ${plan.amount})">
-        Invest in ${plan.name}
-      </button>
-    `;
+    const features=p.flexible
+      ?`<li><span class="check flex">✔</span> Earn ₦${p.daily.toLocaleString()} Daily</li>
+         <li><span class="check flex">✔</span> ${dailyROI}% Daily ROI</li>
+         <li><span class="check flex">✔</span> Withdraw Capital + Profit Anytime</li>
+         <li><span class="check flex">✔</span> 30-Day Subscription</li>
+         <li><span class="check flex">✔</span> Renew Monthly</li>`
+      :`<li><span class="check">✔</span> Earn ₦${p.daily.toLocaleString()} Daily</li>
+         <li><span class="check">✔</span> ${dailyROI}% Daily ROI</li>
+         <li><span class="check">✔</span> ₦${total30.toLocaleString()} in 30 Days</li>
+         <li><span class="check">✔</span> Capital Locked 30 Days</li>
+         <li><span class="check">✔</span> One Active Investment</li>`;
 
-    container.appendChild(card);
+    card.innerHTML=`
+      <div class="badge ${p.bcls}">${p.name}</div>
+      <h3>${p.name} Plan</h3>
+      <div class="price">₦${p.amount.toLocaleString()}</div>
+      <div class="price-sub">₦${p.daily.toLocaleString()}/day for 30 days</div>
+      <ul class="features">${features}</ul>
+      <button class="invest-btn" data-name="${p.name}" data-amount="${p.amount}" data-flexible="${p.flexible}">
+        Invest in ${p.name}
+      </button>`;
+    c.appendChild(card);
   });
 }
 
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){
-    window.location.href="login.html";
-    return;
+function lockButtons(msg){
+  document.querySelectorAll('.invest-btn').forEach(b=>{
+    b.disabled=true;b.textContent=msg||'Investment Active';
+  });
+}
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){window.location.href="login.html";return}
+  currentUser=user;
+  const snap=await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists())return;
+  userData=snap.data();
+
+  document.getElementById("balance").innerText=(userData.balance||0).toLocaleString();
+  document.getElementById("planStatus").innerText=userData.activePlan||"None";
+
+  renderPlans(flexiblePlans,'flexiblePlans');
+  renderPlans(growthPlans,'growthPlans');
+
+  if(userData.activePlan){
+    document.getElementById('activeBanner').style.display='block';
+    document.getElementById('activePlanName').innerText=userData.activePlan+' Plan';
+    lockButtons('Investment Active');
   }
 
-  currentUser = user;
-
-  const snap = await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists()) return;
-
-  userData = snap.data();
-  updateUI();
+  document.querySelectorAll('.invest-btn').forEach(b=>{
+    b.addEventListener('click',()=>showConfirm(b.dataset));
+  });
 });
 
-function updateUI(){
+function showConfirm(d){
+  if(userData.activePlan){toast('You already have an active plan',true);return}
+  const amount=+d.amount;
+  if(userData.balance<amount){toast('Insufficient balance. Please deposit.',true);return}
+  const allPlans=[...flexiblePlans,...growthPlans];
+  const p=allPlans.find(x=>x.amount===amount);
 
-  document.getElementById("balance").innerText =
-    (userData.balance || 0).toLocaleString();
+  const body=document.getElementById('modalBody');
+  body.innerHTML=`
+    <p><strong>Plan:</strong> ${d.name}</p>
+    <p><strong>Amount:</strong> ₦${amount.toLocaleString()}</p>
+    <p><strong>Daily Earning:</strong> ₦${p.daily.toLocaleString()}</p>
+    <p><strong>Duration:</strong> 30 Days</p>
+    <div class="highlight">Total Return: ₦${(p.daily*30).toLocaleString()}</div>
+    ${p.flexible?'<p style="color:#00838f;font-size:13px">⚡ Flexible: Withdraw capital + profit anytime</p>'
+               :'<p style="color:#e65100;font-size:13px">🔒 Capital locked for 30 days</p>'}`;
 
-  document.getElementById("planStatus").innerText =
-    userData.activePlan || "None";
-
-  if(userData.activePlan){
-    document.querySelectorAll("button").forEach(btn=>{
-      if(!btn.classList.contains("back-btn")){
-        btn.disabled = true;
-        btn.innerText = "Investment Active";
-      }
-    });
-  }
+  document.getElementById('confirmBtn').onclick=()=>doInvest(d.name,amount,p);
+  document.getElementById('confirmModal').classList.add('show');
 }
 
-window.invest = async function(planName, amount){
-
-  if(userData.activePlan){
-    alert("You already have an active investment.");
-    return;
-  }
-
-  if(userData.balance < amount){
-    alert("Insufficient balance.");
-    return;
-  }
-
-  const selected = plans.find(p=>p.amount===amount);
-
-  if(!confirm(
-    `Confirm Investment\n\n`+
-    `Plan: ${planName}\n`+
-    `Amount: ₦${amount.toLocaleString()}\n`+
-    `Daily Earnings: ₦${selected.daily.toLocaleString()}\n`+
-    `Duration: 30 Days`
-  )) return;
-
-  const userRef = doc(db,"users",currentUser.uid);
-
-  // FIX: Also update 'plan' field so referral page reads correct commission
-  await updateDoc(userRef,{
-    balance: userData.balance - amount,
-    plan: planName,           // ← ADDED: updates plan for referral commission
-    activePlan: planName,
-    investment:{
-      planName: planName,
-      amount: amount,
-      dailyEarning: selected.daily,
-      startDate: serverTimestamp(),
-      duration: 30,
-      totalExpected: selected.daily * 30
-    }
-  });
-
-  alert("Investment successful!");
-
-  const updated = await getDoc(userRef);
-  userData = updated.data();
-  updateUI();
-};
-
-createPlans();
+async function doInvest(planName,amount,plan){
+  closeModal();
+  const userRef=doc(db,"users",currentUser.uid);
+  try{
+    await updateDoc(userRef,{
+      balance:userData.balance-amount,
+      plan:planName,
+      activePlan:planName,
+      investment:{
+        planName:planName,
+        amount:amount,
+        dailyEarning:plan.daily,
+        startDate:serverTimestamp(),
+        duration:30,
+        totalExpected:plan.daily*30,
+        flexible:plan.flexible
+      }
+    });
+    toast('🎉 Investment successful!');
+    userData.balance-=amount;
+    userData.activePlan=planName;
+    document.getElementById("balance").innerText=userData.balance.toLocaleString();
+    document.getElementById("planStatus").innerText=planName;
+    document.getElementById('activeBanner').style.display='block';
+    document.getElementById('activePlanName').innerText=planName+' Plan';
+    lockButtons('Investment Active');
+  }catch(e){toast('Investment failed: '+e.message,true)}
+}
 </script>
-
 </body>
 </html>

@@ -3,389 +3,222 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deposit</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
+<title>Deposit — EasyPay</title>
+<link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body{
-  font-family: 'Poppins', sans-serif;
-  background:#f4f6f9;
-  margin:0;
-  padding:10px;
-}
+:root{--g1:#009f4d;--g2:#00c261;--bg:#f0f7f4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;background:var(--bg);margin:0;padding:16px}
+.container{max-width:600px;margin:auto}
 
-.container{
-  max-width:600px;
-  margin:auto;
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
-}
+/* HEADER */
+.page-head{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.back{background:#fff;border:none;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600;font-family:'Poppins';box-shadow:0 2px 8px rgba(0,0,0,.06);font-size:13px;color:var(--g1)}
+.page-head h1{font-size:20px;font-weight:700}
 
-h2{
-  margin-bottom:15px;
+/* ACCOUNT BOX */
+.acct-box{
+  background:linear-gradient(135deg,#006b35,var(--g1),var(--g2));
+  color:#fff;padding:22px;border-radius:16px;margin-bottom:20px;
+  box-shadow:0 8px 24px rgba(0,107,53,.2);
 }
+.acct-box h3{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.acct-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.15)}
+.acct-row:last-child{border:none}
+.acct-row label{font-size:12px;opacity:.85}
+.acct-row .val{font-size:15px;font-weight:700;font-family:'Courier New',monospace;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.copy-btn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Poppins';font-weight:600;transition:.2s}
+.copy-btn:hover{background:rgba(255,255,255,.3)}
+.copy-btn:active{transform:scale(.95)}
 
-/* ✅ ADDED: Account Details Box Styles */
-.account-box{
-  background:linear-gradient(135deg, #16a34a, #22c55e);
-  color:white;
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:25px;
-  box-shadow:0 4px 12px rgba(22,163,74,0.3);
+/* WARNING */
+.warn{background:#fff8e1;border-left:4px solid #ffa000;padding:12px 16px;border-radius:0 10px 10px 0;margin-bottom:20px;font-size:13px;color:#795300}
+.warn strong{display:block;margin-bottom:2px}
+
+/* FORM */
+.form-card{background:#fff;padding:22px;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);margin-bottom:20px}
+.form-card label{display:block;margin-bottom:4px;font-weight:600;font-size:13px;color:#444}
+.form-card input,.form-card select{
+  width:100%;padding:11px 14px;margin-bottom:14px;border:2px solid #e0e8e3;border-radius:10px;
+  font-size:14px;font-family:'Poppins';transition:.2s;
 }
-
-.account-box h3{
-  margin:0 0 15px 0;
-  font-size:16px;
-  font-weight:600;
-  display:flex;
-  align-items:center;
-  gap:8px;
+.form-card input:focus{border-color:var(--g1);outline:none;box-shadow:0 0 0 3px rgba(0,159,77,.1)}
+.submit-btn{
+  width:100%;padding:13px;background:linear-gradient(135deg,var(--g1),var(--g2));
+  color:#fff;border:none;border-radius:10px;font-weight:700;font-size:15px;
+  font-family:'Poppins';cursor:pointer;transition:.3s;
+  box-shadow:0 4px 14px rgba(0,159,77,.25);
 }
+.submit-btn:hover{transform:translateY(-2px)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 
-.account-detail{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.2);
+/* TABLE */
+.records{background:#fff;padding:22px;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.records h3{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--g1)}
+.table-wrap{overflow-x:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:480px}
+th{background:var(--g1);color:#fff;padding:10px 12px;font-size:12px;text-align:left;font-weight:600}
+td{padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px}
+.badge{padding:3px 10px;border-radius:20px;color:#fff;font-size:11px;font-weight:700}
+.b-approved{background:#16a34a}.b-rejected{background:#dc2626}.b-pending{background:#f59e0b}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#1a2e1a;color:#fff;padding:14px 24px;border-radius:12px;
+  font-size:14px;z-index:10000;transition:transform .4s;max-width:90%;
 }
-
-.account-detail:last-child{
-  border-bottom:none;
-}
-
-.account-detail label{
-  font-size:13px;
-  opacity:0.9;
-  font-weight:400;
-  margin:0;
-}
-
-.account-detail .value{
-  font-size:15px;
-  font-weight:700;
-  text-align:right;
-  font-family:'Courier New', monospace;
-  letter-spacing:0.5px;
-}
-
-.copy-btn{
-  background:rgba(255,255,255,0.2);
-  border:none;
-  color:white;
-  padding:4px 10px;
-  border-radius:6px;
-  font-size:11px;
-  cursor:pointer;
-  margin-left:8px;
-  transition:0.2s;
-}
-
-.copy-btn:hover{
-  background:rgba(255,255,255,0.3);
-}
-
-.copy-btn:active{
-  transform:scale(0.95);
-}
-
-.warning-box{
-  background:#fef3c7;
-  border-left:4px solid #f59e0b;
-  padding:12px 15px;
-  border-radius:6px;
-  margin-bottom:20px;
-  font-size:13px;
-  color:#92400e;
-}
-
-.warning-box strong{
-  display:block;
-  margin-bottom:4px;
-}
-
-label{
-  display:block;
-  margin-top:12px;
-  font-weight:500;
-}
-
-input{
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-  border:1px solid #ddd;
-  border-radius:6px;
-  font-size:14px;
-}
-
-button{
-  margin-top:15px;
-  width:100%;
-  padding:12px;
-  background:#16a34a;
-  border:none;
-  color:#fff;
-  font-weight:600;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-button:disabled{
-  background:#ccc;
-  cursor:not-allowed;
-}
-
-.table-wrapper{
-  width:100%;
-  overflow-x:auto;
-  margin-top:20px;
-  border-radius:8px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:500px;
-}
-
-th, td{
-  padding:8px;
-  border-bottom:1px solid #eee;
-  font-size:14px;
-  text-align:left;
-}
-
-th{
-  background:#16a34a;
-  color:white;
-  position:sticky;
-  top:0;
-}
-
-.badge{
-  padding:4px 8px;
-  border-radius:20px;
-  color:white;
-  font-size:12px;
-  font-weight:600;
-}
-
-.approved{background:#16a34a;}
-.rejected{background:#dc2626;}
-.pending{background:#f59e0b;}
-
-@media(max-width:480px){
-  .container{padding:15px;}
-  .account-box{padding:15px;}
-  .account-detail{flex-direction:column;align-items:flex-start;gap:4px;}
-  .account-detail .value{font-size:14px;}
-  input{font-size:13px;}
-  button{font-size:14px;padding:10px;}
-  th, td{font-size:12px;}
-}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{background:#c62828}
 </style>
 </head>
-
 <body>
-
 <div class="container">
 
-<h2>Submit Deposit</h2>
+  <div class="page-head">
+    <button class="back" onclick="location.href='dashboard.html'">← Back</button>
+    <h1>Deposit Funds</h1>
+  </div>
 
-<!-- ✅ ADDED: Account Details Section -->
-<div class="account-box">
-  <h3><i>🏦</i> Send Money To This Account</h3>
-  
-  <div class="account-detail">
-    <label>Account Number</label>
-    <div>
-      <span class="value" id="acctNum">8125600222</span>
-      <button class="copy-btn" onclick="copyText('8125600222')">Copy</button>
+  <div class="acct-box">
+    <h3>🏦 Send Money To This Account</h3>
+    <div class="acct-row">
+      <label>Account Number</label>
+      <div class="val">
+        <span>8125600222</span>
+        <button class="copy-btn" onclick="copyText('8125600222')">Copy</button>
+      </div>
+    </div>
+    <div class="acct-row">
+      <label>Account Name</label>
+      <span class="val" style="font-family:'Poppins'">Onyeka Annointed Chidi</span>
+    </div>
+    <div class="acct-row">
+      <label>Bank Name</label>
+      <span class="val" style="font-family:'Poppins'">Opay/Paycom</span>
     </div>
   </div>
-  
-  <div class="account-detail">
-    <label>Account Name</label>
-    <span class="value">Onyeka Annointed Chidi</span>
+
+  <div class="warn">
+    <strong>⚠️ Important:</strong>
+    Send money to the account above, then fill in the details below. Use your Reference ID as the transfer narration.
   </div>
-  
-  <div class="account-detail">
-    <label>Bank Name</label>
-    <span class="value">Opay/Paycom</span>
+
+  <div class="form-card">
+    <label>Amount (₦)</label>
+    <input type="number" id="amount" placeholder="Enter amount" min="100">
+
+    <label>Sender Name</label>
+    <input type="text" id="sender" placeholder="Name on transfer">
+
+    <label>Reference ID</label>
+    <input type="text" id="refId" readonly style="background:#f5f5f5">
+
+    <button class="submit-btn" id="submitBtn" disabled>Submit Deposit</button>
+  </div>
+
+  <div class="records">
+    <h3>Deposit History</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Amount</th><th>Sender</th><th>Ref</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="history"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-<div class="warning-box">
-  <strong>⚠️ Important:</strong>
-  Send money to the account above, then upload your proof of payment below. Use your Reference ID as the transfer narration/description.
-</div>
+<div class="toast" id="toast"></div>
 
-<label>Amount</label>
-<input type="number" id="amount" placeholder="₦">
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getFirestore,collection,query,where,getDocs,addDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<label>Sender Name</label>
-<input type="text" id="sender" placeholder="Name on transfer">
-
-<label>Proof of Payment</label>
-<input type="file" id="proof">
-
-<label>Reference ID</label>
-<input type="text" id="refId" readonly>
-
-<button id="submitBtn" disabled>Submit Deposit</button>
-
-<h3>Deposit Records</h3>
-<div class="table-wrapper">
-<table>
-<thead>
-<tr>
-<th>Amount</th>
-<th>Sender</th>
-<th>Ref</th>
-<th>Status</th>
-<th>Date</th>
-</tr>
-</thead>
-<tbody id="history"></tbody>
-</table>
-</div>
-
-</div>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-<script>
-firebase.initializeApp({
+const app=initializeApp({
   apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
   authDomain:"easypay-6bce8.firebaseapp.com",
   projectId:"easypay-6bce8"
 });
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+let currentUser=null;
+const submitBtn=document.getElementById('submitBtn');
+const historyBody=document.getElementById('history');
 
-const submitBtn = document.getElementById("submitBtn");
-const historyBody = document.getElementById("history");
-
-let currentUser = null;
-
-// generate ref
-function generateRef(){
-  return Math.random().toString(36).substring(2,10).toUpperCase();
+function toast(msg,isErr){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(isErr?' error':'');
+  setTimeout(()=>t.className='toast',3000);
 }
-document.getElementById("refId").value = generateRef();
 
-// ✅ ADDED: Copy to clipboard function
-window.copyText = function(text){
-  navigator.clipboard.writeText(text).then(() => {
-    alert("Account number copied: " + text);
-  }).catch(() => {
-    // Fallback for older browsers
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textArea);
-    alert("Account number copied: " + text);
-  });
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+function genRef(){return Math.random().toString(36).substring(2,10).toUpperCase()}
+document.getElementById('refId').value=genRef();
+
+window.copyText=function(text){
+  navigator.clipboard.writeText(text).then(()=>toast('Copied: '+text))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('Copied: '+text)});
 };
 
-function getBadge(status){
-  if(status === "approved") return `<span class="badge approved">approved</span>`;
-  if(status === "rejected") return `<span class="badge rejected">rejected</span>`;
-  return `<span class="badge pending">pending</span>`;
+function badge(status){
+  if(status==='approved')return'<span class="badge b-approved">Approved</span>';
+  if(status==='rejected')return'<span class="badge b-rejected">Rejected</span>';
+  return'<span class="badge b-pending">Pending</span>';
 }
 
-// AUTH CHECK
-auth.onAuthStateChanged(user=>{
-  if(!user){
-    window.location.href="login.html";
-    return;
-  }
-  currentUser = user;
-  submitBtn.disabled = false;
-  loadHistory();
+onAuthStateChanged(auth,user=>{
+  if(!user){window.location.href='login.html';return}
+  currentUser=user;submitBtn.disabled=false;loadHistory();
 });
 
-// LOAD HISTORY
 async function loadHistory(){
-  historyBody.innerHTML = "";
-
-  const snap = await db.collection("deposits")
-    .where("userId","==",currentUser.uid)
-    .get();
-
-  if(snap.empty){
-    historyBody.innerHTML =
-      "<tr><td colspan='5'>No deposit records yet</td></tr>";
-    return;
-  }
-
-  let docs = [];
-  snap.forEach(doc => docs.push(doc.data()));
-
-  docs.sort((a,b)=> b.date - a.date);
-
+  historyBody.innerHTML='';
+  const snap=await getDocs(query(collection(db,'deposits'),where('userId','==',currentUser.uid)));
+  if(snap.empty){historyBody.innerHTML="<tr><td colspan='5' style='text-align:center;color:#999;padding:20px'>No deposits yet</td></tr>";return}
+  const docs=[];snap.forEach(d=>docs.push(d.data()));
+  docs.sort((a,b)=>b.date-a.date);
   docs.forEach(d=>{
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>₦${d.amount}</td>
-      <td>${d.senderName}</td>
-      <td>${d.refId}</td>
-      <td>${getBadge(d.status)}</td>
-      <td>${new Date(d.date).toLocaleString()}</td>
-    `;
-    historyBody.appendChild(row);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>₦${esc(d.amount)}</td><td>${esc(d.senderName)}</td><td>${esc(d.refId)}</td><td>${badge(d.status)}</td><td>${new Date(d.date).toLocaleString()}</td>`;
+    historyBody.appendChild(tr);
   });
 }
 
-// SUBMIT
-submitBtn.onclick = async ()=>{
-  if(!currentUser) return alert("Login required.");
+submitBtn.onclick=async()=>{
+  if(!currentUser)return toast('Login required',true);
+  const amount=parseFloat(document.getElementById('amount').value);
+  const sender=document.getElementById('sender').value.trim();
+  const refId=document.getElementById('refId').value;
 
-  const amount = document.getElementById("amount").value;
-  const sender = document.getElementById("sender").value.trim();
-  const proof = document.getElementById("proof").files[0];
-  const refId = document.getElementById("refId").value;
+  if(!amount||amount<100)return toast('Minimum deposit is ₦100',true);
+  if(!sender)return toast('Enter sender name',true);
+  if(sender.length>100)return toast('Sender name too long',true);
 
-  if(!amount || amount <= 0) return alert("Enter valid amount.");
-  if(!sender) return alert("Enter sender name.");
-  if(!proof) return alert("Upload proof of payment.");
+  submitBtn.disabled=true;submitBtn.textContent='Submitting...';
 
-  submitBtn.disabled = true;
-
-  await db.collection("deposits").add({
-    userId: currentUser.uid,
-    username: currentUser.email,
-    amount: parseFloat(amount),
-    senderName: sender,
-    refId: refId,
-    status: "pending",
-    processed: false,
-    date: Date.now()
-  });
-
-  alert("Deposit submitted successfully!");
-
-  document.getElementById("amount").value="";
-  document.getElementById("sender").value="";
-  document.getElementById("proof").value="";
-  document.getElementById("refId").value = generateRef();
-
-  submitBtn.disabled = false;
-
-  loadHistory();
+  try{
+    await addDoc(collection(db,'deposits'),{
+      userId:currentUser.uid,
+      username:currentUser.email,
+      amount:amount,
+      senderName:sender,
+      refId:refId,
+      status:'pending',
+      processed:false,
+      date:Date.now()
+    });
+    toast('Deposit submitted successfully!');
+    document.getElementById('amount').value='';
+    document.getElementById('sender').value='';
+    document.getElementById('refId').value=genRef();
+    loadHistory();
+  }catch(e){toast('Failed: '+e.message,true)}
+  submitBtn.disabled=false;submitBtn.textContent='Submit Deposit';
 };
 </script>
-
 </body>
 </html>
