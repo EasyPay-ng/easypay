@@ -1,62 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contact Us – EasyPay</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
-      padding: 30px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    h1 {
-      color: #1e7e34;
-      margin-bottom: 20px;
-    }
-    .contact-btn {
-      display: flex;
-      align-items: center;
-      background-color: white;
-      border: 2px solid #1e7e34;
-      color: #1e7e34;
-      border-radius: 10px;
-      padding: 15px 25px;
-      font-size: 16px;
-      margin: 10px;
-      text-decoration: none;
-      transition: 0.3s ease;
-      width: 260px;
-      justify-content: center;
-    }
-    .contact-btn:hover {
-      background-color: #1e7e34;
-      color: white;
-    }
-    .contact-btn i {
-      margin-right: 12px;
-      font-size: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us — EasyPay</title>
+<link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g1:#009f4d;--g2:#00c261}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#0a1a12,#0f2f1e);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.card{
+  background:#fff;padding:36px 28px;border-radius:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;max-width:400px;width:100%;
+  animation:fadeUp .5s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.logo{width:70px;height:70px;border-radius:50%;object-fit:cover;margin:0 auto 16px;display:block;border:3px solid var(--g1)}
+h1{color:var(--g1);font-size:22px;font-weight:700;margin-bottom:8px}
+.sub{color:#6b7c6b;font-size:13px;margin-bottom:24px}
+.contact-btns{display:flex;flex-direction:column;gap:12px}
+.contact-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:14px;border-radius:12px;font-size:15px;font-weight:600;
+  text-decoration:none;transition:.3s;font-family:'Poppins';
+}
+.whatsapp{background:#25D366;color:#fff;box-shadow:0 4px 14px rgba(37,211,102,.3)}
+.whatsapp:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(37,211,102,.4)}
+.email-btn{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;box-shadow:0 4px 14px rgba(0,159,77,.25)}
+.email-btn:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,159,77,.35)}
+.back{display:inline-block;margin-top:20px;color:var(--g1);text-decoration:none;font-weight:600;font-size:13px}
+</style>
 </head>
 <body>
-
+<div class="card">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg" class="logo" alt="EasyPay">
   <h1>Contact Us</h1>
-
-  <!-- WhatsApp Button -->
-  <a href="https://wa.me/2348125600222" target="_blank" class="contact-btn">
-    <i class="fab fa-whatsapp"></i> Chat on WhatsApp
-  </a>
-
-  <!-- Email Button -->
-  <a href="mailto:easypay27.ng@gmail.com" target="_blank" class="contact-btn">
-    <i class="fas fa-envelope"></i> Send Email
-  </a>
-
+  <p class="sub">Need help? Reach out through any of these channels.</p>
+  <div class="contact-btns">
+    <a href="https://wa.me/2348125600222" target="_blank" class="contact-btn whatsapp">💬 Chat on WhatsApp</a>
+    <a href="mailto:easypay27.ng@gmail.com" class="contact-btn email-btn">📧 Send Email</a>
+  </div>
+  <a href="dashboard.html" class="back">← Back to Dashboard</a>
+</div>
 </body>
 </html>

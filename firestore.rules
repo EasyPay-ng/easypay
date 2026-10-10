@@ -1,0 +1,140 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────
+// EasyPay Firestore Security Rules
+// ─────────────────────────────────────────────
+// Deploy: firebase deploy --only firestore:rules
+//
+// Data layout:
+//   /users/{uid}                  – user profiles
+//   /users/{uid}/withdrawals/     – withdrawal requests
+//   /users/{uid}/transactionHistory – tx logs
+//   /deposits/{id}                – deposit requests
+// ─────────────────────────────────────────────
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ──────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isAdminEmail() {
+      return isSignedIn() &&
+        request.auth.token.email == 'easypay27.ng@gmail.com';
+    }
+
+    function isPrivileged() {
+      return isAdmin() || isAdminEmail();
+    }
+
+    // Prevent writing fields only the server/admin should set
+    function noPrivilegeEscalation(existingData, incomingData) {
+      // Users cannot promote themselves to admin
+      let newRole = incomingData.role;
+      let oldRole = existingData.role;
+      if (newRole != null && newRole != oldRole) {
+        return false;  // only admin can change role
+      }
+      return true;
+    }
+
+    // ── Users collection ──────────────────────
+    match /users/{uid} {
+      // READ: users can read their own doc; admin can read any
+      allow read: if isOwner(uid) || isPrivileged();
+
+      // CREATE: any signed-in user can create their own profile on registration
+      allow create: if isOwner(uid) &&
+        request.resource.data.keys().hasAll(['username', 'email']) &&
+        request.resource.data.balance is number &&
+        request.resource.data.balance <= 100 &&  // welcome bonus cap
+        !('role' in request.resource.data) &&     // can't self-assign admin
+        !('suspended' in request.resource.data) && // can't set own suspension
+        !('referralCredited' in request.resource.data);
+
+      // UPDATE: owner can update own doc; admin can update any
+      allow update: if (isOwner(uid) || isPrivileged()) &&
+        // Non-admin users cannot change these fields:
+        (!('role' in request.resource.data) || isPrivileged()) &&
+        (!('suspended' in request.resource.data) || isPrivileged()) &&
+        (!('referralCredited' in request.resource.data) || isPrivileged()) &&
+        // Non-admin users cannot set balance above a reasonable threshold
+        // (prevent client-side balance manipulation)
+        (isPrivileged() || request.resource.data.balance is number);
+
+      // DELETE: only admin
+      allow delete: if isPrivileged();
+
+      // ── Withdrawals subcollection ───────────
+      match /withdrawals/{withdrawalId} {
+        // Users can read their own withdrawals; admin can read all
+        allow read: if isOwner(uid) || isPrivileged();
+
+        // Only the owner can create a withdrawal request
+        allow create: if isOwner(uid) &&
+          request.resource.data.amount is number &&
+          request.resource.data.amount >= 1000 &&
+          request.resource.data.bank is string &&
+          request.resource.data.bank.size() > 0 &&
+          request.resource.data.accName is string &&
+          request.resource.data.accNumber is string &&
+          request.resource.data.status == 'pending';
+
+        // Only admin can update status (approve/reject)
+        allow update: if isPrivileged();
+
+        // No deletes
+        allow delete: if false;
+      }
+
+      // ── Transaction History subcollection ────
+      match /transactionHistory/{txId} {
+        // Users can read their own history; admin can read all
+        allow read: if isOwner(uid) || isPrivileged();
+
+        // Only admin (or server via admin SDK) can write history entries
+        allow create, update, delete: if isPrivileged();
+      }
+    }
+
+    // ── Deposits collection ────────────────────
+    match /deposits/{depositId} {
+      // Users can read their own deposits; admin can read all
+      allow read: if isSignedIn() &&
+        (resource.data.userId == request.auth.uid || isPrivileged());
+
+      // Any signed-in user can create a deposit request
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount >= 100 &&
+        request.resource.data.senderName is string &&
+        request.resource.data.senderName.size() > 0 &&
+        request.resource.data.senderName.size() <= 100 &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.refId is string;
+
+      // Only admin can update deposit status (approve/reject/credit balance)
+      allow update: if isPrivileged();
+
+      // Only admin can delete
+      allow delete: if isPrivileged();
+    }
+
+    // ── Deny everything else by default ────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -3,684 +3,203 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EasyPay Dashboard</title>
-
-<!-- FAVICON -->
+<title>Dashboard — EasyPay</title>
 <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root{
+  --g1:#009f4d;--g2:#00c261;--g3:#00e676;
+  --bg:#f0f7f4;--card:#fff;--text:#1a2e1a;--muted:#6b7c6b;
+  --shadow:0 4px 20px rgba(0,80,40,.07);
+  --radius:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);padding-bottom:90px}
+
+/* HEADER */
+header{
+  padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
+  background:#fff;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 20px rgba(0,0,0,.05);
+}
+header h2{
+  font-size:22px;font-weight:800;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.user-info{display:flex;align-items:center;gap:10px}
+.user-avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:16px;
+}
+.username{font-weight:600;font-size:14px}
+
+/* BALANCE HERO */
+.hero{
+  margin:16px;
+  background:linear-gradient(135deg,#006b35,var(--g1),var(--g2));
+  color:#fff;padding:28px 24px;border-radius:20px;
+  position:relative;overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,143,69,.25);
+}
+.hero::before{
+  content:'';position:absolute;top:-50%;right:-20%;width:200px;height:200px;
+  background:rgba(255,255,255,.07);border-radius:50%;
+}
+.hero::after{
+  content:'';position:absolute;bottom:-30%;left:-10%;width:150px;height:150px;
+  background:rgba(255,255,255,.05);border-radius:50%;
+}
+.hero small{font-size:12px;opacity:.85;letter-spacing:.5px;text-transform:uppercase;position:relative;z-index:1}
+.hero h1{margin:6px 0;font-size:34px;font-weight:800;position:relative;z-index:1}
+#planInfo{
+  font-size:12px;opacity:.85;background:rgba(255,255,255,.15);
+  display:inline-block;padding:5px 14px;border-radius:20px;margin-top:6px;
+  position:relative;z-index:1;
 }
 
-body {
-  margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background: #f0f4f8;
-  padding-bottom: 90px;
-  color: #1a1a2e;
+/* FLEXIBLE WITHDRAW */
+.flex-withdraw-bar{
+  margin:0 16px 12px;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);
+  border:1.5px solid #00acc1;border-radius:14px;padding:14px 18px;
+  display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
 }
-
-/* ========== HEADER ========== */
-header {
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: white;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+.flex-withdraw-bar .info{font-size:13px;color:#006064}
+.flex-withdraw-bar .info strong{display:block;font-size:15px;margin-bottom:2px}
+.flex-withdraw-btn{
+  background:linear-gradient(135deg,#00838f,#00acc1);color:#fff;
+  border:none;padding:10px 20px;border-radius:10px;font-weight:700;
+  font-family:'Poppins';font-size:13px;cursor:pointer;transition:.2s;
+  box-shadow:0 4px 12px rgba(0,131,143,.25);
 }
+.flex-withdraw-btn:hover{transform:scale(1.03)}
 
-header h2 {
-  font-size: 24px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #008f45, #00c261);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* QUICK ACTIONS */
+.quick-actions{margin:12px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.action-btn{
+  background:#fff;border:none;border-radius:14px;padding:14px 8px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;box-shadow:var(--shadow);transition:all .3s;font-family:'Poppins';
 }
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.action-btn:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,.1)}
+.action-icon{
+  width:46px;height:46px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
 }
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #008f45, #00c261);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.username {
-  font-weight: 600;
-  color: #1a1a2e;
-  font-size: 14px;
-}
-
-/* ========== HERO / BALANCE CARD ========== */
-.hero {
-  margin: 20px;
-  background: linear-gradient(135deg, #008f45, #00b853, #00e676);
-  color: white;
-  padding: 32px 28px;
-  border-radius: 24px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 143, 69, 0.3);
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 200px;
-  height: 200px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 50%;
-}
-
-.hero::after {
-  content: '';
-  position: absolute;
-  bottom: -30%;
-  left: -10%;
-  width: 150px;
-  height: 150px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 50%;
-}
-
-.hero small {
-  font-size: 13px;
-  opacity: 0.9;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  position: relative;
-  z-index: 1;
-}
-
-.hero h1 {
-  margin: 8px 0 6px 0;
-  font-size: 36px;
-  font-weight: 700;
-  position: relative;
-  z-index: 1;
-}
-
-#planInfo {
-  font-size: 13px;
-  opacity: 0.85;
-  background: rgba(255,255,255,0.15);
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 20px;
-  margin-top: 8px;
-  position: relative;
-  z-index: 1;
-}
-
-/* ========== QUICK ACTIONS ========== */
-.quick-actions {
-  margin: 20px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.action-btn {
-  background: white;
-  border: none;
-  border-radius: 16px;
-  padding: 16px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-  transition: all 0.3s ease;
-  font-family: 'Poppins', sans-serif;
-}
-
-.action-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-
-.action-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-}
-
-.action-btn span {
-  font-size: 12px;
-  font-weight: 500;
-  color: #444;
-}
-
-/* ========== CAROUSEL ========== */
-.carousel {
-  margin: 20px;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-  position: relative;
-}
-
-.carousel img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  display: none;
-  transition: opacity 0.5s ease;
-}
-
-.carousel img.active {
-  display: block;
-}
-
-.carousel-dots {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
-}
-
-.carousel-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.5);
-  transition: all 0.3s;
-}
-
-.carousel-dot.active {
-  background: white;
-  width: 20px;
-  border-radius: 4px;
-}
-
-/* ========== QUOTE ========== */
-.quote {
-  margin: 0 20px 20px;
-  text-align: center;
-  padding: 18px 24px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-  position: relative;
-}
-
-.quote::before {
-  content: '"';
-  position: absolute;
-  top: -5px;
-  left: 15px;
-  font-size: 40px;
-  color: #00c261;
-  opacity: 0.2;
-  font-family: Georgia, serif;
-}
-
-.quote p {
-  font-size: 14px;
-  color: #555;
-  font-style: italic;
-  line-height: 1.6;
-}
-
-/* ========== STATS / INVESTMENT CARDS ========== */
-.section-title {
-  margin: 24px 20px 12px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a2e;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.section-title::before {
-  content: '';
-  width: 4px;
-  height: 18px;
-  background: linear-gradient(180deg, #008f45, #00e676);
-  border-radius: 2px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
-  margin: 0 20px;
-}
-
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0,0,0,0.03);
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-}
-
-.card-label {
-  font-size: 12px;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.card-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a1a2e;
-}
-
-.card-value.green {
-  color: #008f45;
-}
-
-.progress-bar {
-  height: 8px;
-  background: #e8f5e9;
-  border-radius: 20px;
-  overflow: hidden;
-  margin-top: 12px;
-}
-
-.progress {
-  height: 100%;
-  background: linear-gradient(90deg, #008f45, #00e676);
-  border-radius: 20px;
-  transition: width 0.5s ease;
-}
-
-.days-text {
-  font-size: 12px;
-  color: #666;
-  margin-top: 8px;
-  font-weight: 500;
-}
-
-/* ========== NO PLAN STATE ========== */
-.no-plan {
-  margin: 0 20px;
-  background: white;
-  border-radius: 18px;
-  padding: 40px 24px;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-}
-
-.no-plan-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-}
-
-.no-plan h3 {
-  font-size: 18px;
-  color: #1a1a2e;
-  margin-bottom: 8px;
-}
-
-.no-plan p {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 20px;
-}
-
-.no-plan-btn {
-  background: linear-gradient(135deg, #008f45, #00c261);
-  color: white;
-  border: none;
-  padding: 12px 32px;
-  border-radius: 12px;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.no-plan-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(0, 143, 69, 0.3);
-}
-
-/* ========== BOTTOM NAV ========== */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: white;
-  display: flex;
-  justify-content: space-around;
-  padding: 12px 0 20px;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-  border-radius: 24px 24px 0 0;
-  z-index: 100;
-}
-
-.bottom-nav div {
-  text-align: center;
-  font-size: 11px;
-  color: #aaa;
-  cursor: pointer;
-  padding: 6px 16px;
-  border-radius: 12px;
-  transition: all 0.3s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.bottom-nav div .nav-icon {
-  font-size: 22px;
-  transition: all 0.3s;
-}
-
-.bottom-nav div.active {
-  color: #008f45;
-  font-weight: 600;
-  background: rgba(0, 143, 69, 0.08);
-}
-
-.bottom-nav div.active .nav-icon {
-  transform: scale(1.1);
-}
-
-/* ========== FLOATING WHATSAPP ========== */
-.whatsapp-float {
-  position: fixed;
-  bottom: 95px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  background: #25D366;
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
-  cursor: pointer;
-  z-index: 1000;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  animation: pulse 2s infinite;
-}
-
-.whatsapp-float:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 25px rgba(37, 211, 102, 0.6);
-  animation: none;
-}
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
-  70% { box-shadow: 0 0 0 12px rgba(37, 211, 102, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
-}
-
-.whatsapp-float svg {
-  width: 28px;
-  height: 28px;
-  fill: #fff;
-}
-
-.whatsapp-tooltip {
-  position: fixed;
-  bottom: 160px;
-  right: 20px;
-  background: #333;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 12px;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  z-index: 1000;
-  font-family: 'Poppins', sans-serif;
-}
-
-.whatsapp-float:hover + .whatsapp-tooltip,
-.whatsapp-tooltip:hover {
-  opacity: 1;
-  visibility: visible;
-}
-
-.whatsapp-tooltip::after {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  right: 18px;
-  border-width: 6px 6px 0;
-  border-style: solid;
-  border-color: #333 transparent transparent transparent;
-}
-
-/* ========== ANIMATIONS ========== */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.hero, .quick-actions, .carousel, .quote, .stats, .no-plan {
-  animation: fadeInUp 0.6s ease forwards;
-}
-
-.quick-actions { animation-delay: 0.1s; }
-.carousel { animation-delay: 0.2s; }
-.quote { animation-delay: 0.3s; }
-.stats { animation-delay: 0.4s; }
-</style>
-
-<!-- Firebase SDKs -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, deleteField, serverTimestamp }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-  authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8",
-  storageBucket: "easypay-6bce8.firebasestorage.app",
-  messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-  measurementId: "G-2FZKDQ47FZ"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const plans = [
-  { name: "Mini", amount: 5000, daily: 234 },
-  { name: "Starter", amount: 10000, daily: 466.7 },
-  { name: "Basic", amount: 20000, daily: 933.4 },
-  { name: "Premium", amount: 50000, daily: 2166.7 },
-  { name: "Gold", amount: 100000, daily: 4333.4 },
-  { name: "Elite", amount: 300000, daily: 13000 },
-  { name: "Diamond", amount: 500000, daily: 21666.7 },
-  { name: "Platinum", amount: 1000000, daily: 43333.4 }
-];
-
-async function initAuth() {
-  await setPersistence(auth, browserLocalPersistence);
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "login.html";
-      return;
-    }
-
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
-    if (!snap.exists()) return;
-
-    let data = snap.data();
-
-    // Set username
-    const displayName = user.displayName || data.fullname || data.username || "User";
-    document.getElementById("username").innerText = displayName;
-    document.getElementById("userInitial").innerText = displayName.charAt(0).toUpperCase();
-
-    if (data.investment) {
-      await handleDailyCredit(userRef, data);
-      const updatedSnap = await getDoc(userRef);
-      data = updatedSnap.data();
-    }
-
-    updateUI(data);
-  });
-}
-
-initAuth();
-
-async function handleDailyCredit(userRef, data) {
-  const inv = data.investment;
-  const now = new Date();
-  const start = new Date(inv.startDate.seconds * 1000);
-  const lastCredit = inv.lastCreditDate
-    ? new Date(inv.lastCreditDate.seconds * 1000)
-    : start;
-
-  const totalDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-  const creditedDays = Math.floor((lastCredit - start) / (1000 * 60 * 60 * 24));
-  let daysToCredit = totalDays - creditedDays;
-
-  if (daysToCredit <= 0) return;
-
-  if (totalDays >= inv.duration) {
-    daysToCredit = inv.duration - creditedDays;
-  }
-
-  const amount = daysToCredit * inv.dailyEarning;
-
-  if (amount > 0) {
-    await updateDoc(userRef, {
-      balance: (data.balance || 0) + amount,
-      "investment.lastCreditDate": serverTimestamp()
-    });
-  }
-
-  if (totalDays >= inv.duration) {
-    await updateDoc(userRef, {
-      investment: deleteField(),
-      activePlan: null
-    });
-  }
-}
-
-function updateUI(data) {
-  document.getElementById("balance").innerText =
-    (data.balance || 0).toLocaleString();
-
-  if (!data.investment) {
-    document.getElementById("planInfo").innerText = "No Active Plan";
-    document.getElementById("investmentSection").innerHTML = `
-      <div class="no-plan">
-        <div class="no-plan-icon">📈</div>
-        <h3>No Active Investment</h3>
-        <p>Start earning daily returns by choosing an investment plan.</p>
-        <button class="no-plan-btn" onclick="location.href='invest.html'">View Plans</button>
-      </div>
-    `;
-    return;
-  }
-
-  const inv = data.investment;
-  const now = new Date();
-  const start = new Date(inv.startDate.seconds * 1000);
-  const daysPassed = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-  const progress = Math.min((daysPassed / inv.duration) * 100, 100);
-
-  document.getElementById("planInfo").innerText = inv.planName + " Plan";
-
-  document.getElementById("investmentSection").innerHTML = `
-    <div class="section-title">Investment Overview</div>
-    <div class="stats">
-      <div class="card">
-        <div class="card-label">Daily Earnings</div>
-        <div class="card-value green">₦${inv.dailyEarning.toLocaleString()}</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Days Progress</div>
-        <div class="card-value">${Math.min(daysPassed, inv.duration)} / ${inv.duration}</div>
-        <div class="progress-bar">
-          <div class="progress" style="width:${progress}%"></div>
-        </div>
-        <div class="days-text">${progress.toFixed(1)}% completed</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Total Expected</div>
-        <div class="card-value">₦${inv.totalExpected.toLocaleString()}</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Amount Invested</div>
-        <div class="card-value">₦${inv.amount.toLocaleString()}</div>
-      </div>
-    </div>
-  `;
-}
+.action-btn span{font-size:12px;font-weight:600;color:#444}
 
 /* CAROUSEL */
-const images = document.querySelectorAll(".carousel img");
-const dots = document.querySelectorAll(".carousel-dot");
-let i = 0;
+.carousel{margin:12px 16px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);position:relative}
+.carousel img{width:100%;height:170px;object-fit:cover;display:none;transition:opacity .5s}
+.carousel img.active{display:block}
+.carousel-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.carousel-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);transition:.3s}
+.carousel-dot.active{background:#fff;width:20px;border-radius:4px}
 
-setInterval(() => {
-  images[i].classList.remove("active");
-  dots[i].classList.remove("active");
-  i = (i + 1) % images.length;
-  images[i].classList.add("active");
-  dots[i].classList.add("active");
-}, 3000);
-</script>
+/* STATS / INVESTMENT CARDS */
+.section-title{
+  margin:20px 16px 10px;font-size:15px;font-weight:700;color:var(--text);
+  display:flex;align-items:center;gap:8px;
+}
+.section-title::before{content:'';width:4px;height:18px;background:linear-gradient(180deg,var(--g1),var(--g3));border-radius:2px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 16px}
+.stat-card{
+  background:#fff;padding:18px;border-radius:16px;
+  box-shadow:var(--shadow);transition:all .3s;border:1px solid rgba(0,0,0,.03);
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.08)}
+.card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.card-value{font-size:20px;font-weight:700}
+.card-value.green{color:var(--g1)}
+.progress-bar{height:8px;background:#e8f5e9;border-radius:20px;overflow:hidden;margin-top:10px}
+.progress{height:100%;background:linear-gradient(90deg,var(--g1),var(--g3));border-radius:20px;transition:width .5s}
+.days-text{font-size:11px;color:#666;margin-top:6px;font-weight:500}
+
+/* NO PLAN */
+.no-plan{
+  margin:0 16px;background:#fff;border-radius:18px;padding:36px 20px;
+  text-align:center;box-shadow:var(--shadow);
+}
+.no-plan-icon{font-size:44px;margin-bottom:10px}
+.no-plan h3{font-size:17px;margin-bottom:6px}
+.no-plan p{font-size:13px;color:var(--muted);margin-bottom:16px}
+.no-plan-btn{
+  background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;border:none;
+  padding:12px 30px;border-radius:12px;font-family:'Poppins';font-weight:700;
+  font-size:14px;cursor:pointer;transition:.3s;box-shadow:0 4px 14px rgba(0,159,77,.25);
+}
+.no-plan-btn:hover{transform:scale(1.05)}
+
+/* BOTTOM NAV */
+.bottom-nav{
+  position:fixed;bottom:0;width:100%;background:#fff;
+  display:flex;justify-content:space-around;padding:10px 0 18px;
+  box-shadow:0 -4px 20px rgba(0,0,0,.07);border-radius:20px 20px 0 0;z-index:100;
+}
+.bottom-nav div{
+  text-align:center;font-size:10px;color:#aaa;cursor:pointer;
+  padding:6px 14px;border-radius:12px;transition:.3s;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.bottom-nav div .nav-icon{font-size:20px}
+.bottom-nav div.active{color:var(--g1);font-weight:700;background:rgba(0,159,77,.08)}
+.bottom-nav div.active .nav-icon{transform:scale(1.1)}
+
+/* WHATSAPP */
+.whatsapp-float{
+  position:fixed;bottom:92px;right:16px;width:52px;height:52px;
+  background:#25D366;color:#fff;border-radius:50%;
+  display:flex;justify-content:center;align-items:center;
+  box-shadow:0 4px 14px rgba(37,211,102,.4);cursor:pointer;z-index:1000;
+  transition:.3s;text-decoration:none;animation:pulse 2s infinite;
+}
+.whatsapp-float:hover{transform:scale(1.1);animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,.5)}70%{box-shadow:0 0 0 12px rgba(37,211,102,0)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}}
+.whatsapp-float svg{width:26px;height:26px;fill:#fff}
+
+/* MODAL */
+.modal-bg{
+  position:fixed;top:0;left:0;width:100vw;height:100vh;
+  background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;
+  z-index:9999;backdrop-filter:blur(4px);
+}
+.modal-bg.show{display:flex}
+.modal-box{
+  background:#fff;border-radius:20px;padding:28px;max-width:400px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;animation:modalIn .3s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.modal-box h3{font-size:18px;margin-bottom:10px}
+.modal-box p{font-size:14px;color:#666;line-height:1.6;margin-bottom:4px}
+.modal-box .amount-big{font-size:28px;font-weight:800;color:var(--g1);margin:14px 0}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions button{
+  flex:1;padding:12px;border:none;border-radius:10px;font-weight:700;
+  font-family:'Poppins';font-size:14px;cursor:pointer;transition:.2s;
+}
+.btn-cancel{background:#f1f3f2;color:var(--text)}
+.btn-danger{background:linear-gradient(135deg,#00838f,#00acc1);color:#fff}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#1a2e1a;color:#fff;padding:14px 24px;border-radius:12px;
+  font-size:14px;font-weight:500;z-index:10000;transition:transform .4s;
+  box-shadow:0 8px 30px rgba(0,0,0,.2);max-width:90%;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{background:#c62828}
+
+/* ANIMATIONS */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero,.quick-actions,.carousel,.stats,.no-plan{animation:fadeInUp .6s ease forwards}
+.quick-actions{animation-delay:.1s}
+.carousel{animation-delay:.2s}
+.stats{animation-delay:.3s}
+</style>
 </head>
-
 <body>
 
 <header>
@@ -691,34 +210,39 @@ setInterval(() => {
   </div>
 </header>
 
-<!-- BALANCE HERO -->
 <div class="hero">
   <small>Available Balance</small>
   <h1>₦<span id="balance">0</span></h1>
   <div id="planInfo">No Active Plan</div>
 </div>
 
-<!-- QUICK ACTIONS -->
+<div class="flex-withdraw-bar" id="flexBar">
+  <div class="info">
+    <strong>⚡ Flexible Plan Active</strong>
+    Withdraw your capital + earnings anytime.
+  </div>
+  <button class="flex-withdraw-btn" id="flexWithdrawBtn">Withdraw Capital</button>
+</div>
+
 <div class="quick-actions">
   <button class="action-btn" onclick="location.href='deposit.html'">
-    <div class="action-icon" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">💳</div>
+    <div class="action-icon" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb)">💳</div>
     <span>Deposit</span>
   </button>
   <button class="action-btn" onclick="location.href='withdraw.html'">
-    <div class="action-icon" style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">💰</div>
+    <div class="action-icon" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9)">💰</div>
     <span>Withdraw</span>
   </button>
   <button class="action-btn" onclick="location.href='invest.html'">
-    <div class="action-icon" style="background: linear-gradient(135deg, #fff3e0, #ffe0b2);">📦</div>
+    <div class="action-icon" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2)">📦</div>
     <span>Invest</span>
   </button>
 </div>
 
-<!-- CAROUSEL -->
 <div class="carousel">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/what-is-investment_bznczq.webp" class="active">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/ROI-return-on-investment-1024x626_apfrbs.jpg">
-  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/Return-on-Investment-Formula-ROI_zxmjno.jpg">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/what-is-investment_bznczq.webp" class="active" loading="lazy">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404909/ROI-return-on-investment-1024x626_apfrbs.jpg" loading="lazy">
+  <img src="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772404908/Return-on-Investment-Formula-ROI_zxmjno.jpg" loading="lazy">
   <div class="carousel-dots">
     <div class="carousel-dot active"></div>
     <div class="carousel-dot"></div>
@@ -726,41 +250,199 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- QUOTE -->
-<div class="quote">
-  <p>"Invest today for a stronger tomorrow."</p>
-</div>
-
-<!-- INVESTMENT SECTION -->
 <div id="investmentSection"></div>
 
-<!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div onclick="location.href='index.html'" class="active">
-    <span class="nav-icon">🏠</span>
-    <span>Home</span>
+  <div onclick="location.href='index.html'">
+    <span class="nav-icon">🏠</span><span>Home</span>
   </div>
   <div onclick="location.href='invest.html'">
-    <span class="nav-icon">📦</span>
-    <span>Plans</span>
+    <span class="nav-icon">📦</span><span>Plans</span>
   </div>
   <div onclick="location.href='deposit.html'">
-    <span class="nav-icon">💳</span>
-    <span>Deposit</span>
+    <span class="nav-icon">💳</span><span>Deposit</span>
   </div>
   <div onclick="location.href='profile.html'">
-    <span class="nav-icon">👤</span>
-    <span>Profile</span>
+    <span class="nav-icon">👤</span><span>Profile</span>
   </div>
 </div>
 
-<!-- FLOATING WHATSAPP - GROUP LINK -->
-<a href="https://chat.whatsapp.com/IkdKPmEPinXBgt21GBYBws" target="_blank" class="whatsapp-float" aria-label="Join our WhatsApp group">
+<a href="https://chat.whatsapp.com/IkdKPmEPinXBgt21GBYBws" target="_blank" class="whatsapp-float" aria-label="Join WhatsApp group">
   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
   </svg>
 </a>
-<div class="whatsapp-tooltip">Join our WhatsApp group</div>
 
+<!-- WITHDRAW CAPITAL MODAL -->
+<div class="modal-bg" id="withdrawModal">
+  <div class="modal-box">
+    <h3>⚡ Withdraw Capital + Earnings</h3>
+    <p>This will end your current investment and return your capital plus all earned profit to your balance.</p>
+    <div class="amount-big" id="withdrawAmount">₦0</div>
+    <p style="font-size:12px;color:#999">Your flexible plan will be closed. You can re-subscribe anytime.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="document.getElementById('withdrawModal').classList.remove('show')">Cancel</button>
+      <button class="btn-danger" id="confirmWithdrawBtn">Confirm Withdraw</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getAuth,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getFirestore,doc,getDoc,updateDoc,deleteField,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain:"easypay-6bce8.firebaseapp.com",
+  projectId:"easypay-6bce8",
+  storageBucket:"easypay-6bce8.firebasestorage.app",
+  messagingSenderId:"862671358267",
+  appId:"1:862671358267:web:b243c7b69840ef918c8f1e"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+function toast(msg,isError){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(isError?' error':'');
+  setTimeout(()=>t.className='toast',3000);
+}
+
+async function initAuth(){
+  await setPersistence(auth,browserLocalPersistence);
+  onAuthStateChanged(auth,async user=>{
+    if(!user){window.location.href="login.html";return}
+    const userRef=doc(db,"users",user.uid);
+    const snap=await getDoc(userRef);
+    if(!snap.exists())return;
+    let data=snap.data();
+    const displayName=user.displayName||data.fullname||data.username||"User";
+    document.getElementById("username").innerText=displayName;
+    document.getElementById("userInitial").innerText=displayName.charAt(0).toUpperCase();
+    if(data.investment){await handleDailyCredit(userRef,data);const u2=await getDoc(userRef);data=u2.data()}
+    updateUI(data);
+  });
+}
+initAuth();
+
+async function handleDailyCredit(userRef,data){
+  const inv=data.investment;
+  const now=new Date();
+  const start=new Date(inv.startDate.seconds*1000);
+  const lastCredit=inv.lastCreditDate?new Date(inv.lastCreditDate.seconds*1000):start;
+  const totalDays=Math.floor((now-start)/(1000*60*60*24));
+  const creditedDays=Math.floor((lastCredit-start)/(1000*60*60*24));
+  let daysToCredit=totalDays-creditedDays;
+  if(daysToCredit<=0)return;
+  const expired=totalDays>=inv.duration;
+  if(expired)daysToCredit=inv.duration-creditedDays;
+  const earningsAmount=Math.max(0,daysToCredit*inv.dailyEarning);
+  let newBalance=(data.balance||0)+earningsAmount;
+  const updates={balance:newBalance,"investment.lastCreditDate":serverTimestamp()};
+  if(expired){
+    if(inv.flexible){newBalance+=inv.amount;updates.balance=newBalance}
+    updates.investment=deleteField();
+    updates.activePlan=null;
+  }
+  await updateDoc(userRef,updates);
+}
+
+function updateUI(data){
+  document.getElementById("balance").innerText=(data.balance||0).toLocaleString();
+  const flexBar=document.getElementById('flexBar');
+  flexBar.style.display='none';
+
+  if(!data.investment){
+    document.getElementById("planInfo").innerText="No Active Plan";
+    document.getElementById("investmentSection").innerHTML=`
+      <div class="no-plan">
+        <div class="no-plan-icon">📈</div>
+        <h3>No Active Investment</h3>
+        <p>Start earning daily returns by choosing an investment plan.</p>
+        <button class="no-plan-btn" onclick="location.href='invest.html'">View Plans</button>
+      </div>`;
+    return;
+  }
+
+  const inv=data.investment;
+  const now=new Date();
+  const start=new Date(inv.startDate.seconds*1000);
+  const daysPassed=Math.min(Math.floor((now-start)/(1000*60*60*24)),inv.duration);
+  const progress=Math.min((daysPassed/inv.duration)*100,100);
+  const earned=daysPassed*inv.dailyEarning;
+
+  document.getElementById("planInfo").innerText=inv.planName+" Plan"+(inv.flexible?" ⚡":" 🔒");
+
+  if(inv.flexible){
+    flexBar.style.display='flex';
+    const capitalReturn=inv.amount;
+    document.getElementById('withdrawAmount').innerText='₦'+(data.balance+capitalReturn).toLocaleString();
+    document.getElementById('confirmWithdrawBtn').onclick=async()=>{
+      const userRef=doc(db,"users",auth.currentUser.uid);
+      const latest=await getDoc(userRef);
+      const ld=latest.data();
+      await updateDoc(userRef,{
+        balance:(ld.balance||0)+inv.amount,
+        investment:deleteField(),
+        activePlan:null
+      });
+      document.getElementById('withdrawModal').classList.remove('show');
+      toast('Capital returned to your balance!');
+      setTimeout(()=>location.reload(),1500);
+    };
+    document.getElementById('flexWithdrawBtn').onclick=()=>{
+      const userRef=doc(db,"users",auth.currentUser.uid);
+      getDoc(userRef).then(s=>{
+        const d=s.data();
+        document.getElementById('withdrawAmount').innerText='₦'+((d.balance||0)+inv.amount).toLocaleString();
+        document.getElementById('withdrawModal').classList.add('show');
+      });
+    };
+  }
+
+  const flexLabel=inv.flexible
+    ?`<div class="stat-card"><div class="card-label">Capital (Withdrawable)</div><div class="card-value green">₦${inv.amount.toLocaleString()}</div></div>`
+    :`<div class="stat-card"><div class="card-label">Total Expected</div><div class="card-value">₦${inv.totalExpected.toLocaleString()}</div></div>`;
+
+  document.getElementById("investmentSection").innerHTML=`
+    <div class="section-title">Investment Overview</div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="card-label">Daily Earnings</div>
+        <div class="card-value green">₦${inv.dailyEarning.toLocaleString()}</div>
+      </div>
+      <div class="stat-card">
+        <div class="card-label">Days Progress</div>
+        <div class="card-value">${daysPassed} / ${inv.duration}</div>
+        <div class="progress-bar"><div class="progress" style="width:${progress}%"></div></div>
+        <div class="days-text">${progress.toFixed(1)}% completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="card-label">Earned So Far</div>
+        <div class="card-value green">₦${earned.toLocaleString()}</div>
+      </div>
+      ${flexLabel}
+      <div class="stat-card">
+        <div class="card-label">Amount Invested</div>
+        <div class="card-value">₦${inv.amount.toLocaleString()}</div>
+      </div>
+    </div>`;
+}
+
+/* CAROUSEL */
+const images=document.querySelectorAll(".carousel img");
+const dots=document.querySelectorAll(".carousel-dot");
+let i=0;
+setInterval(()=>{
+  images[i].classList.remove("active");dots[i].classList.remove("active");
+  i=(i+1)%images.length;
+  images[i].classList.add("active");dots[i].classList.add("active");
+},3500);
+</script>
 </body>
 </html>

@@ -1,168 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>EasyPay Profile</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — EasyPay</title>
+<link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Poppins', sans-serif;
+:root{--g1:#009f4d;--g2:#00c261;--bg:#f0f7f4}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',sans-serif}
+body{background:var(--bg);display:flex;justify-content:center;padding:40px 16px}
+.container{width:100%;max-width:500px}
+.card{
+  background:#fff;padding:28px 24px;border-radius:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.06);position:relative;
 }
-
-body {
-  background: #f4f7f6;
-  display: flex;
-  justify-content: center;
-  padding: 40px 15px;
+.back-btn{
+  position:absolute;top:16px;left:16px;background:#e8f5e9;color:var(--g1);
+  border:none;padding:6px 14px;border-radius:8px;font-weight:600;
+  cursor:pointer;font-size:13px;font-family:'Poppins';
 }
+.back-btn:hover{background:#c8e6c9}
+h2{text-align:center;margin-bottom:24px;color:var(--g1);font-size:20px}
 
-.container {
-  width: 100%;
-  max-width: 650px;
+.profile-info{text-align:center;margin-bottom:24px}
+.avatar{
+  width:90px;height:90px;border-radius:50%;background:#e8f5ee;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:700;color:var(--g1);margin:0 auto 12px;
+  border:3px solid var(--g1);
 }
+#usernameDisplay{font-size:16px;font-weight:600}
 
-.card {
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-  position: relative;
+.form-group{margin-bottom:14px}
+.form-group label{font-weight:600;display:block;margin-bottom:5px;font-size:13px;color:#444}
+.form-group input{
+  width:100%;padding:11px 14px;border-radius:10px;border:2px solid #e0e8e3;
+  font-size:14px;font-family:'Poppins';transition:.2s;
 }
+.form-group input:focus{border-color:var(--g1);outline:none;box-shadow:0 0 0 3px rgba(0,159,77,.1)}
+.form-group input[readonly]{background:#f5f7f5;color:#888}
 
-/* Back Button */
-.back-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background: #e9f7ef;
-  color: #009f4d;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 14px;
+button{
+  width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;
+  cursor:pointer;margin-top:8px;font-family:'Poppins';font-size:14px;transition:.2s;
 }
+.primary{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;box-shadow:0 4px 14px rgba(0,159,77,.2)}
+.primary:hover{transform:translateY(-2px)}
+.secondary{background:#e8f5e9;color:var(--g1)}
+.secondary:hover{background:#c8e6c9}
+.logout{background:#ffebee;color:#c62828}
+.logout:hover{background:#ffcdd2}
 
-.back-btn:hover {
-  opacity: 0.85;
+.message{text-align:center;margin-top:12px;font-weight:600;font-size:13px}
+.success{color:#2e7d32}
+.error{color:#c62828}
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#1a2e1a;color:#fff;padding:14px 24px;border-radius:12px;
+  font-size:14px;z-index:10000;transition:transform .4s;max-width:90%;
 }
-
-h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  color: #009f4d;
-}
-
-.profile-info {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: #e8f5ee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  font-weight: 700;
-  color: #009f4d;
-  margin: auto;
-  margin-bottom: 15px;
-  overflow: hidden;
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.form-group {
-  margin-bottom: 18px;
-}
-
-label {
-  font-weight: 600;
-  display: block;
-  margin-bottom: 6px;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-}
-
-input[readonly] {
-  background: #f1f1f1;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.primary {
-  background: #009f4d;
-  color: #fff;
-}
-
-.secondary {
-  background: #e9f7ef;
-  color: #009f4d;
-}
-
-.logout {
-  background: #ffebee;
-  color: #c62828;
-}
-
-.message {
-  text-align: center;
-  margin-top: 15px;
-  font-weight: 600;
-}
-
-.success { color: #2e7d32; }
-.error { color: #c62828; }
-
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{background:#c62828}
 </style>
 </head>
-
 <body>
-
 <div class="container">
   <div class="card">
-
-    <!-- Back Button -->
-    <button class="back-btn" onclick="location.href='dashboard.html'">
-      ← Back
-    </button>
-
-    <h2>EasyPay Profile</h2>
+    <button class="back-btn" onclick="location.href='dashboard.html'">← Back</button>
+    <h2>My Profile</h2>
 
     <div class="profile-info">
-      <div class="avatar" id="avatar">
-        <span id="avatarText">EP</span>
-        <img id="avatarImg" style="display:none;">
-      </div>
+      <div class="avatar" id="avatar"><span id="avatarText">EP</span></div>
       <p id="usernameDisplay"></p>
     </div>
 
@@ -173,7 +82,7 @@ button {
 
     <div class="form-group">
       <label>Email</label>
-      <input type="email" id="email">
+      <input type="email" id="email" readonly>
     </div>
 
     <div class="form-group">
@@ -181,119 +90,80 @@ button {
       <input type="password" id="newPassword" placeholder="Leave blank to keep current">
     </div>
 
-    <button class="primary" id="saveBtn">Save Changes</button>
-
-    <!-- Refer Button (Replaced Deposit & Withdraw) -->
-    <button class="secondary" onclick="location.href='referral.html'">
-      Refer & Earn
-    </button>
-
+    <button class="primary" id="saveBtn">Save Password</button>
+    <button class="secondary" onclick="location.href='referral.html'">👥 Refer & Earn</button>
     <button class="logout" id="logoutBtn">Logout</button>
 
     <div class="message" id="message"></div>
-
   </div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getAuth,onAuthStateChanged,updatePassword,signOut}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getFirestore,doc,getDoc}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  updateEmail,
-  updatePassword,
-  signOut
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+const app=initializeApp({
+  apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
+  authDomain:"easypay-6bce8.firebaseapp.com",
+  projectId:"easypay-6bce8"
+});
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",
-  authDomain: "easypay-6bce8.firebaseapp.com",
-  projectId: "easypay-6bce8",
-  storageBucket: "easypay-6bce8.appspot.com",
-  messagingSenderId: "862671358267",
-  appId: "1:862671358267:web:b243c7b69840ef918c8f1e",
-  measurementId: "G-2FZKDQ47FZ"
-};
+function toast(msg,isErr){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(isErr?' error':'');
+  setTimeout(()=>t.className='toast',3000);
+}
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const emailInput = document.getElementById("email");
-const usernameInput = document.getElementById("username");
-const usernameDisplay = document.getElementById("usernameDisplay");
-const newPasswordInput = document.getElementById("newPassword");
-const saveBtn = document.getElementById("saveBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const message = document.getElementById("message");
-const avatarText = document.getElementById("avatarText");
-const avatarImg = document.getElementById("avatarImg");
+const emailInput=document.getElementById('email');
+const usernameInput=document.getElementById('username');
+const usernameDisplay=document.getElementById('usernameDisplay');
+const newPasswordInput=document.getElementById('newPassword');
+const saveBtn=document.getElementById('saveBtn');
+const logoutBtn=document.getElementById('logoutBtn');
+const message=document.getElementById('message');
+const avatarText=document.getElementById('avatarText');
 
 let currentUser;
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
+onAuthStateChanged(auth,async user=>{
+  if(!user){window.location.href='login.html';return}
+  currentUser=user;
+  emailInput.value=user.email;
 
-  currentUser = user;
-  emailInput.value = user.email;
-
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  const data = userDoc.exists() ? userDoc.data() : {};
-
-  usernameInput.value = data.username || "User";
-  usernameDisplay.textContent = data.username || "";
-
-  if (user.photoURL) {
-    avatarImg.src = user.photoURL;
-    avatarImg.style.display = "block";
-    avatarText.style.display = "none";
-  } else {
-    avatarText.textContent = (data.username || "EP").slice(0,2).toUpperCase();
-  }
+  const userDoc=await getDoc(doc(db,'users',user.uid));
+  const data=userDoc.exists()?userDoc.data():{};
+  usernameInput.value=data.username||'User';
+  usernameDisplay.textContent=data.username||'';
+  avatarText.textContent=(data.username||'EP').slice(0,2).toUpperCase();
 });
 
-saveBtn.addEventListener("click", async () => {
-  message.textContent = "";
-  message.className = "message";
+saveBtn.addEventListener('click',async()=>{
+  message.textContent='';message.className='message';
+  const pw=newPasswordInput.value;
+  if(!pw){toast('Enter a new password',true);return}
+  if(pw.length<6){toast('Password must be at least 6 characters',true);return}
 
-  try {
-
-    if (emailInput.value !== currentUser.email) {
-      await updateEmail(currentUser, emailInput.value);
-    }
-
-    if (newPasswordInput.value) {
-      if (newPasswordInput.value.length < 6) {
-        throw new Error("Password must be at least 6 characters.");
-      }
-      await updatePassword(currentUser, newPasswordInput.value);
-      newPasswordInput.value = "";
-    }
-
-    message.textContent = "Profile updated successfully!";
-    message.classList.add("success");
-
-  } catch (error) {
-    message.textContent = error.message;
-    message.classList.add("error");
+  saveBtn.disabled=true;saveBtn.textContent='Saving...';
+  try{
+    await updatePassword(currentUser,pw);
+    newPasswordInput.value='';
+    message.textContent='Password updated!';message.classList.add('success');
+    toast('Password updated successfully');
+  }catch(err){
+    message.textContent=err.message;message.classList.add('error');
+    toast(err.message,true);
   }
+  saveBtn.disabled=false;saveBtn.textContent='Save Password';
 });
 
-logoutBtn.addEventListener("click", async () => {
+logoutBtn.addEventListener('click',async()=>{
   await signOut(auth);
-  window.location.href = "login.html";
+  window.location.href='login.html';
 });
-
 </script>
-
 </body>
 </html>

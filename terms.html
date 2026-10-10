@@ -202,7 +202,7 @@
         </div>
       </div>
       <div class="meta" aria-hidden="true">
-        <div>Last updated: <strong id="lastUpdated">July 23, 2026</strong></div>
+        <div>Last updated: <strong id="lastUpdated"></strong></div>
         <div style="font-size:13px; color:var(--muted)">Version 2.0</div>
       </div>
     </div>
@@ -327,6 +327,12 @@
 
   <script>
     (function(){
+      // Dynamic date
+      var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      var now = new Date();
+      document.getElementById('lastUpdated').textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+
+      // TOC scroll spy
       const links = Array.from(document.querySelectorAll('.toc a'));
       const sections = links.map(l => document.querySelector(l.getAttribute('href')));
       function onScroll(){
