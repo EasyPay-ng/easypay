@@ -77,10 +77,14 @@ const summaryText=document.getElementById('summaryText');
 const searchInput=document.getElementById('searchInput');
 const statusFilter=document.getElementById('statusFilter');
 
+const ADMIN_EMAILS=['easypay27.ng@gmail.com','anointedchidi7@gmail.com'];
+
 onAuthStateChanged(auth,async user=>{
   if(!user)return;
   const snap=await getDoc(doc(db,'users',user.uid));
-  if(!snap.exists()||snap.data().role!=='admin'){document.body.innerHTML='<h2 style="padding:20px">Not authorized</h2>';return}
+  const isAdmin=(snap.exists()&&snap.data().role==='admin')||
+    ADMIN_EMAILS.includes((user.email||'').toLowerCase());
+  if(!isAdmin){document.body.innerHTML='<h2 style="padding:20px">Not authorized</h2>';return}
   loadDeposits();
 });
 
