@@ -131,8 +131,11 @@ loginBtn.addEventListener('click',async()=>{
       loginBtn.disabled=false;loginBtn.textContent='Login';return;
     }
 
-    // Admin redirect (from Firestore role, not hardcoded email)
-    if(userData.role==='admin'){
+    // Admin redirect (Firestore role, or approved admin email list)
+    const ADMIN_EMAILS=['easypay27.ng@gmail.com','anointedchidi7@gmail.com'];
+    const isAdmin=userData.role==='admin'||
+      ADMIN_EMAILS.includes((user.email||'').toLowerCase());
+    if(isAdmin){
       window.location.href='admin.html';
     }else{
       window.location.href='dashboard.html';

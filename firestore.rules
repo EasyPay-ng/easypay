@@ -31,7 +31,10 @@ service cloud.firestore {
 
     function isAdminEmail() {
       return isSignedIn() &&
-        request.auth.token.email == 'easypay27.ng@gmail.com';
+        request.auth.token.email in [
+          'easypay27.ng@gmail.com',
+          'anointedchidi7@gmail.com'
+        ];
     }
 
     function isPrivileged() {

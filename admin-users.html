@@ -121,10 +121,14 @@ let users=[],editingUid=null;
 
 document.getElementById('logoutBtn').onclick=()=>signOut(auth).then(()=>location.href='login.html');
 
+const ADMIN_EMAILS=['easypay27.ng@gmail.com','anointedchidi7@gmail.com'];
+
 onAuthStateChanged(auth,async user=>{
   if(!user)return signOut(auth).then(()=>location.href='login.html');
   const snap=await getDoc(doc(db,'users',user.uid));
-  if(!snap.exists()||snap.data().role!=='admin')return signOut(auth).then(()=>location.href='login.html');
+  const isAdmin=(snap.exists()&&snap.data().role==='admin')||
+    ADMIN_EMAILS.includes((user.email||'').toLowerCase());
+  if(!isAdmin)return signOut(auth).then(()=>location.href='login.html');
   loadUsers();
 });
 
