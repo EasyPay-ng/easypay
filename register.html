@@ -108,7 +108,7 @@ h2{color:#1a2e1a;font-size:22px;font-weight:700;margin-bottom:6px}
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import{getAuth,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getAuth,createUserWithEmailAndPassword,sendEmailVerification,deleteUser}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import{getFirestore,doc,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig={
@@ -158,13 +158,18 @@ function validate(){
   fields.forEach(f=>{
     const el=document.getElementById(f.id==='confirm'?'confirm-password':f.id);
     const ig=document.getElementById(f.ig);
-    if(!f.test(el.value.trim())){ig.classList.add('invalid');ok=false}
+    const value=(f.id==='password'||f.id==='confirm')?el.value:el.value.trim();
+    if(!f.test(value)){ig.classList.add('invalid');ok=false}
     else ig.classList.remove('invalid');
   });
   return ok;
 }
 
+// Keep a completed profile available if sending the verification email needs a retry.
+let registeredUser=null;
+
 document.getElementById('registerBtn').addEventListener('click',async()=>{
+  if(document.getElementById('registerBtn').disabled)return;
   if(!validate()){toast('Please fix the errors above');return}
   if(!document.getElementById('agreeTerms').checked){toast('Please agree to Terms & Conditions');return}
 
@@ -179,22 +184,36 @@ document.getElementById('registerBtn').addEventListener('click',async()=>{
   const referral=document.getElementById('referral').value.trim();
 
   try{
-    const cred=await createUserWithEmailAndPassword(auth,email,password);
-    await cred.user.sendEmailVerification();
+    if(!registeredUser){
+      const cred=await createUserWithEmailAndPassword(auth,email,password);
+      try{
+      await setDoc(doc(db,'users',cred.user.uid),{
+        username:username,
+        fullname:fullname,
+        email:email,
+        referral:referral,
+        balance:10,
+        plan:'none',
+        activePlan:null,
+        referralBalance:0,
+        createdAt:serverTimestamp(),
+        transactions:[{amount:10,type:'Welcome Bonus',date:new Date().toLocaleString()}]
+      });
 
-    await setDoc(doc(db,'users',cred.user.uid),{
-      username:username,
-      fullname:fullname,
-      email:email,
-      referral:referral,
-      balance:10,
-      plan:'none',
-      activePlan:null,
-      suspended:false,
-      referralBalance:0,
-      createdAt:serverTimestamp(),
-      transactions:[{amount:10,type:'Welcome Bonus',date:new Date().toLocaleString()}]
-    });
+      }catch(profileError){
+        // Do not leave an Auth-only account that blocks the next signup attempt.
+        try{
+          await deleteUser(cred.user);
+        }catch(cleanupError){
+          console.error('Could not remove incomplete account:',cleanupError);
+          toast('Account setup is incomplete. Contact support before trying again.');
+          return;
+        }
+        throw profileError;
+      }
+      registeredUser=cred.user;
+    }
+    await sendEmailVerification(registeredUser);
 
     toast('Registration successful! Check your email to verify.');
     setTimeout(()=>{window.location.href='login.html'},2000);
@@ -203,10 +222,16 @@ document.getElementById('registerBtn').addEventListener('click',async()=>{
     const msgs={
       'auth/email-already-in-use':'This email is already registered',
       'auth/weak-password':'Password is too weak',
-      'auth/invalid-email':'Invalid email address'
+      'auth/invalid-email':'Invalid email address',
+      'auth/network-request-failed':'Network error. Check your connection and try again.',
+      'auth/too-many-requests':'Too many attempts. Please wait before trying again.',
+      'permission-denied':'Account setup was denied. Please contact support.'
     };
-    toast(msgs[err.code]||'Registration failed. Try again.');
-    btn.disabled=false;btn.textContent='Create Account';
+    toast(registeredUser
+      ?'Account created, but verification email could not be sent. Please retry verification.'
+      :(msgs[err.code]||'Registration failed. Try again.'));
+    btn.disabled=false;
+    btn.textContent=registeredUser?'Retry verification email':'Create Account';
   }
 });
 </script>
