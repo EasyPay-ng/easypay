@@ -26,6 +26,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
@@ -38,7 +39,7 @@ service cloud.firestore {
     }
 
     function isPrivileged() {
-      return isAdmin() || isAdminEmail();
+      return isAdminEmail() || isAdmin();
     }
 
     // Prevent writing fields only the server/admin should set
@@ -133,6 +134,11 @@ service cloud.firestore {
 
       // Only admin can delete
       allow delete: if isPrivileged();
+    }
+
+    // ── Collection group read for admin withdrawal management ─
+    match /{path=**}/withdrawals/{withdrawalId} {
+      allow read: if isPrivileged();
     }
 
     // ── Deny everything else by default ────────

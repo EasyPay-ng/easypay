@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Withdrawals — EasyPay</title>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
 <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dq7fpxfbc/image/upload/v1772198392/1000250298_iy0yq0.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -11,18 +19,39 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',sans-serif}
 body{background:var(--bg);color:#1a2e1a;padding:20px}
 .container{max-width:1200px;margin:auto}
-h2{color:var(--g1);margin-bottom:12px;font-size:18px}
+h2{color:var(--g1);margin-bottom:8px;font-size:18px}
 .back{display:inline-block;margin-bottom:12px;color:var(--g1);text-decoration:none;font-weight:600;font-size:13px}
+.top-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .total-box{
-  background:#e8f5e9;color:#006b35;padding:12px 18px;border-radius:12px;
-  font-weight:700;display:inline-block;margin-bottom:16px;font-size:14px;
+  background:#e8f5e9;color:#006b35;padding:10px 16px;border-radius:12px;
+  font-weight:700;display:inline-block;font-size:14px;
 }
+.summary{font-size:13px;color:#556b58;font-weight:600}
+.controls{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.controls input,.controls select{
+  padding:8px 12px;border-radius:8px;border:2px solid #e0e8e3;
+  font-size:13px;font-family:'Poppins';background:#fff;
+}
+.controls input{min-width:220px;flex:1;max-width:340px}
+.controls button{
+  padding:8px 14px;border:none;border-radius:8px;cursor:pointer;
+  font-weight:600;font-family:'Poppins';font-size:12px;
+}
+.btn-refresh{background:var(--g1);color:#fff}
+.btn-reset{background:#e8f5e9;color:var(--g1)}
 .table-wrap{background:#fff;border-radius:14px;overflow:auto;box-shadow:0 4px 16px rgba(0,0,0,.05)}
 table{width:100%;border-collapse:collapse;min-width:700px}
 th{background:var(--g1);color:#fff;padding:10px 12px;font-size:11px;text-align:left;font-weight:600;position:sticky;top:0}
 td{padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px}
 tbody tr:hover{background:#f8fff9}
-select{padding:6px 10px;border-radius:8px;border:2px solid #e0e8e3;font-size:12px;font-family:'Poppins';font-weight:600}
+td select{padding:6px 10px;border-radius:8px;border:2px solid #e0e8e3;font-size:12px;font-family:'Poppins';font-weight:600}
+.state-cell{text-align:center;color:#777;padding:24px}
+.load-more-wrap{text-align:center;padding:14px}
+.btn-more{
+  background:#e8f5e9;color:#006b35;border:none;padding:9px 20px;
+  border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;
+}
+.btn-more:hover{background:#d4eed8}
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a2e1a;color:#fff;padding:14px 24px;border-radius:12px;font-size:14px;z-index:10000;transition:transform .4s;max-width:90%}
 .toast.show{transform:translateX(-50%) translateY(0)}
 </style>
@@ -31,14 +60,31 @@ select{padding:6px 10px;border-radius:8px;border:2px solid #e0e8e3;font-size:12p
 <a href="admin.html" class="back">← Admin Dashboard</a>
 <div class="container">
   <h2>Withdrawal Records</h2>
-  <div class="total-box" id="totalAmount">Loading...</div>
+  <div class="top-meta">
+    <div class="total-box" id="totalAmount">Loading...</div>
+    <div class="summary" id="summaryText"></div>
+  </div>
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search name, account #, bank...">
+    <select id="statusFilter">
+      <option value="all" selected>All Statuses</option>
+      <option value="pending">Pending Only</option>
+      <option value="approved">Approved Only</option>
+      <option value="rejected">Rejected Only</option>
+    </select>
+    <button class="btn-refresh" id="refreshBtn">Refresh</button>
+    <button class="btn-reset" id="resetBtn">Reset</button>
+  </div>
   <div class="table-wrap">
     <table id="withdrawalTable">
       <thead>
         <tr><th>Date</th><th>Amount</th><th>Bank</th><th>Account #</th><th>Account Name</th><th>Plan</th><th>Status</th></tr>
       </thead>
-      <tbody><tr><td colspan="7" style="text-align:center;color:#999;padding:20px">Loading...</td></tr></tbody>
+      <tbody><tr><td colspan="7" class="state-cell">Loading...</td></tr></tbody>
     </table>
+    <div class="load-more-wrap" id="loadMoreWrap" style="display:none">
+      <button class="btn-more" id="loadMoreBtn">Load more</button>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -46,7 +92,7 @@ select{padding:6px 10px;border-radius:8px;border:2px solid #e0e8e3;font-size:12p
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import{getFirestore,collectionGroup,getDocs,doc,updateDoc,getDoc}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import{getFirestore,collection,collectionGroup,query,where,documentId,getDocs,doc,updateDoc,getDoc}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app=initializeApp({apiKey:"AIzaSyDRkip46Ql5KhNfuatWAcAxQzgP5VtQ8UY",authDomain:"easypay-6bce8.firebaseapp.com",projectId:"easypay-6bce8"});
 const db=getFirestore(app);const auth=getAuth(app);
@@ -55,81 +101,389 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 const ADMIN_EMAILS=['easypay27.ng@gmail.com','anointedchidi7@gmail.com'];
+const PAGE_SIZE=50;
+const FALLBACK_CONCURRENCY=25;
+const PLAN_CACHE_KEY='easypay_user_plans_v1';
+const CG_FALLBACK_KEY='easypay_cg_fallback_v1';
+
+const totalAmountEl=document.getElementById('totalAmount');
+const summaryTextEl=document.getElementById('summaryText');
+const searchInputEl=document.getElementById('searchInput');
+const statusFilterEl=document.getElementById('statusFilter');
+const loadMoreWrapEl=document.getElementById('loadMoreWrap');
+const loadMoreBtnEl=document.getElementById('loadMoreBtn');
+const tbodyEl=document.querySelector('#withdrawalTable tbody');
+
+const userPlanCache=new Map();
+try{
+  const raw=sessionStorage.getItem(PLAN_CACHE_KEY);
+  if(raw){
+    const parsed=JSON.parse(raw);
+    for(const[k,v]of Object.entries(parsed))userPlanCache.set(k,v);
+  }
+}catch{}
+
+function persistPlanCache(){
+  try{
+    if(userPlanCache.size<=2000){
+      sessionStorage.setItem(PLAN_CACHE_KEY,JSON.stringify(Object.fromEntries(userPlanCache)));
+    }
+  }catch{}
+}
+
+function normalizeStatus(status){
+  const s=String(status||'pending').toLowerCase();
+  if(s==='approved'||s==='successful')return'approved';
+  if(s==='rejected')return'rejected';
+  return'pending';
+}
+
+function getTimestampMs(ts){
+  if(!ts)return 0;
+  if(typeof ts.seconds==='number')return ts.seconds*1000;
+  if(typeof ts.toMillis==='function')return ts.toMillis();
+  if(typeof ts==='number')return ts;
+  const parsed=Date.parse(ts);
+  return Number.isNaN(parsed)?0:parsed;
+}
+
+function resolveUserPlan(userData){
+  if(!userData)return'N/A';
+  const active=userData.activePlan||userData.investment?.planName;
+  if(active&&active!=='none')return String(active);
+  return userData.plan?String(userData.plan):'N/A';
+}
+
+let allDocs=[];
+let filteredDocs=[];
+let visibleLimit=PAGE_SIZE;
+let loadGeneration=0;
+const inFlightUids=new Set();
 
 onAuthStateChanged(auth,async user=>{
-  if(!user)return;
-  const snap=await getDoc(doc(db,'users',user.uid));
-  const isAdmin=(snap.exists()&&snap.data().role==='admin')||
-    ADMIN_EMAILS.includes((user.email||'').toLowerCase());
-  if(!isAdmin){document.body.innerHTML='<h2 style="padding:20px">Not authorized</h2>';return}
-  loadWithdrawals();
+  if(!user){window.location.href='login.html';return}
+  try{
+    const isEmailAdmin=ADMIN_EMAILS.includes((user.email||'').toLowerCase());
+    if(!isEmailAdmin){
+      const snap=await getDoc(doc(db,'users',user.uid));
+      if(!snap.exists()||snap.data().role!=='admin'){
+        document.body.innerHTML='<h2 style="padding:20px">Not authorized</h2>';
+        return;
+      }
+    }
+    loadWithdrawals();
+  }catch(err){
+    console.error('Auth verification failed:',err);
+    totalAmountEl.textContent='Unable to verify access';
+    tbodyEl.innerHTML=`<tr><td colspan="7" class="state-cell">Failed to verify admin access: ${esc(err.message||'Network error')}</td></tr>`;
+  }
 });
 
-async function loadWithdrawals(){
-  const q=collectionGroup(db,'withdrawals');
-  const snapshot=await getDocs(q);
-  const allDocs=[];let totalNet=0;const userPathsSet=new Set();
+function updateTotalsUI(){
+  let totalNet=0,pendingCount=0,approvedCount=0,rejectedCount=0;
+  for(const item of allDocs){
+    const amt=Number(item.data.amount);
+    if(item.normStatus==='approved'){
+      approvedCount++;
+      if(!Number.isNaN(amt))totalNet+=amt;
+    }else if(item.normStatus==='rejected'){
+      rejectedCount++;
+    }else{
+      pendingCount++;
+    }
+  }
+  totalAmountEl.textContent='Total Withdrawn: ₦'+totalNet.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  summaryTextEl.textContent=`Pending: ${pendingCount} | Approved: ${approvedCount} | Rejected: ${rejectedCount}`;
+}
 
-  snapshot.forEach(docSnap=>{
-    const data=docSnap.data();
-    if(typeof data.amount==='number'&&(data.status==='Successful'||data.status==='approved'))totalNet+=data.amount;
-    const parts=docSnap.ref.path.split('/');
-    const uid=parts.length>=2?parts[1]:'N/A';
-    const userPath=parts.length>=2?parts[0]+'/'+parts[1]:null;
-    if(userPath)userPathsSet.add(userPath);
-    allDocs.push({path:docSnap.ref.path,data,uid,userPath,plan:data.plan||null});
-  });
+function applyFiltersAndRender(resetPage=true){
+  if(resetPage)visibleLimit=PAGE_SIZE;
+  const q=searchInputEl.value.trim().toLowerCase();
+  const st=statusFilterEl.value;
 
-  const userPaths=Array.from(userPathsSet);
-  const userPlanMap={};
-  await Promise.all(userPaths.map(async p=>{
-    const[col,id]=p.split('/');
-    const snap=await getDoc(doc(db,col,id));
-    userPlanMap[p]=snap.exists()?(snap.data().plan||'N/A'):'N/A';
-  }));
-  allDocs.forEach(item=>{if(!item.plan)item.plan=item.userPath&&userPlanMap[item.userPath]?userPlanMap[item.userPath]:'N/A'});
-
-  allDocs.sort((a,b)=>{
-    const sa=a.data.status,sb=b.data.status;
-    if(sa==='pending'&&sb!=='pending')return-1;
-    if(sa!=='pending'&&sb==='pending')return1;
-    return(b.data.timestamp?.seconds||0)-(a.data.timestamp?.seconds||0);
-  });
-
-  document.getElementById('totalAmount').textContent='Total Withdrawn: ₦'+totalNet.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  const tbody=document.querySelector('#withdrawalTable tbody');
-  tbody.innerHTML='';
-
-  allDocs.forEach(item=>{
+  filteredDocs=allDocs.filter(item=>{
+    if(st!=='all'&&item.normStatus!==st)return false;
+    if(!q)return true;
     const d=item.data;
-    const dateStr=d.timestamp?.seconds?new Date(d.timestamp.seconds*1000).toLocaleString():'N/A';
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
+    return String(d.accName||'').toLowerCase().includes(q)||
+      String(d.accNumber||'').toLowerCase().includes(q)||
+      String(d.bank||'').toLowerCase().includes(q)||
+      String(item.plan||'').toLowerCase().includes(q);
+  });
+
+  renderVisibleRows();
+}
+
+function renderVisibleRows(){
+  if(!allDocs.length){
+    tbodyEl.innerHTML='<tr><td colspan="7" class="state-cell">No withdrawal records found.</td></tr>';
+    loadMoreWrapEl.style.display='none';
+    return;
+  }
+  if(!filteredDocs.length){
+    tbodyEl.innerHTML='<tr><td colspan="7" class="state-cell">No matching withdrawal records.</td></tr>';
+    loadMoreWrapEl.style.display='none';
+    return;
+  }
+
+  const slice=filteredDocs.slice(0,visibleLimit);
+  const missingUids=[];
+
+  tbodyEl.innerHTML=slice.map(item=>{
+    const d=item.data;
+    const dateStr=item.tsMs?new Date(item.tsMs).toLocaleString():'N/A';
+    if(!item.plan&&item.uid&&userPlanCache.has(item.uid)){
+      item.plan=userPlanCache.get(item.uid);
+    }
+    const hasPlan=Boolean(item.plan);
+    const planDisplay=hasPlan?item.plan:'...';
+    if(!hasPlan&&item.uid&&!inFlightUids.has(item.uid)){
+      missingUids.push(item.uid);
+    }
+    const planCell=hasPlan
+      ?`<td>${esc(planDisplay)}</td>`
+      :`<td data-plan-pending="${esc(item.uid||'')}">${esc(planDisplay)}</td>`;
+    return`<tr>
       <td>${esc(dateStr)}</td>
       <td>₦${esc(d.amount)}</td>
       <td>${esc(d.bank||'N/A')}</td>
       <td>${esc(d.accNumber||'N/A')}</td>
       <td>${esc(d.accName||'N/A')}</td>
-      <td>${esc(item.plan)}</td>
+      ${planCell}
       <td>
-        <select data-path="${item.path}" onchange="updateStatus(this)">
-          <option value="pending" ${d.status==='pending'?'selected':''}>Pending</option>
-          <option value="approved" ${d.status==='approved'||d.status==='Successful'?'selected':''}>Approved</option>
-          <option value="rejected" ${d.status==='rejected'||d.status==='Rejected'?'selected':''}>Rejected</option>
+        <select data-path="${esc(item.path)}" onchange="updateStatus(this)">
+          <option value="pending" ${item.normStatus==='pending'?'selected':''}>Pending</option>
+          <option value="approved" ${item.normStatus==='approved'?'selected':''}>Approved</option>
+          <option value="rejected" ${item.normStatus==='rejected'?'selected':''}>Rejected</option>
         </select>
-      </td>`;
-    tbody.appendChild(tr);
+      </td>
+    </tr>`;
+  }).join('');
+
+  const remaining=filteredDocs.length-slice.length;
+  if(remaining>0){
+    loadMoreWrapEl.style.display='block';
+    loadMoreBtnEl.textContent=`Load more (${remaining} remaining)`;
+  }else{
+    loadMoreWrapEl.style.display='none';
+  }
+
+  if(missingUids.length)hydrateMissingPlans(missingUids,loadGeneration);
+}
+
+async function hydrateMissingPlans(rawUids,generation){
+  const uniqueUids=[...new Set(rawUids)].filter(uid=>uid&&!userPlanCache.has(uid)&&!inFlightUids.has(uid));
+  if(!uniqueUids.length)return;
+  uniqueUids.forEach(uid=>inFlightUids.add(uid));
+
+  const chunks=[];
+  for(let i=0;i<uniqueUids.length;i+=10)chunks.push(uniqueUids.slice(i,i+10));
+
+  try{
+    await Promise.all(chunks.map(async chunk=>{
+      const found=new Set();
+      try{
+        const qUsers=query(collection(db,'users'),where(documentId(),'in',chunk));
+        const snap=await getDocs(qUsers);
+        snap.forEach(uSnap=>{
+          found.add(uSnap.id);
+          userPlanCache.set(uSnap.id,resolveUserPlan(uSnap.data()));
+        });
+      }catch{
+        await Promise.all(chunk.map(async uid=>{
+          try{
+            const uSnap=await getDoc(doc(db,'users',uid));
+            found.add(uid);
+            userPlanCache.set(uid,uSnap.exists()?resolveUserPlan(uSnap.data()):'N/A');
+          }catch{
+            found.add(uid);
+            userPlanCache.set(uid,'N/A');
+          }
+        }));
+      }
+      for(const uid of chunk){
+        if(!found.has(uid))userPlanCache.set(uid,'N/A');
+      }
+    }));
+
+    persistPlanCache();
+    for(const item of allDocs){
+      if(!item.plan&&item.uid&&userPlanCache.has(item.uid)){
+        item.plan=userPlanCache.get(item.uid);
+      }
+    }
+
+    if(generation!==loadGeneration)return;
+    tbodyEl.querySelectorAll('td[data-plan-pending]').forEach(cell=>{
+      const uid=cell.getAttribute('data-plan-pending');
+      if(uid&&userPlanCache.has(uid)){
+        cell.textContent=userPlanCache.get(uid);
+        cell.removeAttribute('data-plan-pending');
+      }
+    });
+  }finally{
+    uniqueUids.forEach(uid=>inFlightUids.delete(uid));
+  }
+}
+
+function sortRecords(list){
+  return list.sort((a,b)=>{
+    if(a.isPending!==b.isPending)return a.isPending?-1:1;
+    return b.tsMs-a.tsMs;
   });
+}
+
+function toWithdrawalItem(path,uid,data){
+  const normStatus=normalizeStatus(data.status);
+  const tsMs=getTimestampMs(data.timestamp);
+  const cachedPlan=data.plan||(uid&&userPlanCache.has(uid)?userPlanCache.get(uid):null);
+  return{
+    path,
+    data,
+    uid,
+    normStatus,
+    isPending:normStatus==='pending',
+    tsMs,
+    plan:cachedPlan
+  };
+}
+
+async function loadWithdrawalsViaUsers(gen){
+  const usersSnap=await getDocs(collection(db,'users'));
+  if(gen!==loadGeneration)return;
+
+  const userEntries=[];
+  usersSnap.forEach(uSnap=>{
+    const u=uSnap.data()||{};
+    userPlanCache.set(uSnap.id,resolveUserPlan(u));
+    const priority=u.hasWithdrawals?2:
+      (u.activePlan||(u.plan&&u.plan!=='none')||u.investment||(typeof u.balance==='number'&&u.balance!==10))?1:0;
+    userEntries.push({id:uSnap.id,priority});
+  });
+  persistPlanCache();
+  userEntries.sort((a,b)=>b.priority-a.priority);
+
+  const loaded=[];
+  let cursor=0;
+  let lastRenderAt=0;
+
+  async function worker(){
+    while(cursor<userEntries.length){
+      if(gen!==loadGeneration)return;
+      const entry=userEntries[cursor++];
+      const wSnap=await getDocs(collection(db,'users',entry.id,'withdrawals'));
+      let added=false;
+      wSnap.forEach(wDoc=>{
+        const path=wDoc.ref?.path||`users/${entry.id}/withdrawals/${wDoc.id}`;
+        loaded.push(toWithdrawalItem(path,entry.id,wDoc.data()));
+        added=true;
+      });
+      const now=Date.now();
+      if(added&&now-lastRenderAt>=250&&gen===loadGeneration){
+        lastRenderAt=now;
+        allDocs=sortRecords([...loaded]);
+        updateTotalsUI();
+        applyFiltersAndRender(false);
+      }
+    }
+  }
+
+  const workers=Array.from({length:Math.min(FALLBACK_CONCURRENCY,userEntries.length)},()=>worker());
+  await Promise.all(workers);
+  if(gen!==loadGeneration)return;
+
+  allDocs=sortRecords(loaded);
+  updateTotalsUI();
+  applyFiltersAndRender(true);
+}
+
+async function loadWithdrawals(){
+  const gen=++loadGeneration;
+  tbodyEl.innerHTML='<tr><td colspan="7" class="state-cell">Loading...</td></tr>';
+  loadMoreWrapEl.style.display='none';
+
+  try{
+    let useFallback=false;
+    try{useFallback=sessionStorage.getItem(CG_FALLBACK_KEY)==='1'}catch{}
+
+    if(!useFallback){
+      try{
+        const snapshot=await getDocs(collectionGroup(db,'withdrawals'));
+        if(gen!==loadGeneration)return;
+
+        const loaded=[];
+        snapshot.forEach(docSnap=>{
+          const parts=docSnap.ref.path.split('/');
+          const uid=parts.length>=2?parts[1]:null;
+          loaded.push(toWithdrawalItem(docSnap.ref.path,uid,docSnap.data()));
+        });
+
+        allDocs=sortRecords(loaded);
+        updateTotalsUI();
+        applyFiltersAndRender(true);
+        return;
+      }catch(cgErr){
+        const code=String(cgErr?.code||'');
+        const msg=String(cgErr?.message||'').toLowerCase();
+        if(code==='permission-denied'||code==='failed-precondition'||msg.includes('permission')||msg.includes('index')){
+          try{sessionStorage.setItem(CG_FALLBACK_KEY,'1')}catch{}
+        }else{
+          throw cgErr;
+        }
+      }
+    }
+
+    await loadWithdrawalsViaUsers(gen);
+  }catch(err){
+    console.error('Failed to load withdrawals:',err);
+    totalAmountEl.textContent='Error loading records';
+    tbodyEl.innerHTML=`<tr><td colspan="7" class="state-cell">Failed to load withdrawals: ${esc(err.message||'Please refresh and try again.')}</td></tr>`;
+    toast('Failed to load withdrawals');
+  }
 }
 
 window.updateStatus=async function(selectEl){
   const path=selectEl.getAttribute('data-path');
   const newStatus=selectEl.value;
-  const parts=path.split('/');
-  const ref=doc(db,...parts);
-  await updateDoc(ref,{status:newStatus});
-  toast('Status updated to '+newStatus);
+  const item=allDocs.find(x=>x.path===path);
+  const prevStatus=item?item.normStatus:'pending';
+  selectEl.disabled=true;
+
+  try{
+    const ref=doc(db,...path.split('/'));
+    await updateDoc(ref,{status:newStatus});
+    if(item){
+      item.data.status=newStatus;
+      item.normStatus=normalizeStatus(newStatus);
+      item.isPending=item.normStatus==='pending';
+      updateTotalsUI();
+    }
+    toast('Status updated to '+newStatus);
+  }catch(err){
+    console.error('Failed to update status:',err);
+    selectEl.value=prevStatus;
+    toast('Failed to update status: '+(err.message||'Try again'));
+  }finally{
+    selectEl.disabled=false;
+  }
 };
+
+let searchTimer=null;
+searchInputEl.addEventListener('input',()=>{
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>applyFiltersAndRender(true),120);
+});
+statusFilterEl.addEventListener('change',()=>applyFiltersAndRender(true));
+document.getElementById('refreshBtn').addEventListener('click',()=>loadWithdrawals());
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  searchInputEl.value='';
+  statusFilterEl.value='all';
+  applyFiltersAndRender(true);
+});
+loadMoreBtnEl.addEventListener('click',()=>{
+  visibleLimit+=PAGE_SIZE;
+  renderVisibleRows();
+});
 </script>
 </body>
 </html>
