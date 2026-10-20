@@ -148,12 +148,14 @@ async function submitWithdrawal(uid){
   try{
     const userRef=doc(db,'users',uid);
     const userDoc=await getDoc(userRef);
-    const balance=userDoc.data().balance||0;
+    const userData=userDoc.exists()?userDoc.data():{};
+    const balance=userData.balance||0;
     if(amount>balance){toast('Insufficient balance',true);resetBtn();return}
+    const plan=userData.activePlan||userData.investment?.planName||userData.plan||'N/A';
 
-    await updateDoc(userRef,{balance:balance-amount});
+    await updateDoc(userRef,{balance:balance-amount,hasWithdrawals:true});
     await addDoc(collection(userRef,'withdrawals'),{
-      timestamp:new Date(),amount,bank,accName,accNumber,status:'pending'
+      timestamp:new Date(),amount,bank,accName,accNumber,plan,status:'pending'
     });
 
     toast('Withdrawal submitted!');

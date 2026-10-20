@@ -70,10 +70,12 @@ const ADMIN_EMAILS=['easypay27.ng@gmail.com','anointedchidi7@gmail.com'];
 
 onAuthStateChanged(auth,async user=>{
   if(!user)return signOut(auth).then(()=>location.href='login.html');
-  // Check admin role from Firestore, or approved admin email list
-  const userSnap=await getDoc(doc(db,'users',user.uid));
-  const isAdmin=(userSnap.exists()&&userSnap.data().role==='admin')||
-    ADMIN_EMAILS.includes((user.email||'').toLowerCase());
+  // Check approved admin email list first, then Firestore role
+  let isAdmin=ADMIN_EMAILS.includes((user.email||'').toLowerCase());
+  if(!isAdmin){
+    const userSnap=await getDoc(doc(db,'users',user.uid));
+    isAdmin=userSnap.exists()&&userSnap.data().role==='admin';
+  }
   if(!isAdmin){
     return signOut(auth).then(()=>location.href='login.html');
   }
